@@ -1,0 +1,19 @@
+{
+  "display" : {
+	      "width" : 800,
+	      "height" : 600,
+	      "title" : "Game engine",
+	      "isFullScreen" : true
+	    },
+  "camera" : {
+             "near" : 1.0,
+             "far" : 5000.0,
+             "fov" : 75.0
+	   },
+  "mouse" : {
+                "moveSpeed" : 1.0,
+                "rotationSpeed" : 0.003,
+                "warpMouse" : true,
+                "showMouse" : false
+        }
+}

@@ -1,0 +1,13 @@
+{
+    "VSPath" : "res/shaders/example.vs",
+    "FSPath" : "res/shaders/example.fs",
+    "Uniforms" : {
+                    "material.ambient" : "VEC3",
+                    "material.specular" : "VEC3",
+                    "material.diffuse" : "VEC3",
+                    "material.shininess" : "FLOAT",
+                    "modelMatrix" : "MAT4",
+                    "viewMatrix" : "MAT4",
+                    "projectionMatrix" : "MAT4"
+                 }
+}
