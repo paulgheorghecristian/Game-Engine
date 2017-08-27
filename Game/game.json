@@ -1,0 +1,43 @@
+{
+    "ConfigFilePath" : "res/configs/config.json",
+    "Entities" : [
+        {
+            "Transform" : {
+                "position" : [0, 0, 0],
+                "rotation" : [0, 0, 0],
+                "scale" : [10, 10, 10]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/rock.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Material" : {
+                        "ambient" : [0.5, 0.5, 0.8],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [0, 0, 0],
+                "rotation" : [0, 0, 0],
+                "scale" : [100, 100, 100]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/cube4.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Material" : {
+                        "ambient" : [1.0, 0.0, 0.5],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                }
+            }
+        }
+    ]
+}
