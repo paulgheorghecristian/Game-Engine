@@ -19,7 +19,7 @@ Transform::Transform(const glm::vec3 &position = glm::vec3(0),
 
 }
 
-Transform::Transform(Transform &other) {
+Transform::Transform(const Transform &other) {
     position = other.getPosition();
     rotation = other.getRotation();
     scale = other.getScale();
@@ -27,7 +27,7 @@ Transform::Transform(Transform &other) {
     modelMatrix = other.getModelMatrix();
 }
 
-Transform &Transform::operator=(Transform &other) {
+Transform &Transform::operator=(const Transform &other) {
     position = other.getPosition();
     rotation = other.getRotation();
     scale = other.getScale();
@@ -48,7 +48,7 @@ const glm::vec3 &Transform::getScale() const {
     return scale;
 }
 
-const glm::mat4 &Transform::getModelMatrix() {
+const glm::mat4 &Transform::getModelMatrix() const {
     if (modelMatrixNeedsRefresh) {
         refreshModelMatrix();
     }
@@ -66,13 +66,56 @@ void Transform::setRotation(const glm::quat &rotation) {
     modelMatrixNeedsRefresh = true;
 }
 
+void Transform::setRotation(const glm::vec3 &rotation) {
+    this->rotation = glm::quat(rotation);
+    modelMatrixNeedsRefresh = true;
+}
+
 void Transform::setScale(const glm::vec3 &scale) {
     this->scale = scale;
     modelMatrixNeedsRefresh = true;
 }
 
-Transform Transform::interpolateWith(const Transform &other, float ratio) {
-    Transform t(glm::vec3(0), glm::vec3(0), glm::vec3(0));
+void Transform::setModelMatrix (const glm::mat4 &modelMatrix) {
+    this->modelMatrix = modelMatrix;
+    modelMatrixNeedsRefresh = false;
+}
+
+void Transform::addPosition(float x, float y, float z) {
+    if (!x && !y && !z) {
+        return;
+    }
+
+    position.x += x;
+    position.y += y;
+    position.z += z;
+
+    modelMatrixNeedsRefresh = true;
+}
+
+void Transform::addRotation(float x, float y, float z) {
+    if (!x && !y && !z) {
+        return;
+    }
+
+    rotation = glm::normalize(rotation * glm::quat(glm::vec3(x, y, z)));
+
+    modelMatrixNeedsRefresh = true;
+}
+
+void Transform::addScale(float x, float y, float z) {
+    scale.x += x;
+    scale.y += y;
+    scale.z += z;
+
+    if (!x && !y && !z) {
+        return;
+    }
+
+    modelMatrixNeedsRefresh = true;
+}
+
+void Transform::interpolateWith(const Transform &other, float ratio) {
 
     if (ratio > 1) {
         ratio = 1;
@@ -80,14 +123,16 @@ Transform Transform::interpolateWith(const Transform &other, float ratio) {
         ratio = 0;
     }
 
-    t.setPosition(this->getPosition() * ratio + other.getPosition() * (1.0f-ratio));
-    t.setScale(this->getScale() * ratio + other.getScale() * (1.0f-ratio));
-    t.setRotation(glm::mix(this->getRotation(), other.getRotation(), ratio));
+    ratio = 1-ratio;
 
-    return t;
+    this->setPosition(glm::mix(this->getPosition(), other.getPosition(), ratio));
+    this->setScale(glm::mix(this->getScale(), other.getScale(), ratio));
+    this->setRotation(glm::slerp(this->getRotation(), other.getRotation(), ratio));
+
+    modelMatrixNeedsRefresh = true;
 }
 
-void Transform::refreshModelMatrix() {
+void Transform::refreshModelMatrix() const {
     glm::mat4 T = glm::translate(glm::mat4(1.0), position);
     glm::mat4 R = glm::mat4_cast(rotation);
     glm::mat4 S = glm::scale(glm::mat4(1.0), scale);

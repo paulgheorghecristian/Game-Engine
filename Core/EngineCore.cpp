@@ -7,10 +7,12 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
     std::string jsonBody;
     int screenWidth, screenHeight;
     const char *screenTitle;
-    bool isFullScreen;
+    bool isFullScreen, vSync;
     float nearPlane, farPlane, fov, aspectRatio;
+    unsigned int maxFps;
     Display * display = NULL;
     std::string configFile (gameDocument["ConfigFilePath"].GetString());
+    float gravity = gameDocument.HasMember("gravity") ? gameDocument["gravity"].GetFloat() : 9.8f;
 
     jsonBody = FileUtils::loadFileInString (configFile);
     parseResult = configDocument.Parse (jsonBody.c_str ());
@@ -29,6 +31,8 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
     screenHeight = (configDocument["display"].HasMember("height")) ? configDocument["display"]["height"].GetInt() : 600;
     screenTitle = (configDocument["display"].HasMember("title")) ? configDocument["display"]["title"].GetString() : "No title";
     isFullScreen = (configDocument["display"].HasMember("isFullScreen")) ? configDocument["display"]["isFullScreen"].GetBool() : false;
+    maxFps = (configDocument["display"].HasMember("maxFps")) ? configDocument["display"]["maxFps"].GetInt() : 60;
+    vSync = (configDocument["display"].HasMember("vSync")) ? configDocument["display"]["vSync"].GetBool() : false;
 
     nearPlane = (configDocument["camera"].HasMember("near")) ? configDocument["camera"]["near"].GetFloat() : 1.0f;
     farPlane = (configDocument["camera"].HasMember("far")) ? configDocument["camera"]["far"].GetFloat() : 5000.0f;
@@ -41,7 +45,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
     this->showMouse = (configDocument["mouse"].HasMember("showMouse")) ? configDocument["mouse"]["showMouse"].GetBool() : true;
 
     /* this needs to be called first before doing anything with OpenGL */
-    display = new Display (screenWidth, screenHeight, screenTitle, isFullScreen);
+    display = new Display (screenWidth, screenHeight, screenTitle, isFullScreen, maxFps, vSync);
     inputManager.setWarpMouse (this->warpMouse);
     SDL_ShowCursor(this->showMouse);
 
@@ -76,18 +80,71 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
         }
     }
     renderingMaster = new RenderingMaster (display,
-                                           new Camera (glm::vec3(0), 0, 0, 0),
+                                           new Camera (glm::vec3(-500, 0, 0), 0, glm::radians(90.0f), 0),
                                            glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane),
                                            entities);
+    physicsMaster = new PhysicsMaster (entities, gravity);
 }
 
 void EngineCore::start() {
     isRunning = true;
+    auto start_time = CPP_Clock::now();
+    const float frame_time = renderingMaster->getDisplay()->getFrameTimeInMs() * 1000;
+    unsigned int unprocessed_time = 0;
+    unsigned int frame_counter = 0;
+    unsigned int FPS = 0;
+    bool needToRender = false;
+
+    std::vector<Transform> old_state, save_state;
+    old_state.reserve (entities.size());
+    save_state.reserve (entities.size());
+    for (Entity *e : entities) {
+        old_state.push_back (e->getTransform());
+    }
 
     while (isRunning) {
-        input ();
-        update ();
-        render ();
+        auto last_time = CPP_Clock::now();
+        unsigned int passed_time = std::chrono::duration_cast<std::chrono::microseconds>(last_time - start_time).count();
+
+        needToRender = false;
+        start_time = last_time;
+
+        unprocessed_time += passed_time;
+        frame_counter += passed_time;
+
+        if (frame_counter >= 1000000) {
+            std::cout << FPS << std::endl;
+            FPS = 0;
+            frame_counter = 0;
+        }
+
+        while (unprocessed_time >= frame_time) {
+            for (unsigned int i = 0; i < entities.size(); i++) {
+                old_state[i] = entities[i]->getTransform();
+            }
+            input ();
+            update ();
+
+            unprocessed_time -= frame_time;
+            needToRender = true;
+        }
+
+        //if (needToRender) {
+            float blend_factor = unprocessed_time / frame_time;
+            std::cout << blend_factor << std::endl;
+            for (unsigned int i = 0; i < entities.size(); i++) {
+                save_state[i] = entities[i]->getTransform();
+            }
+            for (unsigned int i = 0; i < entities.size(); i++) {
+                //entities[i]->getTransform().interpolateWith(old_state[i], blend_factor);
+            }
+            //unprocessed_time = 0;
+            render ();
+            for (unsigned int i = 0; i < entities.size(); i++) {
+                entities[i]->setTransform (save_state[i]);
+            }
+            FPS++;
+        //}
     }
 }
 
@@ -99,7 +156,6 @@ void EngineCore::input() {
     inputManager.update (renderingMaster->getDisplay());
 
     if(inputManager.getKeyDown (SDLK_ESCAPE)){
-
         stop ();
     }
 
@@ -137,6 +193,7 @@ void EngineCore::update() {
     }
 
     renderingMaster->update();
+    physicsMaster->update();
 }
 
 std::vector<Entity *> &EngineCore::getEntities() {

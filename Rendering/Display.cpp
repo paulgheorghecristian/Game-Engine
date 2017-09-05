@@ -3,7 +3,12 @@
 int Display::delta = 0;
 bool Display::isWindowClosed;
 
-Display::Display(const int WIDTH, const int HEIGHT, const char * title, bool fullscreen) {
+Display::Display(const int WIDTH,
+                 const int HEIGHT,
+                 const char * title,
+                 bool fullscreen,
+                 unsigned int maxFps,
+                 bool vSync = false) : MAX_FPS (maxFps), FRAME_TIME_IN_MS (1000.0f/MAX_FPS) {
     SDL_Init (SDL_INIT_EVERYTHING);
 
     SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -51,7 +56,9 @@ Display::Display(const int WIDTH, const int HEIGHT, const char * title, bool ful
     glEnable (GL_CULL_FACE);
     glViewport (0.0f, 0.0f, this->width, this->height);
 
-    SDL_GL_SetSwapInterval  (1);
+    if (vSync) {
+        SDL_GL_SetSwapInterval  (1);
+    }
 }
 
 Display::~Display() {
@@ -87,6 +94,14 @@ const int Display::getHeight() const {
 
 SDL_Window* Display::getWindow() {
     return window;
+}
+
+const unsigned int Display::getMaxFps() const {
+    return MAX_FPS;
+}
+
+const float Display::getFrameTimeInMs() const {
+    return FRAME_TIME_IN_MS;
 }
 
 void Display::close() {

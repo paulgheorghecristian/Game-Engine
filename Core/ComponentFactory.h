@@ -3,6 +3,8 @@
 
 #include "rapidjson/document.h"
 #include "RenderComponent.h"
+#include "TempAnimationComponent.h"
+#include "PhysicsComponent.h"
 
 class ComponentFactory
 {

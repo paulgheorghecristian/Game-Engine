@@ -15,6 +15,7 @@ class Entity
         Entity *addChild(Entity *child);
         Entity *addComponent(Component *component);
         Transform &getTransform();
+        void setTransform(const Transform &transform);
         Component *getComponent (const unsigned int flag);
         void input();
         void update();
@@ -24,7 +25,8 @@ class Entity
         enum Flags {
             RENDERABLE = 1, /* contains RenderComponent */
             DYNAMIC, /* contains PhysicsComponent */
-            EMIT_PARTICLES /* contains EmitParticlesComponent */
+            EMIT_PARTICLES, /* contains EmitParticlesComponent */
+            ANIMATED,
         };
     protected:
 

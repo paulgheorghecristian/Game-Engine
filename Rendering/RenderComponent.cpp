@@ -1,8 +1,8 @@
 #include "RenderComponent.h"
 
 RenderComponent::RenderComponent(Mesh * mesh, Shader * shader, const Material &material) : mesh (mesh),
-                                                                                          shader (shader),
-                                                                                          material (material) {
+                                                                                           shader (shader),
+                                                                                           material (material) {
 }
 
 void RenderComponent::input() {

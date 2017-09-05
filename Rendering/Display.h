@@ -9,7 +9,12 @@
 class Display
 {
     public:
-        Display(const int WIDTH, const int HEIGHT, const char * title, bool fullscreen);
+        Display(const int WIDTH,
+                const int HEIGHT,
+                const char * title,
+                bool fullscreen,
+                unsigned int maxFps,
+                bool vSync);
         virtual ~Display();
         void swapBuffers();
         bool isClosed();
@@ -21,11 +26,16 @@ class Display
         static int delta;
         SDL_Window * getWindow();
         void close();
+
+        const unsigned int getMaxFps() const;
+        const float getFrameTimeInMs() const;
     protected:
     private:
         SDL_Window * window;
         SDL_GLContext glContext;
         float width, height;
+        const unsigned int MAX_FPS;
+        const float FRAME_TIME_IN_MS;
 };
 
 #endif // DISPLAY_H

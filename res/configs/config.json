@@ -3,12 +3,14 @@
 	      "width" : 800,
 	      "height" : 600,
 	      "title" : "Game engine",
-	      "isFullScreen" : true
+	      "isFullScreen" : true,
+	      "maxFps" : 60,
+	      "vSync" : false
 	    },
   "camera" : {
              "near" : 1.0,
              "far" : 5000.0,
-             "fov" : 75.0
+             "fov" : 80.0
 	   },
   "mouse" : {
                 "moveSpeed" : 1.0,

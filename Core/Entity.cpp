@@ -11,6 +11,9 @@ Entity *Entity::addChild(Entity *child) {
 }
 
 Entity * Entity::addComponent(Component *component) {
+    if (component == NULL) {
+        return this;
+    }
     assert (component->getEntity() == NULL);
     assert (components[component->getFlag()] == NULL);
 
@@ -58,6 +61,10 @@ void Entity::render() {
 
 Transform &Entity::getTransform() {
     return transform;
+}
+
+void Entity::setTransform(const Transform &transform) {
+    this->transform = transform;
 }
 
 Component *Entity::getComponent (const unsigned int flag) {

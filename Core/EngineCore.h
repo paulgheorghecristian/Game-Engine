@@ -5,11 +5,14 @@
 #include "Input.h"
 #include "Entity.h"
 #include "RenderingMaster.h"
+#include "PhysicsMaster.h"
 #include "FileUtils.h"
 #include "rapidjson/error/en.h"
 #include "ComponentFactory.h"
 
 #include <vector>
+#include <chrono>
+typedef std::chrono::high_resolution_clock CPP_Clock;
 
 class EngineCore
 {
@@ -29,6 +32,7 @@ class EngineCore
         Input inputManager;
         std::vector<Entity *> entities;
         RenderingMaster *renderingMaster;
+        PhysicsMaster *physicsMaster;
         bool isRunning;
 
         float mouseMoveSpeed, mouseRotationSpeed;

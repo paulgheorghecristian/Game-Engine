@@ -14,19 +14,24 @@ class Transform
         Transform(const glm::vec3 &position,
                   const glm::vec3 &rotation,
                   const glm::vec3 &scale);
-        Transform(Transform &other);
-        Transform &operator=(Transform &other);
+        Transform(const Transform &other);
+        Transform &operator=(const Transform &other);
 
         //transform = this.transform * ratio + other.transform (1-ratio);
-        Transform interpolateWith(const Transform &other, float ratio);
+        void interpolateWith(const Transform &other, float ratio);
 
         const glm::vec3& getPosition() const;
         const glm::quat& getRotation() const;
         const glm::vec3& getScale() const;
-        const glm::mat4& getModelMatrix();
+        const glm::mat4& getModelMatrix() const;
         void setPosition(const glm::vec3 &position);
         void setRotation(const glm::quat &rotation);
+        void setRotation(const glm::vec3 &rotation);
         void setScale(const glm::vec3 &scale);
+        void setModelMatrix (const glm::mat4 &modelMatrix);
+        void addPosition(float x, float y, float z);
+        void addRotation(float x, float y, float z);
+        void addScale(float x, float y, float z);
 
         virtual ~Transform();
     protected:
@@ -35,10 +40,10 @@ class Transform
         glm::vec3 position;
         glm::quat rotation;
         glm::vec3 scale;
-        glm::mat4 modelMatrix;
-        bool modelMatrixNeedsRefresh;
+        mutable glm::mat4 modelMatrix;
+        mutable bool modelMatrixNeedsRefresh;
 
-        void refreshModelMatrix();
+        void refreshModelMatrix() const;
 };
 
 #endif // TRANSFORM_H
