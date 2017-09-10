@@ -96,10 +96,10 @@ void EngineCore::start() {
     bool needToRender = false;
 
     std::vector<Transform> old_state, save_state;
-    old_state.reserve (entities.size());
-    save_state.reserve (entities.size());
+    old_state.reserve (entities.size()*1000);
+    save_state.reserve (entities.size()*1000);
     for (Entity *e : entities) {
-        //old_state.push_back (e->getTransform());
+        old_state.push_back (e->getTransform());
     }
 
     while (isRunning) {
@@ -120,7 +120,7 @@ void EngineCore::start() {
 
         while (unprocessed_time >= frame_time) {
             for (unsigned int i = 0; i < entities.size(); i++) {
-                //old_state[i] = entities[i]->getTransform();
+                old_state[i] = entities[i]->getTransform();
             }
             input ();
             update ();
@@ -133,15 +133,15 @@ void EngineCore::start() {
             float blend_factor = unprocessed_time / frame_time;
             //std::cout << blend_factor << std::endl;
             for (unsigned int i = 0; i < entities.size(); i++) {
-                //save_state[i] = entities[i]->getTransform();
+                save_state[i] = entities[i]->getTransform();
             }
             for (unsigned int i = 0; i < entities.size(); i++) {
-                //entities[i]->getTransform().interpolateWith(old_state[i], blend_factor);
+                entities[i]->getTransform().interpolateWith(old_state[i], blend_factor);
             }
             //unprocessed_time = 0;
             render ();
             for (unsigned int i = 0; i < entities.size(); i++) {
-                //entities[i]->setTransform (save_state[i]);
+                entities[i]->setTransform (save_state[i]);
             }
             FPS++;
         //}

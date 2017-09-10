@@ -14,17 +14,21 @@ void PhysicsComponent::update() {
     btVector3 axis;
     btScalar w;
     btVector3 origin;
+    struct btQuaternionFloatData quatXYZ;
 
     m_rigidBody->getMotionState()->getWorldTransform(t);
     float mat[16];
     t.getOpenGLMatrix(mat);
 
-    axis = t.getRotation().getAxis();
+    t.getRotation().serializeFloat(quatXYZ);
     w = t.getRotation().getW();
     origin = t.getOrigin();
 
     _entity->getTransform().setPosition(glm::vec3(origin.x(), origin.y(), origin.z()));
-    _entity->getTransform().setRotation (glm::quat (axis.x(), axis.y(), axis.z(), w));
+    _entity->getTransform().setRotation (glm::quat (quatXYZ.m_floats[0],
+                                                    quatXYZ.m_floats[1],
+                                                    quatXYZ.m_floats[2],
+                                                    quatXYZ.m_floats[3]));
     _entity->getTransform().setModelMatrix(glm::scale(glm::make_mat4(mat), _entity->getTransform().getScale()));
 }
 
@@ -33,7 +37,6 @@ void PhysicsComponent::render() {
 }
 
 void PhysicsComponent::init() {
-    //needs to be called after entity is set because it need its transform
     assert (_entity != NULL);
 
     btTransform t;
