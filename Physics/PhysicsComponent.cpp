@@ -48,7 +48,9 @@ void PhysicsComponent::init() {
 
     switch (type) {
         case BoundingBodyType::CUBE:
-            collisionShape = new btBoxShape(btVector3(boundingBodyScale.x, boundingBodyScale.y, boundingBodyScale.z));
+            collisionShape = new btBoxShape(btVector3(boundingBodyScale.x / 2.0f,
+                                                      boundingBodyScale.y / 2.0f,
+                                                      boundingBodyScale.z / 2.0f));
             break;
         case BoundingBodyType::SPHERE:
             assert (boundingBodyScale.x == boundingBodyScale.y);
@@ -69,6 +71,8 @@ void PhysicsComponent::init() {
 
     m_rigidBody = new btRigidBody(info);
     m_rigidBody->setDamping(btScalar(0.4), btScalar(0.3));
+
+    PhysicsMaster::getWorld()->addRigidBody(m_rigidBody);
 }
 
 const unsigned int PhysicsComponent::getFlag() const {
@@ -80,6 +84,6 @@ btRigidBody *PhysicsComponent::getRigidBody() {
 }
 
 PhysicsComponent::~PhysicsComponent() {
-    delete m_rigidBody->getMotionState();
-    delete m_rigidBody;
+    //delete m_rigidBody->getMotionState();
+    //delete m_rigidBody;
 }

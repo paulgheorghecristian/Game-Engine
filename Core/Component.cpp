@@ -12,6 +12,8 @@ Entity * Component::getEntity () {
     return _entity;
 }
 
+void Component::init(){}
+
 Component::~Component()
 {
 }

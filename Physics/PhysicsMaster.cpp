@@ -1,6 +1,15 @@
 #include "PhysicsMaster.h"
 
-PhysicsMaster::PhysicsMaster(std::vector<Entity *> &entities, float gravity) : entities (entities) {
+PhysicsMaster *PhysicsMaster::m_instance = NULL;
+
+btDynamicsWorld *PhysicsMaster::world;
+btDispatcher *PhysicsMaster::dispatcher;
+btBroadphaseInterface *PhysicsMaster::broadsphase;
+btCollisionConfiguration *PhysicsMaster::collisionConfig;
+btConstraintSolver *PhysicsMaster::solver;
+btRigidBody *PhysicsMaster::planeRigidBody;
+
+PhysicsMaster::PhysicsMaster(float gravity) {
     btTransform t;
 
     collisionConfig = new btDefaultCollisionConfiguration();
@@ -25,14 +34,21 @@ PhysicsMaster::PhysicsMaster(std::vector<Entity *> &entities, float gravity) : e
     info.m_friction = 1.0;
     planeRigidBody = new btRigidBody(info);
     world->addRigidBody(planeRigidBody);
+}
 
-    for (auto const &entity : entities) {
-        Component *component;
-        if ((component = entity->getComponent(Entity::Flags::DYNAMIC)) != NULL) {
-            PhysicsComponent *physicsComponent = (PhysicsComponent *) component;
-            physicsComponent->init();
-            world->addRigidBody (physicsComponent->getRigidBody());
-        }
+PhysicsMaster *PhysicsMaster::getInstance() {
+    return m_instance;
+}
+
+void PhysicsMaster::init(float gravity) {
+    if (m_instance == NULL) {
+        m_instance = new PhysicsMaster (gravity);
+    }
+}
+
+void PhysicsMaster::destroy() {
+    if (m_instance != NULL) {
+        delete m_instance;
     }
 }
 
@@ -40,13 +56,13 @@ void PhysicsMaster::update() {
     world->stepSimulation(btScalar(0.5f));
 }
 
-PhysicsMaster::~PhysicsMaster() {
-    delete planeRigidBody->getMotionState();
-    delete planeRigidBody;
+btDynamicsWorld *PhysicsMaster::getWorld() {
+    return world;
+}
 
-    delete dispatcher;
-    delete broadsphase;
-    delete collisionConfig;
-    delete solver;
+PhysicsMaster::~PhysicsMaster() {
+    //delete planeRigidBody->getMotionState();
+    //delete planeRigidBody;
+
     delete world;
 }

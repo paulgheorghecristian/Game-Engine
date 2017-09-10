@@ -13,6 +13,7 @@ class Component
         virtual void update() = 0;
         virtual void render() = 0;
         virtual const unsigned int getFlag() const = 0;
+        virtual void init();
         void setEntity (Entity * entity);
         Entity * getEntity ();
         virtual ~Component();

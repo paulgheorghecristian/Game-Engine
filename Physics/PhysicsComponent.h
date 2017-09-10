@@ -5,6 +5,9 @@
 #include "glm/glm.hpp"
 #include "bullet/btBulletDynamicsCommon.h"
 #include "glm/gtc/type_ptr.hpp"
+#include "PhysicsMaster.h"
+
+class PhysicsMaster;
 
 class PhysicsComponent : public Component
 {

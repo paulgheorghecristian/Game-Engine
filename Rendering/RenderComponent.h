@@ -5,6 +5,9 @@
 #include "Shader.h"
 #include "Material.h"
 #include "Component.h"
+#include "RenderingMaster.h"
+
+class RenderingMaster;
 
 class RenderComponent : public Component
 {

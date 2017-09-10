@@ -1,41 +1,40 @@
 #include "RenderingMaster.h"
 
+RenderingMaster *RenderingMaster::m_instance = NULL;
+Display *RenderingMaster::display;
+Camera *RenderingMaster::camera;
+glm::mat4 RenderingMaster::projectionMatrix;
+
 RenderingMaster::RenderingMaster(Display *display,
                                  Camera *camera,
-                                 glm::mat4 projectionMatrix,
-                                 std::vector<Entity *> &entities) : display (display),
-                                                                     camera (camera),
-                                                                     projectionMatrix (projectionMatrix),
-                                                                     entities (entities) {
-    glm::mat4 viewMatrix = camera->getViewMatrix();
-    bool result = true;
-
-    for (auto const &entity : entities) {
-        Component *component;
-        if ((component = entity->getComponent(Entity::Flags::RENDERABLE)) != NULL) {
-            RenderComponent * renderComponent = (RenderComponent *) component;
-            if(std::find(shaders.begin(), shaders.end(), renderComponent->getShader()) == shaders.end()) {
-                shaders.push_back (renderComponent->getShader());
-            }
-        }
-    }
-
-    for (auto const &shader : shaders) {
-        result &= shader->updateUniform ("projectionMatrix", (void *) &projectionMatrix);
-        result &= shader->updateUniform ("viewMatrix", (void *) &viewMatrix);
-    }
-
-    assert (result);
-
+                                 glm::mat4 projectionMatrix) {
+    RenderingMaster::display = display;
+    RenderingMaster::camera = camera;
+    RenderingMaster::projectionMatrix = projectionMatrix;
 }
 
 RenderingMaster::~RenderingMaster() {
     display->close();
-    for (auto const &shader : shaders) {
-        delete shader;
-    }
     delete display;
     delete camera;
+}
+
+void RenderingMaster::init(Display *display,
+                           Camera *camera,
+                           glm::mat4 projectionMatrix) {
+    if (m_instance == NULL) {
+        m_instance = new RenderingMaster (display, camera, projectionMatrix);
+    }
+}
+
+RenderingMaster *RenderingMaster::getInstance() {
+    return m_instance;
+}
+
+void RenderingMaster::destroy () {
+    if (m_instance != NULL) {
+        delete m_instance;
+    }
 }
 
 void RenderingMaster::clearScreen(float r, float g, float b, float a) {
@@ -44,27 +43,6 @@ void RenderingMaster::clearScreen(float r, float g, float b, float a) {
 
 void RenderingMaster::swapBuffers() {
     display->swapBuffers ();
-}
-
-void RenderingMaster::render() {
-    clearScreen(1, 1, 1, 1);
-
-    for (auto entity : entities) {
-        entity->render();
-    }
-
-    swapBuffers();
-}
-
-void RenderingMaster::update() {
-    bool result = true;
-    glm::mat4 viewMatrix = camera->getViewMatrix();
-
-    for (auto shader : shaders) {
-        result &= shader->updateUniform ("viewMatrix", (void *) &viewMatrix);
-    }
-
-    assert (result);
 }
 
 void RenderingMaster::moveCameraForward(float distance) {
@@ -84,4 +62,12 @@ void RenderingMaster::rotateCameraY(float rotY) {
 
 Display *RenderingMaster::getDisplay() {
     return display;
+}
+
+Camera *RenderingMaster::getCamera() {
+    return camera;
+}
+
+glm::mat4 &RenderingMaster::getProjectionMatrix() {
+    return projectionMatrix;
 }

@@ -20,6 +20,7 @@ Entity * Entity::addComponent(Component *component) {
     component->setEntity (this);
     components[component->getFlag()] = component;
 
+    component->init();
     return this;
 }
 

@@ -49,6 +49,11 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
     inputManager.setWarpMouse (this->warpMouse);
     SDL_ShowCursor(this->showMouse);
 
+    RenderingMaster::init (display,
+                           new Camera (glm::vec3(-500, 0, 0), 0, glm::radians(90.0f), 0),
+                           glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane));
+    PhysicsMaster::init (gravity);
+
     if (gameDocument.HasMember("Entities")) {
         for (auto const &entity : gameDocument["Entities"].GetArray()) {
             glm::vec3 position (0), rotation (0), scale (1);
@@ -72,18 +77,13 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
             if (entity.HasMember("Components")) {
                 for (rapidjson::Value::ConstMemberIterator itr = entity["Components"].GetObject().MemberBegin();
                         itr != entity["Components"].GetObject().MemberEnd(); ++itr) {
-                    new_entity->addComponent(ComponentFactory::createComponent(itr));
+                    Component *component = ComponentFactory::createComponent(itr);
+                    new_entity->addComponent(component);
                 }
             }
-
             entities.push_back (new_entity);
         }
     }
-    renderingMaster = new RenderingMaster (display,
-                                           new Camera (glm::vec3(-500, 0, 0), 0, glm::radians(90.0f), 0),
-                                           glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane),
-                                           entities);
-    physicsMaster = new PhysicsMaster (entities, gravity);
 }
 
 void EngineCore::start() {
@@ -99,7 +99,7 @@ void EngineCore::start() {
     old_state.reserve (entities.size());
     save_state.reserve (entities.size());
     for (Entity *e : entities) {
-        old_state.push_back (e->getTransform());
+        //old_state.push_back (e->getTransform());
     }
 
     while (isRunning) {
@@ -120,7 +120,7 @@ void EngineCore::start() {
 
         while (unprocessed_time >= frame_time) {
             for (unsigned int i = 0; i < entities.size(); i++) {
-                old_state[i] = entities[i]->getTransform();
+                //old_state[i] = entities[i]->getTransform();
             }
             input ();
             update ();
@@ -131,9 +131,9 @@ void EngineCore::start() {
 
         //if (needToRender) {
             float blend_factor = unprocessed_time / frame_time;
-            std::cout << blend_factor << std::endl;
+            //std::cout << blend_factor << std::endl;
             for (unsigned int i = 0; i < entities.size(); i++) {
-                save_state[i] = entities[i]->getTransform();
+                //save_state[i] = entities[i]->getTransform();
             }
             for (unsigned int i = 0; i < entities.size(); i++) {
                 //entities[i]->getTransform().interpolateWith(old_state[i], blend_factor);
@@ -141,7 +141,7 @@ void EngineCore::start() {
             //unprocessed_time = 0;
             render ();
             for (unsigned int i = 0; i < entities.size(); i++) {
-                entities[i]->setTransform (save_state[i]);
+                //entities[i]->setTransform (save_state[i]);
             }
             FPS++;
         //}
@@ -178,22 +178,43 @@ void EngineCore::input() {
     renderingMaster->rotateCameraX(inputManager.getMouseDelta().y * this->mouseRotationSpeed);
     renderingMaster->rotateCameraY(inputManager.getMouseDelta().x * this->mouseRotationSpeed);
 
+    if (inputManager.getMouse(1)) {
+        Transform transform (renderingMaster->getCamera()->getPosition(),
+                             glm::vec3 (0),
+                             glm::vec3 (20));
+        entities.push_back ((new Entity(transform))->addComponent (new RenderComponent(Mesh::loadObject("res/models/cube4.obj"),
+                                                                                       new Shader("res/shaders/example.json"),
+                                                                                       Material (glm::vec3(1, 0, 0),
+                                                                                                 glm::vec3(0),
+                                                                                                 glm::vec3(0),
+                                                                                                 0.0f)))
+                                                    ->addComponent (new PhysicsComponent(PhysicsComponent::BoundingBodyType::CUBE,
+                                                                                         glm::vec3 (20),
+                                                                                         20.0f)));
+    }
+
     for (auto const &entity : entities) {
         entity->input ();
     }
 }
 
 void EngineCore::render() {
-    renderingMaster->render();
+    RenderingMaster::clearScreen(1, 1, 1, 1);
+
+    for (auto entity : entities) {
+        entity->render ();
+    }
+
+    RenderingMaster::swapBuffers();
+
 }
 
 void EngineCore::update() {
+    physicsMaster->update();
+
     for (auto entity : entities) {
         entity->update ();
     }
-
-    renderingMaster->update();
-    physicsMaster->update();
 }
 
 std::vector<Entity *> &EngineCore::getEntities() {
@@ -204,5 +225,6 @@ EngineCore::~EngineCore() {
     for (auto entity : entities) {
         delete entity;
     }
-    delete renderingMaster;
+    RenderingMaster::destroy();
+    PhysicsMaster::destroy();
 }

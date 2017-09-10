@@ -73,11 +73,11 @@
             "Transform" : {
                 "position" : [0, 100, 0],
                 "rotation" : [0, 0, 0],
-                "scale" : [40, 40, 40]
+                "scale" : [80, 80, 80]
             },
             "Components" : {
                 "RenderComponent" : {
-                    "Mesh" : "res/models/cube3.obj",
+                    "Mesh" : "res/models/cube4.obj",
                     "Shader" : "res/shaders/example.json",
                     "Material" : {
                         "ambient" : [1.0, 0.0, 0.5],
@@ -88,7 +88,7 @@
                 },
                 "PhysicsComponent" : {
                     "BoundingBodyType" : ["cube"],
-                    "scale": [40, 40, 40],
+                    "scale": [80, 80, 80],
                     "mass" : 100
                 }
             }

@@ -14,30 +14,32 @@
 class RenderingMaster
 {
     public:
-        RenderingMaster(Display *display,
-                         Camera *camera,
-                         glm::mat4 projectionMatrix,
-                         std::vector<Entity *> &entities);
-        void update();
-        void render();
-        void moveCameraForward(float distance);
-        void moveCameraSideways(float distance);
-        void rotateCameraX(float rotX);
-        void rotateCameraY(float rotY);
-        Display *getDisplay();
-        virtual ~RenderingMaster();
-
+        static void init (Display *display,
+                          Camera *camera,
+                          glm::mat4 projectionMatrix);
+        static RenderingMaster *getInstance();
+        static void destroy ();
+        static void clearScreen(float r, float g, float b, float a);
+        static void swapBuffers();
+        static void moveCameraForward(float distance);
+        static void moveCameraSideways(float distance);
+        static void rotateCameraX(float rotX);
+        static void rotateCameraY(float rotY);
+        static Display *getDisplay();
+        static Camera *getCamera();
+        static glm::mat4 &getProjectionMatrix();
     protected:
 
     private:
-        Display * display;
-        Camera * camera;
-        glm::mat4 projectionMatrix;
-        std::vector<Entity *> &entities;
-        std::vector<Shader *> shaders;
+        RenderingMaster(Display *display,
+                         Camera *camera,
+                         glm::mat4 projectionMatrix);
+        ~RenderingMaster();
+        static RenderingMaster *m_instance;
 
-        void clearScreen(float r, float g, float b, float a);
-        void swapBuffers();
+        static Display *display;
+        static Camera *camera;
+        static glm::mat4 projectionMatrix;
 };
 
 #endif // RENDERINGMASTER_H

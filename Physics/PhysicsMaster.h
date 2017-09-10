@@ -9,22 +9,28 @@
 class PhysicsMaster
 {
     public:
-        PhysicsMaster(std::vector<Entity *> &entities, float gravity);
-        void update();
-        virtual ~PhysicsMaster();
+        static void init(float gravity);
+        static void destroy();
+        static void update();
+
+        static PhysicsMaster *getInstance();
+        static btDynamicsWorld *getWorld();
 
     protected:
 
     private:
-        btDynamicsWorld *world;
-        btDispatcher *dispatcher;
-        btBroadphaseInterface *broadsphase;
-        btCollisionConfiguration *collisionConfig;
-        btConstraintSolver *solver;
+        PhysicsMaster(float gravity);
+        ~PhysicsMaster();
 
-        btRigidBody *planeRigidBody;
+        static PhysicsMaster *m_instance;
 
-        std::vector<Entity *> &entities;
+        static btDynamicsWorld *world;
+        static btDispatcher *dispatcher;
+        static btBroadphaseInterface *broadsphase;
+        static btCollisionConfiguration *collisionConfig;
+        static btConstraintSolver *solver;
+
+        static btRigidBody *planeRigidBody;
 };
 
 #endif // PHYSICSMASTER_H
