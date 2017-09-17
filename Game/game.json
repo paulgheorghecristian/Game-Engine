@@ -21,7 +21,7 @@
                 },
                 "TempAnimationComponent" : {
                     "addPosition" : [0.1, 0.0, 0],
-                    "addRotation" : [0, 0.1, 0.07],
+                    "addRotation" : [0, 0.001, 0.007],
                     "addScale" : [0, 0, 0]
                 }
             }
@@ -64,7 +64,7 @@
                 },
                 "TempAnimationComponent" : {
                     "addPosition" : [0.2, 0.0, 0],
-                    "addRotation" : [0.03, 0, 0.06],
+                    "addRotation" : [0.003, 0, 0.006],
                     "addScale" : [0, 0, 0]
                 }
             }
@@ -79,6 +79,7 @@
                 "RenderComponent" : {
                     "Mesh" : "res/models/cube4.obj",
                     "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/154.bmp",
                     "Material" : {
                         "ambient" : [1.0, 0.0, 0.5],
                         "diffuse" : [0, 0, 0],

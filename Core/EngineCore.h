@@ -9,10 +9,11 @@
 #include "FileUtils.h"
 #include "rapidjson/error/en.h"
 #include "ComponentFactory.h"
+#include "Texture.h"
+#include "ProfilingTimer.h"
 
 #include <vector>
 #include <chrono>
-typedef std::chrono::high_resolution_clock CPP_Clock;
 
 class EngineCore
 {

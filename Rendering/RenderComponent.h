@@ -6,13 +6,14 @@
 #include "Material.h"
 #include "Component.h"
 #include "RenderingMaster.h"
+#include "Texture.h"
 
 class RenderingMaster;
 
 class RenderComponent : public Component
 {
     public:
-        RenderComponent(Mesh * mesh, Shader * shader, const Material &material);
+        RenderComponent(Mesh *mesh, Shader *shader, Texture *texture, const Material &material);
         void input();
         void update();
         void render();
@@ -23,8 +24,9 @@ class RenderComponent : public Component
     protected:
 
     private:
-        Mesh * mesh;
-        Shader * shader;
+        Mesh *mesh;
+        Shader *shader;
+        Texture *texture;
         Material material;
 };
 

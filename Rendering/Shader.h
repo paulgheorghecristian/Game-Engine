@@ -32,7 +32,6 @@ class Shader
     protected:
 
     private:
-        std::string vertexShaderPath, geometryShaderPath, fragmentShaderPath;
         GLuint vertexHandle, fragmentHandle, geometryHandle;
         GLuint program;
         std::unordered_map<std::string, ShaderUniform *> uniforms;

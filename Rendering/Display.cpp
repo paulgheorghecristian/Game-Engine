@@ -11,7 +11,7 @@ Display::Display(const int WIDTH,
                  bool vSync = false) : MAX_FPS (maxFps), FRAME_TIME_IN_MS (1000.0f/MAX_FPS) {
     SDL_Init (SDL_INIT_EVERYTHING);
 
-    SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
     SDL_GL_SetAttribute (SDL_GL_RED_SIZE, 8);

@@ -1,4 +1,4 @@
-#version 430
+#version 330
 
 layout(location = 0) out vec3 outColor;
 
@@ -9,8 +9,16 @@ struct Material {
     float shininess;
 };
 
+uniform sampler2D textureSampler;
 uniform Material material;
+uniform bool hasTexture;
+
+in vec2 textureCoordinates;
 
 void main(){
-    outColor = material.ambient;
+    if (!hasTexture) {
+        outColor = material.ambient;
+    } else {
+        outColor = texture (textureSampler, textureCoordinates).rgb;
+    }
 }

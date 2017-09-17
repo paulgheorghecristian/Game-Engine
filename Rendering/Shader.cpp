@@ -46,7 +46,7 @@ Shader::Shader(std::string &&jsonPath) {
     glGetShaderiv (vertexHandle, GL_COMPILE_STATUS, &compileResult);
 	if (compileResult == GL_FALSE) {
         glGetShaderInfoLog (vertexHandle, 1024, NULL, infoLogMessage);
-        std::cout << "EROARE COMPILARE vertex shader[" << vertexShaderPath << "]"  << std::endl << "LOG=" << infoLogMessage << std::endl;
+        std::cout << "EROARE COMPILARE vertex shader[" << jsonShaderDocument["VSPath"].GetString () << "]"  << std::endl << "LOG=" << infoLogMessage << std::endl;
         exit (-1);
 	}
 
@@ -57,7 +57,7 @@ Shader::Shader(std::string &&jsonPath) {
     glGetShaderiv (fragmentHandle, GL_COMPILE_STATUS, &compileResult);
 	if (compileResult == GL_FALSE) {
         glGetShaderInfoLog (fragmentHandle, 1024, NULL, infoLogMessage);
-        std::cout << "EROARE COMPILARE fragment shader[" << fragmentShaderPath << "]" << std::endl << "LOG=" << infoLogMessage << std::endl;
+        std::cout << "EROARE COMPILARE fragment shader[" << jsonShaderDocument["FSPath"].GetString () << "]" << std::endl << "LOG=" << infoLogMessage << std::endl;
         exit (-1);
 	}
 
@@ -75,7 +75,7 @@ Shader::Shader(std::string &&jsonPath) {
         glGetShaderiv (geometryHandle, GL_COMPILE_STATUS, &compileResult);
         if (compileResult == GL_FALSE) {
             glGetShaderInfoLog (geometryHandle, 1024, NULL, infoLogMessage);
-            std::cout << "EROARE COMPILARE geometry shader[" << geometryShaderPath << "]" << std::endl << "LOG=" << infoLogMessage << std::endl;
+            std::cout << "EROARE COMPILARE geometry shader[" << jsonShaderDocument["GSPath"].GetString () << "]" << std::endl << "LOG=" << infoLogMessage << std::endl;
             exit (-1);
         }
 	}
@@ -93,7 +93,7 @@ Shader::Shader(std::string &&jsonPath) {
     glGetProgramiv (program, GL_LINK_STATUS, &linkResult);
     if (linkResult == GL_FALSE) {
 		glGetProgramInfoLog(program, 1024, NULL, infoLogMessage);
-        std::cout << "EROARE LINK program shader[" << vertexShaderPath << "]" << std::endl << "LOG=" << infoLogMessage << std::endl;
+        std::cout << "EROARE LINK program shader[" << jsonPath << "]" << std::endl << "LOG=" << infoLogMessage << std::endl;
         exit(-1);
 	}
 
@@ -119,9 +119,9 @@ Shader::Shader(std::string &&jsonPath) {
         glDeleteShader (geometryHandle);
 	}
 
-	std::cout << jsonPath << std::endl;
+	//std::cout << jsonPath << std::endl;
 	for (auto it : uniforms) {
-        std::cout << it.first << " " << it.second << std::endl;
+        //std::cout << it.first << " " << it.second << std::endl;
 	}
 }
 

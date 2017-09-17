@@ -8,6 +8,8 @@
                     "material.shininess" : "FLOAT",
                     "modelMatrix" : "MAT4",
                     "viewMatrix" : "MAT4",
-                    "projectionMatrix" : "MAT4"
+                    "projectionMatrix" : "MAT4",
+                    "textureSampler" : "INT",
+                    "hasTexture" : "BOOL"
                  }
 }

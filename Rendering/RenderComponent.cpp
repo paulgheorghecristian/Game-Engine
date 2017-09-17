@@ -1,11 +1,16 @@
 #include "RenderComponent.h"
 
-RenderComponent::RenderComponent(Mesh * mesh, Shader * shader, const Material &material) : mesh (mesh),
-                                                                                           shader (shader),
-                                                                                           material (material) {
+RenderComponent::RenderComponent(Mesh * mesh,
+                                 Shader * shader,
+                                 Texture *texture,
+                                 const Material &material) : mesh (mesh),
+                                                             shader (shader),
+                                                             texture (texture),
+                                                             material (material) {
 
     glm::mat4 viewMatrix = RenderingMaster::getCamera()->getViewMatrix();
     bool result = true;
+    int hasTexture = 0;
 
     result &= shader->updateUniform ("projectionMatrix", (void *) &RenderingMaster::getProjectionMatrix());
     result &= shader->updateUniform ("viewMatrix", (void *) &viewMatrix);
@@ -13,6 +18,13 @@ RenderComponent::RenderComponent(Mesh * mesh, Shader * shader, const Material &m
     result &= shader->updateUniform ("material.diffuse", (void *) &material.getDiffuse());
     result &= shader->updateUniform ("material.specular", (void *) &material.getSpecular());
     result &= shader->updateUniform ("material.shininess", (void *) &material.getShininess());
+
+    if (texture) {
+        result &= shader->updateUniform ("textureSampler", (void *) &texture->getTextureUnit());
+        hasTexture = 1;
+    }
+
+    result &= shader->updateUniform ("hasTexture", (void *) &hasTexture);
 
     assert (result);
 }
@@ -33,6 +45,9 @@ void RenderComponent::render() {
     result &= shader->updateUniform ("viewMatrix", (void *) &viewMatrix);
 
     shader->bind ();
+    if (texture) {
+        texture->use();
+    }
     mesh->draw ();
     shader->unbind ();
 
@@ -51,4 +66,5 @@ RenderComponent::~RenderComponent()
 {
     delete mesh;
     delete shader; /*careful this could be shared amongst multiple render components */
+    delete texture;
 }

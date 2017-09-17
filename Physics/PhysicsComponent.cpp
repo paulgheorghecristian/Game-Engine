@@ -69,11 +69,11 @@ void PhysicsComponent::init() {
     }
     btMotionState *motion = new btDefaultMotionState(t);
     btRigidBody::btRigidBodyConstructionInfo info(bodyMass, motion, collisionShape, inertia);
-    info.m_restitution = 0.2f;
-    info.m_friction = 0.3f;
+    info.m_restitution = 0.5f;
+    info.m_friction = 0.5f;
 
     m_rigidBody = new btRigidBody(info);
-    m_rigidBody->setDamping(btScalar(0.4), btScalar(0.3));
+    m_rigidBody->setDamping(btScalar(0.2), btScalar(0.2));
 
     PhysicsMaster::getWorld()->addRigidBody(m_rigidBody);
 }
