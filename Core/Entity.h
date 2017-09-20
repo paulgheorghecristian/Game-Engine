@@ -27,13 +27,13 @@ class Entity
             DYNAMIC, /* contains PhysicsComponent */
             EMIT_PARTICLES, /* contains EmitParticlesComponent */
             ANIMATED,
+            THIRD_PERSON_CAMERA, /* only for the player, maybe I should hide this? */
         };
     protected:
-
-    private:
         Transform transform;
         std::vector<Entity *> children;
         std::unordered_map<unsigned int, Component *> components;
+    private:
 };
 
 #endif // ENTITY_H

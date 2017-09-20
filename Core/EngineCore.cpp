@@ -92,6 +92,11 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
             entities.push_back (new_entity);
         }
     }
+
+    Transform playerTrans (glm::vec3(0, 1000, 0), glm::vec3(0), glm::vec3(20));
+    entities.push_back ((new Player (renderingMaster->getCamera(), playerTrans))
+                        ->addComponent (new PhysicsComponent (PhysicsComponent::BoundingBodyType::SPHERE, glm::vec3(20), 50.0f)));
+
     std::cout << "Number of entities: " << entities.size() << std::endl;
 }
 

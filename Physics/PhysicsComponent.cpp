@@ -73,7 +73,7 @@ void PhysicsComponent::init() {
     info.m_friction = 0.5f;
 
     m_rigidBody = new btRigidBody(info);
-    m_rigidBody->setDamping(btScalar(0.2), btScalar(0.2));
+    m_rigidBody->setDamping(btScalar(0.1), btScalar(0.1));
 
     PhysicsMaster::getWorld()->addRigidBody(m_rigidBody);
 }

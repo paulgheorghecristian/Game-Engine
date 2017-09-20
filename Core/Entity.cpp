@@ -10,7 +10,7 @@ Entity *Entity::addChild(Entity *child) {
     return this;
 }
 
-Entity * Entity::addComponent(Component *component) {
+Entity *Entity::addComponent(Component *component) {
     if (component == NULL) {
         return this;
     }

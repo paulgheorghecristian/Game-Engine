@@ -4,11 +4,11 @@ Component::Component() {
     _entity = NULL;
 }
 
-void Component::setEntity (Entity * entity) {
+void Component::setEntity (Entity *entity) {
     _entity = entity;
 }
 
-Entity * Component::getEntity () {
+Entity *Component::getEntity () {
     return _entity;
 }
 

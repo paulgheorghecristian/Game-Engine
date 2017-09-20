@@ -11,6 +11,7 @@
 #include "ComponentFactory.h"
 #include "Texture.h"
 #include "ProfilingTimer.h"
+#include "Player.h"
 
 #include <vector>
 #include <chrono>
