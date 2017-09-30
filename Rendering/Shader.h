@@ -16,12 +16,15 @@
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 
+#include "MemoryPoolInterface.h"
+
 class ShaderUniform;
 
-class Shader
+class Shader : public MemoryPoolInterface<Shader>
 {
     public:
-        Shader(std::string &&jsonPath);
+        Shader();
+        Shader *construct (std::string &&jsonPath);
         void reloadShader();
         void bind();
         void unbind();

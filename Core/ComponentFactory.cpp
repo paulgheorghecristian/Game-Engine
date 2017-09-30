@@ -16,7 +16,8 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
         }
 
         mesh = Mesh::loadObject (itr->value["Mesh"].GetString());
-        shader = new Shader (itr->value["Shader"].GetString());
+        shader = new Shader ();
+        shader->construct (itr->value["Shader"].GetString());
         if (itr->value.HasMember("Texture")) {
             texture = new Texture(itr->value["Texture"].GetString(), 0);
         }

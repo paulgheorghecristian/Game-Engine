@@ -1,7 +1,9 @@
 #include "Shader.h"
 
-Shader::Shader(std::string &&jsonPath) {
+Shader::Shader() {
+}
 
+Shader *Shader::construct (std::string &&jsonPath) {
     GLint compileResult = 0, linkResult = 0;
     char infoLogMessage[1024];
     std::string jsonBody;
@@ -123,6 +125,8 @@ Shader::Shader(std::string &&jsonPath) {
 	for (auto it : uniforms) {
         //std::cout << it.first << " " << it.second << std::endl;
 	}
+
+	return this;
 }
 
 void Shader::unbind() {

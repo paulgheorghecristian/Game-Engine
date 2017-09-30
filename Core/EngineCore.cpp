@@ -211,7 +211,7 @@ void EngineCore::input() {
                              glm::vec3 (0),
                              glm::vec3 (20));
         entities.push_back ((new Entity(transform))->addComponent (new RenderComponent(Mesh::loadObject("res/models/cube4.obj"),
-                                                                                       new Shader("res/shaders/example.json"),
+                                                                                       (new Shader())->construct("res/shaders/example.json"),
                                                                                        NULL,
                                                                                        Material (glm::vec3(1, 0, 0),
                                                                                                  glm::vec3(0),
