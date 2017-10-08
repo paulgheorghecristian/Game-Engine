@@ -5,7 +5,7 @@ PhysicsComponent::PhysicsComponent(BoundingBodyType type, glm::vec3 scale, float
                                                                                          bodyMass (mass) {
 }
 
-void PhysicsComponent::input() {
+void PhysicsComponent::input(Input &inputManager) {
 
 }
 
@@ -59,6 +59,9 @@ void PhysicsComponent::init() {
             assert (boundingBodyScale.x == boundingBodyScale.y);
             assert (boundingBodyScale.y == boundingBodyScale.z);
             collisionShape = new btSphereShape(boundingBodyScale.x / 2.0f);
+            break;
+        case BoundingBodyType::CAPSULE:
+            collisionShape = new btCapsuleShape(boundingBodyScale.x*2.0f, boundingBodyScale.y*2.0f);
             break;
         default:
             assert (false);

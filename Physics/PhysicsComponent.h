@@ -15,11 +15,12 @@ class PhysicsComponent : public Component
         enum BoundingBodyType {
             CUBE,
             SPHERE,
+            CAPSULE,
             SIMPLIFIED_MESH,
         };
 
         PhysicsComponent(BoundingBodyType type, glm::vec3 scale, float mass);
-        void input();
+        void input(Input &inputManager);
         void update();
         void render();
         void init();

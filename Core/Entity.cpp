@@ -36,15 +36,15 @@ void Entity::update() {
     }
 }
 
-void Entity::input() {
+void Entity::input(Input &inputManager) {
     for (auto const &it : components) {
         if (it.second != NULL) {
-            it.second->input();
+            it.second->input(inputManager);
         }
     }
 
     for (unsigned int i = 0; i < children.size (); i++) {
-        children[i]->input ();
+        children[i]->input (inputManager);
     }
 }
 

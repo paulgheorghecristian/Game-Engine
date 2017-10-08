@@ -11,7 +11,7 @@ class TempAnimationComponent : public Component
                                glm::vec3 addRotation,
                                glm::vec3 addScale);
         glm::vec3 m_addPosition, m_addRotation, m_addScale;
-        void input();
+        void input(Input &inputManager);
         void update();
         void render();
         const unsigned int getFlag() const;

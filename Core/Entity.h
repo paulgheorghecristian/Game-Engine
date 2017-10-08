@@ -5,6 +5,7 @@
 #include "Component.h"
 #include <vector>
 #include <unordered_map>
+#include "Input.h"
 
 class Component;
 
@@ -17,7 +18,7 @@ class Entity
         Transform &getTransform();
         void setTransform(const Transform &transform);
         Component *getComponent (const unsigned int flag);
-        void input();
+        void input(Input &inputManager);
         void update();
         void render();
         virtual ~Entity();

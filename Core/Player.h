@@ -3,8 +3,10 @@
 
 #include "Entity.h"
 #include "Camera.h"
+#include "PhysicsComponent.h"
 
-#define NECK_HEIGHT 20
+#define NECK_HEIGHT 10
+#define PLAYER_SPEED 450
 
 class Player : public Entity
 {
@@ -20,7 +22,7 @@ class Player : public Entity
             public:
                 FirstPersonComponent (Camera *camera);
 
-                void input();
+                void input(Input &inputManager);
                 void update();
                 void render();
                 const unsigned int getFlag() const;

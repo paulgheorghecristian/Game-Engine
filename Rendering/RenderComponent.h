@@ -14,7 +14,7 @@ class RenderComponent : public Component
 {
     public:
         RenderComponent(Mesh *mesh, Shader *shader, Texture *texture, const Material &material);
-        void input();
+        void input(Input &inputManager);
         void update();
         void render();
         const unsigned int getFlag() const;

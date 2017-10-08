@@ -8,7 +8,7 @@ TempAnimationComponent::TempAnimationComponent(glm::vec3 addPosition,
 {
 }
 
-void TempAnimationComponent::input() {
+void TempAnimationComponent::input(Input &inputManager) {
 
 }
 

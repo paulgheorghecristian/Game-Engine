@@ -29,7 +29,7 @@ RenderComponent::RenderComponent(Mesh * mesh,
     assert (result);
 }
 
-void RenderComponent::input() {
+void RenderComponent::input(Input &inputManager) {
 
 }
 

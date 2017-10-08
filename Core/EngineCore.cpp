@@ -37,7 +37,6 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
     nearPlane = (configDocument["camera"].HasMember("near")) ? configDocument["camera"]["near"].GetFloat() : 1.0f;
     farPlane = (configDocument["camera"].HasMember("far")) ? configDocument["camera"]["far"].GetFloat() : 5000.0f;
     fov = (configDocument["camera"].HasMember("fov")) ? configDocument["camera"]["fov"].GetFloat() : 75.0;
-    aspectRatio = (float ) screenWidth / (float) screenHeight;
 
     this->mouseMoveSpeed = (configDocument["mouse"].HasMember("moveSpeed")) ? configDocument["mouse"]["moveSpeed"].GetFloat() : 0.01f;
     this->mouseRotationSpeed = (configDocument["mouse"].HasMember("rotationSpeed")) ? configDocument["mouse"]["rotationSpeed"].GetFloat() : 0.001f;
@@ -46,6 +45,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
 
     /* this needs to be called first before doing anything with OpenGL */
     display = new Display (screenWidth, screenHeight, screenTitle, isFullScreen, maxFps, vSync);
+    aspectRatio = (float) display->getWidth() / (float ) display->getHeight();
     inputManager.setWarpMouse (this->warpMouse);
     SDL_ShowCursor(this->showMouse);
 
@@ -92,11 +92,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
             entities.push_back (new_entity);
         }
     }
-
-    Transform playerTrans (glm::vec3(0, 1000, 0), glm::vec3(0), glm::vec3(20));
-    entities.push_back ((new Player (renderingMaster->getCamera(), playerTrans))
-                        ->addComponent (new PhysicsComponent (PhysicsComponent::BoundingBodyType::SPHERE, glm::vec3(20), 50.0f)));
-
+    constructPlayer();
     std::cout << "Number of entities: " << entities.size() << std::endl;
 }
 
@@ -187,22 +183,6 @@ void EngineCore::input() {
         stop ();
     }
 
-    if (inputManager.getKey (SDLK_w)) {
-        renderingMaster->moveCameraForward (this->mouseMoveSpeed);
-    }
-
-    if (inputManager.getKey (SDLK_s)) {
-        renderingMaster->moveCameraForward (-this->mouseMoveSpeed);
-    }
-
-    if (inputManager.getKey (SDLK_d)) {
-        renderingMaster->moveCameraSideways (this->mouseMoveSpeed);
-    }
-
-    if (inputManager.getKey (SDLK_a)) {
-        renderingMaster->moveCameraSideways (-this->mouseMoveSpeed);
-    }
-
     renderingMaster->rotateCameraX(inputManager.getMouseDelta().y * this->mouseRotationSpeed);
     renderingMaster->rotateCameraY(inputManager.getMouseDelta().x * this->mouseRotationSpeed);
 
@@ -212,7 +192,7 @@ void EngineCore::input() {
                              glm::vec3 (20));
         entities.push_back ((new Entity(transform))->addComponent (new RenderComponent(Mesh::loadObject("res/models/cube4.obj"),
                                                                                        (new Shader())->construct("res/shaders/example.json"),
-                                                                                       NULL,
+                                                                                       new Texture ("res/textures/196.bmp",0),
                                                                                        Material (glm::vec3(1, 0, 0),
                                                                                                  glm::vec3(0),
                                                                                                  glm::vec3(0),
@@ -223,7 +203,7 @@ void EngineCore::input() {
     }
 
     for (auto const &entity : entities) {
-        entity->input ();
+        entity->input (inputManager);
     }
 }
 
@@ -248,6 +228,20 @@ void EngineCore::update() {
 
 std::vector<Entity *> &EngineCore::getEntities() {
     return entities;
+}
+
+void EngineCore::constructPlayer() {
+    Transform playerTrans (glm::vec3(0, 1000, 0), glm::vec3(0), glm::vec3(10));
+    PhysicsComponent *playerPhysicsComponent = new PhysicsComponent (PhysicsComponent::BoundingBodyType::CAPSULE,
+                                                                    glm::vec3(10),
+                                                                    50.0f);
+    entities.push_back ((new Player (renderingMaster->getCamera(), playerTrans))
+                        ->addComponent (playerPhysicsComponent));
+    playerPhysicsComponent->getRigidBody()->setDamping(btScalar(0.1), btScalar(0.1));
+    playerPhysicsComponent->getRigidBody()->setSleepingThresholds(0.0, 0.0);
+    playerPhysicsComponent->getRigidBody()->setAngularFactor(0.0);
+    playerPhysicsComponent->getRigidBody()->setFriction(0.7);
+    playerPhysicsComponent->getRigidBody()->setRestitution(0.6);
 }
 
 EngineCore::~EngineCore() {
