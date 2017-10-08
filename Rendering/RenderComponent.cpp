@@ -10,7 +10,7 @@ RenderComponent::RenderComponent(Mesh * mesh,
 
     glm::mat4 viewMatrix = RenderingMaster::getCamera()->getViewMatrix();
     bool result = true;
-    int hasTexture = 0;
+    bool hasTexture = false;
 
     result &= shader->updateUniform ("projectionMatrix", (void *) &RenderingMaster::getProjectionMatrix());
     result &= shader->updateUniform ("viewMatrix", (void *) &viewMatrix);
@@ -21,7 +21,7 @@ RenderComponent::RenderComponent(Mesh * mesh,
 
     if (texture) {
         result &= shader->updateUniform ("textureSampler", (void *) &texture->getTextureUnit());
-        hasTexture = 1;
+        hasTexture = true;
     }
 
     result &= shader->updateUniform ("hasTexture", (void *) &hasTexture);

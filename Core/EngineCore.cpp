@@ -75,10 +75,6 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
                 scale.x = entity["Transform"]["scale"].GetArray()[0].GetFloat();
                 scale.y = entity["Transform"]["scale"].GetArray()[1].GetFloat();
                 scale.z = entity["Transform"]["scale"].GetArray()[2].GetFloat();
-
-                position.x += rand()%500;
-                position.y += rand()%500;
-                position.z += rand()%500;
             }
             Transform trans(position, rotation, scale);
             new_entity = new Entity (trans);
@@ -215,7 +211,6 @@ void EngineCore::render() {
     }
 
     RenderingMaster::swapBuffers();
-
 }
 
 void EngineCore::update() {
