@@ -1,0 +1,9 @@
+{
+    "VSPath" : "res/shaders/brightnessControlPostProcess.vs",
+    "FSPath" : "res/shaders/brightnessControlPostProcess.fs",
+    "Uniforms" : {
+                    "textureSampler" : "INT",
+                    "pixelWidth" : "FLOAT",
+                    "pixelHeight" : "FLOAT"
+                 }
+}

@@ -1,6 +1,6 @@
 {
-    "VSPath" : "res/shaders/example.vs",
-    "FSPath" : "res/shaders/example.fs",
+    "VSPath" : "res/shaders/deferredShadingSceneShader.vs",
+    "FSPath" : "res/shaders/deferredShadingSceneShader.fs",
     "Uniforms" : {
                     "material.ambient" : "VEC3",
                     "material.specular" : "VEC3",

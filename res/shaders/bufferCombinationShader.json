@@ -1,0 +1,13 @@
+{
+    "VSPath" : "res/shaders/bufferCombinationShader.vs",
+    "FSPath" : "res/shaders/bufferCombinationShader.fs",
+    "Uniforms" : {
+                    "normalSampler" : "INT",
+                    "depthSampler" : "INT",
+                    "lightAccumulationSampler" : "INT",
+                    "colorSampler" : "INT",
+                    "outputType" : "INT",
+                    "blurredLightAccSampler" : "INT",
+                    "spotLightDepthMap" : "INT"
+                 }
+}

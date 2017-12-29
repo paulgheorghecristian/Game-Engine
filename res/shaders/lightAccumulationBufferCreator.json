@@ -1,0 +1,20 @@
+{
+    "VSPath" : "res/shaders/lightAccumulationBufferCreator.vs",
+    "FSPath" : "res/shaders/lightAccumulationBufferCreator.fs",
+    "Uniforms" : {
+                    "modelMatrix" : "MAT4",
+                    "viewMatrix" : "MAT4",
+                    "projectionMatrix" : "MAT4",
+                    "lightPosition" : "VEC3",
+                    "eyeSpaceNormalSampler" : "INT",
+                    "depthSampler" : "INT",
+                    "lightColor" : "VEC3",
+                    "screenWidth" : "INT",
+                    "screenHeight" : "INT",
+                    "cutOff" : "FLOAT",
+                    "cameraForwardVector" : "VEC3",
+                    "spotLightDepthSampler" : "INT",
+                    "spotLightProjectionMatrix" : "MAT4",
+                    "spotLightViewMatrix" : "MAT4"
+                 }
+}

@@ -1,0 +1,9 @@
+{
+    "VSPath" : "res/shaders/hBlurPostProcess.vs",
+    "FSPath" : "res/shaders/hBlurPostProcess.fs",
+    "Uniforms" : {
+                    "textureSampler" : "INT",
+                    "pixelWidth" : "FLOAT",
+                    "pixelHeight" : "FLOAT"
+                 }
+}
