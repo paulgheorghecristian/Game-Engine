@@ -4,7 +4,7 @@
     "Entities" : [
         {
             "Transform" : {
-                "position" : [0, 10, 50],
+                "position" : [300, 0, 50],
                 "rotation" : [0, 0, 0],
                 "scale" : [50, 50, 50]
             },
@@ -18,11 +18,25 @@
                         "specular" : [0, 0, 0],
                         "shininess" : 0.0
                     }
-                },
-                "TempAnimationComponent" : {
-                    "addPosition" : [0.1, 0.0, 0],
-                    "addRotation" : [0, 0.001, 0.007],
-                    "addScale" : [0, 0, 0]
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [200, 0, 0],
+                "rotation" : [0, 0, 0],
+                "scale" : [25, 25, 25]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/rock.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Material" : {
+                        "ambient" : [0.5, 0.5, 0.8],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
                 }
             }
         },
@@ -30,56 +44,35 @@
             "Transform" : {
                 "position" : [100, 0, 0],
                 "rotation" : [0, 0, 0],
-                "scale" : [10, 10, 10]
-            },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/rock.obj",
-                    "Shader" : "res/shaders/example.json",
-                    "Material" : {
-                        "ambient" : [0.5, 0.5, 0.8],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 0.0
-                    }
-                }
-            }
-        },
-        {
-            "Transform" : {
-                "position" : [0, 20, 0],
-                "rotation" : [0, 0, 0],
                 "scale" : [50, 50, 50]
             },
             "Components" : {
                 "RenderComponent" : {
                     "Mesh" : "res/models/rock.obj",
                     "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/182.bmp",
+                    "NormalMapTexture" : "res/textures/182_norm.bmp",
                     "Material" : {
                         "ambient" : [0.5, 0.5, 0.8],
                         "diffuse" : [0, 0, 0],
                         "specular" : [0, 0, 0],
                         "shininess" : 0.0
                     }
-                },
-                "TempAnimationComponent" : {
-                    "addPosition" : [0.2, 0.0, 0],
-                    "addRotation" : [0.003, 0, 0.006],
-                    "addScale" : [0, 0, 0]
                 }
             }
         },
         {
             "Transform" : {
-                "position" : [0, 100, 0],
+                "position" : [0, 100, 200],
                 "rotation" : [0, 0, 0],
-                "scale" : [80, 80, 80]
+                "scale" : [60, 60, 60]
             },
             "Components" : {
                 "RenderComponent" : {
                     "Mesh" : "res/models/cube4.obj",
                     "Shader" : "res/shaders/example.json",
-                    "Texture" : "res/textures/154.bmp",
+                    "Texture" : "res/textures/196.bmp",
+                    "NormalMapTexture" : "res/textures/196_norm.bmp",
                     "Material" : {
                         "ambient" : [1.0, 0.0, 0.5],
                         "diffuse" : [0, 0, 0],
@@ -89,8 +82,33 @@
                 },
                 "PhysicsComponent" : {
                     "BoundingBodyType" : ["cube"],
-                    "scale": [80, 80, 80],
-                    "mass" : 100
+                    "scale": [60, 60, 60],
+                    "mass" : 10
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [150, 100, 200],
+                "rotation" : [0, 0, 0],
+                "scale" : [60, 60, 60]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/cube4.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/196.bmp",
+                    "Material" : {
+                        "ambient" : [1.0, 0.0, 0.5],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                },
+                "PhysicsComponent" : {
+                    "BoundingBodyType" : ["cube"],
+                    "scale": [60, 60, 60],
+                    "mass" : 10
                 }
             }
         }
