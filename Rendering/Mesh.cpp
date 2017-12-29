@@ -27,6 +27,10 @@ Mesh::Mesh(std::vector<Vertex>& vertices,
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec3)));
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2*sizeof(glm::vec3)));
+    glEnableVertexAttribArray (3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2*sizeof(glm::vec3) + sizeof (glm::vec2)));
+    glEnableVertexAttribArray (4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3*sizeof(glm::vec3) + sizeof (glm::vec2)));
 }
 
 Mesh::~Mesh()
@@ -246,6 +250,7 @@ void Mesh::_stringTokenize(const std::string &source, std::vector<std::string> &
     }
 }
 //variant for faces
+
 void Mesh::_faceTokenize(const std::string &source, std::vector<std::string> &tokens){
     std::string aux=source;
     for(unsigned int i=0;i<aux.size();i++) if(aux[i]=='\\' || aux[i]=='/') aux[i]=' ';
@@ -253,6 +258,10 @@ void Mesh::_faceTokenize(const std::string &source, std::vector<std::string> &to
 }
 
 Mesh* Mesh::loadObject(std::string filename){
+    /* TODO indices created by this functions are not really useful,
+        they simply replicate triangles, without reusing vertices
+    */
+
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
@@ -260,6 +269,8 @@ Mesh* Mesh::loadObject(std::string filename){
     float minValue = -maxValue;
     glm::vec3 _minCoordinates = glm::vec3(maxValue);
     glm::vec3 _maxCoordinates = glm::vec3(minValue);
+
+    std::cout << "Loading " << filename << std::endl;
 
     std::ifstream file(filename.c_str(), std::ios::in | std::ios::binary);
 		if(!file.good()){
@@ -394,8 +405,65 @@ Mesh* Mesh::loadObject(std::string filename){
 						indices.push_back(vertices.size()-1);
 					}
 				}//end for
+
+				/* try and calculate tangent and bitangent for face vertices */
+                assert (tokens.size() == 4); /* only triangles */
+                int numOfVertices = vertices.size();
+                computeTangentAndBi (vertices[numOfVertices-3],
+                                     vertices[numOfVertices-2],
+                                     vertices[numOfVertices-1]);
 			}//end face
 
 		}//end while
 		return new Mesh(vertices, indices);
+}
+
+void Mesh::computeTangentAndBi(Vertex &v1, Vertex &v2, Vertex &v3) {
+    glm::vec3 &p1 = v1.positionCoords;
+    glm::vec3 &p2 = v2.positionCoords;
+    glm::vec3 &p3 = v3.positionCoords;
+
+    glm::vec2 &uv1 = v1.textureCoords;
+    glm::vec2 &uv2 = v2.textureCoords;
+    glm::vec2 &uv3 = v3.textureCoords;
+
+    glm::vec3 deltaP1 = p2-p1;
+    glm::vec3 deltaP2 = p3-p1;
+    glm::vec2 deltaUV1 = uv2-uv1;
+    glm::vec2 deltaUV2 = uv3-uv1;
+
+    float det = deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x;
+    if (det == 0) {
+        return;
+    }
+
+    float r = 1.0f / det;
+    glm::vec3 tangent = glm::normalize ((deltaP1 * deltaUV2.y - deltaP2 * deltaUV1.y) * r);
+
+    v1.tangent = tangent;
+    v2.tangent = tangent;
+    v3.tangent = tangent;
+    v1.biTangent = glm::normalize (glm::cross (v1.normalCoords, tangent));
+    v2.biTangent = glm::normalize (glm::cross (v2.normalCoords, tangent));
+    v3.biTangent = glm::normalize (glm::cross (v3.normalCoords, tangent));
+
+    /*std::cout << "face:" << std::endl;
+    std::cout << "vertex:" << v1.positionCoords.x * 2 << " " << v1.positionCoords.y * 2<< " " << v1.positionCoords.z*2 << std::endl;
+    std::cout << "vertex:" << v2.positionCoords.x * 2 << " " << v2.positionCoords.y * 2<< " " << v2.positionCoords.z*2 << std::endl;
+    std::cout << "vertex:" << v3.positionCoords.x * 2 << " " << v3.positionCoords.y * 2<< " " << v3.positionCoords.z*2 << std::endl;
+
+    std::cout << "v1" << std::endl;
+    std::cout << "tangent=" << tangent.x << " " << tangent.y << " " << tangent.z << std::endl;
+    std::cout << "bitangent=" << v1.biTangent.x << " " << v1.biTangent.y << " " << v1.biTangent.z << std::endl;
+    std::cout << "normal=" << v1.normalCoords.x << " " << v1.normalCoords.y << " " << v1.normalCoords.z << std::endl;
+
+    std::cout << "v2" << std::endl;
+    std::cout << "tangent=" << tangent.x << " " << tangent.y << " " << tangent.z << std::endl;
+    std::cout << "bitangent=" << v2.biTangent.x << " " << v2.biTangent.y << " " << v2.biTangent.z << std::endl;
+    std::cout << "normal=" << v2.normalCoords.x << " " << v2.normalCoords.y << " " << v2.normalCoords.z << std::endl;
+
+    std::cout << "v3" << std::endl;
+    std::cout << "tangent=" << tangent.x << " " << tangent.y << " " << tangent.z << std::endl;
+    std::cout << "bitangent=" << v3.biTangent.x << " " << v3.biTangent.y << " " << v3.biTangent.z << std::endl;
+    std::cout << "normal=" << v3.normalCoords.x << " " << v3.normalCoords.y << " " << v3.normalCoords.z << std::endl;*/
 }

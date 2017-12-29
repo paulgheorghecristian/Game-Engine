@@ -19,6 +19,8 @@ Transform::Transform(const glm::vec3 &position = glm::vec3(0),
 
 }
 
+Transform::Transform() : position(0), rotation(1,0,0,0), scale(1) {}
+
 Transform::Transform(const Transform &other) {
     position = other.getPosition();
     rotation = other.getRotation();

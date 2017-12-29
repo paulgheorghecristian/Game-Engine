@@ -19,9 +19,9 @@ class Display
         void swapBuffers();
         bool isClosed();
         void setViewport(float, float, float, float);
-        void clear(float, float, float, float);
-		const int getWidth() const;
-		const int getHeight() const;
+        void clear(float, float, float, float, GLbitfield field);
+		const int &getWidth() const;
+		const int &getHeight() const;
         static bool isWindowClosed;
         static int delta;
         SDL_Window * getWindow();
@@ -33,7 +33,7 @@ class Display
     private:
         SDL_Window * window;
         SDL_GLContext glContext;
-        float width, height;
+        int width, height;
         const unsigned int MAX_FPS;
         const float FRAME_TIME_IN_MS;
 };

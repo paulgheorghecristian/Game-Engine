@@ -13,13 +13,23 @@ struct Vertex{
     glm::vec3 positionCoords;
     glm::vec3 normalCoords;
     glm::vec2 textureCoords;
+    glm::vec3 tangent, biTangent;
 
-    Vertex() : positionCoords(0.0f), normalCoords(0.0f), textureCoords(0.0f){}
+    Vertex() : Vertex (glm::vec3(0),
+                       glm::vec3(0),
+                       glm::vec2(0)) {}
 
-    Vertex(glm::vec3 positionCoords, glm::vec3 normalCoords, glm::vec2 tc){
+    Vertex(glm::vec3 positionCoords,
+           glm::vec3 normalCoords,
+           glm::vec2 tc,
+           glm::vec3 tangent = glm::vec3 (0),
+           glm::vec3 biTangent = glm::vec3 (0)) {
+
         this->positionCoords = positionCoords;
         this->normalCoords = normalCoords;
         this->textureCoords = tc;
+        this->tangent = tangent;
+        this->biTangent = biTangent;
     }
     Vertex(glm::vec3 positionCoords) : Vertex(positionCoords, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)){}
     Vertex(glm::vec3 positionCoords, glm::vec3 normalCoords) : Vertex(positionCoords, normalCoords, glm::vec2(0.0f, 0.0f)){}
@@ -55,6 +65,8 @@ class Mesh
         static int _stringToInt(const std::string &source);
         static void _stringTokenize(const std::string &source, std::vector<std::string> &tokens);
         static void _faceTokenize(const std::string &source, std::vector<std::string> &tokens);
+
+        static void computeTangentAndBi(Vertex &v1, Vertex &v2, Vertex &v3);
 };
 
 #endif // MESH_H

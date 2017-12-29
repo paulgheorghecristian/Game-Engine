@@ -67,9 +67,9 @@ Display::~Display() {
     SDL_Quit ();
 }
 
-void Display::clear(float r, float g, float b, float a) {
-    glClearColor(r, g, b, a);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void Display::clear(float r, float g, float b, float a, GLbitfield field) {
+    glClearColor (r, g, b, a);
+    glClear (field);
 }
 
 void Display::setViewport(float x, float y, float width, float height) {
@@ -84,11 +84,11 @@ void Display::swapBuffers() {
     SDL_GL_SwapWindow(window);
 }
 
-const int Display::getWidth() const {
+const int &Display::getWidth() const {
     return width;
 }
 
-const int Display::getHeight() const {
+const int &Display::getHeight() const {
     return height;
 }
 

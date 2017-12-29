@@ -15,6 +15,7 @@ class Transform
                   const glm::vec3 &rotation,
                   const glm::vec3 &scale);
         Transform(const Transform &other);
+        Transform();
         Transform &operator=(const Transform &other);
 
         //transform = this.transform * ratio + other.transform (1-ratio);

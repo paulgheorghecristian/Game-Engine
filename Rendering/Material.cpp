@@ -1,9 +1,9 @@
 #include "Material.h"
 
-Material::Material(const glm::vec3 &ambient = glm::vec3(0.0),
-                   const glm::vec3 &diffuse = glm::vec3(0.0),
-                   const glm::vec3 &specular = glm::vec3(0.0),
-                   float shininess = 0.0) : ambient (ambient),
+Material::Material(const glm::vec3 &ambient,
+                   const glm::vec3 &diffuse,
+                   const glm::vec3 &specular,
+                   float shininess) : ambient (ambient),
                                             diffuse (diffuse),
                                             specular (specular),
                                             shininess (shininess) {
