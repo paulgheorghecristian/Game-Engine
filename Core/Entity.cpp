@@ -1,6 +1,6 @@
 #include "Entity.h"
 
-Entity::Entity(Transform &transform) : transform (transform) {
+Entity::Entity() {
 
 }
 

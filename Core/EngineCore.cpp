@@ -1,6 +1,13 @@
 #include "EngineCore.h"
 
-EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
+EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false),
+                                                            renderTime("render"),
+                                                            updateTime("update"),
+                                                            inputTime("input"),
+                                                            frameTime("frame"),
+                                                            renderSceneTime("renderScene"),
+                                                            lightAccumBufferTime("lightAccBuffer"),
+                                                            screenDrawTime("screenDraw") {
     //create renderingmaster, physicsmaster and entities
     rapidjson::Document configDocument;
     rapidjson::ParseResult parseResult;
@@ -49,6 +56,8 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
     inputManager.setWarpMouse (this->warpMouse);
     SDL_ShowCursor(this->showMouse);
 
+    Light::setPointMesh(Mesh::loadObject("res/models/lightSphere.obj"));
+    Light::setSpotMesh(Mesh::loadObject("res/models/SpotLightMesh5.obj"));
     RenderingMaster::init (display,
                            new Camera (glm::vec3(-500, 0, 0), 0, glm::radians(90.0f), 0),
                            glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane));
@@ -61,7 +70,6 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
             step++;
             std::cout << "Loading...%" << (float) step * 100 / numberOfEntities << std::endl;
             glm::vec3 position (0), rotation (0), scale (1);
-            Entity *new_entity;
 
             if (entity.HasMember("Transform")) {
                 position.x = entity["Transform"]["position"].GetArray()[0].GetFloat();
@@ -75,25 +83,36 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false) {
                 scale.x = entity["Transform"]["scale"].GetArray()[0].GetFloat();
                 scale.y = entity["Transform"]["scale"].GetArray()[1].GetFloat();
                 scale.z = entity["Transform"]["scale"].GetArray()[2].GetFloat();
-
-                position.x += rand()%500;
-                position.y += rand()%500;
-                position.z += rand()%500;
             }
             Transform trans(position, rotation, scale);
-            new_entity = new Entity (trans);
+            Entity *newEntity = new Entity ();
+            newEntity->setTransform (trans);
             if (entity.HasMember("Components")) {
                 for (rapidjson::Value::ConstMemberIterator itr = entity["Components"].GetObject().MemberBegin();
                         itr != entity["Components"].GetObject().MemberEnd(); ++itr) {
                     Component *component = ComponentFactory::createComponent(itr);
-                    new_entity->addComponent(component);
+                    newEntity->addComponent(component);
                 }
             }
-            entities.push_back (new_entity);
+            entities.push_back (newEntity);
         }
     }
     constructPlayer();
+    Transform floorTransform(glm::vec3(0), glm::vec3(0, 0, 0), glm::vec3(5000.0f));
+    Entity *floor = new Entity();
+    floor->setTransform(floorTransform);
+    floor->addComponent(new RenderComponent(Mesh::getRectangleYUp(),
+                                            (new Shader())->construct("res/shaders/example.json"),
+                                            NULL,
+                                            NULL,
+                                            Material(glm::vec3(0.5f),
+                                                     glm::vec3(1.0f),
+                                                     glm::vec3(1.0f),
+                                                     0.5f)));
+    entities.push_back (floor);
     std::cout << "Number of entities: " << entities.size() << std::endl;
+
+    outputType = 5;
 }
 
 void EngineCore::start() {
@@ -105,11 +124,6 @@ void EngineCore::start() {
     unsigned int FPS = 0;
     bool needToRender = false;
     //std::vector<Transform> old_state, save_state;
-
-    ProfilingTimer renderTime("render");
-    ProfilingTimer updateTime("update");
-    ProfilingTimer inputTime("input");
-    ProfilingTimer frameTime("frame");
 
     /*old_state.reserve (entities.size()*1000);
     save_state.reserve (entities.size()*1000);
@@ -127,6 +141,9 @@ void EngineCore::start() {
             PT_PrintAndReset(inputTime);
             PT_PrintAndReset(updateTime);
             PT_PrintAndReset(renderTime);
+            PT_PrintAndReset(renderSceneTime);
+            PT_PrintAndReset(lightAccumBufferTime);
+            PT_PrintAndReset(screenDrawTime);
             std::cout << "----------------------" << std::endl;
         }
         auto last_time = HighResolutionClock::now();
@@ -151,8 +168,9 @@ void EngineCore::start() {
             unprocessed_time -= frame_time;
             needToRender = true;
         }
-        /*//if (needToRender) {
-            float blend_factor = unprocessed_time / frame_time;
+
+        if (needToRender) {
+            /*float blend_factor = unprocessed_time / frame_time;
             //std::cout << blend_factor << std::endl;
             for (unsigned int i = 0; i < entities.size(); i++) {
                 //save_state[i] = entities[i]->getTransform();
@@ -168,7 +186,7 @@ void EngineCore::start() {
                 //entities[i]->setTransform (save_state[i]);
             }*/
             FPS++;
-        //}
+        }
     }
 }
 
@@ -190,9 +208,12 @@ void EngineCore::input() {
         Transform transform (renderingMaster->getCamera()->getPosition(),
                              glm::vec3 (0),
                              glm::vec3 (20));
-        entities.push_back ((new Entity(transform))->addComponent (new RenderComponent(Mesh::loadObject("res/models/cube4.obj"),
+        Entity *newEntity = new Entity();
+        newEntity->setTransform (transform);
+        entities.push_back (newEntity->addComponent (new RenderComponent(Mesh::loadObject("res/models/cube4.obj"),
                                                                                        (new Shader())->construct("res/shaders/example.json"),
                                                                                        new Texture ("res/textures/196.bmp",0),
+                                                                                       NULL,
                                                                                        Material (glm::vec3(1, 0, 0),
                                                                                                  glm::vec3(0),
                                                                                                  glm::vec3(0),
@@ -202,24 +223,103 @@ void EngineCore::input() {
                                                                                          20.0f)));
     }
 
+    if (inputManager.getKeyDown(SDLK_1)) {
+        outputType = 1;
+    }
+    if (inputManager.getKeyDown(SDLK_2)) {
+        outputType = 2;
+    }
+    if (inputManager.getKeyDown(SDLK_3)) {
+        outputType = 3;
+    }
+    if (inputManager.getKeyDown(SDLK_4)) {
+        outputType = 4;
+    }
+    if (inputManager.getKeyDown(SDLK_5)) {
+        outputType = 5;
+    }
+    if (inputManager.getKeyDown (SDLK_6)) {
+        outputType = 6;
+    }
+    if (inputManager.getKeyDown (SDLK_7)) {
+        outputType = 7;
+    }
+
+    if (inputManager.getKeyDown (SDLK_q)) {
+        glm::vec3 cameraPosition = RenderingMaster::getCamera()->getPosition();
+        glm::vec3 cameraRotation = RenderingMaster::getCamera()->getRotation();
+        Light *newLight = new Light (Light::LightType::SPOT,
+                                    glm::vec3(1.0f, 1.0f, 1.0f),
+                                    Transform(cameraPosition,
+                                              cameraRotation,
+                                              glm::vec3(300.0f, 300.0f, 400.0f)));
+        RenderingMaster::addLightToScene(newLight);
+    }
+
+    if (inputManager.getKeyDown (SDLK_e)) {
+        glm::vec3 cameraPosition = RenderingMaster::getCamera()->getPosition();
+        RenderingMaster::addLightToScene(new Light (Light::LightType::POINT,
+                                                    glm::vec3(1.0f, 1.0f, 1.0f),
+                                                    Transform(cameraPosition,
+                                                              glm::vec3(0),
+                                                              glm::vec3(500.0f))));
+    }
+    RenderingMaster::deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
+
     for (auto const &entity : entities) {
         entity->input (inputManager);
     }
 }
 
 void EngineCore::render() {
-    RenderingMaster::clearScreen(1, 1, 1, 1);
+
+    /*generate deferred shading buffers*/
+    PT_FromHere(renderSceneTime);
+    RenderingMaster::getGBuffer().bindForScene();
+    RenderingMaster::clearScreen (1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     for (auto entity : entities) {
-        entity->render ();
+        RenderComponent *renderComponent;
+        if ((renderComponent =
+             static_cast<RenderComponent *> (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
+            renderComponent->render(&RenderingMaster::deferredShading_SceneShader);
+        }
     }
+    RenderingMaster::getGBuffer().unbind();
+    PT_ToHere(renderSceneTime);
+    /*end generate deferred shading buffers*/
+
+    /* begin drawing the spot light depth map for each spot light*/
+    for (Light *l : RenderingMaster::getLights()) {
+        if (l->getLightType() == Light::LightType::SPOT) {
+            RenderingMaster::beginCreateDepthTextureForSpotLight(l);
+            for (auto entity : entities) {
+                RenderComponent *renderComponent;
+                if ((renderComponent =
+                     static_cast<RenderComponent *> (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
+                    renderComponent->render(&RenderingMaster::deferredShading_StencilBufferCreator);
+                }
+            }
+            RenderingMaster::endCreateDepthTextureForSpotLight(l);
+        }
+    }
+    /* end drawing the spot light depth map */
+
+    PT_FromHere(lightAccumBufferTime);
+    RenderingMaster::createLightAccumulationBuffer();
+    PT_ToHere(lightAccumBufferTime);
+
+    PT_FromHere(screenDrawTime);
+    RenderingMaster::getGBuffer().unbind();
+    RenderingMaster::drawDeferredShadingBuffers();
 
     RenderingMaster::swapBuffers();
-
+    PT_ToHere(screenDrawTime);
 }
 
 void EngineCore::update() {
     physicsMaster->update();
+    RenderingMaster::update();
 
     for (auto entity : entities) {
         entity->update ();

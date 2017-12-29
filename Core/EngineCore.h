@@ -41,6 +41,16 @@ class EngineCore
         bool warpMouse, showMouse;
 
         void constructPlayer();
+
+        int outputType;
+
+        ProfilingTimer renderTime;
+        ProfilingTimer updateTime;
+        ProfilingTimer inputTime;
+        ProfilingTimer frameTime;
+        ProfilingTimer renderSceneTime;
+        ProfilingTimer lightAccumBufferTime;
+        ProfilingTimer screenDrawTime;
 };
 
 #endif // ENGINECORE_H

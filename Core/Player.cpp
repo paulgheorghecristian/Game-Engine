@@ -1,6 +1,7 @@
 #include "Player.h"
 
-Player::Player (Camera *camera, Transform &transform) : Entity (transform) {
+Player::Player (Camera *camera, Transform &transform) {
+    this->transform = transform;
     addComponent (new FirstPersonComponent (camera));
 }
 

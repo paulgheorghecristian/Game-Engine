@@ -6,13 +6,14 @@
 #include <vector>
 #include <unordered_map>
 #include "Input.h"
+#include "MemoryPoolInterface.h"
 
 class Component;
 
-class Entity
+class Entity : public MemoryPoolInterface<Entity>
 {
     public:
-        Entity(Transform &transform);
+        Entity();
         Entity *addChild(Entity *child);
         Entity *addComponent(Component *component);
         Transform &getTransform();
