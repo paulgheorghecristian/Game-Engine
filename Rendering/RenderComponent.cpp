@@ -3,28 +3,37 @@
 RenderComponent::RenderComponent(Mesh * mesh,
                                  Shader * shader,
                                  Texture *texture,
+                                 Texture *normalMapTexture,
                                  const Material &material) : mesh (mesh),
                                                              shader (shader),
+                                                             normalMapTexture (normalMapTexture),
                                                              texture (texture),
                                                              material (material) {
 
-    glm::mat4 viewMatrix = RenderingMaster::getCamera()->getViewMatrix();
     bool result = true;
-    int hasTexture = 0;
+    bool hasTexture = false;
+    bool hasNormalMap = false;
+
+    if (texture != NULL) {
+        result &= shader->updateUniform ("textureSampler", (void *) &texture->getTextureUnit());
+        hasTexture = true;
+        this->material.setAmbient(glm::vec3(1));
+    }
+
+    if (normalMapTexture != NULL) {
+        result &= shader->updateUniform ("normalMapSampler", (void *) &normalMapTexture->getTextureUnit());
+        hasNormalMap = true;
+    }
 
     result &= shader->updateUniform ("projectionMatrix", (void *) &RenderingMaster::getProjectionMatrix());
-    result &= shader->updateUniform ("viewMatrix", (void *) &viewMatrix);
-    result &= shader->updateUniform ("material.ambient", (void *) &material.getAmbient());
+    result &= shader->updateUniform ("viewMatrix", (void *) &RenderingMaster::getCamera()->getViewMatrix());
+    result &= shader->updateUniform ("material.ambient", (void *) &this->material.getAmbient());
     result &= shader->updateUniform ("material.diffuse", (void *) &material.getDiffuse());
     result &= shader->updateUniform ("material.specular", (void *) &material.getSpecular());
     result &= shader->updateUniform ("material.shininess", (void *) &material.getShininess());
 
-    if (texture) {
-        result &= shader->updateUniform ("textureSampler", (void *) &texture->getTextureUnit());
-        hasTexture = 1;
-    }
-
     result &= shader->updateUniform ("hasTexture", (void *) &hasTexture);
+    result &= shader->updateUniform ("hasNormalMap", (void *) &hasNormalMap);
 
     assert (result);
 }
@@ -37,21 +46,51 @@ void RenderComponent::update() {
 
 }
 
-void RenderComponent::render() {
+void RenderComponent::render (Shader *externShader) {
     bool result = true;
-    glm::mat4 viewMatrix = RenderingMaster::getCamera()->getViewMatrix();
 
-    result &= shader->updateUniform ("modelMatrix", (void *) &_entity->getTransform().getModelMatrix());
-    result &= shader->updateUniform ("viewMatrix", (void *) &viewMatrix);
+    if (externShader != this->shader) {
+        bool hasTexture = false;
+        bool hasNormalMap = false;
 
-    shader->bind ();
-    if (texture) {
+        result &= externShader->updateUniform ("material.ambient", (void *) &material.getAmbient());
+        result &= externShader->updateUniform ("material.diffuse", (void *) &material.getDiffuse());
+        result &= externShader->updateUniform ("material.specular", (void *) &material.getSpecular());
+        result &= externShader->updateUniform ("material.shininess", (void *) &material.getShininess());
+
+        if (texture != NULL) {
+            result &= externShader->updateUniform ("textureSampler", (void *) &texture->getTextureUnit());
+            hasTexture = true;
+        }
+
+        if (normalMapTexture != NULL) {
+            result &= externShader->updateUniform ("normalMapSampler", (void *) &normalMapTexture->getTextureUnit());
+            hasNormalMap = true;
+        }
+
+        result &= externShader->updateUniform ("hasTexture", (void *) &hasTexture);
+        result &= externShader->updateUniform ("hasNormalMap", (void *) &hasNormalMap);
+    }
+
+    result &= externShader->updateUniform ("modelMatrix", (void *) &_entity->getTransform().getModelMatrix());
+    if (externShader != &RenderingMaster::deferredShading_StencilBufferCreator) {
+        result &= externShader->updateUniform ("viewMatrix", (void *) &RenderingMaster::getCamera()->getViewMatrix());
+    }
+    externShader->bind ();
+    if (texture != NULL) {
         texture->use();
     }
+    if (normalMapTexture != NULL) {
+        normalMapTexture->use();
+    }
     mesh->draw ();
-    shader->unbind ();
+    externShader->unbind ();
 
-    assert (result);
+    //assert (result);
+}
+
+void RenderComponent::render() {
+    render (this->shader);
 }
 
 const unsigned int RenderComponent::getFlag() const {
@@ -67,4 +106,5 @@ RenderComponent::~RenderComponent()
     delete mesh;
     delete shader; /*careful this could be shared amongst multiple render components */
     delete texture;
+    delete normalMapTexture;
 }

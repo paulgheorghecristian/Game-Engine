@@ -13,10 +13,11 @@ class RenderingMaster;
 class RenderComponent : public Component
 {
     public:
-        RenderComponent(Mesh *mesh, Shader *shader, Texture *texture, const Material &material);
+        RenderComponent(Mesh *mesh, Shader *shader, Texture *texture, Texture *normalMapTexture, const Material &material);
         void input(Input &inputManager);
         void update();
         void render();
+        void render (Shader *externShader);
         const unsigned int getFlag() const;
         Shader *getShader();
         virtual ~RenderComponent();
@@ -26,7 +27,7 @@ class RenderComponent : public Component
     private:
         Mesh *mesh;
         Shader *shader;
-        Texture *texture;
+        Texture *texture, *normalMapTexture;
         Material material;
 };
 
