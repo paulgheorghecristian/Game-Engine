@@ -1,0 +1,10 @@
+{
+    "VSPath" : "res/shaders/particleRenderShader.vs",
+    "FSPath" : "res/shaders/particleRenderShader.fs",
+    "GSPath" : "res/shaders/particleRenderShader.gs",
+    "Uniforms" : {
+                    "viewMatrix" : "MAT4",
+			    "projectionMatrix" : "MAT4",
+			    "particleSampler" : "INT"
+                 }
+}
