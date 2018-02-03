@@ -1,0 +1,9 @@
+-make rendering at 60 fps (maybe it will look smoother if the fps is not fluctuating as much) or, in other words, separate rendering logic from the "maxFps" value in config.json. maxFps should mean the rendering fps, not the inner updating rate
+
+-maybe make enginecore maintain a pointer for singletons renderingmaster and physicsmaster (getInstance is called very often)
+
+-there are some public vars which should be private (rendering master for ex)
+
+-make particles support particle atlas with animations (try to create smoke logic after)
+
+-try to merge addparticles with master/develop after smoke
