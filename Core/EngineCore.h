@@ -33,8 +33,6 @@ class EngineCore
     private:
         Input inputManager;
         std::vector<Entity *> entities;
-        RenderingMaster *renderingMaster;
-        PhysicsMaster *physicsMaster;
         bool isRunning;
 
         float mouseMoveSpeed, mouseRotationSpeed;

@@ -78,7 +78,7 @@ void PhysicsComponent::init() {
     m_rigidBody = new btRigidBody(info);
     m_rigidBody->setDamping(btScalar(0.1), btScalar(0.1));
 
-    PhysicsMaster::getWorld()->addRigidBody(m_rigidBody);
+    PhysicsMaster::getInstance()->getWorld()->addRigidBody(m_rigidBody);
 }
 
 const unsigned int PhysicsComponent::getFlag() const {

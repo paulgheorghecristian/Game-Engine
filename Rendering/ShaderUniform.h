@@ -26,13 +26,14 @@ class ShaderUniform
     public:
         ShaderUniform(const std::string& name, const char * type, Shader * shader);
         void updateUniform (void * data);
+        ShaderUniformType getUniformType ();
         virtual ~ShaderUniform();
 
     protected:
 
     private:
         ShaderUniformType type;
-        Shader * shader;
+        Shader *shader;
         GLuint location;
         std::string name;
 

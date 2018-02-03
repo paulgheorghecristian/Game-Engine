@@ -11,10 +11,11 @@ class PhysicsMaster
     public:
         static void init(float gravity);
         static void destroy();
-        static void update();
-
         static PhysicsMaster *getInstance();
-        static btDynamicsWorld *getWorld();
+
+        void update();
+        btDynamicsWorld *getWorld();
+        float getGravityAcceleration();
 
     protected:
 
@@ -24,13 +25,14 @@ class PhysicsMaster
 
         static PhysicsMaster *m_instance;
 
-        static btDynamicsWorld *world;
-        static btDispatcher *dispatcher;
-        static btBroadphaseInterface *broadsphase;
-        static btCollisionConfiguration *collisionConfig;
-        static btConstraintSolver *solver;
+        btDynamicsWorld *world;
+        btDispatcher *dispatcher;
+        btBroadphaseInterface *broadsphase;
+        btCollisionConfiguration *collisionConfig;
+        btConstraintSolver *solver;
 
-        static btRigidBody *planeRigidBody;
+        btRigidBody *planeRigidBody;
+        float gravityAcc;
 };
 
 #endif // PHYSICSMASTER_H

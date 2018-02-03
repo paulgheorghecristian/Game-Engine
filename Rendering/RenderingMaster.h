@@ -11,6 +11,8 @@
 #include "Texture.h"
 #include "Light.h"
 #include "PostProcess.h"
+#include "ParticleRenderer.h"
+#include "SmokeParticle.h"
 
 #include <vector>
 
@@ -22,31 +24,33 @@ class RenderingMaster
                           glm::mat4 projectionMatrix);
         static RenderingMaster *getInstance();
         static void destroy ();
-        static void clearScreen(float r, float g, float b, float a, GLbitfield field);
-        static void swapBuffers();
-        static void update();
-        static void moveCameraForward(float distance);
-        static void moveCameraSideways(float distance);
-        static void rotateCameraX(float rotX);
-        static void rotateCameraY(float rotY);
-        static Display *getDisplay();
-        static Camera *getCamera();
-        static glm::mat4 &getProjectionMatrix();
-        static GBuffer &getGBuffer();
-        static Shader deferredShading_SceneShader;
-        static Shader deferredShading_BufferCombinationShader;
 
-        static void drawDeferredShadingBuffers();
-        static void createLightAccumulationBuffer();
+        void clearScreen(float r, float g, float b, float a, GLbitfield field);
+        void swapBuffers();
+        void update();
+        void moveCameraForward(float distance);
+        void moveCameraSideways(float distance);
+        void rotateCameraX(float rotX);
+        void rotateCameraY(float rotY);
+        Display *getDisplay();
+        Camera *getCamera();
+        const glm::mat4 &getProjectionMatrix();
+        GBuffer &getGBuffer();
 
-        static void addLightToScene (Light *light);
-        static void beginCreateDepthTextureForSpotLight(Light *light);
-        static void endCreateDepthTextureForSpotLight(Light *light);
+        Shader deferredShading_SceneShader;
+        Shader deferredShading_BufferCombinationShader;
+        Shader deferredShading_StencilBufferCreator;
 
-        static Light *firstSpotLight;
-        static Shader deferredShading_StencilBufferCreator;
+        void drawDeferredShadingBuffers();
+        void createLightAccumulationBuffer();
 
-        static const std::vector <Light *> &getLights();
+        void addLightToScene (Light *light);
+        void beginCreateDepthTextureForSpotLight(Light *light);
+        void endCreateDepthTextureForSpotLight(Light *light);
+
+        const std::vector <Light *> &getLights();
+        /* TODO make this private */
+        ParticleRenderer<SmokeParticle, 1000> *smokeRenderer;
     protected:
 
     private:
@@ -56,24 +60,24 @@ class RenderingMaster
         ~RenderingMaster();
         static RenderingMaster *m_instance;
 
-        static Display *display;
-        static Camera *camera;
-        static glm::mat4 projectionMatrix;
-        static GBuffer gBuffer;
+        Display *display;
+        Camera *camera;
+        glm::mat4 projectionMatrix;
+        GBuffer gBuffer;
 
-        static Texture *albedoTexture, *normalTexture, *lightAccumulationTexture, *depthTexture;
-        static Texture *blurredLightAccTexture;
-        static Shader deferredShading_LightAccumulationBufferCreator;
-        static Mesh *screenSizeRectangle;
+        Texture *albedoTexture, *normalTexture, *lightAccumulationTexture, *depthTexture;
+        Texture *blurredLightAccTexture;
+        Shader deferredShading_LightAccumulationBufferCreator;
+        Mesh *screenSizeRectangle;
 
-        static void computeStencilBufferForLight(Light *light);
-        static void computeLightAccumulationBufferForLight(Light *light);
+        void computeStencilBufferForLight(Light *light);
+        void computeLightAccumulationBufferForLight(Light *light);
 
-        static PostProcess *hBlurPostProcess,
-                           *wBlurPostProcess,
-                           *brightnessControlPostProcess;
+        PostProcess *hBlurPostProcess,
+                    *wBlurPostProcess,
+                    *brightnessControlPostProcess;
 
-        static std::vector <Light *> lights;
+        std::vector <Light *> lights;
 };
 
 #endif // RENDERINGMASTER_H

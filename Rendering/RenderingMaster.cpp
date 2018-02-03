@@ -1,25 +1,6 @@
 #include "RenderingMaster.h"
 
 RenderingMaster *RenderingMaster::m_instance = NULL;
-Display *RenderingMaster::display;
-Camera *RenderingMaster::camera;
-glm::mat4 RenderingMaster::projectionMatrix;
-GBuffer RenderingMaster::gBuffer;
-Shader RenderingMaster::deferredShading_SceneShader;
-Shader RenderingMaster::deferredShading_BufferCombinationShader;
-Shader RenderingMaster::deferredShading_LightAccumulationBufferCreator;
-Shader RenderingMaster::deferredShading_StencilBufferCreator;
-Texture *RenderingMaster::albedoTexture,
-        *RenderingMaster::normalTexture,
-        *RenderingMaster::lightAccumulationTexture,
-        *RenderingMaster::depthTexture,
-        *RenderingMaster::blurredLightAccTexture;
-Mesh *RenderingMaster::screenSizeRectangle;
-std::vector <Light *> RenderingMaster::lights;
-PostProcess *RenderingMaster::hBlurPostProcess,
-            *RenderingMaster::wBlurPostProcess,
-            *RenderingMaster::brightnessControlPostProcess;
-Light *RenderingMaster::firstSpotLight = NULL;
 
 RenderingMaster::RenderingMaster(Display *display,
                                  Camera *camera,
@@ -28,14 +9,14 @@ RenderingMaster::RenderingMaster(Display *display,
     int depthTextureUnit = 3, outputType = 1, blurredLightAccUnit = 4, spotLightDepthMapUnit = 5;
     bool result = true;
 
-    RenderingMaster::display = display;
-    RenderingMaster::camera = camera;
-    RenderingMaster::projectionMatrix = projectionMatrix;
+    this->display = display;
+    this->camera = camera;
+    this->projectionMatrix = projectionMatrix;
 
     gBuffer.generate (display->getWidth(), display->getHeight());
 
     deferredShading_SceneShader.construct ("res/shaders/deferredShadingSceneShader.json");
-    result &= deferredShading_SceneShader.updateUniform("projectionMatrix", (void *) &RenderingMaster::projectionMatrix);
+    result &= deferredShading_SceneShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     assert (result);
 
     deferredShading_BufferCombinationShader.construct ("res/shaders/bufferCombinationShader.json");
@@ -53,12 +34,12 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= deferredShading_LightAccumulationBufferCreator.updateUniform("depthSampler", (void *) &depthTextureUnit);
     result &= deferredShading_LightAccumulationBufferCreator.updateUniform("screenWidth", (void *) &display->getWidth());
     result &= deferredShading_LightAccumulationBufferCreator.updateUniform("screenHeight", (void *) &display->getHeight());
-    result &= deferredShading_LightAccumulationBufferCreator.updateUniform("projectionMatrix", (void *) &RenderingMaster::projectionMatrix);
+    result &= deferredShading_LightAccumulationBufferCreator.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= deferredShading_LightAccumulationBufferCreator.updateUniform("spotLightDepthSampler", (void *) &spotLightDepthMapUnit);
     assert (result);
 
     deferredShading_StencilBufferCreator.construct ("res/shaders/stencilBufferCreator.json");
-    result &= deferredShading_StencilBufferCreator.updateUniform("projectionMatrix", (void *) &RenderingMaster::projectionMatrix);
+    result &= deferredShading_StencilBufferCreator.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     assert (result);
 
     albedoTexture = new Texture (gBuffer.getColorTexture(), albedoTextureUnit);
@@ -161,7 +142,7 @@ RenderingMaster::RenderingMaster(Display *display,
         int z = rand() % 1000;
         lights[i]->getTransform().setPosition(glm::vec3(x, y, z));
     }*/
-
+    smokeRenderer = new ParticleRenderer<SmokeParticle, 1000>();
 }
 
 RenderingMaster::~RenderingMaster() {
@@ -180,6 +161,8 @@ RenderingMaster::~RenderingMaster() {
     delete hBlurPostProcess;
     delete wBlurPostProcess;
     delete brightnessControlPostProcess;
+
+    delete smokeRenderer;
 }
 
 void RenderingMaster::init(Display *display,
@@ -231,7 +214,7 @@ Camera *RenderingMaster::getCamera() {
     return camera;
 }
 
-glm::mat4 &RenderingMaster::getProjectionMatrix() {
+const glm::mat4 &RenderingMaster::getProjectionMatrix() {
     return projectionMatrix;
 }
 
@@ -281,6 +264,8 @@ void RenderingMaster::update() {
 
     deferredShading_LightAccumulationBufferCreator.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     deferredShading_LightAccumulationBufferCreator.updateUniform("cameraForwardVector", (void *) &forwardVectorInEyeSpace);
+
+    smokeRenderer->update (cameraViewMatrix);
 }
 
 void RenderingMaster::computeStencilBufferForLight(Light *light) {
@@ -304,7 +289,7 @@ void RenderingMaster::computeStencilBufferForLight(Light *light) {
     glDisable(GL_CULL_FACE);
 
     deferredShading_StencilBufferCreator.updateUniform("viewMatrix", (void *) &camera->getViewMatrix());
-    deferredShading_StencilBufferCreator.updateUniform("projectionMatrix", (void *) &RenderingMaster::projectionMatrix);
+    deferredShading_StencilBufferCreator.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     light->render (deferredShading_StencilBufferCreator);
 }
 

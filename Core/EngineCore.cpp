@@ -118,7 +118,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false),
 void EngineCore::start() {
     isRunning = true;
     auto start_time = HighResolutionClock::now();
-    const float frame_time = renderingMaster->getDisplay()->getFrameTimeInMs() * 1000;
+    const float frame_time = RenderingMaster::getInstance()->getDisplay()->getFrameTimeInMs() * 1000;
     unsigned int unprocessed_time = 0;
     unsigned int frame_counter = 0;
     unsigned int FPS = 0;
@@ -195,17 +195,17 @@ void EngineCore::stop() {
 }
 
 void EngineCore::input() {
-    inputManager.update (renderingMaster->getDisplay());
+    inputManager.update (RenderingMaster::getInstance()->getDisplay());
 
     if(inputManager.getKeyDown (SDLK_ESCAPE)){
         stop ();
     }
 
-    renderingMaster->rotateCameraX(inputManager.getMouseDelta().y * this->mouseRotationSpeed);
-    renderingMaster->rotateCameraY(inputManager.getMouseDelta().x * this->mouseRotationSpeed);
+    RenderingMaster::getInstance()->rotateCameraX(inputManager.getMouseDelta().y * this->mouseRotationSpeed);
+    RenderingMaster::getInstance()->rotateCameraY(inputManager.getMouseDelta().x * this->mouseRotationSpeed);
 
     if (inputManager.getMouse(1)) {
-        Transform transform (renderingMaster->getCamera()->getPosition(),
+        Transform transform (RenderingMaster::getInstance()->getCamera()->getPosition(),
                              glm::vec3 (0),
                              glm::vec3 (20));
         Entity *newEntity = new Entity();
@@ -246,25 +246,25 @@ void EngineCore::input() {
     }
 
     if (inputManager.getKeyDown (SDLK_q)) {
-        glm::vec3 cameraPosition = RenderingMaster::getCamera()->getPosition();
-        glm::vec3 cameraRotation = RenderingMaster::getCamera()->getRotation();
+        glm::vec3 cameraPosition = RenderingMaster::getInstance()->getCamera()->getPosition();
+        glm::vec3 cameraRotation = RenderingMaster::getInstance()->getCamera()->getRotation();
         Light *newLight = new Light (Light::LightType::SPOT,
                                     glm::vec3(1.0f, 1.0f, 1.0f),
                                     Transform(cameraPosition,
                                               cameraRotation,
                                               glm::vec3(300.0f, 300.0f, 400.0f)));
-        RenderingMaster::addLightToScene(newLight);
+        RenderingMaster::getInstance()->addLightToScene(newLight);
     }
 
     if (inputManager.getKeyDown (SDLK_e)) {
-        glm::vec3 cameraPosition = RenderingMaster::getCamera()->getPosition();
-        RenderingMaster::addLightToScene(new Light (Light::LightType::POINT,
+        glm::vec3 cameraPosition = RenderingMaster::getInstance()->getCamera()->getPosition();
+        RenderingMaster::getInstance()->addLightToScene(new Light (Light::LightType::POINT,
                                                     glm::vec3(1.0f, 1.0f, 1.0f),
                                                     Transform(cameraPosition,
                                                               glm::vec3(0),
                                                               glm::vec3(500.0f))));
     }
-    RenderingMaster::deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
+    RenderingMaster::getInstance()->deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
 
     for (auto const &entity : entities) {
         entity->input (inputManager);
@@ -272,54 +272,55 @@ void EngineCore::input() {
 }
 
 void EngineCore::render() {
-
     /*generate deferred shading buffers*/
     PT_FromHere(renderSceneTime);
-    RenderingMaster::getGBuffer().bindForScene();
-    RenderingMaster::clearScreen (1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    RenderingMaster::getInstance()->getGBuffer().bindForScene();
+    RenderingMaster::getInstance()->clearScreen (1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    RenderingMaster::getInstance()->smokeRenderer->draw ();
 
     for (auto entity : entities) {
         RenderComponent *renderComponent;
         if ((renderComponent =
              static_cast<RenderComponent *> (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
-            renderComponent->render(&RenderingMaster::deferredShading_SceneShader);
+            renderComponent->render(&RenderingMaster::getInstance()->deferredShading_SceneShader);
         }
     }
-    RenderingMaster::getGBuffer().unbind();
+    RenderingMaster::getInstance()->getGBuffer().unbind();
     PT_ToHere(renderSceneTime);
     /*end generate deferred shading buffers*/
 
     /* begin drawing the spot light depth map for each spot light*/
-    for (Light *l : RenderingMaster::getLights()) {
+    for (Light *l : RenderingMaster::getInstance()->getLights()) {
         if (l->getLightType() == Light::LightType::SPOT) {
-            RenderingMaster::beginCreateDepthTextureForSpotLight(l);
+            RenderingMaster::getInstance()->beginCreateDepthTextureForSpotLight(l);
             for (auto entity : entities) {
                 RenderComponent *renderComponent;
                 if ((renderComponent =
                      static_cast<RenderComponent *> (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
-                    renderComponent->render(&RenderingMaster::deferredShading_StencilBufferCreator);
+                    renderComponent->render(&RenderingMaster::getInstance()->deferredShading_StencilBufferCreator);
                 }
             }
-            RenderingMaster::endCreateDepthTextureForSpotLight(l);
+            RenderingMaster::getInstance()->endCreateDepthTextureForSpotLight(l);
         }
     }
     /* end drawing the spot light depth map */
 
     PT_FromHere(lightAccumBufferTime);
-    RenderingMaster::createLightAccumulationBuffer();
+    RenderingMaster::getInstance()->createLightAccumulationBuffer();
     PT_ToHere(lightAccumBufferTime);
 
     PT_FromHere(screenDrawTime);
-    RenderingMaster::getGBuffer().unbind();
-    RenderingMaster::drawDeferredShadingBuffers();
+    RenderingMaster::getInstance()->getGBuffer().unbind();
+    RenderingMaster::getInstance()->drawDeferredShadingBuffers();
 
-    RenderingMaster::swapBuffers();
+    RenderingMaster::getInstance()->swapBuffers();
     PT_ToHere(screenDrawTime);
 }
 
 void EngineCore::update() {
-    physicsMaster->update();
-    RenderingMaster::update();
+    PhysicsMaster::getInstance()->update();
+    RenderingMaster::getInstance()->update();
 
     for (auto entity : entities) {
         entity->update ();
@@ -335,7 +336,7 @@ void EngineCore::constructPlayer() {
     PhysicsComponent *playerPhysicsComponent = new PhysicsComponent (PhysicsComponent::BoundingBodyType::CAPSULE,
                                                                     glm::vec3(10),
                                                                     50.0f);
-    entities.push_back ((new Player (renderingMaster->getCamera(), playerTrans))
+    entities.push_back ((new Player (RenderingMaster::getInstance()->getCamera(), playerTrans))
                         ->addComponent (playerPhysicsComponent));
     playerPhysicsComponent->getRigidBody()->setDamping(btScalar(0.1), btScalar(0.1));
     playerPhysicsComponent->getRigidBody()->setSleepingThresholds(0.0, 0.0);

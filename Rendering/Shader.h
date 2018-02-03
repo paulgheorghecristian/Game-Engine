@@ -30,6 +30,7 @@ class Shader : public MemoryPoolInterface<Shader>
         void unbind();
         GLuint getUniformLocation(const std::string &name);
         bool updateUniform (const std::string &name, void * data);
+        bool updateUniform (const std::string &name, int data);
         virtual ~Shader();
 
     protected:

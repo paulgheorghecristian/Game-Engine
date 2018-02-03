@@ -2,14 +2,7 @@
 
 PhysicsMaster *PhysicsMaster::m_instance = NULL;
 
-btDynamicsWorld *PhysicsMaster::world;
-btDispatcher *PhysicsMaster::dispatcher;
-btBroadphaseInterface *PhysicsMaster::broadsphase;
-btCollisionConfiguration *PhysicsMaster::collisionConfig;
-btConstraintSolver *PhysicsMaster::solver;
-btRigidBody *PhysicsMaster::planeRigidBody;
-
-PhysicsMaster::PhysicsMaster(float gravity) {
+PhysicsMaster::PhysicsMaster(float gravity) : gravityAcc (gravity) {
     btTransform t;
 
     collisionConfig = new btDefaultCollisionConfiguration();
@@ -60,9 +53,19 @@ btDynamicsWorld *PhysicsMaster::getWorld() {
     return world;
 }
 
+float PhysicsMaster::getGravityAcceleration() {
+    return gravityAcc;
+}
+
 PhysicsMaster::~PhysicsMaster() {
+    /* TODO i think these are destroyed by world destr */
     //delete planeRigidBody->getMotionState();
     //delete planeRigidBody;
+
+    /*delete collisionConfig;
+    delete dispatcher;
+    delete broadsphase;
+    delete solver;*/
 
     delete world;
 }

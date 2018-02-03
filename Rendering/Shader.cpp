@@ -205,10 +205,22 @@ void Shader::reloadShader() {
 }
 
 bool Shader::updateUniform (const std::string &name, void * data) {
-    ShaderUniform * uniform = uniforms[name];
+    ShaderUniform *uniform = uniforms[name];
 
-    if (uniform) {
+    if (uniform != NULL) {
         uniform->updateUniform (data);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool Shader::updateUniform (const std::string &name, int data) {
+    ShaderUniform *uniform = uniforms[name];
+
+    if (uniform != NULL) {
+        assert (uniform->getUniformType() == UNIFORM_INT);
+        uniform->updateUniform (&data);
         return true;
     } else {
         return false;

@@ -6,8 +6,8 @@ RenderComponent::RenderComponent(Mesh * mesh,
                                  Texture *normalMapTexture,
                                  const Material &material) : mesh (mesh),
                                                              shader (shader),
-                                                             normalMapTexture (normalMapTexture),
                                                              texture (texture),
+                                                             normalMapTexture (normalMapTexture),
                                                              material (material) {
 
     bool result = true;
@@ -25,8 +25,8 @@ RenderComponent::RenderComponent(Mesh * mesh,
         hasNormalMap = true;
     }
 
-    result &= shader->updateUniform ("projectionMatrix", (void *) &RenderingMaster::getProjectionMatrix());
-    result &= shader->updateUniform ("viewMatrix", (void *) &RenderingMaster::getCamera()->getViewMatrix());
+    result &= shader->updateUniform ("projectionMatrix", (void *) &RenderingMaster::getInstance()->getProjectionMatrix());
+    result &= shader->updateUniform ("viewMatrix", (void *) &RenderingMaster::getInstance()->getCamera()->getViewMatrix());
     result &= shader->updateUniform ("material.ambient", (void *) &this->material.getAmbient());
     result &= shader->updateUniform ("material.diffuse", (void *) &material.getDiffuse());
     result &= shader->updateUniform ("material.specular", (void *) &material.getSpecular());
@@ -73,8 +73,8 @@ void RenderComponent::render (Shader *externShader) {
     }
 
     result &= externShader->updateUniform ("modelMatrix", (void *) &_entity->getTransform().getModelMatrix());
-    if (externShader != &RenderingMaster::deferredShading_StencilBufferCreator) {
-        result &= externShader->updateUniform ("viewMatrix", (void *) &RenderingMaster::getCamera()->getViewMatrix());
+    if (externShader != &RenderingMaster::getInstance()->deferredShading_StencilBufferCreator) {
+        result &= externShader->updateUniform ("viewMatrix", (void *) &RenderingMaster::getInstance()->getCamera()->getViewMatrix());
     }
     externShader->bind ();
     if (texture != NULL) {

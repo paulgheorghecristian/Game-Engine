@@ -90,6 +90,10 @@ ShaderUniformType ShaderUniform::getUniformTypeFromName(const char * name) {
     return uniformTypesStringMap[name];
 }
 
+ShaderUniformType ShaderUniform::getUniformType () {
+    return type;
+}
+
 ShaderUniform::~ShaderUniform() {
 
 }
