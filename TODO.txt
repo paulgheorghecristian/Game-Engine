@@ -7,3 +7,5 @@
 -make particles support particle atlas with animations (try to create smoke logic after)
 
 -try to merge addparticles with master/develop after smoke
+
+-puzzle game pe titan, arma cu sfere care schimba legile fizicii. din cand in cand se aud tipete prin pereti si se misca ca o holograma. sunt sunete prinse in timp
