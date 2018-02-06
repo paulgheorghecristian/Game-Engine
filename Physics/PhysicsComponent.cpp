@@ -20,7 +20,6 @@ void PhysicsComponent::update() {
     t.getOpenGLMatrix(mat);
 
     t.getRotation().serializeFloat(quatXYZ);
-    w = t.getRotation().getW();
     origin = t.getOrigin();
 
     _entity->getTransform().setPosition(glm::vec3(origin.x(), origin.y(), origin.z()));
