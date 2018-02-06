@@ -12,7 +12,6 @@ void PhysicsComponent::input(Input &inputManager) {
 void PhysicsComponent::update() {
     btTransform t;
     btVector3 axis;
-    btScalar w;
     btVector3 origin;
     struct btQuaternionFloatData quatXYZ;
 
