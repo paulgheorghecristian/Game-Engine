@@ -318,12 +318,12 @@ void EngineCore::render() {
 }
 
 void EngineCore::update() {
-    physicsMaster->update();
-    RenderingMaster::update();
-
     for (auto entity : entities) {
         entity->update ();
     }
+
+    physicsMaster->update();
+    RenderingMaster::update();
 }
 
 std::vector<Entity *> &EngineCore::getEntities() {
