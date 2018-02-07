@@ -66,21 +66,21 @@ RenderingMaster::RenderingMaster(Display *display,
     lightAccumulationTexture = new Texture (gBuffer.getLightAccumulationTexture(), lightAccumulationTextureUnit);
     depthTexture = new Texture (gBuffer.getDepthTexture(), depthTextureUnit);
 
-    brightnessControlPostProcess = new PostProcess (display->getWidth(), display->getHeight(),
+    brightnessControlPostProcess = new PostProcess (display->getWidth()/8, display->getHeight()/8,
                                                     gBuffer.getLightAccumulationTexture(),
                                                     "res/shaders/brightnessControlPostProcess.json");
 
-    hBlurPostProcess = new PostProcess (display->getWidth()/8.0f, display->getHeight()/8.0f,
+    hBlurPostProcess = new PostProcess (display->getWidth()/8, display->getHeight()/8,
                                         brightnessControlPostProcess->getResultingTextureId(),
                                         "res/shaders/hBlurPostProcess.json");
 
-    wBlurPostProcess = new PostProcess (display->getWidth()/8.0f, display->getHeight()/8.0f,
+    wBlurPostProcess = new PostProcess (display->getWidth()/8, display->getHeight()/8,
                                         hBlurPostProcess->getResultingTextureId(),
                                         "res/shaders/wBlurPostProcess.json");
     blurredLightAccTexture = new Texture (wBlurPostProcess->getResultingTextureId(), blurredLightAccUnit);
     screenSizeRectangle = Mesh::getRectangle();
-
-    /*lights.push_back (new Light (Light::LightType::POINT,
+#if 0
+    lights.push_back (new Light (Light::LightType::POINT,
                                  glm::vec3(0.9, 0, 0),
                                  Transform(glm::vec3(100.0f, 50.0f, 250.0f),
                                            glm::vec3(0),
@@ -94,8 +94,8 @@ RenderingMaster::RenderingMaster(Display *display,
                                  glm::vec3(0.9f, 0.9f, 0.8f),
                                  Transform(glm::vec3(100.0f, 50.0f, 50.0f),
                                            glm::vec3(0),
-                                           glm::vec3(500.0f))));*/
-    /*lights.push_back (new Light (Light::LightType::POINT,
+                                           glm::vec3(500.0f))));
+    lights.push_back (new Light (Light::LightType::POINT,
                                  glm::vec3(1.0f, 0.0f, 0.5f),
                                  Transform(glm::vec3(200.0f, 100.0f, 50.0f),
                                            glm::vec3(0),
@@ -134,8 +134,8 @@ RenderingMaster::RenderingMaster(Display *display,
                                  glm::vec3(0.0f, 0.0f, 1.0f),
                                  Transform(glm::vec3(50.0f, 100.0f, 250.0f),
                                            glm::vec3(0),
-                                           glm::vec3(500.0f))));*/
-    /*lights.push_back (new Light (Light::LightType::POINT,
+                                           glm::vec3(500.0f))));
+    lights.push_back (new Light (Light::LightType::POINT,
                                  glm::vec3(1.0f, 1.0f, 0.0f),
                                  Transform(glm::vec3(70.0f, 20.0f, 50.0f),
                                            glm::vec3(0),
@@ -144,8 +144,8 @@ RenderingMaster::RenderingMaster(Display *display,
                                  glm::vec3(1.0f, 1.0f, 0.0f),
                                  Transform(glm::vec3(70.0f, 20.0f, 50.0f),
                                            glm::vec3(0),
-                                           glm::vec3(500.0f))));*/
-    /*for (unsigned int i = 0; i < 50; i++) {
+                                           glm::vec3(500.0f))));
+    for (unsigned int i = 0; i < 50; i++) {
         float x = rand() % 1000;
         float y = rand() % 1000;
         float z = rand() % 1000;
@@ -160,13 +160,11 @@ RenderingMaster::RenderingMaster(Display *display,
         int y = rand() % 1000;
         int z = rand() % 1000;
         lights[i]->getTransform().setPosition(glm::vec3(x, y, z));
-    }*/
-
+    }
+#endif
 }
 
 RenderingMaster::~RenderingMaster() {
-    display->close();
-    delete display;
     delete camera;
 
     delete albedoTexture;
@@ -180,6 +178,9 @@ RenderingMaster::~RenderingMaster() {
     delete hBlurPostProcess;
     delete wBlurPostProcess;
     delete brightnessControlPostProcess;
+
+    display->close();
+    delete display;
 }
 
 void RenderingMaster::init(Display *display,
