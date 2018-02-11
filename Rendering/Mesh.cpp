@@ -1,7 +1,8 @@
 #include "mesh.h"
 #include <iostream>
-Mesh::Mesh(std::vector<Vertex>& vertices,
-           std::vector<unsigned int>& indices) : vertices(vertices), indices(indices)
+Mesh::Mesh(const std::vector<Vertex> &vertices,
+           const std::vector<unsigned int> &indices,
+           bool willBeUpdated) : vertices(vertices), indices(indices), willBeUpdated (willBeUpdated)
 {
     //vao care retine starea meshei
     glGenVertexArrays(1, &vaoHandle);
@@ -11,11 +12,17 @@ Mesh::Mesh(std::vector<Vertex>& vertices,
 
     //trimit GPU-ului vertecsii
     glBindBuffer(GL_ARRAY_BUFFER, vboHandles[VERTEX]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*vertices.size(), &vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof (Vertex)*vertices.size(),
+                 &vertices[0],
+                 willBeUpdated ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 
     //trimit GPU-ului indecsii
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboHandles[INDEX]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*indices.size(), &indices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                 sizeof (unsigned int)*indices.size(),
+                 &indices[0],
+                 willBeUpdated ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 
     numberOfTriangles = indices.size();
 
@@ -31,6 +38,48 @@ Mesh::Mesh(std::vector<Vertex>& vertices,
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2*sizeof(glm::vec3) + sizeof (glm::vec2)));
     glEnableVertexAttribArray (4);
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3*sizeof(glm::vec3) + sizeof (glm::vec2)));
+
+    glBindVertexArray (0);
+    glBindBuffer (GL_ARRAY_BUFFER, 0);
+    glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+Mesh::Mesh (bool willBeUpdated) : numberOfTriangles (0) {
+    //vao care retine starea meshei
+    glGenVertexArrays(1, &vaoHandle);
+    glBindVertexArray(vaoHandle);
+
+    glGenBuffers(NUM_VBOS, vboHandles);
+
+    //trimit GPU-ului vertecsii
+    glBindBuffer(GL_ARRAY_BUFFER, vboHandles[VERTEX]);
+    glBufferData(GL_ARRAY_BUFFER,
+                 0,
+                 NULL,
+                 willBeUpdated ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+
+    //trimit GPU-ului indecsii
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboHandles[INDEX]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                 0,
+                 NULL,
+                 willBeUpdated ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+
+    //ii descriu shader-ului datele trimise
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec3)));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2*sizeof(glm::vec3)));
+    glEnableVertexAttribArray (3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2*sizeof(glm::vec3) + sizeof (glm::vec2)));
+    glEnableVertexAttribArray (4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3*sizeof(glm::vec3) + sizeof (glm::vec2)));
+
+    glBindVertexArray (0);
+    glBindBuffer (GL_ARRAY_BUFFER, 0);
+    glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 Mesh::~Mesh()
@@ -91,7 +140,7 @@ void Mesh::draw(){
     glBindVertexArray(0);
 }
 
-Mesh* Mesh::getSurface(int width, int height){
+Mesh *Mesh::getSurface(int width, int height){
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
@@ -119,7 +168,7 @@ Mesh* Mesh::getSurface(int width, int height){
     return new Mesh(vertices, indices);
 }
 
-Mesh* Mesh::getDome(int x, int y){
+Mesh *Mesh::getDome(int x, int y){
     float pi = 3.1415;
     float phiUpperBound = pi / 2.0;
     float thetaUpperBound = 2 * pi;
@@ -189,7 +238,7 @@ Mesh* Mesh::getDome(int x, int y){
     return new Mesh(vertices, indices);
 }
 
-Mesh* Mesh::getCircle(float x, float y, float radius, int numOfTriangles){
+Mesh *Mesh::getCircle(float x, float y, float radius, int numOfTriangles){
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
@@ -466,4 +515,27 @@ void Mesh::computeTangentAndBi(Vertex &v1, Vertex &v2, Vertex &v3) {
     std::cout << "tangent=" << tangent.x << " " << tangent.y << " " << tangent.z << std::endl;
     std::cout << "bitangent=" << v3.biTangent.x << " " << v3.biTangent.y << " " << v3.biTangent.z << std::endl;
     std::cout << "normal=" << v3.normalCoords.x << " " << v3.normalCoords.y << " " << v3.normalCoords.z << std::endl;*/
+}
+
+void Mesh::update (const std::vector<Vertex> &vertices,
+                   const std::vector<unsigned int> &indices) {
+
+    assert (willBeUpdated);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboHandles[VERTEX]);
+    glBufferSubData(GL_ARRAY_BUFFER,
+                    0,
+                    sizeof (Vertex)*vertices.size(),
+                    &vertices[0]);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboHandles[INDEX]);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,
+                    0,
+                    sizeof (unsigned int)*indices.size(),
+                    &indices[0]);
+
+    numberOfTriangles = indices.size();
+
+    glBindBuffer (GL_ARRAY_BUFFER, 0);
+    glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 }
