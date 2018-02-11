@@ -4,8 +4,8 @@
 	      "height" : 600,
 	      "title" : "Game engine",
 	      "isFullScreen" : true,
-	      "maxFps" : 500,
-	      "vSync" : false
+	      "maxFps" : 60,
+	      "vSync" : true
 	    },
   "camera" : {
              "near" : 1.0,
