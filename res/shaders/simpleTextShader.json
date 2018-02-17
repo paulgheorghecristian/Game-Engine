@@ -1,0 +1,10 @@
+{
+    "VSPath" : "res/shaders/simpleTextShader.vs",
+    "FSPath" : "res/shaders/simpleTextShader.fs",
+    "Uniforms" : {
+                    "projectionMatrix" : "MAT4",
+			    "modelMatrix" : "MAT4",
+			    "fontAtlas" : "INT",
+			    "color" : "VEC3"
+                 }
+}

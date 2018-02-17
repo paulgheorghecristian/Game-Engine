@@ -27,15 +27,16 @@ struct Character{
 class Font
 {
     public:
-        Font(const std::string& filename, const std::string& atlas);
-        const std::vector<Character> &getChars();
-        GLuint getTextureId();
+        Font (const std::string& filename, const std::string& atlas);
+        const std::vector<Character> &getChars ();
+        GLuint getTextureId ();
         int getWidth ();
         int getHeight ();
+        static Font &getNormalFont ();
         virtual ~Font();
     protected:
     private:
-        int getNumber(std::string inputString);
+        int getNumber (std::string inputString);
         int scaleW, scaleH;
         std::vector<Character> charsInfo;
         GLuint textureId;

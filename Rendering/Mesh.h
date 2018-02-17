@@ -10,6 +10,7 @@
 #include <limits>
 
 struct Vertex{
+    /* TODO add default arguments properly */
     glm::vec3 positionCoords;
     glm::vec3 normalCoords;
     glm::vec2 textureCoords;

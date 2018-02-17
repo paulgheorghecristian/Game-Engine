@@ -35,6 +35,7 @@ class RenderingMaster
         static GBuffer &getGBuffer();
         static Shader deferredShading_SceneShader;
         static Shader deferredShading_BufferCombinationShader;
+        static Shader simpleTextShader;
 
         static void drawDeferredShadingBuffers();
         static void createLightAccumulationBuffer();

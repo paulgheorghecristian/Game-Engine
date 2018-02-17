@@ -1,5 +1,7 @@
 #include "RenderingMaster.h"
 
+#include "GUI.h"
+
 RenderingMaster *RenderingMaster::m_instance = NULL;
 Display *RenderingMaster::display;
 Camera *RenderingMaster::camera;
@@ -9,6 +11,7 @@ Shader RenderingMaster::deferredShading_SceneShader;
 Shader RenderingMaster::deferredShading_BufferCombinationShader;
 Shader RenderingMaster::deferredShading_LightAccumulationBufferCreator;
 Shader RenderingMaster::deferredShading_StencilBufferCreator;
+Shader RenderingMaster::simpleTextShader;
 Texture *RenderingMaster::albedoTexture,
         *RenderingMaster::normalTexture,
         *RenderingMaster::lightAccumulationTexture,
@@ -162,6 +165,13 @@ RenderingMaster::RenderingMaster(Display *display,
         lights[i]->getTransform().setPosition(glm::vec3(x, y, z));
     }
 #endif
+    int fontAtlasSamplerId = 0;
+
+    GUI::init (display->getWidth (), display->getHeight());
+    simpleTextShader.construct ("res/shaders/simpleTextShader.json");
+    result &= simpleTextShader.updateUniform ("projectionMatrix", (void *) &GUI::projectionMatrix);
+    result &= simpleTextShader.updateUniform ("fontAtlas", (void *) &fontAtlasSamplerId);
+    assert (result);
 }
 
 RenderingMaster::~RenderingMaster() {

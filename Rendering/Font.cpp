@@ -68,7 +68,7 @@ Font::Font(const std::string& fontFilename, const std::string& fontAtlasName) : 
 
     SDL_Surface *fontAtlas = SDL_LoadBMP(fontAtlasName.c_str());
 
-    if(!fontAtlas){
+    if (fontAtlas == NULL) {
         std::cerr << "Loading font atlas error!" << std::endl;
         exit(1);
     }
@@ -114,6 +114,12 @@ int Font::getWidth() {
 
 int Font::getHeight() {
     return scaleH;
+}
+
+Font &Font::getNormalFont() {
+    static Font font ("res/fonts/normalFont.fnt", "res/fonts/normalFont.bmp");
+
+    return font;
 }
 
 Font::~Font() {

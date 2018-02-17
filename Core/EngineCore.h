@@ -12,6 +12,7 @@
 #include "Texture.h"
 #include "ProfilingTimer.h"
 #include "Player.h"
+#include "BarGUI.h"
 
 #include <vector>
 #include <chrono>
@@ -43,14 +44,6 @@ class EngineCore
         void constructPlayer();
 
         int outputType;
-
-        ProfilingTimer renderTime;
-        ProfilingTimer updateTime;
-        ProfilingTimer inputTime;
-        ProfilingTimer frameTime;
-        ProfilingTimer renderSceneTime;
-        ProfilingTimer lightAccumBufferTime;
-        ProfilingTimer screenDrawTime;
 };
 
 #endif // ENGINECORE_H

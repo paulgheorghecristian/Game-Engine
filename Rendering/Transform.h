@@ -9,14 +9,14 @@
 class Transform
 {
     public:
-        Transform(const glm::vec3 &position = glm::vec3(0),
-                  const glm::quat &rotation = glm::quat(1, 0, 0, 0),
-                  const glm::vec3 &scale = glm::vec3(1));
-        Transform(const glm::vec3 &position = glm::vec3(0),
-                  const glm::vec3 &rotation = glm::vec3(0),
-                  const glm::vec3 &scale = glm::vec3(1));
+        Transform ();
+        Transform(const glm::vec3 &position,
+                  const glm::quat &rotation,
+                  const glm::vec3 &scale);
+        Transform(const glm::vec3 &position,
+                  const glm::vec3 &rotation,
+                  const glm::vec3 &scale);
         Transform(const Transform &other);
-        Transform();
         Transform &operator=(const Transform &other);
 
         //transform = this.transform * ratio + other.transform (1-ratio);

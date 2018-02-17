@@ -1,0 +1,121 @@
+{
+    "ConfigFilePath" : "res/configs/config.json",
+    "gravity" : -10.0,
+    "Entities" : [
+        {
+            "Transform" : {
+                "position" : [300, 0, 50],
+                "rotation" : [0, 0, 0],
+                "scale" : [50, 50, 50]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/rock.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Material" : {
+                        "ambient" : [0.5, 0.5, 0.8],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [200, 0, 0],
+                "rotation" : [0, 0, 0],
+                "scale" : [25, 25, 25]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/rock.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Material" : {
+                        "ambient" : [0.5, 0.5, 0.8],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [100, 0, 0],
+                "rotation" : [0, 0, 0],
+                "scale" : [50, 50, 50]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/rock.obj",
+                    "Shader" : "res/shaders/example.json",
+<<<<<<< HEAD
+                    "Texture" : "res/textures/196.bmp",
+                    "NormalMapTexture" : "res/textures/196_norm.bmp",
+=======
+                    "Texture" : "res/textures/165.bmp",
+                    "NormalMapTexture" : "res/textures/165_norm.bmp",
+>>>>>>> bd07a4185f227945fa564983f54ebd17d8495177
+                    "Material" : {
+                        "ambient" : [0.5, 0.5, 0.8],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [0, 100, 200],
+                "rotation" : [0, 0, 0],
+                "scale" : [60, 60, 60]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/cube4.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/196.bmp",
+                    "NormalMapTexture" : "res/textures/196_norm.bmp",
+                    "Material" : {
+                        "ambient" : [1.0, 0.0, 0.5],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                },
+                "PhysicsComponent" : {
+                    "BoundingBodyType" : ["cube"],
+                    "scale": [60, 60, 60],
+                    "mass" : 10
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [150, 100, 200],
+                "rotation" : [0, 0, 0],
+                "scale" : [60, 60, 60]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/cube4.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/196.bmp",
+                    "Material" : {
+                        "ambient" : [1.0, 0.0, 0.5],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                },
+                "PhysicsComponent" : {
+                    "BoundingBodyType" : ["cube"],
+                    "scale": [60, 60, 60],
+                    "mass" : 10
+                }
+            }
+        }
+    ]
+}

@@ -1,28 +1,30 @@
 #include "text.h"
 
-/* TODO make font not a pointer */
-Text::Text(Font *font,
-           const std::string &text,
+#include <math.h>
+
+/* TODO add transform to this class */
+Text::Text(Font &font,
            const glm::vec3 &position,
-           const glm::vec3 &rotation,
            const glm::vec3 &color,
-           float size) : mesh (true),
-                         currentString (text),
-                         m_font (font),
-                         position (position),
-                         rotation (rotation),
-                         color (color),
-                         size (size),
-                         modelMatrix (1.0)
+           const std::string &text,
+           float size,
+           const glm::vec3 &rotation) : mesh (true),
+                                        currentString (text),
+                                        m_font (font),
+                                        position (position),
+                                        rotation (rotation),
+                                        color (color),
+                                        size (size),
+                                        modelMatrix (1.0)
 {
-    updateMesh(0);
-    computeModelMatrix();
+    updateMesh (0);
+    computeModelMatrix ();
 }
 
 void Text::updateMesh(bool dir){
     /* TODO pretty slow, update just what needs to be updated */
 
-    std::vector<Character> chars = m_font->getChars();
+    std::vector<Character> chars = m_font.getChars();
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     glm::vec2 cursor(0);
@@ -33,8 +35,8 @@ void Text::updateMesh(bool dir){
         Character charInfo = chars[id];
         int index = i*4;
 
-        int fontWidth = m_font->getWidth();
-        int fontHeight = m_font->getHeight();
+        int fontWidth = m_font.getWidth();
+        int fontHeight = m_font.getHeight();
 
         float x, y, width, height;
 
@@ -61,7 +63,10 @@ void Text::updateMesh(bool dir){
         indices.push_back(index+1);
         indices.push_back(index+3);
     }
-    mesh.update (vertices, indices);
+
+    if (vertices.size () != 0 && indices.size () != 0) {
+        mesh.update (vertices, indices);
+    }
 }
 
 void Text::computeModelMatrix(){
@@ -69,7 +74,7 @@ void Text::computeModelMatrix(){
     modelMatrix = glm::rotate(modelMatrix, rotation.x, glm::vec3(1,0,0));
     modelMatrix = glm::rotate(modelMatrix, rotation.y, glm::vec3(0,1,0));
     modelMatrix = glm::rotate(modelMatrix, rotation.z, glm::vec3(0,0,1));
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(size*50));
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(size*10));
 
     isModelMatrixModified = false;
 }
@@ -97,31 +102,75 @@ void Text::displayNumber(long number){
     updateMesh(1);
 }
 
+void Text::displayDouble (double number, int prec) {
+    int leftOfDot, rightOfDot;
+    double fracPart;
+    double intPart;
+
+    fracPart = modf (number, &intPart);
+
+    leftOfDot = (int) intPart;
+    rightOfDot = (int) (fracPart * pow (10, prec));
+
+    currentString.clear ();
+    if (rightOfDot == 0) {
+        currentString.push_back ('0');
+    } else {
+        while (rightOfDot != 0) {
+            currentString.push_back ((rightOfDot % 10) + '0');
+            rightOfDot /= 10;
+        }
+    }
+    currentString.push_back ('.');
+    if (leftOfDot == 0) {
+        currentString.push_back ('0');
+    } else {
+        while (leftOfDot != 0) {
+            currentString.push_back ((leftOfDot % 10) + '0');
+            leftOfDot /= 10;
+        }
+    }
+
+    if (currentString.size () > 1) {
+        updateMesh (1);
+    }
+}
+
 void Text::display(const std::string& str) {
     currentString = str;
     updateMesh(0);
 }
 
-void Text::deleteLetter(){
+void Text::deleteLetter() {
     currentString = currentString.substr(0, currentString.size()-1);
     updateMesh(0);
 }
 
-void Text::draw(Shader &shader){
+void Text::draw(Shader &shader) {
+    bool result = true;
 
-    if(isModelMatrixModified){
-        computeModelMatrix();
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    if (isModelMatrixModified) {
+        computeModelMatrix ();
     }
 
-    glActiveTexture(GL_TEXTURE0);
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, m_font->getTextureId());
+    result &= shader.updateUniform("modelMatrix", (void *) &modelMatrix);
+    result &= shader.updateUniform("color", (void *) &color);
+    assert (result);
 
-    glBindVertexArray(mesh.getVao());
-    //shader->loadModelMatrix(modelMatrix);
-    //shader->loadColor(glm::vec4(color, 1.0));
-    glDrawElements(GL_TRIANGLES, mesh.getNumberOfTriangles(), GL_UNSIGNED_INT, (void*)0);
-    glBindVertexArray(0);
+    shader.bind();
+
+    glActiveTexture (GL_TEXTURE0);
+    glEnable (GL_TEXTURE_2D);
+    glBindTexture (GL_TEXTURE_2D, m_font.getTextureId ());
+
+    mesh.draw ();
+
+    shader.unbind();
+
+    glDisable (GL_BLEND);
 }
 
 Mesh &Text::getMesh() {

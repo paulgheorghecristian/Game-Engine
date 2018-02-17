@@ -11,12 +11,12 @@
 class Text
 {
     public:
-        Text(Font *font,
-             const std::string &text,
-             const glm::vec3 &position,
-             const glm::vec3 &rotation,
-             const glm::vec3 &color,
-             float size);
+        Text (Font &font,
+              const glm::vec3 &position,
+              const glm::vec3 &color,
+              const std::string &text = "",
+              float size = 10,
+              const glm::vec3 &rotation = glm::vec3 (0));
         Mesh &getMesh();
         void setColor(glm::vec3 color);
         void setPosition(glm::vec3 pos);
@@ -27,11 +27,12 @@ class Text
         void deleteLetter ();
         void displayNumber (long number);
         void display (const std::string& str);
+        void displayDouble (double number, int prec = 3);
         void draw (Shader &shader);
         virtual ~Text();
     protected:
     private:
-        Font *m_font;
+        Font &m_font;
         Mesh mesh;
         glm::vec3 position;
         glm::vec3 rotation;
@@ -40,8 +41,9 @@ class Text
         std::string currentString;
         glm::mat4 modelMatrix;
         bool isModelMatrixModified;
-        void computeModelMatrix();
-        void updateMesh(bool);
+
+        void computeModelMatrix ();
+        void updateMesh (bool);
 };
 
 #endif // TEXT_H

@@ -1,6 +1,11 @@
 #include "Shader.h"
 
 Shader::Shader() {
+
+}
+
+Shader::Shader(std::string &&jsonPath) {
+    construct(std::forward<std::string> (jsonPath));
 }
 
 Shader *Shader::construct (std::string &&jsonPath) {
@@ -224,4 +229,6 @@ Shader::~Shader()
     for (auto it : uniforms) {
         delete it.second;
     }
+
+    glDeleteProgram (program);
 }

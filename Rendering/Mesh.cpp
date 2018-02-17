@@ -44,26 +44,14 @@ Mesh::Mesh(const std::vector<Vertex> &vertices,
     glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-Mesh::Mesh (bool willBeUpdated) : numberOfTriangles (0) {
+Mesh::Mesh (bool willBeUpdated) : numberOfTriangles (0), willBeUpdated (willBeUpdated) {
     //vao care retine starea meshei
     glGenVertexArrays(1, &vaoHandle);
-    glBindVertexArray(vaoHandle);
-
     glGenBuffers(NUM_VBOS, vboHandles);
 
-    //trimit GPU-ului vertecsii
+    glBindVertexArray(vaoHandle);
     glBindBuffer(GL_ARRAY_BUFFER, vboHandles[VERTEX]);
-    glBufferData(GL_ARRAY_BUFFER,
-                 0,
-                 NULL,
-                 willBeUpdated ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
-
-    //trimit GPU-ului indecsii
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboHandles[INDEX]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 0,
-                 NULL,
-                 willBeUpdated ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 
     //ii descriu shader-ului datele trimise
     glEnableVertexAttribArray(0);
@@ -78,8 +66,6 @@ Mesh::Mesh (bool willBeUpdated) : numberOfTriangles (0) {
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3*sizeof(glm::vec3) + sizeof (glm::vec2)));
 
     glBindVertexArray (0);
-    glBindBuffer (GL_ARRAY_BUFFER, 0);
-    glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 Mesh::~Mesh()
@@ -136,7 +122,7 @@ Mesh* Mesh::getRectangleYUp() {
 
 void Mesh::draw(){
     glBindVertexArray(getVao());
-    glDrawElements(GL_TRIANGLES, numberOfTriangles, GL_UNSIGNED_INT, (void*)0);
+    glDrawElements(GL_TRIANGLES, numberOfTriangles, GL_UNSIGNED_INT, (void *) 0);
     glBindVertexArray(0);
 }
 
@@ -522,20 +508,21 @@ void Mesh::update (const std::vector<Vertex> &vertices,
 
     assert (willBeUpdated);
 
+    glBindVertexArray (vaoHandle);
+
     glBindBuffer(GL_ARRAY_BUFFER, vboHandles[VERTEX]);
-    glBufferSubData(GL_ARRAY_BUFFER,
-                    0,
-                    sizeof (Vertex)*vertices.size(),
-                    &vertices[0]);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof (Vertex)*vertices.size(),
+                 &vertices[0],
+                 willBeUpdated ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboHandles[INDEX]);
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,
-                    0,
-                    sizeof (unsigned int)*indices.size(),
-                    &indices[0]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                 sizeof (unsigned int)*indices.size(),
+                 &indices[0],
+                 willBeUpdated ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 
     numberOfTriangles = indices.size();
 
-    glBindBuffer (GL_ARRAY_BUFFER, 0);
-    glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
