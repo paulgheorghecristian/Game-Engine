@@ -15,7 +15,8 @@ IParticle::IParticle(const glm::vec3 &position,
                                                        acceleration (acceleration),
                                                        scale (scale),
                                                        viewModelMatrix (1.0),
-                                                       aliveForInMs (0)
+                                                       aliveForInMs (0),
+                                                       flags (0)
 {
 
 }
@@ -39,6 +40,7 @@ const glm::mat4 &IParticle::getViewModelMatrix() {
 }
 
 void IParticle::generateViewModelMatrix(const glm::mat4 &viewMatrix) {
+    assert (false); /* UNUSED */
     glm::mat4 modelMatrix(1.0);
 
     /*for(int i = 0; i < 3; i++){
@@ -61,6 +63,10 @@ const glm::vec3 &IParticle::getScale () {
 
 const glm::vec3 &IParticle::getInstaPosition () {
     return instaPosition;
+}
+
+const unsigned int &IParticle::getAliveForInMs () {
+    return aliveForInMs;
 }
 
 IParticle::~IParticle()

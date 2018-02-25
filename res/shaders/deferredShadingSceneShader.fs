@@ -1,6 +1,6 @@
 #version 330
 
-layout(location = 0) out vec3 outColor;
+layout(location = 0) out vec4 outColor;
 layout(location = 1) out vec3 outEyeSpaceNormal;
 
 struct Material {
@@ -25,9 +25,9 @@ void main(){
 
     if (hasTexture){
         vec3 color = texture (textureSampler, textureCoords).rgb;
-        outColor = color * material.ambient;
+        outColor = vec4 (color * material.ambient, 1.0);
     } else {
-        outColor = material.ambient;
+        outColor = vec4 (material.ambient, 1.0);
 	}
 
     int frontCond = -(1 - int(gl_FrontFacing)*2);

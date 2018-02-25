@@ -50,7 +50,7 @@ class RenderingMaster
 
         const std::vector <Light *> &getLights();
         /* TODO make this private */
-        ParticleRenderer<SmokeParticle, 1000> *smokeRenderer;
+        ParticleRenderer<SmokeParticle, 100> *smokeRenderer;
     protected:
 
     private:

@@ -7,7 +7,9 @@ Camera::Camera(glm::vec3 position,
                                   rotation (xRotation, yRotation, zRotation),
                                   forward(0.0, 0.0, -1.0),
                                   right(1.0, 0.0, 0.0),
-                                  viewMatrix (1.0f) {
+                                  viewMatrix (1.0f),
+                                  forwardNeedsUpdate (true),
+                                  viewMatrixNeedsUpdate (true) {
 
 }
 
@@ -16,35 +18,43 @@ Camera::~Camera() {
 }
 
 const glm::mat4 &Camera::getViewMatrix() {
-    glm::quat xRotQuat = glm::angleAxis (-rotation.x, glm::vec3(1,0,0));
-    glm::quat yRotQuat = glm::angleAxis (-rotation.y, glm::vec3(0,1,0));
-
-    glm::quat orientation = xRotQuat * yRotQuat;
-    orientation = glm::normalize (orientation);
-
-    viewMatrix = glm::mat4_cast (orientation);
-    viewMatrix = glm::translate (viewMatrix, -position);
+    if (viewMatrixNeedsUpdate) {
+        computeViewMatrix ();
+    }
 
     return viewMatrix;
 }
 
 void Camera::moveUp(float dx) {
     position.y += dx;
+
+    viewMatrixNeedsUpdate = true;
 }
 
 void Camera::moveSideways(float dx) {
-    computeForward();
+    if (forwardNeedsUpdate) {
+        computeForward();
+    }
     right = glm::normalize(glm::cross(forward, glm::vec3(0.0, 1.0, 0.0)));
     position = position + right * dx;
+
+    viewMatrixNeedsUpdate = true;
 }
 
 void Camera::moveForward(float distance) {
-    computeForward();
+    if (forwardNeedsUpdate) {
+        computeForward();
+    }
     position = position + forward * distance;
+
+    viewMatrixNeedsUpdate = true;
 }
 
 void Camera::rotateY(float dx) {
     rotation.y += dx;
+
+    forwardNeedsUpdate = true;
+    viewMatrixNeedsUpdate = true;
 }
 
 void Camera::rotateX(float dx) {
@@ -55,13 +65,21 @@ void Camera::rotateX(float dx) {
         return;
     }
     rotation.x += dx;
+
+    forwardNeedsUpdate = true;
+    viewMatrixNeedsUpdate = true;
 }
 
 void Camera::invertForward() {
     rotation.x *= -1;
+
+    viewMatrixNeedsUpdate = true;
+    forwardNeedsUpdate = true;
 }
 
 void Camera::computeForward() {
+    assert (forwardNeedsUpdate);
+
     float sinX = glm::sin(rotation.x);
     float cosX = glm::cos(rotation.x);
     float sinY = glm::sin(rotation.y);
@@ -70,10 +88,29 @@ void Camera::computeForward() {
     forward.x = -cosX * sinY;
     forward.y = sinX;
     forward.z = -cosX * cosY;
+
+    forwardNeedsUpdate = false;
+}
+
+void Camera::computeViewMatrix () {
+    assert (viewMatrixNeedsUpdate);
+
+    glm::quat xRotQuat = glm::angleAxis (-rotation.x, glm::vec3(1,0,0));
+    glm::quat yRotQuat = glm::angleAxis (-rotation.y, glm::vec3(0,1,0));
+
+    glm::quat orientation = xRotQuat * yRotQuat;
+    orientation = glm::normalize (orientation);
+
+    viewMatrix = glm::mat4_cast (orientation);
+    viewMatrix = glm::translate (viewMatrix, -position);
+
+    viewMatrixNeedsUpdate = false;
 }
 
 const glm::vec3 &Camera::getForward() {
-    computeForward();
+    if (forwardNeedsUpdate) {
+        computeForward ();
+    }
     return forward;
 }
 
@@ -88,12 +125,16 @@ const glm::vec3 &Camera::getRight() {
 }
 
 glm::vec3 Camera::getUp() {
-    computeForward();
-    return glm::normalize(glm::cross(forward, getRight()));
+    if (forwardNeedsUpdate) {
+        computeForward ();
+    }
+    return glm::normalize (glm::cross (forward, getRight ()));
 }
 
 void Camera::setPosition(const glm::vec3& pos) {
     position = pos;
+
+    viewMatrixNeedsUpdate = true;
 }
 
 const glm::vec3 &Camera::getPosition() {
@@ -108,10 +149,16 @@ void Camera::setRotation (float xRot, float yRot, float zRot) {
     rotation.x = xRot;
     rotation.y = yRot;
     rotation.z = zRot;
+
+    viewMatrixNeedsUpdate = true;
+    forwardNeedsUpdate = true;
 }
 
 void Camera::setRotation (const glm::vec3 &rotation) {
     this->rotation = rotation;
+
+    viewMatrixNeedsUpdate = true;
+    forwardNeedsUpdate = true;
 }
 
 /* contains the y rotation also

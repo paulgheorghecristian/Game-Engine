@@ -142,7 +142,7 @@ RenderingMaster::RenderingMaster(Display *display,
         int z = rand() % 1000;
         lights[i]->getTransform().setPosition(glm::vec3(x, y, z));
     }*/
-    smokeRenderer = new ParticleRenderer<SmokeParticle, 1000>();
+    smokeRenderer = new ParticleRenderer<SmokeParticle, 100>();
 }
 
 RenderingMaster::~RenderingMaster() {
@@ -259,13 +259,13 @@ void RenderingMaster::update() {
     glm::vec3 cameraForward = camera->getForward();
     glm::mat4 cameraViewMatrix;
 
-    cameraViewMatrix = camera->getViewMatrix();
+    cameraViewMatrix = camera->getViewMatrix ();
     forwardVectorInEyeSpace = glm::mat3 (cameraViewMatrix) * cameraForward;
 
     deferredShading_LightAccumulationBufferCreator.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     deferredShading_LightAccumulationBufferCreator.updateUniform("cameraForwardVector", (void *) &forwardVectorInEyeSpace);
 
-    smokeRenderer->update (cameraViewMatrix);
+    smokeRenderer->update (*camera);
 }
 
 void RenderingMaster::computeStencilBufferForLight(Light *light) {

@@ -12,7 +12,7 @@ enum ParticleFlags {
     ALPHA_BLENDING = 2,
     TEXTURE_ATLAS = 4,
 };
-
+ /* TODO make move constr */
 class IParticle
 {
     public:
@@ -22,13 +22,20 @@ class IParticle
                   /* TODO find a way to avoid hardcoding of the gravity */
                   const glm::vec3 &acceleration = glm::vec3 (0, -10.0f, 0));
         virtual void draw (Shader &shader);
-        virtual void update (long delta, const glm::mat4 &viewMatrix) = 0;
+        virtual void update (long delta, Camera &camera) = 0;
         virtual bool isAlive () = 0;
         virtual void reset();
         const glm::mat4 &getViewModelMatrix ();
         const glm::vec3 &getScale ();
         const glm::vec3 &getInstaPosition ();
+        const unsigned int &getAliveForInMs ();
         virtual ~IParticle();
+
+        IParticle (const IParticle& particle) = delete;
+        IParticle &operator= (const IParticle &particle) = delete;
+
+        IParticle (IParticle &&particle) = default;
+        IParticle &operator= (IParticle &&particle) = default;
     protected:
         glm::vec3 initialPosition, initialVelocity;
         glm::vec3 instaPosition, instaVelocity, acceleration;

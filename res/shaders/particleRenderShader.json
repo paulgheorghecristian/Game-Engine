@@ -4,7 +4,13 @@
     "GSPath" : "res/shaders/particleRenderShader.gs",
     "Uniforms" : {
                     "viewMatrix" : "MAT4",
-			    "projectionMatrix" : "MAT4",
-			    "particleSampler" : "INT"
+		    "projectionMatrix" : "MAT4",
+		    "particleSampler" : "INT",
+		    "liveForInMs" : "INT",
+		    "totalNumOfSubTxts" : "INT",
+		    "numOfSubTxtsH" : "INT",
+		    "numOfSubTxtsW" : "INT",
+		    "subWidth" : "FLOAT",
+		    "subHeight" : "FLOAT"
                  }
 }

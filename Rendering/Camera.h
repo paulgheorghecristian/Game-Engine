@@ -32,7 +32,9 @@ class Camera
     protected:
     private:
         glm::vec3 position, rotation, forward, right;
-        void computeForward();
+        bool forwardNeedsUpdate, viewMatrixNeedsUpdate;
+        void computeForward ();
+        void computeViewMatrix ();
 
         glm::mat4 viewMatrix;
 };

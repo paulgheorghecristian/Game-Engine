@@ -277,8 +277,6 @@ void EngineCore::render() {
     RenderingMaster::getInstance()->getGBuffer().bindForScene();
     RenderingMaster::getInstance()->clearScreen (1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    RenderingMaster::getInstance()->smokeRenderer->draw ();
-
     for (auto entity : entities) {
         RenderComponent *renderComponent;
         if ((renderComponent =
@@ -286,6 +284,9 @@ void EngineCore::render() {
             renderComponent->render(&RenderingMaster::getInstance()->deferredShading_SceneShader);
         }
     }
+
+    RenderingMaster::getInstance()->smokeRenderer->draw ();
+
     RenderingMaster::getInstance()->getGBuffer().unbind();
     PT_ToHere(renderSceneTime);
     /*end generate deferred shading buffers*/

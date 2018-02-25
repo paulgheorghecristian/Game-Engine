@@ -8,4 +8,6 @@
 
 -try to merge addparticles with master/develop after smoke
 
+-do i really want to use the gbuffer buffer for particles or the default one with depth buffer copied?
+
 -puzzle game pe titan, arma cu sfere care schimba legile fizicii. din cand in cand se aud tipete prin pereti si se misca ca o holograma. sunt sunete prinse in timp

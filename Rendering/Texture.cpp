@@ -1,9 +1,35 @@
 #include "texture.h"
 
-Texture::Texture(std::string textureFilename, int textureUnit) : textureUnit (textureUnit) {
-    SDL_Surface *texture = SDL_LoadBMP(textureFilename.c_str());
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 
-    if(!texture) {
+using uint = unsigned int;
+using uchar = unsigned char;
+
+#include "stb_image.h"
+#include "stb_image_write.h"
+
+const static GLint pixelFormat[5] = { 0, GL_RED, GL_RG, GL_RGB, GL_RGBA };
+const static GLint internalFormat[][5] = {
+                                            { 0, GL_R8, GL_RG8, GL_RGB8, GL_RGBA8 },
+                                            { 0, GL_R16, GL_RG16, GL_RGB16, GL_RGBA16 },
+                                            { 0, GL_R16F, GL_RG16F, GL_RGB16F, GL_RGBA16F },
+                                            { 0, GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F }
+                                        };
+
+Texture::Texture(const std::string& textureFilename,
+                 int textureUnit,
+                 int numOfSubTxtsW,
+                 int numOfSubTxtsH) : textureUnit (textureUnit),
+                                      numOfSubTxtsH (numOfSubTxtsH),
+                                      numOfSubTxtsW (numOfSubTxtsW),
+                                      totalNumOfSubTxts (numOfSubTxtsH * numOfSubTxtsW),
+                                      subWidth (1.0f / numOfSubTxtsW),
+                                      subHeight (1.0f / numOfSubTxtsH) {
+    int width, height, chn;
+	unsigned char *data = stbi_load (textureFilename.c_str (), &width, &height, &chn, 0);
+
+    if (data == NULL) {
         std::cerr << "Loading texture " << textureFilename << " error!" << std::endl;
         exit(1);
     }
@@ -19,20 +45,20 @@ Texture::Texture(std::string textureFilename, int textureUnit) : textureUnit (te
 
     glTexImage2D (GL_TEXTURE_2D,
                   0,
-                  GL_RGB,
-                  texture->w,
-                  texture->h,
+                  internalFormat[0][chn],
+                  width,
+                  height,
                   0,
-                  GL_BGR,
+                  pixelFormat[chn],
                   GL_UNSIGNED_BYTE,
-                  texture->pixels);
+                  data);
 
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.7f);
 
     glBindTexture(GL_TEXTURE_2D, 0);
-    SDL_FreeSurface(texture);
+    stbi_image_free(data);
 }
 
 Texture::Texture(GLuint textureId, int textureUnit) : textureId(textureId), textureUnit(textureUnit)
@@ -52,6 +78,26 @@ GLuint Texture::getTextureId(){
 
 const int &Texture::getTextureUnit(){
     return textureUnit;
+}
+
+const int &Texture::getNumOfSubTxtsW () {
+    return numOfSubTxtsW;
+}
+
+const int &Texture::getNumOfSubTxtsH () {
+    return numOfSubTxtsH;
+}
+
+const int &Texture::getTotalNumOfSubTxts () {
+    return totalNumOfSubTxts;
+}
+
+const float &Texture::getSubWidth () {
+    return subWidth;
+}
+
+const float &Texture::getSubHeight () {
+    return subHeight;
 }
 
 void Texture::use(){
