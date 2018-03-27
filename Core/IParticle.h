@@ -39,7 +39,7 @@ class IParticle
     protected:
         glm::vec3 initialPosition, initialVelocity;
         glm::vec3 instaPosition, instaVelocity, acceleration;
-        glm::vec3 scale;
+        glm::vec3 initialScale, instaScale;
         glm::mat4 viewModelMatrix;
         unsigned int aliveForInMs;
         char flags;

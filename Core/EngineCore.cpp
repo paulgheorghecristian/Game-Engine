@@ -1,5 +1,7 @@
 #include "EngineCore.h"
 
+#include <glm/gtx/rotate_vector.hpp>
+
 EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false),
                                                             renderTime("render"),
                                                             updateTime("update"),
@@ -259,10 +261,15 @@ void EngineCore::input() {
     if (inputManager.getKeyDown (SDLK_e)) {
         glm::vec3 cameraPosition = RenderingMaster::getInstance()->getCamera()->getPosition();
         RenderingMaster::getInstance()->addLightToScene(new Light (Light::LightType::POINT,
-                                                    glm::vec3(1.0f, 1.0f, 1.0f),
+                                                    glm::vec3(1.0f, 0.0f, 0.0f),
                                                     Transform(cameraPosition,
                                                               glm::vec3(0),
                                                               glm::vec3(500.0f))));
+
+    }
+
+    if (inputManager.getKeyDown (SDLK_r)) {
+        RenderingMaster::getInstance()->resetLights ();
     }
     RenderingMaster::getInstance()->deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
 
@@ -285,16 +292,16 @@ void EngineCore::render() {
         }
     }
 
-    RenderingMaster::getInstance()->smokeRenderer->draw ();
-
     RenderingMaster::getInstance()->getGBuffer().unbind();
     PT_ToHere(renderSceneTime);
     /*end generate deferred shading buffers*/
 
+    const std::vector <Light *> &lights = RenderingMaster::getInstance ()->getLights ();
+
     /* begin drawing the spot light depth map for each spot light*/
-    for (Light *l : RenderingMaster::getInstance()->getLights()) {
-        if (l->getLightType() == Light::LightType::SPOT) {
-            RenderingMaster::getInstance()->beginCreateDepthTextureForSpotLight(l);
+    for (Light *light : lights) {
+        if (light->getLightType() == Light::LightType::SPOT) {
+            RenderingMaster::getInstance()->beginCreateDepthTextureForSpotLight(light);
             for (auto entity : entities) {
                 RenderComponent *renderComponent;
                 if ((renderComponent =
@@ -302,7 +309,7 @@ void EngineCore::render() {
                     renderComponent->render(&RenderingMaster::getInstance()->deferredShading_StencilBufferCreator);
                 }
             }
-            RenderingMaster::getInstance()->endCreateDepthTextureForSpotLight(l);
+            RenderingMaster::getInstance()->endCreateDepthTextureForSpotLight(light);
         }
     }
     /* end drawing the spot light depth map */
@@ -313,6 +320,12 @@ void EngineCore::render() {
 
     PT_FromHere(screenDrawTime);
     RenderingMaster::getInstance()->getGBuffer().unbind();
+
+    RenderingMaster::getInstance ()->particleForwardRenderFramebuffer.bindAllRenderTargets ();
+    RenderingMaster::getInstance ()->depthTexture->use ();
+    RenderingMaster::getInstance ()->smokeRenderer->draw ();
+    RenderingMaster::getInstance ()->particleForwardRenderFramebuffer.unbind ();
+
     RenderingMaster::getInstance()->drawDeferredShadingBuffers();
 
     RenderingMaster::getInstance()->swapBuffers();
@@ -333,7 +346,7 @@ std::vector<Entity *> &EngineCore::getEntities() {
 }
 
 void EngineCore::constructPlayer() {
-    Transform playerTrans (glm::vec3(0, 1000, 0), glm::vec3(0), glm::vec3(10));
+    Transform playerTrans (glm::vec3(200, 10, 0), glm::vec3(0), glm::vec3(10));
     PhysicsComponent *playerPhysicsComponent = new PhysicsComponent (PhysicsComponent::BoundingBodyType::CAPSULE,
                                                                     glm::vec3(10),
                                                                     50.0f);

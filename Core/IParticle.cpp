@@ -13,7 +13,8 @@ IParticle::IParticle(const glm::vec3 &position,
                                                        instaPosition (position),
                                                        instaVelocity (velocity),
                                                        acceleration (acceleration),
-                                                       scale (scale),
+                                                       instaScale (scale),
+                                                       initialScale (scale),
                                                        viewModelMatrix (1.0),
                                                        aliveForInMs (0),
                                                        flags (0)
@@ -32,6 +33,7 @@ void IParticle::draw (Shader &shader) {
 void IParticle::reset() {
     instaPosition = initialPosition;
     instaVelocity = initialVelocity;
+    instaScale = initialScale;
     aliveForInMs = 0;
 }
 
@@ -58,7 +60,7 @@ void IParticle::generateViewModelMatrix(const glm::mat4 &viewMatrix) {
 }
 
 const glm::vec3 &IParticle::getScale () {
-    return scale;
+    return instaScale;
 }
 
 const glm::vec3 &IParticle::getInstaPosition () {
