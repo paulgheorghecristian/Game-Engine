@@ -21,18 +21,37 @@ enum ShaderUniformType {
     LAST_TYPE = UNIFORM_BOOLEAN + 1
 };
 
+union ShaderUniformValue {
+    float mat4[16];
+    struct vec4 {
+        float x,y,z,w;
+    } vec4;
+    struct vec3 {
+        float x,y,z;
+    } vec3;
+    float f;
+    struct vec2 {
+        float x,y;
+    } vec2;
+    int i;
+    bool b;
+};
+
 class ShaderUniform
 {
     public:
         ShaderUniform(const std::string& name, const char * type, Shader * shader);
         void updateUniform (void * data);
         ShaderUniformType getUniformType ();
+        ShaderUniformValue getUniformValue ();
+        void reload ();
         virtual ~ShaderUniform();
 
     protected:
 
     private:
         ShaderUniformType type;
+        ShaderUniformValue value;
         Shader *shader;
         GLuint location;
         std::string name;
@@ -42,9 +61,9 @@ class ShaderUniform
         void updateVec2 (const glm::vec2 &data);
         void updateVec3 (const glm::vec3 &data);
         void updateVec4 (const glm::vec4 &data);
-        void updateInt (const int &data);
-        void updateFloat (const float &data);
-        void updateBool (const bool &data);
+        void updateInt (int data);
+        void updateFloat (float data);
+        void updateBool (bool data);
         void updateMat4 (const glm::mat4 &data);
         ShaderUniformType getUniformTypeFromName(const char * name);
 

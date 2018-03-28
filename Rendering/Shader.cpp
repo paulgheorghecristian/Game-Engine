@@ -1,13 +1,13 @@
 #include "Shader.h"
 
-Shader::Shader() {
+Shader::Shader() : shaderPath ("") {
 }
 
-Shader::Shader (std::string &&jsonPath) {
-    construct (std::move (jsonPath));
+Shader::Shader (const std::string &jsonPath) : shaderPath (jsonPath) {
+    construct (jsonPath);
 }
 
-Shader *Shader::construct (std::string &&jsonPath) {
+Shader *Shader::construct (const std::string &jsonPath) {
     GLint compileResult = 0, linkResult = 0;
     char infoLogMessage[1024];
     std::string jsonBody;
@@ -108,8 +108,10 @@ Shader *Shader::construct (std::string &&jsonPath) {
 
         uniformsObject = jsonShaderDocument["Uniforms"];
         for (rapidjson::Value::ConstMemberIterator itr = uniformsObject.MemberBegin (); itr != uniformsObject.MemberEnd (); ++itr) {
-            ShaderUniform * uniform = new ShaderUniform (itr->name.GetString (), itr->value.GetString (), this);
-            uniforms[itr->name.GetString ()] = uniform;
+            if (uniforms[itr->name.GetString ()] == NULL) {
+                ShaderUniform * uniform = new ShaderUniform (itr->name.GetString (), itr->value.GetString (), this);
+                uniforms[itr->name.GetString ()] = uniform;
+            }
         }
     }
 
@@ -130,6 +132,10 @@ Shader *Shader::construct (std::string &&jsonPath) {
         //std::cout << it.first << " " << it.second << std::endl;
 	}
 
+	for (auto it : uniforms) {
+        it.second->reload ();
+	}
+
 	return this;
 }
 
@@ -141,71 +147,11 @@ void Shader::bind() {
     glUseProgram (program);
 }
 
-void Shader::reloadShader() {
-    /* TODO ADD GEOM SHAD*/
-    /*glUseProgram(0);
+void Shader::reload() {
+    glUseProgram (0);
     glDeleteProgram (program);
 
-    std::string vertexShaderSource = loadShader(vertexShaderPath);
-    std::string fragmentShaderSource = loadShader(fragmentShaderPath);
-
-    GLint compileResult = 0, linkResult = 0;
-    char infoLogMessage[1024];
-
-    const GLchar* vertexShaderSourceP[1];
-    const GLchar* fragmentShaderSourceP[1];
-    GLint vertexLength[1];
-    GLint fragmentLength[1];
-
-    vertexShaderSourceP[0] = vertexShaderSource.c_str();
-    fragmentShaderSourceP[0] = fragmentShaderSource.c_str();
-
-    vertexLength[0] = strlen(vertexShaderSourceP[0]);
-    fragmentLength[0] = strlen(fragmentShaderSourceP[0]);
-
-    GLuint vertexHandle = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexHandle, 1, vertexShaderSourceP, vertexLength);
-    glCompileShader(vertexHandle);
-
-    glGetShaderiv(vertexHandle, GL_COMPILE_STATUS, &compileResult);
-	if(compileResult == GL_FALSE) {
-        glGetShaderInfoLog(vertexHandle, 1024, NULL, infoLogMessage);
-        std::cout << "EROARE COMPILARE vertex shader" << std::endl << "LOG=" << infoLogMessage << std::endl;
-        exit(-1);
-	}
-
-	GLuint fragmentHandle = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentHandle, 1, fragmentShaderSourceP, fragmentLength);
-    glCompileShader(fragmentHandle);
-
-    glGetShaderiv(fragmentHandle, GL_COMPILE_STATUS, &compileResult);
-	if(compileResult == GL_FALSE) {
-        glGetShaderInfoLog(fragmentHandle, 1024, NULL, infoLogMessage);
-        std::cout << "EROARE COMPILARE fragment shader" << std::endl << "LOG=" << infoLogMessage << std::endl;
-        exit(-1);
-	}
-
-    program = glCreateProgram ();
-
-    glAttachShader (program, vertexHandle);
-    glAttachShader (program, fragmentHandle);
-
-    glLinkProgram(program);
-
-    glGetProgramiv(program, GL_LINK_STATUS, &linkResult);
-    if (linkResult == GL_FALSE) {
-		glGetProgramInfoLog (program, 1024, NULL, infoLogMessage);
-        std::cout << "EROARE LINK program shader" << std::endl << "LOG=" << infoLogMessage << std::endl;
-        exit(-1);
-	}
-
-    glDetachShader (program, vertexHandle);
-    glDetachShader (program, fragmentHandle);
-
-    glDeleteShader(vertexHandle);
-	glDeleteShader(fragmentHandle);
-
-	glUseProgram(program);*/
+    construct (shaderPath);
 }
 
 bool Shader::updateUniform (const std::string &name, void * data) {
@@ -237,6 +183,8 @@ GLuint Shader::getUniformLocation(const std::string &name) {
 
 Shader::~Shader()
 {
+    glDeleteProgram (program);
+
     for (auto it : uniforms) {
         delete it.second;
     }

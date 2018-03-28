@@ -109,7 +109,7 @@ void ParticleRenderer<P, NUM_OF_PARTICLES>::update (Camera &camera) {
 
     for (P &particle : particles) {
         /* TODO remove this hardcode */
-        particle.update (1000 / 500, camera);
+        particle.update (1000.0f / 500, camera);
     }
 
     std::sort (std::begin (particles),

@@ -24,9 +24,9 @@ class Shader : public MemoryPoolInterface<Shader>
 {
     public:
         Shader();
-        Shader(std::string &&jsonPath);
-        Shader *construct (std::string &&jsonPath);
-        void reloadShader();
+        Shader(const std::string &jsonPath);
+        Shader *construct (const std::string &jsonPath);
+        void reload();
         void bind();
         void unbind();
         GLuint getUniformLocation(const std::string &name);
@@ -40,6 +40,7 @@ class Shader : public MemoryPoolInterface<Shader>
         GLuint vertexHandle, fragmentHandle, geometryHandle;
         GLuint program;
         std::unordered_map<std::string, ShaderUniform *> uniforms;
+        const std::string shaderPath;
 
         const std::string loadShader(const std::string &filename);
 };

@@ -271,6 +271,7 @@ void EngineCore::input() {
 
     if (inputManager.getKeyDown (SDLK_r)) {
         RenderingMaster::getInstance()->resetLights ();
+        RenderingMaster::getInstance()->smokeRenderer->getRenderingShader().reload();
     }
     RenderingMaster::getInstance()->deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
 
