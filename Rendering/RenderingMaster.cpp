@@ -146,7 +146,9 @@ RenderingMaster::RenderingMaster(Display *display,
         int z = rand() % 1000;
         lights[i]->getTransform().setPosition(glm::vec3(x, y, z));
     }*/
-    smokeRenderer = new ParticleRenderer<SmokeParticle, 250>(projectionMatrix);
+    smokeRenderer = new ParticleRenderer<SmokeParticle, 250> (projectionMatrix,
+                                                              display->getWidth(),
+                                                              display->getHeight());
 }
 
 RenderingMaster::~RenderingMaster() {

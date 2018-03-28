@@ -5,7 +5,6 @@
 
 class Texture;
 
-/* TODO make move constr */
 class SmokeParticle : public IParticle
 {
     public:

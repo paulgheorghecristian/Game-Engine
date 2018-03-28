@@ -8,7 +8,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 #include "Camera.h"
-#include "RenderingMaster.h"
 
 #define NUM_OF_BYTES_PER_INSTANCE 16 /* 4 floats per matrix * sizeof (float) (without timeAlive) */
 
@@ -16,7 +15,9 @@ template <typename P, unsigned int NUM_OF_PARTICLES = 1>
 class ParticleRenderer
 {
     public:
-        ParticleRenderer(const glm::mat4 &projectionMatrix);
+        ParticleRenderer(const glm::mat4 &projectionMatrix,
+                         int screenWidth,
+                         int screenHeight);
         void update (Camera &camera);
         void draw ();
         Shader &getRenderingShader();
@@ -35,7 +36,9 @@ class ParticleRenderer
 };
 
 template <typename P, unsigned int NUM_OF_PARTICLES>
-ParticleRenderer<P, NUM_OF_PARTICLES>::ParticleRenderer(const glm::mat4 &projectionMatrix) {
+ParticleRenderer<P, NUM_OF_PARTICLES>::ParticleRenderer(const glm::mat4 &projectionMatrix,
+                                                        int screenWidth,
+                                                        int screenHeight) {
     /* TODO make a GUI and make these modifiable by the GUI */
     /* each particle system should have a json properties file */
     glm::vec3 Center (0, 0, 0); /* TODO remove hardcode */
@@ -90,6 +93,8 @@ ParticleRenderer<P, NUM_OF_PARTICLES>::ParticleRenderer(const glm::mat4 &project
     result &= getRenderingShader().updateUniform ("numOfSubTxtsW", (void *) &P::getTexture().getNumOfSubTxtsW ());
     result &= getRenderingShader().updateUniform ("subWidth", (void *) &P::getTexture().getSubWidth ());
     result &= getRenderingShader().updateUniform ("subHeight", (void *) &P::getTexture().getSubHeight());
+    result &= getRenderingShader().updateUniform ("screenHeight", (void *) &screenHeight);
+    result &= getRenderingShader().updateUniform ("screenWidth", (void *) &screenWidth);
 
     assert (result);
 }

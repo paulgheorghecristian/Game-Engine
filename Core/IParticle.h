@@ -12,7 +12,7 @@ enum ParticleFlags {
     ALPHA_BLENDING = 2,
     TEXTURE_ATLAS = 4,
 };
- /* TODO make move constr */
+
 class IParticle
 {
     public:
