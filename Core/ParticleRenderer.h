@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 #include "Camera.h"
+#include "RenderingMaster.h"
 
 #define NUM_OF_BYTES_PER_INSTANCE 16 /* 4 floats per matrix * sizeof (float) (without timeAlive) */
 
@@ -15,10 +16,12 @@ template <typename P, unsigned int NUM_OF_PARTICLES = 1>
 class ParticleRenderer
 {
     public:
-        ParticleRenderer();
+        ParticleRenderer(const glm::mat4 &projectionMatrix);
         void update (Camera &camera);
         void draw ();
+        Shader &getRenderingShader();
         virtual ~ParticleRenderer();
+
     protected:
     private:
         std::vector<P> particles;
@@ -29,42 +32,64 @@ class ParticleRenderer
         void createEmptyVbo();
         void updateVbo();
         void insertParticleAttributesInBuffer(P &particle, int &offset);
-
-        /* construct it only once (make it static in getRenderingShader function) */
-        static Shader renderingShader;
 };
 
-/* TODO make this locally static */
 template <typename P, unsigned int NUM_OF_PARTICLES>
-Shader ParticleRenderer<P, NUM_OF_PARTICLES>::renderingShader;
+ParticleRenderer<P, NUM_OF_PARTICLES>::ParticleRenderer(const glm::mat4 &projectionMatrix) {
+    /* TODO make a GUI and make these modifiable by the GUI */
+    /* each particle system should have a json properties file */
+    glm::vec3 Center (0, 0, 0); /* TODO remove hardcode */
+    bool result = true;
 
-template <typename P, unsigned int NUM_OF_PARTICLES>
-ParticleRenderer<P, NUM_OF_PARTICLES>::ParticleRenderer() {
-    glm::vec3 center (0, 10, 0); /* TODO remove hardcode */
     createVao();
 
-    for (unsigned int i = 0; i < NUM_OF_PARTICLES; i++) {
-        float d1 = (float)(rand()) / (RAND_MAX-1);
-        float d2 = (float)(rand()) / (RAND_MAX-1);
-        float d3 = (float)(rand()) / (RAND_MAX-1);
-        glm::vec3 pos = glm::vec3(center.x-50, center.y, center.z-50);
-        pos.x += d1 * 100.0f;
-        pos.y += d2 * 6.0f;
-        pos.z += d3 * 100.0f;
-        particles.push_back (P (pos, glm::vec3(0, d2 * 50.0f, 0), glm::vec3((d1 + 2.0f) * 20.0f)));
+    #define R 3.0f
+    #define r 0.5f
+    #define H 100.0f
+    glm::vec3 center = Center;
+    center.y += H;
+    for (int i = 0; i < NUM_OF_PARTICLES; i++) {
+        float x = (float) (rand()) / (RAND_MAX - 1);
+        float z = (float) (rand()) / (RAND_MAX - 1);
+        x *= (2.0f * R);
+        z *= (2.0f * R);
+        x -= R;
+        z -= R;
+
+        if (x*x + z*z >= R*R) {
+            i--;
+            continue;
+        }
+
+        glm::vec3 dir = glm::vec3 (x, 0, z) - glm::vec3 (Center.x, 0, Center.z);
+        dir *= (R / r);
+        glm::vec3 tmp = center + dir;
+        glm::vec3 velocity =  glm::normalize (tmp - glm::vec3 (x, 0, z)) * 150.0f;
+
+        P p (glm::vec3 (x, Center.y, z), velocity, glm::vec3 (5));
+        p.simulate = false;
+        p.msDelay = ((1000.0 / 200)) * i;
+        p.msDelayCopy = p.msDelay;
+
+        particles.push_back (std::move (p));
     }
+    #undef R
+    #undef r
+    #undef H
+
+    assert (particles.size () == NUM_OF_PARTICLES);
+
     matricesBuffer = new float[NUM_OF_PARTICLES * 5];
-    renderingShader.construct ("res/shaders/particleRenderShader.json");
-    /* TODO remove this hardcode */
-    glm::mat4 proj = glm::perspective(glm::radians(75.0f), 16.0f/9.0f, 1.0f, 5000.0f);
-    bool result = renderingShader.updateUniform ("particleSampler", 0);
-    result &= renderingShader.updateUniform ("projectionMatrix", (void *) &proj);
-    result &= renderingShader.updateUniform ("liveForInMs", (void *) &P::getLiveForInMs ());
-    result &= renderingShader.updateUniform ("totalNumOfSubTxts", (void *) &P::getTexture().getTotalNumOfSubTxts ());
-    result &= renderingShader.updateUniform ("numOfSubTxtsH", (void *) &P::getTexture().getNumOfSubTxtsH ());
-    result &= renderingShader.updateUniform ("numOfSubTxtsW", (void *) &P::getTexture().getNumOfSubTxtsW ());
-    result &= renderingShader.updateUniform ("subWidth", (void *) &P::getTexture().getSubWidth ());
-    result &= renderingShader.updateUniform ("subHeight", (void *) &P::getTexture().getSubHeight());
+
+    result &= getRenderingShader().updateUniform ("particleSampler", 0);
+    result &= getRenderingShader().updateUniform ("depthSampler", 3);
+    result &= getRenderingShader().updateUniform ("projectionMatrix", (void *) &projectionMatrix);
+    result &= getRenderingShader().updateUniform ("liveForInMs", (void *) &P::getLiveForInMs ());
+    result &= getRenderingShader().updateUniform ("totalNumOfSubTxts", (void *) &P::getTexture().getTotalNumOfSubTxts ());
+    result &= getRenderingShader().updateUniform ("numOfSubTxtsH", (void *) &P::getTexture().getNumOfSubTxtsH ());
+    result &= getRenderingShader().updateUniform ("numOfSubTxtsW", (void *) &P::getTexture().getNumOfSubTxtsW ());
+    result &= getRenderingShader().updateUniform ("subWidth", (void *) &P::getTexture().getSubWidth ());
+    result &= getRenderingShader().updateUniform ("subHeight", (void *) &P::getTexture().getSubHeight());
 
     assert (result);
 }
@@ -74,7 +99,7 @@ void ParticleRenderer<P, NUM_OF_PARTICLES>::update (Camera &camera) {
     const glm::mat4 viewMatrix = camera.getViewMatrix ();
     const glm::vec3 cameraPosition = camera.getPosition ();
 
-    bool result = renderingShader.updateUniform ("viewMatrix", (void *) &viewMatrix);
+    bool result = getRenderingShader().updateUniform ("viewMatrix", (void *) &viewMatrix);
     assert (result);
 
     for (P &particle : particles) {
@@ -96,7 +121,7 @@ void ParticleRenderer<P, NUM_OF_PARTICLES>::draw () {
     int offset = 0;
 
     glEnable (GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask (GL_FALSE);
 
     /* TODO make sure here the particles are sorted (wait for the thread in update) */
@@ -106,8 +131,8 @@ void ParticleRenderer<P, NUM_OF_PARTICLES>::draw () {
     }
     updateVbo ();
 
-    glBindVertexArray(vaoHandle);
-    renderingShader.bind();
+    glBindVertexArray (vaoHandle);
+    getRenderingShader().bind ();
     P::getTexture().use();
     glDrawArraysInstanced(GL_POINTS, 0, 1, NUM_OF_PARTICLES);
     glBindVertexArray(0);
@@ -169,6 +194,14 @@ ParticleRenderer<P, NUM_OF_PARTICLES>::~ParticleRenderer()
     glDeleteVertexArrays(1, &vaoHandle);
 
     delete[] matricesBuffer;
+}
+
+template <typename P, unsigned int NUM_OF_PARTICLES>
+Shader &ParticleRenderer<P, NUM_OF_PARTICLES>::getRenderingShader()
+{
+    static Shader shader ("res/shaders/particleRenderShader.json");
+
+    return shader;
 }
 
 #endif // PARTICLERENDERER_H
