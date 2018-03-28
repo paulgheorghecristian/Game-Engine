@@ -23,11 +23,17 @@ Texture::Texture(const std::string& textureFilename,
                  int numOfSubTxtsH) : textureUnit (textureUnit),
                                       numOfSubTxtsH (numOfSubTxtsH),
                                       numOfSubTxtsW (numOfSubTxtsW),
-                                      totalNumOfSubTxts (numOfSubTxtsH * numOfSubTxtsW),
-                                      subWidth (1.0f / numOfSubTxtsW),
-                                      subHeight (1.0f / numOfSubTxtsH) {
+                                      totalNumOfSubTxts (numOfSubTxtsH * numOfSubTxtsW) {
     int width, height, chn;
 	unsigned char *data = stbi_load (textureFilename.c_str (), &width, &height, &chn, 0);
+
+	if (numOfSubTxtsH < numOfSubTxtsW) {
+        subWidth = 1.0f / numOfSubTxtsW;
+        subHeight = 1.0f / numOfSubTxtsW;
+	} else {
+        subWidth = 1.0f / numOfSubTxtsH;
+        subHeight = 1.0f / numOfSubTxtsH;
+	}
 
     if (data == NULL) {
         std::cerr << "Loading texture " << textureFilename << " error!" << std::endl;

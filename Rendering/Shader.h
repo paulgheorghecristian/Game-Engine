@@ -24,6 +24,7 @@ class Shader : public MemoryPoolInterface<Shader>
 {
     public:
         Shader();
+        Shader(std::string &&jsonPath);
         Shader *construct (std::string &&jsonPath);
         void reloadShader();
         void bind();

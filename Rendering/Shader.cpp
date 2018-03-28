@@ -3,6 +3,10 @@
 Shader::Shader() {
 }
 
+Shader::Shader (std::string &&jsonPath) {
+    construct (std::move (jsonPath));
+}
+
 Shader *Shader::construct (std::string &&jsonPath) {
     GLint compileResult = 0, linkResult = 0;
     char infoLogMessage[1024];
