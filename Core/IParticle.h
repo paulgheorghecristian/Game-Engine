@@ -22,7 +22,7 @@ class IParticle
                   /* TODO find a way to avoid hardcoding of the gravity */
                   const glm::vec3 &acceleration = glm::vec3 (0, -10.0f, 0));
         virtual void draw (Shader &shader);
-        virtual void update (long delta, Camera &camera) = 0;
+        virtual void update (double delta, Camera &camera) = 0;
         virtual bool isAlive () = 0;
         virtual void reset();
         const glm::mat4 &getViewModelMatrix ();

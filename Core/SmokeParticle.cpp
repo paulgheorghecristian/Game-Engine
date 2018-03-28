@@ -4,7 +4,7 @@
 
 #include <glm/gtx/norm.hpp>
 
-const unsigned int SmokeParticle::liveForInS = 5;
+const float SmokeParticle::liveForInS = 1.3;
 const unsigned int SmokeParticle::liveForInMs = liveForInS * 1000;
 
 SmokeParticle::SmokeParticle(const glm::vec3 &position,
@@ -14,31 +14,44 @@ SmokeParticle::SmokeParticle(const glm::vec3 &position,
 
 }
 
-void SmokeParticle::update (long delta, Camera &camera) {
+void SmokeParticle::update (double delta, Camera &camera) {
     float deltaF;
+    /* TODO make this as accurate as possible for smoke */
+
+    if (msDelay <= 0) {
+        simulate = true;
+    }
+
+    if (!simulate) {
+        msDelay -= delta;
+        return;
+    }
 
     if (isAlive ()) {
         aliveForInMs += delta;
         deltaF = (float) delta / 1000;
 
-        instaPosition = instaPosition + instaVelocity*deltaF + acceleration*(deltaF*deltaF/2.0f);
+        instaScale.x += 150 * deltaF;
+
+        instaPosition = instaPosition + instaVelocity*deltaF + (glm::vec3(0, acceleration.y+instaScale.x*25, 0))*(deltaF*deltaF/2.0f);
         instaVelocity = instaVelocity + acceleration*deltaF;
     } else {
         reset ();
+        simulate = false;
+        msDelay = msDelayCopy;
     }
 
-    distanceToCamera = glm::distance2 (camera.getPosition(), instaPosition);
-
+    distanceToCamera = -glm::distance2 (camera.getPosition(), instaPosition);
     //generateViewModelMatrix(viewMatrix);
 }
 
 bool SmokeParticle::isAlive () {
-    return aliveForInMs < liveForInMs && instaPosition.y > 0 && instaPosition.y < 2000;
+    return aliveForInMs < liveForInMs;
 }
 
 Texture &SmokeParticle::getTexture() {
-    static Texture *smokeTexture = new Texture ("res/textures/smoke.png", 0, 8, 8);
-    return *smokeTexture;
+    static Texture smokeTexture ("res/textures/smoke.png", 0, 8, 5);
+    return smokeTexture;
 }
 
 const unsigned int &SmokeParticle::getLiveForInMs () {

@@ -12,7 +12,7 @@ class SmokeParticle : public IParticle
         SmokeParticle(const glm::vec3 &position,
                       const glm::vec3 &velocity,
                       const glm::vec3 &scale);
-        void update (long delta, Camera &camera) override;
+        void update (double delta, Camera &camera) override;
         bool isAlive () override;
         virtual ~SmokeParticle();
 
@@ -23,12 +23,15 @@ class SmokeParticle : public IParticle
         SmokeParticle &operator= (SmokeParticle &&particle) = default;
 
         float getDistanceToCamera ();
+        bool simulate;
+        float msDelay, msDelayCopy;
 
         static Texture &getTexture();
         static const unsigned int &getLiveForInMs ();
     protected:
     private:
-        static const unsigned int liveForInS, liveForInMs;
+        static const unsigned int liveForInMs;
+        static const float liveForInS;
         float distanceToCamera;
 };
 
