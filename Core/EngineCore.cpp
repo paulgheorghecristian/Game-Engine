@@ -1,6 +1,7 @@
 #include "EngineCore.h"
 
 #include <glm/gtx/rotate_vector.hpp>
+#include "ParticleRenderer.h"
 
 EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false),
                                                             renderTime("render"),
