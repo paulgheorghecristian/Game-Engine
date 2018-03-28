@@ -11,10 +11,12 @@
 #include "Texture.h"
 #include "Light.h"
 #include "PostProcess.h"
-#include "ParticleRenderer.h"
 #include "SmokeParticle.h"
 
 #include <vector>
+
+template<typename P, unsigned int NUM_OF_PARTICLES>
+class ParticleRenderer;
 
 class RenderingMaster
 {
@@ -45,12 +47,16 @@ class RenderingMaster
         void createLightAccumulationBuffer();
 
         void addLightToScene (Light *light);
+        void resetLights ();
         void beginCreateDepthTextureForSpotLight(Light *light);
         void endCreateDepthTextureForSpotLight(Light *light);
 
         const std::vector <Light *> &getLights();
-        /* TODO make this private */
-        ParticleRenderer<SmokeParticle, 100> *smokeRenderer;
+        /* TODO make these private */
+        ParticleRenderer<SmokeParticle, 250> *smokeRenderer;
+        FrameBuffer particleForwardRenderFramebuffer;
+        Texture particlesRTTexture;
+        Texture *depthTexture;
     protected:
 
     private:
@@ -65,7 +71,7 @@ class RenderingMaster
         glm::mat4 projectionMatrix;
         GBuffer gBuffer;
 
-        Texture *albedoTexture, *normalTexture, *lightAccumulationTexture, *depthTexture;
+        Texture *albedoTexture, *normalTexture, *lightAccumulationTexture;
         Texture *blurredLightAccTexture;
         Shader deferredShading_LightAccumulationBufferCreator;
         Mesh *screenSizeRectangle;

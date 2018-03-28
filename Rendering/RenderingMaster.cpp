@@ -1,10 +1,13 @@
 #include "RenderingMaster.h"
 
+#include "ParticleRenderer.h"
+
 RenderingMaster *RenderingMaster::m_instance = NULL;
 
 RenderingMaster::RenderingMaster(Display *display,
                                  Camera *camera,
-                                 glm::mat4 projectionMatrix) {
+                                 glm::mat4 projectionMatrix) : particleForwardRenderFramebuffer (display->getWidth(), display->getHeight(), 1),
+                                                                particlesRTTexture (particleForwardRenderFramebuffer.getRenderTargets ()[0], 6) {
     int albedoTextureUnit = 0, normalTextureUnit = 1, lightAccumulationTextureUnit = 2;
     int depthTextureUnit = 3, outputType = 1, blurredLightAccUnit = 4, spotLightDepthMapUnit = 5;
     bool result = true;
@@ -27,6 +30,7 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= deferredShading_BufferCombinationShader.updateUniform("blurredLightAccSampler", (void *) &blurredLightAccUnit);
     result &= deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
     result &= deferredShading_BufferCombinationShader.updateUniform("spotLightDepthMap", (void *) &spotLightDepthMapUnit);
+    result &= deferredShading_BufferCombinationShader.updateUniform ("particlesSampler", 6);
     assert (result);
 
     deferredShading_LightAccumulationBufferCreator.construct ("res/shaders/lightAccumulationBufferCreator.json");
@@ -142,7 +146,7 @@ RenderingMaster::RenderingMaster(Display *display,
         int z = rand() % 1000;
         lights[i]->getTransform().setPosition(glm::vec3(x, y, z));
     }*/
-    smokeRenderer = new ParticleRenderer<SmokeParticle, 100>();
+    smokeRenderer = new ParticleRenderer<SmokeParticle, 250>(projectionMatrix);
 }
 
 RenderingMaster::~RenderingMaster() {
@@ -237,14 +241,15 @@ void RenderingMaster::drawDeferredShadingBuffers() {
 
     deferredShading_BufferCombinationShader.bind();
 
-    albedoTexture->use();
-    normalTexture->use();
-    lightAccumulationTexture->use();
-    depthTexture->use();
-    blurredLightAccTexture->use();
-    for (Light * l : lights) {
-        if (l->getLightType() == Light::LightType::SPOT) {
-            l->getDepthTextureForSpotLight().use();
+    albedoTexture->use ();
+    normalTexture->use ();
+    lightAccumulationTexture->use ();
+    depthTexture->use ();
+    blurredLightAccTexture->use ();
+    particlesRTTexture.use ();
+    for (Light *light : lights) {
+        if (light->getLightType() == Light::LightType::SPOT) {
+            light->getDepthTextureForSpotLight().use();
             break;
         }
     }
@@ -327,10 +332,9 @@ void RenderingMaster::createLightAccumulationBuffer() {
     glClearColor(0,0,0,0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    for (unsigned int i = 0; i < lights.size(); i++) {
-        Light *l = lights[i];
-        computeStencilBufferForLight(l);
-        computeLightAccumulationBufferForLight(l);
+    for (Light *light : lights) {
+        computeStencilBufferForLight(light);
+        computeLightAccumulationBufferForLight(light);
     }
 
     glEnable (GL_DEPTH_TEST);
@@ -361,6 +365,14 @@ void RenderingMaster::endCreateDepthTextureForSpotLight(Light *light) {
 
 void RenderingMaster::addLightToScene (Light *light) {
     lights.push_back (light);
+}
+
+void RenderingMaster::resetLights () {
+    for (Light *light : lights) {
+        delete (light);
+    }
+
+    lights.clear ();
 }
 
 const std::vector <Light *> &RenderingMaster::getLights() {
