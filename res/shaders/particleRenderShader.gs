@@ -10,8 +10,8 @@ out vec2 textCoords;
 in vec3 eyeSpaceNormal[1];
 in mat4 viewModelMatrixOut[1];
 in float outAliveForInMs[1];
-out vec3 normal;
 out float blendFactor;
+out float aliveFor;
 
 uniform int liveForInMs;
 uniform int totalNumOfSubTxts;
@@ -25,6 +25,7 @@ void main(){
     vec4 ll = PVM * vec4(vec3(-0.5, -0.5, 0), 1.0);
     vec4 lr = PVM * vec4(vec3(0.5, -0.5, 0), 1.0);
 
+    aliveFor = (outAliveForInMs[0] / liveForInMs);
     float normalizedAliveTime = (outAliveForInMs[0] / liveForInMs) * (totalNumOfSubTxts - 1);
 
     vec4 currentTextCoords, prevTxtCoords;
@@ -32,7 +33,7 @@ void main(){
     blendFactor = modf (normalizedAliveTime, txtIndex);
     int rowOffset, columnOffset;
 
-    rowOffset = int (floor (txtIndex / numOfSubTxtsH));
+    rowOffset = int (floor (txtIndex / numOfSubTxtsW));
     columnOffset = int (txtIndex) - rowOffset * numOfSubTxtsH;
 
     currentTextCoords.x = float (columnOffset) * subWidth;
@@ -44,7 +45,7 @@ void main(){
         prevTxtCoords = currentTextCoords;
     } else {
         txtIndex++;
-        rowOffset = int (floor (txtIndex / numOfSubTxtsH));
+        rowOffset = int (floor (txtIndex / numOfSubTxtsW));
     	columnOffset = int (txtIndex) - rowOffset * numOfSubTxtsH;
 
     	prevTxtCoords.x = float (columnOffset) * subWidth;
@@ -56,34 +57,28 @@ void main(){
     gl_Position = ul;
     textCoords = vec2(currentTextCoords.x, currentTextCoords.y);
     previousTextCoords = vec2(prevTxtCoords.x, prevTxtCoords.y);
-    normal = eyeSpaceNormal[0];
     EmitVertex();
     gl_Position = ll;
     textCoords = vec2(currentTextCoords.x, currentTextCoords.w);
     previousTextCoords = vec2(prevTxtCoords.x, prevTxtCoords.w);
-    normal = eyeSpaceNormal[0];
     EmitVertex();
     gl_Position = ur;
     textCoords = vec2(currentTextCoords.z, currentTextCoords.y);
     previousTextCoords = vec2(prevTxtCoords.z, prevTxtCoords.y);
-    normal = eyeSpaceNormal[0];
     EmitVertex();
     EndPrimitive();
 
     gl_Position = ur;
     textCoords = vec2(currentTextCoords.z, currentTextCoords.y);
     previousTextCoords = vec2(prevTxtCoords.z, prevTxtCoords.y);
-    normal = eyeSpaceNormal[0];
     EmitVertex();
     gl_Position = ll;
     textCoords = vec2(currentTextCoords.x, currentTextCoords.w);
     previousTextCoords = vec2(prevTxtCoords.x, prevTxtCoords.w);
-    normal = eyeSpaceNormal[0];
     EmitVertex();
     gl_Position = lr;
     textCoords = vec2(currentTextCoords.z, currentTextCoords.w);
     previousTextCoords = vec2(prevTxtCoords.z, prevTxtCoords.w);
-    normal = eyeSpaceNormal[0];
     EmitVertex();
     EndPrimitive();
 }

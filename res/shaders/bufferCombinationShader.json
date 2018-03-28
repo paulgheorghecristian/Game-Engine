@@ -4,6 +4,7 @@
     "Uniforms" : {
                     "normalSampler" : "INT",
                     "depthSampler" : "INT",
+                    "particlesSampler" : "INT",
                     "lightAccumulationSampler" : "INT",
                     "colorSampler" : "INT",
                     "outputType" : "INT",

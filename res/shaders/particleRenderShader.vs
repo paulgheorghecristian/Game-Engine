@@ -26,8 +26,8 @@ void main(){
 	newModelMatrix[3][1] = positionAndScale[1];
 	newModelMatrix[3][2] = positionAndScale[2];
 
-
     viewModelMatrixOut = viewMatrix * newModelMatrix * scaleMatrix;
     outAliveForInMs = aliveForInMs;
+
     gl_Position = vec4(vec3(0), 1.0);
 }

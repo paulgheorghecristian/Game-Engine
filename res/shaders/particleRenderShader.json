@@ -6,11 +6,14 @@
                     "viewMatrix" : "MAT4",
 		    "projectionMatrix" : "MAT4",
 		    "particleSampler" : "INT",
+		    "depthSampler" : "INT",
 		    "liveForInMs" : "INT",
 		    "totalNumOfSubTxts" : "INT",
 		    "numOfSubTxtsH" : "INT",
 		    "numOfSubTxtsW" : "INT",
 		    "subWidth" : "FLOAT",
-		    "subHeight" : "FLOAT"
-                 }
+		    "subHeight" : "FLOAT",
+		    "screenHeight" : "INT",
+		    "screenWidth" : "INT"
+            }
 }
