@@ -4,6 +4,9 @@ FrameBuffer::FrameBuffer (int width, int height, unsigned int numOfRenderTargets
                                                                                     height (height),
                                                                                     numOfRenderTargets (numOfRenderTargets),
                                                                                     renderTargets (numOfRenderTargets) {
+
+    glGetIntegerv (GL_VIEWPORT, previousViewport);
+
     //generare framebuffer
     glGenFramebuffers (1, &frameBufferId);
     glBindFramebuffer (GL_FRAMEBUFFER, frameBufferId);
@@ -17,7 +20,7 @@ FrameBuffer::FrameBuffer (int width, int height, unsigned int numOfRenderTargets
         glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+        glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     }
 
     glGenTextures (1, &depthBufferId);
