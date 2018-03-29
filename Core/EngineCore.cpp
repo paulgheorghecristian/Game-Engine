@@ -320,18 +320,20 @@ void EngineCore::render() {
     RenderingMaster::getInstance()->createLightAccumulationBuffer();
     PT_ToHere(lightAccumBufferTime);
 
-    PT_FromHere(screenDrawTime);
     RenderingMaster::getInstance()->getGBuffer().unbind();
 
     RenderingMaster::getInstance ()->particleForwardRenderFramebuffer.bindAllRenderTargets ();
     RenderingMaster::getInstance ()->depthTexture->use ();
     RenderingMaster::getInstance ()->smokeRenderer->draw ();
+    RenderingMaster::getInstance ()->smokeRenderer2->draw();
     RenderingMaster::getInstance ()->particleForwardRenderFramebuffer.unbind ();
 
     RenderingMaster::getInstance()->drawDeferredShadingBuffers();
-
+    PT_FromHere(screenDrawTime);
     RenderingMaster::getInstance()->swapBuffers();
     PT_ToHere(screenDrawTime);
+
+
 }
 
 void EngineCore::update() {

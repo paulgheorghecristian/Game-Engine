@@ -54,6 +54,7 @@ class RenderingMaster
         const std::vector <Light *> &getLights();
         /* TODO make these private */
         ParticleRenderer<SmokeParticle, 100> *smokeRenderer;
+        ParticleRenderer<SmokeParticle, 150> *smokeRenderer2;
         FrameBuffer particleForwardRenderFramebuffer;
         Texture particlesRTTexture;
         Texture *depthTexture;

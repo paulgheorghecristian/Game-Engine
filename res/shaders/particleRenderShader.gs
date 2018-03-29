@@ -34,7 +34,7 @@ void main(){
     int rowOffset, columnOffset;
 
     rowOffset = int (floor (txtIndex / numOfSubTxtsW));
-    columnOffset = int (txtIndex) - rowOffset * numOfSubTxtsH;
+    columnOffset = int (txtIndex) - rowOffset * numOfSubTxtsW;
 
     currentTextCoords.x = float (columnOffset) * subWidth;
     currentTextCoords.y = float (rowOffset) * subHeight;
@@ -46,7 +46,7 @@ void main(){
     } else {
         txtIndex++;
         rowOffset = int (floor (txtIndex / numOfSubTxtsW));
-    	columnOffset = int (txtIndex) - rowOffset * numOfSubTxtsH;
+        columnOffset = int (txtIndex) - rowOffset * numOfSubTxtsW;
 
     	prevTxtCoords.x = float (columnOffset) * subWidth;
     	prevTxtCoords.y = float (rowOffset) * subHeight;

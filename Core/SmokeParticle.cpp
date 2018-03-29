@@ -4,7 +4,7 @@
 
 #include <glm/gtx/norm.hpp>
 
-const float SmokeParticle::liveForInS = 1.3;
+const float SmokeParticle::liveForInS = 3.0f;
 const unsigned int SmokeParticle::liveForInMs = liveForInS * 1000;
 
 SmokeParticle::SmokeParticle(const glm::vec3 &position,
@@ -33,7 +33,7 @@ void SmokeParticle::update (double delta, Camera &camera) {
 
         instaScale.x += 150 * deltaF;
 
-        instaPosition = instaPosition + instaVelocity*deltaF + (glm::vec3(0, acceleration.y+instaScale.x*25, 0))*(deltaF*deltaF/2.0f);
+        instaPosition = instaPosition + instaVelocity*deltaF + (glm::vec3(0, acceleration.y+instaScale.x*50, 0))*(deltaF*deltaF/2.0f);
         instaVelocity = instaVelocity + acceleration*deltaF;
     } else {
         reset ();
@@ -42,6 +42,7 @@ void SmokeParticle::update (double delta, Camera &camera) {
     }
 
     distanceToCamera = -glm::distance2 (camera.getPosition(), instaPosition);
+    //distanceToCamera = (camera.getViewMatrix() * glm::vec4(instaPosition, 1.0)).z;
     //generateViewModelMatrix(viewMatrix);
 }
 
