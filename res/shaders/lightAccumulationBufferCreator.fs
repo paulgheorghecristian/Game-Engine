@@ -21,6 +21,12 @@ flat in vec3 lightPositionEyeSpace;
 uniform float cutOff; /* cutOff negative means spot light */
 uniform vec3 cameraForwardVector;
 
+const int PCFStrength = 3;
+const int PCFKernelSideSize = PCFStrength * 2 + 1;
+const int PCFStartingIndex = PCFKernelSideSize / 2;
+const int PCFKernelSize = PCFKernelSideSize * PCFKernelSideSize;
+const float depthMapTexelSize = 1.0f/2048.0f; /* TODO remove hardcode */
+
 void main() {
     bool getLight;
     vec2 texCoord = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
@@ -31,6 +37,8 @@ void main() {
     vec3 dir = lightPositionEyeSpace - viewPosition;
     vec3 dirNormalized = normalize (dir);
     float l = length (dir);
+    float totalPixelsInShadow = 0;
+    float lightStrength = 1.0f;
 
     if (cutOff > 0 && l - cutOff > 0.001) {
         discard;
@@ -48,10 +56,20 @@ void main() {
         vec3 spotLightNDC = spotLightClip.xyz / spotLightClip.w;
         vec3 spotLightNDCNormalized = spotLightNDC.xyz * 0.5f + 0.5f;
 
-        float currentDepth = texture (spotLightDepthSampler, spotLightNDCNormalized.xy).x;
-        if (currentDepth < spotLightNDCNormalized.z) {
-            discard;
+        float eyeZObjectDepth = projectionMatrix[3][2]/(spotLightNDCNormalized.z + projectionMatrix[2][2]);
+
+        for (int i = -PCFStartingIndex; i <= PCFStartingIndex; i++) {
+            for (int j = -PCFStartingIndex; j <= PCFStartingIndex; j++) {
+                float currentDepth = texture (spotLightDepthSampler, spotLightNDCNormalized.xy + vec2(depthMapTexelSize*i, depthMapTexelSize*j)).x;
+                float eyeZODepthMap = projectionMatrix[3][2]/(currentDepth + projectionMatrix[2][2]);
+
+                if (eyeZODepthMap < eyeZObjectDepth + 0.9) {
+                    totalPixelsInShadow++;
+                }
+            }
         }
+
+        lightStrength = 1.0f - (totalPixelsInShadow / PCFKernelSize);
     }
 
     vec3 H = normalize (dirNormalized + normalize (-cameraForwardVector));
@@ -60,7 +78,7 @@ void main() {
     float diffuseStrength = max (0.0, dotProduct);
     float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 50.0);
 
-    float a = 1.0, b = 0.007, c = 0.0002;
+    float a = 0.0, b = 0.001, c = 0.0002;
     float att = 1.0 / (a + b*l + c * l * l);
 
     vec3 diffuseLight = att * diffuseStrength * lightColor;
@@ -70,4 +88,6 @@ void main() {
     if (getLight) {
         outLight += specularLight;
     }
+
+    outLight *= lightStrength;
 }

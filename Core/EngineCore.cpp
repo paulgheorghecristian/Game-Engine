@@ -254,7 +254,7 @@ void EngineCore::input() {
         glm::vec3 cameraPosition = RenderingMaster::getInstance()->getCamera()->getPosition();
         glm::vec3 cameraRotation = RenderingMaster::getInstance()->getCamera()->getRotation();
         Light *newLight = new Light (Light::LightType::SPOT,
-                                    glm::vec3(1.0f, 1.0f, 1.0f),
+                                    glm::vec3(1.0f, 0.6f, 1.0f),
                                     Transform(cameraPosition,
                                               cameraRotation,
                                               glm::vec3(300.0f, 300.0f, 400.0f)));
