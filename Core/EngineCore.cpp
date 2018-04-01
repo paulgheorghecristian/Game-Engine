@@ -147,6 +147,8 @@ void EngineCore::start() {
             PT_PrintAndReset("computeDepthTexture");
             PT_PrintAndReset("swapBuffers");
             PT_PrintAndReset("particleDraw");
+            PT_PrintAndReset("buffersDraw");
+            PT_PrintAndReset("GUIRender");
             std::cout << "----------------------" << std::endl;
         }
         auto last_time = HighResolutionClock::now();
@@ -216,7 +218,7 @@ void EngineCore::input() {
         entities.push_back (newEntity->addComponent (new RenderComponent(Mesh::loadObject("res/models/cube4.obj"),
                                                                                        (new Shader())->construct("res/shaders/example.json"),
                                                                                        new Texture ("res/textures/196.bmp",0),
-                                                                                       NULL,
+                                                                                       new Texture ("res/textures/196_norm.bmp",1),
                                                                                        Material (glm::vec3(1, 0, 0),
                                                                                                  glm::vec3(0),
                                                                                                  glm::vec3(0),
@@ -338,9 +340,13 @@ void EngineCore::render() {
     RenderingMaster::getInstance ()->particleForwardRenderFramebuffer.unbind ();
     PT_ToHere("particleDraw");
 
+    PT_FromHere("buffersDraw");
     RenderingMaster::getInstance()->drawDeferredShadingBuffers();
+    PT_ToHere ("buffersDraw");
 
+    PT_FromHere("GUIRender");
     ProfilingTimer::renderAllBarGUIs();
+    PT_ToHere ("GUIRender");
 
     PT_FromHere("swapBuffers");
     RenderingMaster::getInstance()->swapBuffers();

@@ -2436,7 +2436,7 @@
 	"Material.h"
 	"Material.h"
 
-1522588498 source:c:\users\paul\desktop\game-engine\rendering\mesh.cpp
+1522593251 source:c:\users\paul\desktop\game-engine\rendering\mesh.cpp
 	"mesh.h"
 	<iostream>
 
@@ -2461,7 +2461,7 @@
 	"Transform.h"
 	<iostream>
 
-1522589737 source:c:\users\paul\desktop\game-engine\core\enginecore.cpp
+1522593058 source:c:\users\paul\desktop\game-engine\core\enginecore.cpp
 	"EngineCore.h"
 	<glm/gtx/rotate_vector.hpp>
 	"ParticleRenderer.h"
@@ -3146,8 +3146,7 @@
 	"GBuffer.h"
 	"GBuffer.h"
 
-1517952929 source:c:\users\paul\desktop\game-engine\rendering\light.cpp
-	"Light.h"
+1522592856 source:c:\users\paul\desktop\game-engine\rendering\light.cpp
 	"Light.h"
 
 1517952929 source:c:\users\paul\desktop\game-engine\rendering\postprocess.cpp
@@ -3219,7 +3218,7 @@
 	"BarGUI.h"
 	"Shader.h"
 
-1522588498 source:c:\users\paul\desktop\game-engine\rendering\text.cpp
+1522594026 source:c:\users\paul\desktop\game-engine\rendering\text.cpp
 	"text.h"
 	<math.h>
 

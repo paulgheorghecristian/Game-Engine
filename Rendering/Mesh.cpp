@@ -514,13 +514,13 @@ void Mesh::update (const std::vector<Vertex> &vertices,
     glBufferData(GL_ARRAY_BUFFER,
                  sizeof (Vertex)*vertices.size(),
                  &vertices[0],
-                 willBeUpdated ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+                 GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboHandles[INDEX]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
                  sizeof (unsigned int)*indices.size(),
                  &indices[0],
-                 willBeUpdated ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+                 GL_DYNAMIC_DRAW);
 
     numberOfTriangles = indices.size();
 

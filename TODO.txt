@@ -1,12 +1,13 @@
 DONE:
 -make particles support particle atlas with animations (try to create smoke logic after)
 -make particles alpha blended or additive
+-try to merge addparticles with master/develop after smoke
 
 IN PROGRESS:
 -make rendering at 60 fps (maybe it will look smoother if the fps is not fluctuating as much) or, in other words, separate rendering logic from the "maxFps" value in config.json. maxFps should mean the rendering fps, not the inner updating rate
 -maybe make enginecore maintain a pointer for singletons renderingmaster and physicsmaster (getInstance is called very often)
 -there are some public vars which should be private (rendering master for ex)
--try to merge addparticles with master/develop after smoke
+
 -do i really want to use the gbuffer buffer for particles or the default one with depth buffer copied?
 -sort individual particle renderers according to camera distance - maybe later
 -animation system
