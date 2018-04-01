@@ -85,6 +85,8 @@ class RenderingMaster
                     *wBlurPostProcess,
                     *brightnessControlPostProcess;
 
+        double updateDt;
+
         std::vector <Light *> lights;
 };
 

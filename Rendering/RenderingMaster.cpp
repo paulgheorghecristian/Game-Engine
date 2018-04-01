@@ -20,6 +20,8 @@ RenderingMaster::RenderingMaster(Display *display,
     this->camera = camera;
     this->projectionMatrix = projectionMatrix;
 
+    updateDt = display->getFrameTimeInMs();
+
     gBuffer.generate (display->getWidth(), display->getHeight());
 
     deferredShading_SceneShader.construct ("res/shaders/deferredShadingSceneShader.json");
@@ -176,7 +178,7 @@ RenderingMaster::~RenderingMaster() {
 
     delete smokeRenderer;
     delete smokeRenderer2;
-    
+
     display->close();
     delete display;
 }
@@ -282,8 +284,8 @@ void RenderingMaster::update() {
     deferredShading_LightAccumulationBufferCreator.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     deferredShading_LightAccumulationBufferCreator.updateUniform("cameraForwardVector", (void *) &forwardVectorInEyeSpace);
 
-    smokeRenderer->update (*camera);
-    smokeRenderer2->update (*camera);
+    smokeRenderer->update (*camera, updateDt);
+    smokeRenderer2->update (*camera, updateDt);
 }
 
 void RenderingMaster::computeStencilBufferForLight(Light *light) {

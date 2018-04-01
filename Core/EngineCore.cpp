@@ -4,15 +4,7 @@
 #include "ParticleRenderer.h"
 #include "ParticleFactory.h"
 
-                                                            renderTime("render"),
-                                                            updateTime("update"),
-                                                            inputTime("input"),
-                                                            frameTime("frame"),
-                                                            renderSceneTime("renderScene"),
-                                                            lightAccumBufferTime("lightAccBuffer"),
-                                                            screenDrawTime("screenDraw")
-                                                            #endif
-                                                            {
+EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     //create renderingmaster, physicsmaster and entities
     rapidjson::Document configDocument;
     rapidjson::ParseResult parseResult;
@@ -126,7 +118,7 @@
 void EngineCore::start() {
     isRunning = true;
     auto start_time = HighResolutionClock::now();
-    const double frame_time = renderingMaster->getDisplay()->getFrameTimeInMs() * 1000;
+    const double frame_time = RenderingMaster::getInstance()->getDisplay()->getFrameTimeInMs() * 1000;
     unsigned int unprocessed_time = 0;
     unsigned int frame_counter = 0;
     unsigned int FPS = 0;
@@ -152,9 +144,9 @@ void EngineCore::start() {
             PT_PrintAndReset("render");
             PT_PrintAndReset("renderScene");
             PT_PrintAndReset("lightAcc");
-            PT_PrintAndReset("screenDraw");
             PT_PrintAndReset("computeDepthTexture");
             PT_PrintAndReset("swapBuffers");
+            PT_PrintAndReset("particleDraw");
             std::cout << "----------------------" << std::endl;
         }
         auto last_time = HighResolutionClock::now();
@@ -337,33 +329,31 @@ void EngineCore::render() {
     PT_ToHere("lightAcc");
 
     RenderingMaster::getInstance()->getGBuffer().unbind();
-    PT_FromHere("screenDraw");
-    PT_ToHere("screenDraw");
+
+    PT_FromHere("particleDraw");
+    RenderingMaster::getInstance ()->particleForwardRenderFramebuffer.bindAllRenderTargets ();
+    RenderingMaster::getInstance ()->depthTexture->use ();
+    RenderingMaster::getInstance ()->smokeRenderer->draw ();
+    RenderingMaster::getInstance ()->smokeRenderer2->draw();
+    RenderingMaster::getInstance ()->particleForwardRenderFramebuffer.unbind ();
+    PT_ToHere("particleDraw");
+
+    RenderingMaster::getInstance()->drawDeferredShadingBuffers();
 
     ProfilingTimer::renderAllBarGUIs();
 
-    RenderingMaster::getInstance ()->particleForwardRenderFramebuffer.bindAllRenderTargets ();
     PT_FromHere("swapBuffers");
-    RenderingMaster::getInstance ()->depthTexture->use ();
-    RenderingMaster::getInstance ()->smokeRenderer->draw ();
-    PT_ToHere("swapBuffers");
-    RenderingMaster::getInstance ()->smokeRenderer2->draw();
-    RenderingMaster::getInstance ()->particleForwardRenderFramebuffer.unbind ();
-
-    RenderingMaster::getInstance()->drawDeferredShadingBuffers();
-    PT_FromHere(screenDrawTime);
     RenderingMaster::getInstance()->swapBuffers();
+    PT_ToHere("swapBuffers");
 }
 
 void EngineCore::update() {
-    PhysicsMaster::getInstance()->update();
-    RenderingMaster::getInstance()->update();
     for (auto entity : entities) {
         entity->update ();
     }
 
-    physicsMaster->update();
-    RenderingMaster::update();
+    PhysicsMaster::getInstance()->update();
+    RenderingMaster::getInstance()->update();
 
     ProfilingTimer::updateAllBarGUIs();
 }

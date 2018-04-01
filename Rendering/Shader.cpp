@@ -4,10 +4,6 @@ Shader::Shader() : shaderPath ("") {
 
 }
 
-Shader::Shader(std::string &&jsonPath) {
-    construct(std::forward<std::string> (jsonPath));
-}
-
 Shader::Shader (const std::string &jsonPath) : shaderPath (jsonPath) {
     construct (jsonPath);
 }

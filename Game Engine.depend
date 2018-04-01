@@ -1,6 +1,8 @@
 # depslib dependency file v1.0
-<<<<<<< HEAD
-=======
+1969632 <<<<<<< HEAD
+
+1969632 =======
+
 1503512616 source:c:\users\paul\desktop\game engine\main.cpp
 	<iostream>
 	"Game.h"
@@ -1102,7 +1104,44 @@
 1502795935 c:\users\paul\desktop\game engine\game\game.h
 	"EngineCore.h"
 
->>>>>>> develop
+1522402307 elop
+	"rapidjson/document.h"
+	"Display.h"
+	"Camera.h"
+	"Entity.h"
+	"Shader.h"
+	"RenderComponent.h"
+	"GBuffer.h"
+	"Texture.h"
+	"Light.h"
+	"PostProcess.h"
+	<glm/glm.hpp>
+	<SDL2/SDL.h>
+	"input.h"
+	<iostream>
+	"display.h"
+	<glm/gtc/matrix_transform.hpp>
+	<glm/gtc/quaternion.hpp>
+	"stb_image.h"
+	<stdio.h>
+	<stdarg.h>
+	<stddef.h>
+	<stdlib.h>
+	<string.h>
+	<math.h>
+	<stdio.h>
+	<assert.h>
+	<stdint.h>
+	<emmintrin.h>
+	<intrin.h>
+	<arm_neon.h>
+	<stdio.h>
+	<stdarg.h>
+	<stdlib.h>
+	<string.h>
+	<math.h>
+	<assert.h>
+
 1505931630 source:c:\users\paul\desktop\game-engine\core\component.cpp
 	"Component.h"
 
@@ -1118,17 +1157,16 @@
 	"Input.h"
 	"MemoryPoolInterface.h"
 
-<<<<<<< HEAD
-1522588175 c:\users\paul\desktop\game-engine\rendering\transform.h
+1481866042 D
+	"SmokeParticle.h"
+	<vector>
+
+1522588498 c:\users\paul\desktop\game-engine\rendering\transform.h
 	<glm/glm.hpp>
 	<glm/gtc/quaternion.hpp>
 	<glm/gtc/matrix_transform.hpp>
-=======
-1522587046 c:\users\paul\desktop\game-engine\rendering\transform.h
-	"glm/glm.hpp"
-	"glm/gtc/quaternion.hpp"
-	"glm/gtc/matrix_transform.hpp"
->>>>>>> develop
+
+1522588175 atrix_transform.hpp>
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\glm.hpp
 	"detail/_fixes.hpp"
@@ -1597,8 +1635,13 @@
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtc\quaternion_simd.inl
 
-<<<<<<< HEAD
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtc\matrix_transform.hpp
+	"../mat4x4.hpp"
+	"../vec2.hpp"
+	"../vec3.hpp"
+	"../vec4.hpp"
+	"../gtc/constants.hpp"
+	"matrix_transform.inl"
 	"../mat4x4.hpp"
 	"../vec2.hpp"
 	"../vec3.hpp"
@@ -1610,21 +1653,14 @@
 	"../geometric.hpp"
 	"../trigonometric.hpp"
 	"../matrix.hpp"
-=======
-1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtc\matrix_transform.hpp
-	"../mat4x4.hpp"
-	"../vec2.hpp"
-	"../vec3.hpp"
-	"../vec4.hpp"
-	"../gtc/constants.hpp"
-	"matrix_transform.inl"
-
-1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtc\matrix_transform.inl
 	"../geometric.hpp"
 	"../trigonometric.hpp"
 	"../matrix.hpp"
+
+1487192408 .hpp"
 
 1517952929 source:c:\users\paul\desktop\game-engine\core\componentfactory.cpp
+	"ComponentFactory.h"
 	"ComponentFactory.h"
 
 1504289507 c:\users\paul\desktop\game-engine\core\componentfactory.h
@@ -1632,8 +1668,21 @@
 	"RenderComponent.h"
 	"TempAnimationComponent.h"
 	"PhysicsComponent.h"
+	"rapidjson/document.h"
+	"RenderComponent.h"
+	"TempAnimationComponent.h"
+	"PhysicsComponent.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\document.h
+	"reader.h"
+	"internal/meta.h"
+	"internal/strfunc.h"
+	"memorystream.h"
+	"encodedstream.h"
+	<new>
+	<limits>
+	<iterator>
+	<utility>
 	"reader.h"
 	"internal/meta.h"
 	"internal/strfunc.h"
@@ -1660,11 +1709,38 @@
 	"rapidjson/error/error.h"
 	"rapidjson/reader.h"
 	"error/error.h"
+	"allocators.h"
+	"stream.h"
+	"encodedstream.h"
+	"internal/meta.h"
+	"internal/stack.h"
+	"internal/strtod.h"
+	<limits>
+	<intrin.h>
+	<nmmintrin.h>
+	<emmintrin.h>
+	<arm_neon.h>
+	<stdexcept>
+	"rapidjson/error/error.h"
+	"rapidjson/reader.h"
+	"error/error.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\allocators.h
 	"rapidjson.h"
+	"rapidjson.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\rapidjson.h
+	<cstdlib>
+	<cstring>
+	"rapidjson/..."
+	<string>
+	"msinttypes/stdint.h"
+	"msinttypes/inttypes.h"
+	<stdint.h>
+	<inttypes.h>
+	<endian.h>
+	"rapidjson/..."
+	<cassert>
 	<cstdlib>
 	<cstring>
 	"rapidjson/..."
@@ -1681,34 +1757,50 @@
 	<stdint.h>
 	<limits.h>
 	<wchar.h>
+	<stdint.h>
+	<limits.h>
+	<wchar.h>
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\msinttypes\inttypes.h
+	"stdint.h"
+	<inttypes.h>
 	"stdint.h"
 	<inttypes.h>
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\stream.h
 	"rapidjson.h"
 	"encodings.h"
+	"rapidjson.h"
+	"encodings.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\encodings.h
+	"rapidjson.h"
 	"rapidjson.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\encodedstream.h
 	"stream.h"
 	"memorystream.h"
+	"stream.h"
+	"memorystream.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\memorystream.h
 	"stream.h"
+	"stream.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\meta.h
+	"../rapidjson.h"
+	<type_traits>
 	"../rapidjson.h"
 	<type_traits>
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\stack.h
 	"../allocators.h"
 	"swap.h"
+	"../allocators.h"
+	"swap.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\swap.h
+	"../rapidjson.h"
 	"../rapidjson.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\strtod.h
@@ -1716,25 +1808,38 @@
 	"biginteger.h"
 	"diyfp.h"
 	"pow10.h"
+	"ieee754.h"
+	"biginteger.h"
+	"diyfp.h"
+	"pow10.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\ieee754.h
 	"../rapidjson.h"
+	"../rapidjson.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\biginteger.h
+	"../rapidjson.h"
+	<intrin.h>
 	"../rapidjson.h"
 	<intrin.h>
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\diyfp.h
 	"../rapidjson.h"
 	<intrin.h>
+	"../rapidjson.h"
+	<intrin.h>
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\pow10.h
+	"../rapidjson.h"
 	"../rapidjson.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\error\error.h
 	"../rapidjson.h"
+	"../rapidjson.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\strfunc.h
+	"../stream.h"
+	<cwchar>
 	"../stream.h"
 	<cwchar>
 
@@ -1745,8 +1850,14 @@
 	"Component.h"
 	"RenderingMaster.h"
 	"Texture.h"
+	"Mesh.h"
+	"Shader.h"
+	"Material.h"
+	"Component.h"
+	"RenderingMaster.h"
+	"Texture.h"
 
-1522587046 c:\users\paul\desktop\game-engine\rendering\mesh.h
+1522588498 c:\users\paul\desktop\game-engine\rendering\mesh.h
 	<GL/glew.h>
 	<glm/glm.hpp>
 	<vector>
@@ -1763,8 +1874,15 @@
 	<Availability.h>
 	<OpenGL/glu.h>
 	<GL/glu.h>
+	<stddef.h>
+	<inttypes.h>
+	<stdint.h>
+	<inttypes.h>
+	<Availability.h>
+	<OpenGL/glu.h>
+	<GL/glu.h>
 
-1522587046 c:\users\paul\desktop\game-engine\rendering\shader.h
+1522588902 c:\users\paul\desktop\game-engine\rendering\shader.h
 	<stdlib.h>
 	<stdio.h>
 	<fstream>
@@ -1780,7 +1898,12 @@
 	"rapidjson/error/en.h"
 	"MemoryPoolInterface.h"
 
-1522587046 c:\users\paul\desktop\game-engine\rendering\shaderuniform.h
+1522588175 c:\users\paul\desktop\game-engine\rendering\shaderuniform.h
+	"glm/glm.hpp"
+	"Shader.h"
+	<string>
+	<unordered_map>
+	<glm/gtc/type_ptr.hpp>
 	"glm/glm.hpp"
 	"Shader.h"
 	<string>
@@ -1803,8 +1926,24 @@
 	"../mat4x4.hpp"
 	<cstring>
 	"type_ptr.inl"
+	"../gtc/quaternion.hpp"
+	"../vec2.hpp"
+	"../vec3.hpp"
+	"../vec4.hpp"
+	"../mat2x2.hpp"
+	"../mat2x3.hpp"
+	"../mat2x4.hpp"
+	"../mat3x2.hpp"
+	"../mat3x3.hpp"
+	"../mat3x4.hpp"
+	"../mat4x2.hpp"
+	"../mat4x3.hpp"
+	"../mat4x4.hpp"
+	<cstring>
+	"type_ptr.inl"
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtc\type_ptr.inl
+	<cstring>
 	<cstring>
 
 1501441540 c:\users\paul\desktop\game-engine\core\utils\fileutils.h
@@ -1812,19 +1951,26 @@
 	<fstream>
 	<iostream>
 	"rapidjson/document.h"
+	<string>
+	<fstream>
+	<iostream>
+	"rapidjson/document.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\error\en.h
+	"error.h"
 	"error.h"
 
 1501428027 c:\users\paul\desktop\game-engine\rendering\material.h
 	"glm/glm.hpp"
+	"glm/glm.hpp"
 
 1517952929 source:c:\users\paul\desktop\game-engine\core\entity.cpp
+	"Entity.h"
 	"Entity.h"
 
 1502019729 source:c:\users\paul\desktop\game-engine\core\input.cpp
 	"input.h"
->>>>>>> develop
+	"input.h"
 
 1502019404 c:\users\paul\desktop\game-engine\core\input.h
 	<SDL2/SDL.h>
@@ -2156,221 +2302,43 @@
 	<GL/glew.h>
 	<glm/glm.hpp>
 
-<<<<<<< HEAD
-1487192408 c:\users\paul\desktop\game-engine\res\libraries\glew\include\gl\glew.h
-	<stddef.h>
-	<inttypes.h>
-	<stdint.h>
-	<inttypes.h>
-	<Availability.h>
-	<OpenGL/glu.h>
-	<GL/glu.h>
-
 1517952923 c:\users\paul\desktop\game-engine\core\utils\memorypoolinterface.h
+	"MemoryPool.h"
 	"MemoryPool.h"
 
 1517952923 c:\users\paul\desktop\game-engine\core\utils\memorypool.h
 	<stdlib.h>
 	<iostream>
-
-1517952929 source:c:\users\paul\desktop\game-engine\core\componentfactory.cpp
-	"ComponentFactory.h"
-
-1504289507 c:\users\paul\desktop\game-engine\core\componentfactory.h
-	"rapidjson/document.h"
-	"RenderComponent.h"
-	"TempAnimationComponent.h"
-	"PhysicsComponent.h"
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\document.h
-	"reader.h"
-	"internal/meta.h"
-	"internal/strfunc.h"
-	"memorystream.h"
-	"encodedstream.h"
-	<new>
-	<limits>
-	<iterator>
-	<utility>
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\reader.h
-	"allocators.h"
-	"stream.h"
-	"encodedstream.h"
-	"internal/meta.h"
-	"internal/stack.h"
-	"internal/strtod.h"
-	<limits>
-	<intrin.h>
-	<nmmintrin.h>
-	<emmintrin.h>
-	<arm_neon.h>
-	<stdexcept>
-	"rapidjson/error/error.h"
-	"rapidjson/reader.h"
-	"error/error.h"
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\allocators.h
-	"rapidjson.h"
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\rapidjson.h
-	<cstdlib>
-	<cstring>
-	"rapidjson/..."
-	<string>
-	"msinttypes/stdint.h"
-	"msinttypes/inttypes.h"
-	<stdint.h>
-	<inttypes.h>
-	<endian.h>
-	"rapidjson/..."
-	<cassert>
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\msinttypes\stdint.h
-	<stdint.h>
-	<limits.h>
-	<wchar.h>
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\msinttypes\inttypes.h
-	"stdint.h"
-	<inttypes.h>
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\stream.h
-	"rapidjson.h"
-	"encodings.h"
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\encodings.h
-	"rapidjson.h"
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\encodedstream.h
-	"stream.h"
-	"memorystream.h"
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\memorystream.h
-	"stream.h"
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\meta.h
-	"../rapidjson.h"
-	<type_traits>
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\stack.h
-	"../allocators.h"
-	"swap.h"
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\swap.h
-	"../rapidjson.h"
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\strtod.h
-	"ieee754.h"
-	"biginteger.h"
-	"diyfp.h"
-	"pow10.h"
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\ieee754.h
-	"../rapidjson.h"
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\biginteger.h
-	"../rapidjson.h"
-	<intrin.h>
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\diyfp.h
-	"../rapidjson.h"
-	<intrin.h>
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\pow10.h
-	"../rapidjson.h"
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\error\error.h
-	"../rapidjson.h"
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\strfunc.h
-	"../stream.h"
-	<cwchar>
-
-1517952929 c:\users\paul\desktop\game-engine\rendering\rendercomponent.h
-	"Mesh.h"
-	"Shader.h"
-	"Material.h"
-	"Component.h"
-	"RenderingMaster.h"
-	"Texture.h"
-
-1522588175 c:\users\paul\desktop\game-engine\rendering\mesh.h
-	<GL/glew.h>
-	<glm/glm.hpp>
-	<vector>
-	<string>
-	<sstream>
-	<fstream>
-	<limits>
-
-1522588175 c:\users\paul\desktop\game-engine\rendering\shader.h
 	<stdlib.h>
-	<stdio.h>
-	<fstream>
 	<iostream>
-	<GL/glew.h>
-	<string.h>
-	<glm/glm.hpp>
-	<string>
-	<unordered_map>
-	"ShaderUniform.h"
-	"FileUtils.h"
-	"rapidjson/document.h"
-	"rapidjson/error/en.h"
-	"MemoryPoolInterface.h"
 
-1522588175 c:\users\paul\desktop\game-engine\rendering\shaderuniform.h
-	"glm/glm.hpp"
+1522590150 c:\users\paul\desktop\game-engine\rendering\renderingmaster.h
+	"rapidjson/document.h"
+	"Display.h"
+	"Camera.h"
+	"Entity.h"
 	"Shader.h"
-	<string>
-	<unordered_map>
-	<glm/gtc/type_ptr.hpp>
+	"RenderComponent.h"
+	"GBuffer.h"
+	"Texture.h"
+	"Light.h"
+	"PostProcess.h"
+	"SmokeParticle.h"
+	<vector>
 
-1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtc\type_ptr.hpp
-	"../gtc/quaternion.hpp"
-	"../vec2.hpp"
-	"../vec3.hpp"
-	"../vec4.hpp"
-	"../mat2x2.hpp"
-	"../mat2x3.hpp"
-	"../mat2x4.hpp"
-	"../mat3x2.hpp"
-	"../mat3x3.hpp"
-	"../mat3x4.hpp"
-	"../mat4x2.hpp"
-	"../mat4x3.hpp"
-	"../mat4x4.hpp"
-	<cstring>
-	"type_ptr.inl"
-
-1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtc\type_ptr.inl
-	<cstring>
-
-1501441540 c:\users\paul\desktop\game-engine\core\utils\fileutils.h
-	<string>
-	<fstream>
-	<iostream>
-	"rapidjson/document.h"
-
-1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\error\en.h
-	"error.h"
-
-1501428027 c:\users\paul\desktop\game-engine\rendering\material.h
-	"glm/glm.hpp"
-
-1522588175 c:\users\paul\desktop\game-engine\rendering\renderingmaster.h
-=======
 1500216055 source:c:\users\paul\desktop\game-engine\core\utils\fileutils.cpp
+	"FileUtils.h"
 	"FileUtils.h"
 
 1503251668 source:c:\users\paul\desktop\game-engine\game\game.cpp
 	"Game.h"
+	"Game.h"
 
 1502795935 c:\users\paul\desktop\game-engine\game\game.h
 	"EngineCore.h"
+	"EngineCore.h"
 
-1522587046 c:\users\paul\desktop\game-engine\core\enginecore.h
+1522588498 c:\users\paul\desktop\game-engine\core\enginecore.h
 	"Display.h"
 	"Input.h"
 	"Entity.h"
@@ -2386,28 +2354,7 @@
 	<vector>
 	<chrono>
 
-1522587046 c:\users\paul\desktop\game-engine\rendering\renderingmaster.h
->>>>>>> develop
-	"rapidjson/document.h"
-	"Display.h"
-	"Camera.h"
-	"Entity.h"
-	"Shader.h"
-	"RenderComponent.h"
-	"GBuffer.h"
-	"Texture.h"
-	"Light.h"
-	"PostProcess.h"
-<<<<<<< HEAD
-	"SmokeParticle.h"
-	<vector>
-
 1522588175 c:\users\paul\desktop\game-engine\rendering\camera.h
-=======
-	<vector>
-
-1522587046 c:\users\paul\desktop\game-engine\rendering\camera.h
->>>>>>> develop
 	<glm/glm.hpp>
 	<SDL2/SDL.h>
 	"input.h"
@@ -2416,8 +2363,9 @@
 	<glm/gtc/matrix_transform.hpp>
 	<glm/gtc/quaternion.hpp>
 
-<<<<<<< HEAD
 1517952929 c:\users\paul\desktop\game-engine\rendering\gbuffer.h
+	<GL/glew.h>
+	<iostream>
 	<GL/glew.h>
 	<iostream>
 
@@ -2433,8 +2381,18 @@
 	"FrameBuffer.h"
 	"Texture.h"
 	"Camera.h"
+	"Transform.h"
+	"Mesh.h"
+	"Shader.h"
+	"FrameBuffer.h"
+	"Texture.h"
+	"Camera.h"
 
 1517952929 c:\users\paul\desktop\game-engine\rendering\framebuffer.h
+	<vector>
+	<GL/glew.h>
+	<iostream>
+	<cassert>
 	<vector>
 	<GL/glew.h>
 	<iostream>
@@ -2446,64 +2404,81 @@
 	"Mesh.h"
 	"Texture.h"
 	<string>
+	"FrameBuffer.h"
+	"Shader.h"
+	"Mesh.h"
+	"Texture.h"
+	<string>
 
 1522588175 c:\users\paul\desktop\game-engine\core\smokeparticle.h
 	"IParticle.h"
 
 1522588175 c:\users\paul\desktop\game-engine\core\iparticle.h
 	<glm/glm.hpp>
-=======
+
+1522588175 pp>
+
 1503512616 source:c:\users\paul\desktop\game-engine\main.cpp
 	<iostream>
 	"Game.h"
+	<iostream>
+	"Game.h"
 
-1522587046 source:c:\users\paul\desktop\game-engine\rendering\camera.cpp
+1522588175 source:c:\users\paul\desktop\game-engine\rendering\camera.cpp
+	"camera.h"
 	"camera.h"
 
 1522248274 source:c:\users\paul\desktop\game-engine\rendering\display.cpp
 	"Display.h"
+	"Display.h"
 
 1517952929 source:c:\users\paul\desktop\game-engine\rendering\material.cpp
 	"Material.h"
+	"Material.h"
 
-1522587046 source:c:\users\paul\desktop\game-engine\rendering\mesh.cpp
+1522588498 source:c:\users\paul\desktop\game-engine\rendering\mesh.cpp
 	"mesh.h"
 	<iostream>
 
-1522587046 source:c:\users\paul\desktop\game-engine\rendering\rendercomponent.cpp
+1522588175 source:c:\users\paul\desktop\game-engine\rendering\rendercomponent.cpp
+	"RenderComponent.h"
 	"RenderComponent.h"
 
-1522587046 source:c:\users\paul\desktop\game-engine\rendering\renderingmaster.cpp
+1522590214 source:c:\users\paul\desktop\game-engine\rendering\renderingmaster.cpp
 	"RenderingMaster.h"
+	"ParticleRenderer.h"
+	"ParticleFactory.h"
 	"GUI.h"
 
-1522587046 source:c:\users\paul\desktop\game-engine\rendering\shader.cpp
+1522589258 source:c:\users\paul\desktop\game-engine\rendering\shader.cpp
 	"Shader.h"
 
-1522587046 source:c:\users\paul\desktop\game-engine\rendering\shaderuniform.cpp
+1522588175 source:c:\users\paul\desktop\game-engine\rendering\shaderuniform.cpp
+	"ShaderUniform.h"
 	"ShaderUniform.h"
 
-1522587046 source:c:\users\paul\desktop\game-engine\rendering\transform.cpp
+1522588498 source:c:\users\paul\desktop\game-engine\rendering\transform.cpp
 	"Transform.h"
 	<iostream>
 
-1522587046 source:c:\users\paul\desktop\game-engine\core\enginecore.cpp
+1522589737 source:c:\users\paul\desktop\game-engine\core\enginecore.cpp
 	"EngineCore.h"
->>>>>>> develop
+	<glm/gtx/rotate_vector.hpp>
+	"ParticleRenderer.h"
+	"ParticleFactory.h"
 
 1517952923 c:\users\paul\desktop\game-engine\rendering\tempanimationcomponent.h
 	"Component.h"
 	"glm/glm.hpp"
 
-<<<<<<< HEAD
-=======
 1517952923 source:c:\users\paul\desktop\game-engine\rendering\tempanimationcomponent.cpp
 	"TempAnimationComponent.h"
+	"TempAnimationComponent.h"
 
-1522587046 source:c:\users\paul\desktop\game-engine\physics\physicscomponent.cpp
+1522588175 source:c:\users\paul\desktop\game-engine\physics\physicscomponent.cpp
+	"PhysicsComponent.h"
 	"PhysicsComponent.h"
 
->>>>>>> develop
 1517952923 c:\users\paul\desktop\game-engine\physics\physicscomponent.h
 	"Component.h"
 	"glm/glm.hpp"
@@ -2511,15 +2486,16 @@
 	"glm/gtc/type_ptr.hpp"
 	"PhysicsMaster.h"
 
-<<<<<<< HEAD
-=======
-1522587046 c:\users\paul\desktop\game-engine\physics\physicsmaster.h
+1522588175 c:\users\paul\desktop\game-engine\physics\physicsmaster.h
+	"bullet/btBulletDynamicsCommon.h"
+	"Entity.h"
+	"PhysicsComponent.h"
+	<iostream>
 	"bullet/btBulletDynamicsCommon.h"
 	"Entity.h"
 	"PhysicsComponent.h"
 	<iostream>
 
->>>>>>> develop
 1487192407 c:\users\paul\desktop\game-engine\res\libraries\bullet\bullet\btbulletdynamicscommon.h
 	"btBulletCollisionCommon.h"
 	"BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h"
@@ -3045,49 +3021,7 @@
 	"LinearMath/btScalar.h"
 	"btRigidBody.h"
 
-<<<<<<< HEAD
-1522588175 c:\users\paul\desktop\game-engine\physics\physicsmaster.h
-	"bullet/btBulletDynamicsCommon.h"
-	"Entity.h"
-	"PhysicsComponent.h"
-	<iostream>
-
-1522588175 source:c:\users\paul\desktop\game-engine\core\enginecore.cpp
-	"EngineCore.h"
-	<glm/gtx/rotate_vector.hpp>
-	"ParticleRenderer.h"
-	"ParticleFactory.h"
-
-1522588175 c:\users\paul\desktop\game-engine\core\enginecore.h
-	"Display.h"
-	"Input.h"
-	"Entity.h"
-	"RenderingMaster.h"
-	"PhysicsMaster.h"
-	"FileUtils.h"
-	"rapidjson/error/en.h"
-	"ComponentFactory.h"
-	"Texture.h"
-	"ProfilingTimer.h"
-	"Player.h"
-	<vector>
-	<chrono>
-
-1522588175 c:\users\paul\desktop\game-engine\core\utils\profilingtimer.h
-	<chrono>
-	<string>
-	<iostream>
-=======
-1522587046 source:c:\users\paul\desktop\game-engine\physics\physicsmaster.cpp
-	"PhysicsMaster.h"
-
-1522587046 c:\users\paul\desktop\game-engine\rendering\texture.h
-	<string>
-	<SDL2/SDL.h>
-	<GL/glew.h>
-	<iostream>
-
-1522587046 c:\users\paul\desktop\game-engine\core\utils\profilingtimer.h
+1522588498 c:\users\paul\desktop\game-engine\core\utils\profilingtimer.h
 	<chrono>
 	<string>
 	<iostream>
@@ -3095,22 +3029,31 @@
 	<glm/glm.hpp>
 	<memory>
 
-1522587046 source:c:\users\paul\desktop\game-engine\rendering\texture.cpp
-	"texture.h"
+1522588175 
 
-1522587985 source:c:\users\paul\desktop\game-engine\core\utils\profilingtimer.cpp
+1522588498 source:c:\users\paul\desktop\game-engine\physics\physicsmaster.cpp
+	"PhysicsMaster.h"
+
+1522588175 source:c:\users\paul\desktop\game-engine\rendering\texture.cpp
+	"texture.h"
+	"texture.h"
+	"stb_image.h"
+	"stb_image_write.h"
+
+1522588498 source:c:\users\paul\desktop\game-engine\core\utils\profilingtimer.cpp
 	"ProfilingTimer.h"
 	"BarGUI.h"
 	<memory>
->>>>>>> develop
 
 1517952923 c:\users\paul\desktop\game-engine\core\player.h
 	"Entity.h"
 	"Camera.h"
 	"PhysicsComponent.h"
 
-<<<<<<< HEAD
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\rotate_vector.hpp
+	"../glm.hpp"
+	"../gtx/transform.hpp"
+	"rotate_vector.inl"
 	"../glm.hpp"
 	"../gtx/transform.hpp"
 	"rotate_vector.inl"
@@ -3119,12 +3062,15 @@
 	"../glm.hpp"
 	"../gtc/matrix_transform.hpp"
 	"transform.inl"
+	"../glm.hpp"
+	"../gtc/matrix_transform.hpp"
+	"transform.inl"
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\transform.inl
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\rotate_vector.inl
 
-1522588175 c:\users\paul\desktop\game-engine\core\particlerenderer.h
+1522590089 c:\users\paul\desktop\game-engine\core\particlerenderer.h
 	<vector>
 	<GL/glew.h>
 	<glm/glm.hpp>
@@ -3135,12 +3081,6 @@
 
 1522588175 c:\users\paul\desktop\game-engine\core\particlefactory.h
 	"ParticleRenderer.h"
-
-1517952929 source:c:\users\paul\desktop\game-engine\core\entity.cpp
-	"Entity.h"
-
-1502019729 source:c:\users\paul\desktop\game-engine\core\input.cpp
-	"input.h"
 
 1522588175 source:c:\users\paul\desktop\game-engine\core\iparticle.cpp
 	"IParticle.h"
@@ -3158,6 +3098,7 @@
 
 1517952929 source:c:\users\paul\desktop\game-engine\core\player.cpp
 	"Player.h"
+	"Player.h"
 
 1522588175 source:c:\users\paul\desktop\game-engine\core\smokeparticle.cpp
 	"SmokeParticle.h"
@@ -3169,8 +3110,16 @@
 	"../detail/func_geometric.hpp"
 	"../gtx/quaternion.hpp"
 	"norm.inl"
+	"../detail/func_geometric.hpp"
+	"../gtx/quaternion.hpp"
+	"norm.inl"
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\quaternion.hpp
+	"../glm.hpp"
+	"../gtc/constants.hpp"
+	"../gtc/quaternion.hpp"
+	"../gtx/norm.hpp"
+	"quaternion.inl"
 	"../glm.hpp"
 	"../gtc/constants.hpp"
 	"../gtc/quaternion.hpp"
@@ -3180,70 +3129,42 @@
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\quaternion.inl
 	<limits>
 	"../gtc/constants.hpp"
+	<limits>
+	"../gtc/constants.hpp"
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\norm.inl
 	"../detail/precision.hpp"
+	"../detail/precision.hpp"
 
-1500216055 source:c:\users\paul\desktop\game-engine\core\utils\fileutils.cpp
-	"FileUtils.h"
-=======
-1517952929 source:c:\users\paul\desktop\game-engine\core\player.cpp
-	"Player.h"
+1500216055 .h"
 
-1517952923 c:\users\paul\desktop\game-engine\core\utils\memorypoolinterface.h
-	"MemoryPool.h"
-
-1517952923 c:\users\paul\desktop\game-engine\core\utils\memorypool.h
-	<stdlib.h>
-	<iostream>
-
-1517952929 c:\users\paul\desktop\game-engine\rendering\gbuffer.h
-	<GL/glew.h>
-	<iostream>
-
-1517952929 c:\users\paul\desktop\game-engine\rendering\light.h
-	"Transform.h"
-	"Mesh.h"
-	"Shader.h"
+1522588175 source:c:\users\paul\desktop\game-engine\rendering\framebuffer.cpp
 	"FrameBuffer.h"
-	"Texture.h"
-	"Camera.h"
-
-1517952929 c:\users\paul\desktop\game-engine\rendering\framebuffer.h
-	<vector>
-	<GL/glew.h>
-	<iostream>
-	<cassert>
-
-1517952929 c:\users\paul\desktop\game-engine\rendering\postprocess.h
-	"FrameBuffer.h"
-	"Shader.h"
-	"Mesh.h"
-	"Texture.h"
-	<string>
-
-1522587046 source:c:\users\paul\desktop\game-engine\rendering\framebuffer.cpp
 	"FrameBuffer.h"
 
-1522587046 source:c:\users\paul\desktop\game-engine\rendering\gbuffer.cpp
+1522588175 source:c:\users\paul\desktop\game-engine\rendering\gbuffer.cpp
+	"GBuffer.h"
 	"GBuffer.h"
 
 1517952929 source:c:\users\paul\desktop\game-engine\rendering\light.cpp
+	"Light.h"
 	"Light.h"
 
 1517952929 source:c:\users\paul\desktop\game-engine\rendering\postprocess.cpp
 	"PostProcess.h"
 	<utility>
+	"PostProcess.h"
+	<utility>
 
-1522587046 c:\users\paul\desktop\game-engine\rendering\bargui.h
+1522588498 c:\users\paul\desktop\game-engine\rendering\bargui.h
 	"GUI.h"
 	"Text.h"
 
-1522587046 c:\users\paul\desktop\game-engine\rendering\gui.h
+1522588498 c:\users\paul\desktop\game-engine\rendering\gui.h
 	<glm/glm.hpp>
 	"Transform.h"
 
-1522587046 c:\users\paul\desktop\game-engine\rendering\text.h
+1522588498 c:\users\paul\desktop\game-engine\rendering\text.h
 	"Font.h"
 	"Mesh.h"
 	<string>
@@ -3251,7 +3172,7 @@
 	<glm/gtc/matrix_transform.hpp>
 	"Shader.h"
 
-1522587046 c:\users\paul\desktop\game-engine\rendering\font.h
+1522588498 c:\users\paul\desktop\game-engine\rendering\font.h
 	<string>
 	<vector>
 	<fstream>
@@ -3261,7 +3182,6 @@
 	<glm/glm.hpp>
 	<GL/glew.h>
 	<SDL2/SDL.h>
->>>>>>> develop
 
 1517952923 source:c:\users\paul\desktop\game-engine\core\utils\memorypool.cpp
 	"MemoryPool.h"
@@ -3269,128 +3189,7 @@
 1517952923 source:c:\users\paul\desktop\game-engine\core\utils\memorypoolinterface.cpp
 	"MemoryPoolInterface.h"
 
-<<<<<<< HEAD
-1522588175 source:c:\users\paul\desktop\game-engine\core\utils\profilingtimer.cpp
-	"ProfilingTimer.h"
-
-1503251668 source:c:\users\paul\desktop\game-engine\game\game.cpp
-	"Game.h"
-
-1502795935 c:\users\paul\desktop\game-engine\game\game.h
-	"EngineCore.h"
-
-1503512616 source:c:\users\paul\desktop\game-engine\main.cpp
-	<iostream>
-	"Game.h"
-
-1522588175 source:c:\users\paul\desktop\game-engine\physics\physicscomponent.cpp
-	"PhysicsComponent.h"
-
-1522588175 source:c:\users\paul\desktop\game-engine\physics\physicsmaster.cpp
-	"PhysicsMaster.h"
-
-1522588175 source:c:\users\paul\desktop\game-engine\rendering\camera.cpp
-	"camera.h"
-
-1522248274 source:c:\users\paul\desktop\game-engine\rendering\display.cpp
-	"Display.h"
-
-1522588175 source:c:\users\paul\desktop\game-engine\rendering\framebuffer.cpp
-	"FrameBuffer.h"
-
-1522588175 source:c:\users\paul\desktop\game-engine\rendering\gbuffer.cpp
-	"GBuffer.h"
-
-1517952929 source:c:\users\paul\desktop\game-engine\rendering\light.cpp
-	"Light.h"
-
-1517952929 source:c:\users\paul\desktop\game-engine\rendering\material.cpp
-	"Material.h"
-
-1522588175 source:c:\users\paul\desktop\game-engine\rendering\mesh.cpp
-	"mesh.h"
-	<iostream>
-
-1517952929 source:c:\users\paul\desktop\game-engine\rendering\postprocess.cpp
-	"PostProcess.h"
-	<utility>
-
-1522588175 source:c:\users\paul\desktop\game-engine\rendering\rendercomponent.cpp
-	"RenderComponent.h"
-
-1522588175 source:c:\users\paul\desktop\game-engine\rendering\renderingmaster.cpp
-	"RenderingMaster.h"
-	"ParticleRenderer.h"
-	"ParticleFactory.h"
-
-1522588175 source:c:\users\paul\desktop\game-engine\rendering\shader.cpp
-	"Shader.h"
-
-1522588175 source:c:\users\paul\desktop\game-engine\rendering\shaderuniform.cpp
-	"ShaderUniform.h"
-
-1517952923 source:c:\users\paul\desktop\game-engine\rendering\tempanimationcomponent.cpp
-	"TempAnimationComponent.h"
-
-1522588175 source:c:\users\paul\desktop\game-engine\rendering\texture.cpp
-	"texture.h"
-	"stb_image.h"
-	"stb_image_write.h"
-
 1522588175 c:\users\paul\desktop\game-engine\res\libraries\stb\stb_image.h
-=======
-1522587046 source:c:\users\paul\desktop\game-engine\rendering\bargui.cpp
-	"BarGUI.h"
-	"Shader.h"
-	"Mesh.h"
-	"Font.h"
-	"RenderingMaster.h"
-
-1522587046 source:c:\users\paul\desktop\game-engine\rendering\font.cpp
-	"Font.h"
-
-1522587046 source:c:\users\paul\desktop\game-engine\rendering\gui.cpp
-	"GUI.h"
-	"BarGUI.h"
-	"Shader.h"
-
-1522587046 source:c:\users\paul\desktop\game-engine\rendering\text.cpp
-	"text.h"
-	<math.h>
-
-1522581231 c:\users\paul\desktop\game-engine\core\particlerenderer.h
-	<vector>
-	<GL/glew.h>
-	<glm/glm.hpp>
-	"Shader.h"
-	<glm/gtc/matrix_transform.hpp>
-	<algorithm>
-	"Camera.h"
-
-1522581258 c:\users\paul\desktop\game-engine\core\smokeparticle.h
-	"IParticle.h"
-
-1522581236 c:\users\paul\desktop\game-engine\core\iparticle.h
-	<glm/glm.hpp>
-
-1522581282 source:c:\users\paul\desktop\game-engine\core\iparticle.cpp
-	"IParticle.h"
-	<GL/glew.h>
-	"Camera.h"
-	"Shader.h"
-	"Texture.h"
-
-1518857983 source:c:\users\paul\desktop\game-engine\core\particlerenderer.cpp
-	"ParticleRenderer.h"
-
-1522581489 source:c:\users\paul\desktop\game-engine\core\smokeparticle.cpp
-	"SmokeParticle.h"
-	"Texture.h"
-	"Camera.h"
-	<glm/gtx/norm.hpp>
-
-1481866042 c:\users\paul\desktop\game-engine\res\libraries\stb\stb_image.h
->>>>>>> develop
 	"stb_image.h"
 	<stdio.h>
 	<stdarg.h>
@@ -3405,61 +3204,30 @@
 	<intrin.h>
 	<arm_neon.h>
 
-<<<<<<< HEAD
+1522588498 source:c:\users\paul\desktop\game-engine\rendering\bargui.cpp
+	"BarGUI.h"
+	"Shader.h"
+	"Mesh.h"
+	"Font.h"
+	"RenderingMaster.h"
+
+1522588498 source:c:\users\paul\desktop\game-engine\rendering\font.cpp
+	"Font.h"
+
+1522588498 source:c:\users\paul\desktop\game-engine\rendering\gui.cpp
+	"GUI.h"
+	"BarGUI.h"
+	"Shader.h"
+
+1522588498 source:c:\users\paul\desktop\game-engine\rendering\text.cpp
+	"text.h"
+	<math.h>
+
 1522588175 c:\users\paul\desktop\game-engine\res\libraries\stb\stb_image_write.h
-=======
-1481866042 c:\users\paul\desktop\game-engine\res\libraries\stb\stb_image_write.h
->>>>>>> develop
 	<stdio.h>
 	<stdarg.h>
 	<stdlib.h>
 	<string.h>
 	<math.h>
 	<assert.h>
-
-<<<<<<< HEAD
-1522588175 source:c:\users\paul\desktop\game-engine\rendering\transform.cpp
-	"Transform.h"
-	<iostream>
-=======
-1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\norm.hpp
-	"../detail/func_geometric.hpp"
-	"../gtx/quaternion.hpp"
-	"norm.inl"
-
-1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\quaternion.hpp
-	"../glm.hpp"
-	"../gtc/constants.hpp"
-	"../gtc/quaternion.hpp"
-	"../gtx/norm.hpp"
-	"quaternion.inl"
-
-1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\quaternion.inl
-	<limits>
-	"../gtc/constants.hpp"
-
-1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\norm.inl
-	"../detail/precision.hpp"
-
-1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\rotate_vector.hpp
-	"../glm.hpp"
-	"../gtx/transform.hpp"
-	"rotate_vector.inl"
-
-1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\transform.hpp
-	"../glm.hpp"
-	"../gtc/matrix_transform.hpp"
-	"transform.inl"
-
-1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\transform.inl
-
-1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\rotate_vector.inl
-
-1522401900 source:c:\users\paul\desktop\game-engine\core\particlefactory.cpp
-	"ParticleFactory.h"
-	"RenderingMaster.h"
-
-1522402307 c:\users\paul\desktop\game-engine\core\particlefactory.h
-	"ParticleRenderer.h"
->>>>>>> develop
 

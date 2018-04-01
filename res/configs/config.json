@@ -3,7 +3,7 @@
 	      "width" : 1280,
 	      "height" : 720,
 	      "title" : "Game engine",
-	      "isFullScreen" : false,
+	      "isFullScreen" : true,
 	      "maxFps" : 60,
 	      "vSync" : true
 	    },

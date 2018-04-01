@@ -24,7 +24,7 @@ class ParticleRenderer
                          int screenWidth,
                          int screenHeight,
                          rapidjson::Document &particleVolumePropertiesJson);
-        void update (Camera &camera);
+        void update (Camera &camera, double dt);
         void draw ();
         Shader &getRenderingShader();
         virtual ~ParticleRenderer();
@@ -164,7 +164,7 @@ ParticleRenderer<P>::ParticleRenderer(const glm::mat4 &projectionMatrix,
 }
 
 template <typename P>
-void ParticleRenderer<P>::update (Camera &camera) {
+void ParticleRenderer<P>::update (Camera &camera, double dt) {
     const glm::mat4 viewMatrix = camera.getViewMatrix ();
     const glm::vec3 cameraPosition = camera.getPosition ();
 
@@ -173,7 +173,7 @@ void ParticleRenderer<P>::update (Camera &camera) {
 
     for (P &particle : particles) {
         /* TODO remove this hardcode */
-        particle.update (1000.0f / 500, camera);
+        particle.update (dt, camera);
     }
 
     std::sort (std::begin (particles),
