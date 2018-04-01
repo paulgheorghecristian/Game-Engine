@@ -15,7 +15,7 @@ uniform int screenWidth, screenHeight;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 
-#define EPS 20
+#define EPS 40
 
 void main(){
     vec2 texCoord = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
@@ -41,6 +41,6 @@ void main(){
     }
 
     outColor.a *= (1.0 - aliveFor);
-    outColor.xyz += vec3(0.5,0.5,0.25) * 0.7;
+    outColor.xyz += vec3(0.5,0.5,0.25) * 0.4;
     outColor.xyz *= outColor.a;
 }

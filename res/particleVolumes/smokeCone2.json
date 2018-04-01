@@ -1,0 +1,15 @@
+{
+    "maxParticles" : 300,
+    "center" : [400, 0, 0],
+    "orientation" : [45, 45, 0],
+    "R" : 0.5,
+    "r" : 1.0,
+    "H" : 3,
+    "initialScale" : 5.0,
+    "velocityMag" : 100.0,
+    "diffusionFactor" : 120.0,
+    "buoyancyFactor" : 100.0,
+    "delayMs" : 20,
+    "liveForInMs" : 3000,
+    "blendType" : "alpha"
+}
