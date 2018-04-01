@@ -4,14 +4,15 @@
 #include "ParticleRenderer.h"
 #include "ParticleFactory.h"
 
-EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false),
                                                             renderTime("render"),
                                                             updateTime("update"),
                                                             inputTime("input"),
                                                             frameTime("frame"),
                                                             renderSceneTime("renderScene"),
                                                             lightAccumBufferTime("lightAccBuffer"),
-                                                            screenDrawTime("screenDraw") {
+                                                            screenDrawTime("screenDraw")
+                                                            #endif
+                                                            {
     //create renderingmaster, physicsmaster and entities
     rapidjson::Document configDocument;
     rapidjson::ParseResult parseResult;
@@ -125,7 +126,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false),
 void EngineCore::start() {
     isRunning = true;
     auto start_time = HighResolutionClock::now();
-    const float frame_time = RenderingMaster::getInstance()->getDisplay()->getFrameTimeInMs() * 1000;
+    const double frame_time = renderingMaster->getDisplay()->getFrameTimeInMs() * 1000;
     unsigned int unprocessed_time = 0;
     unsigned int frame_counter = 0;
     unsigned int FPS = 0;
@@ -139,18 +140,21 @@ void EngineCore::start() {
     }*/
 
     while (isRunning) {
+
         if (frame_counter >= 1000000) {
             std::cout << "----------------------" << std::endl;
             std::cout << "FPS: " << FPS << std::endl;
-            std::cout << (1000.0f * ((float)frame_counter / 1000000))/FPS << " milliseconds frametime" << std::endl;
+            std::cout << ((double) frame_counter / 1000) / FPS << " milliseconds frametime" << std::endl;
             FPS = 0;
             frame_counter = 0;
-            PT_PrintAndReset(inputTime);
-            PT_PrintAndReset(updateTime);
-            PT_PrintAndReset(renderTime);
-            PT_PrintAndReset(renderSceneTime);
-            PT_PrintAndReset(lightAccumBufferTime);
-            PT_PrintAndReset(screenDrawTime);
+            PT_PrintAndReset("input");
+            PT_PrintAndReset("update");
+            PT_PrintAndReset("render");
+            PT_PrintAndReset("renderScene");
+            PT_PrintAndReset("lightAcc");
+            PT_PrintAndReset("screenDraw");
+            PT_PrintAndReset("computeDepthTexture");
+            PT_PrintAndReset("swapBuffers");
             std::cout << "----------------------" << std::endl;
         }
         auto last_time = HighResolutionClock::now();
@@ -166,12 +170,12 @@ void EngineCore::start() {
             /*for (unsigned int i = 0; i < entities.size(); i++) {
                 //old_state[i] = entities[i]->getTransform();
             }*/
-            PT_FromHere(inputTime);
+            PT_FromHere("input");
             input ();
-            PT_ToHere(inputTime);
-            PT_FromHere(updateTime);
+            PT_ToHere("input");
+            PT_FromHere("update");
             update ();
-            PT_ToHere(updateTime);
+            PT_ToHere("update");
             unprocessed_time -= frame_time;
             needToRender = true;
         }
@@ -186,9 +190,9 @@ void EngineCore::start() {
                 //entities[i]->getTransform().interpolateWith(old_state[i], blend_factor);
             }*/
             //unprocessed_time = 0;
-            PT_FromHere (renderTime);
+            PT_FromHere ("render");
             render ();
-            PT_ToHere (renderTime);
+            PT_ToHere ("render");
             /*for (unsigned int i = 0; i < entities.size(); i++) {
                 //entities[i]->setTransform (save_state[i]);
             }*/
@@ -292,7 +296,7 @@ void EngineCore::input() {
 
 void EngineCore::render() {
     /*generate deferred shading buffers*/
-    PT_FromHere(renderSceneTime);
+    PT_FromHere("renderScene");
     RenderingMaster::getInstance()->getGBuffer().bindForScene();
     RenderingMaster::getInstance()->clearScreen (1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -305,10 +309,11 @@ void EngineCore::render() {
     }
 
     RenderingMaster::getInstance()->getGBuffer().unbind();
-    PT_ToHere(renderSceneTime);
+    PT_ToHere("renderScene");
     /*end generate deferred shading buffers*/
 
     const std::vector <Light *> &lights = RenderingMaster::getInstance ()->getLights ();
+    PT_FromHere("computeDepthTexture");
 
     /* begin drawing the spot light depth map for each spot light*/
     for (Light *light : lights) {
@@ -325,32 +330,42 @@ void EngineCore::render() {
         }
     }
     /* end drawing the spot light depth map */
+    PT_ToHere("computeDepthTexture");
 
-    PT_FromHere(lightAccumBufferTime);
+    PT_FromHere("lightAcc");
     RenderingMaster::getInstance()->createLightAccumulationBuffer();
-    PT_ToHere(lightAccumBufferTime);
+    PT_ToHere("lightAcc");
 
     RenderingMaster::getInstance()->getGBuffer().unbind();
+    PT_FromHere("screenDraw");
+    PT_ToHere("screenDraw");
+
+    ProfilingTimer::renderAllBarGUIs();
 
     RenderingMaster::getInstance ()->particleForwardRenderFramebuffer.bindAllRenderTargets ();
+    PT_FromHere("swapBuffers");
     RenderingMaster::getInstance ()->depthTexture->use ();
     RenderingMaster::getInstance ()->smokeRenderer->draw ();
+    PT_ToHere("swapBuffers");
     RenderingMaster::getInstance ()->smokeRenderer2->draw();
     RenderingMaster::getInstance ()->particleForwardRenderFramebuffer.unbind ();
 
     RenderingMaster::getInstance()->drawDeferredShadingBuffers();
     PT_FromHere(screenDrawTime);
     RenderingMaster::getInstance()->swapBuffers();
-    PT_ToHere(screenDrawTime);
 }
 
 void EngineCore::update() {
     PhysicsMaster::getInstance()->update();
     RenderingMaster::getInstance()->update();
-
     for (auto entity : entities) {
         entity->update ();
     }
+
+    physicsMaster->update();
+    RenderingMaster::update();
+
+    ProfilingTimer::updateAllBarGUIs();
 }
 
 std::vector<Entity *> &EngineCore::getEntities() {

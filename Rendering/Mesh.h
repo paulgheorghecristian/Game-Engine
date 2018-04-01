@@ -10,6 +10,7 @@
 #include <limits>
 
 struct Vertex{
+    /* TODO add default arguments properly */
     glm::vec3 positionCoords;
     glm::vec3 normalCoords;
     glm::vec2 textureCoords;
@@ -39,7 +40,10 @@ struct Vertex{
 class Mesh
 {
     public:
-        Mesh(std::vector<Vertex>&, std::vector<unsigned int>&);
+        Mesh (const std::vector<Vertex> &vertices,
+              const std::vector<unsigned int> &indices,
+              bool willBeUpdated = false);
+        Mesh (bool willBeUpdated = false);
         GLuint getVao();
         void draw();
         GLsizei getNumberOfTriangles();
@@ -49,6 +53,8 @@ class Mesh
         static Mesh* getDome(int, int);
         static Mesh* getCircle(float, float, float, int);
         static Mesh* getRectangleYUp();
+        void update (const std::vector<Vertex> &vertices,
+                     const std::vector<unsigned int> &indices);
         virtual ~Mesh();
     protected:
     private:
@@ -60,6 +66,8 @@ class Mesh
         GLsizei numberOfTriangles;
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
+        bool willBeUpdated;
+
         static float _stringToFloat(const std::string &source);
         static unsigned int _stringToUint(const std::string &source);
         static int _stringToInt(const std::string &source);

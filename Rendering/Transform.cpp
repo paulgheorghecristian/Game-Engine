@@ -1,10 +1,10 @@
 #include "Transform.h"
 #include <iostream>
-Transform::Transform(const glm::vec3 &position = glm::vec3(0),
-                     const glm::quat &rotation = glm::quat(1, 0, 0, 0),
-                     const glm::vec3 &scale = glm::vec3(1)) : position (position),
-                                                              rotation (rotation),
-                                                              scale (scale) {
+Transform::Transform(const glm::vec3 &position,
+                     const glm::quat &rotation,
+                     const glm::vec3 &scale) : position (position),
+                                               rotation (rotation),
+                                               scale (scale) {
     glm::mat4 T = glm::translate(glm::mat4(1.0), position);
     glm::mat4 R = glm::mat4_cast(rotation);
     glm::mat4 S = glm::scale(glm::mat4(1.0), scale);
@@ -13,13 +13,11 @@ Transform::Transform(const glm::vec3 &position = glm::vec3(0),
     modelMatrixNeedsRefresh = false;
 }
 
-Transform::Transform(const glm::vec3 &position = glm::vec3(0),
-                     const glm::vec3 &rotation = glm::vec3(0),
-                     const glm::vec3 &scale = glm::vec3(1)) : Transform(position, glm::quat(rotation), scale) {
+Transform::Transform(const glm::vec3 &position,
+                     const glm::vec3 &rotation,
+                     const glm::vec3 &scale) : Transform (position, glm::quat (rotation), scale) {}
 
-}
-
-Transform::Transform() : position(0), rotation(1,0,0,0), scale(1) {}
+Transform::Transform() : Transform (glm::vec3(0), glm::vec3 (0), glm::vec3(1)) {}
 
 Transform::Transform(const Transform &other) {
     position = other.getPosition();

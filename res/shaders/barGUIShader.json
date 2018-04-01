@@ -1,0 +1,10 @@
+{
+    "VSPath" : "res/shaders/barGUIShader.vs",
+    "FSPath" : "res/shaders/barGUIShader.fs",
+    "Uniforms" : {
+                    "modelMatrix" : "MAT4",
+                    "projectionMatrix" : "MAT4",
+                    "color" : "VEC3"
+                 }
+}
+

@@ -46,7 +46,7 @@ void PhysicsMaster::destroy() {
 }
 
 void PhysicsMaster::update() {
-    world->stepSimulation(btScalar(0.5f));
+    world->stepSimulation(btScalar(0.15f), 50, btScalar(1.)/btScalar(60.));
 }
 
 btDynamicsWorld *PhysicsMaster::getWorld() {

@@ -5,9 +5,11 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+/* TODO make this a move constructor and assign. op */
 class Transform
 {
     public:
+        Transform ();
         Transform(const glm::vec3 &position,
                   const glm::quat &rotation,
                   const glm::vec3 &scale);
@@ -15,7 +17,6 @@ class Transform
                   const glm::vec3 &rotation,
                   const glm::vec3 &scale);
         Transform(const Transform &other);
-        Transform();
         Transform &operator=(const Transform &other);
 
         //transform = this.transform * ratio + other.transform (1-ratio);

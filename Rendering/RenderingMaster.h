@@ -26,6 +26,7 @@ class RenderingMaster
                           glm::mat4 projectionMatrix);
         static RenderingMaster *getInstance();
         static void destroy ();
+        static Shader simpleTextShader;
 
         void clearScreen(float r, float g, float b, float a, GLbitfield field);
         void swapBuffers();

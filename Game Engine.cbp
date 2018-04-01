@@ -144,6 +144,7 @@
 		<Unit filename="res/shaders/bufferCombinationShader.json" />
 		<Unit filename="res/shaders/bufferCombinationShader.vs" />
 		<Unit filename="res/shaders/deferredShadingSceneShader.fs" />
+		<Unit filename="res/shaders/deferredShadingSceneShader.json" />
 		<Unit filename="res/shaders/deferredShadingSceneShader.vs" />
 		<Unit filename="res/shaders/example.fs" />
 		<Unit filename="res/shaders/example.json" />

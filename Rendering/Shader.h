@@ -20,10 +20,10 @@
 
 class ShaderUniform;
 
-class Shader : public MemoryPoolInterface<Shader>
+class Shader : public MemoryPoolInterface <Shader>
 {
     public:
-        Shader();
+        Shader ();
         Shader(const std::string &jsonPath);
         Shader *construct (const std::string &jsonPath);
         void reload();
