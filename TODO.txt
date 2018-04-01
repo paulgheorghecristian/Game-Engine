@@ -1,13 +1,19 @@
--make rendering at 60 fps (maybe it will look smoother if the fps is not fluctuating as much) or, in other words, separate rendering logic from the "maxFps" value in config.json. maxFps should mean the rendering fps, not the inner updating rate
-
--maybe make enginecore maintain a pointer for singletons renderingmaster and physicsmaster (getInstance is called very often)
-
--there are some public vars which should be private (rendering master for ex)
-
+DONE:
 -make particles support particle atlas with animations (try to create smoke logic after)
+-make particles alpha blended or additive
 
+IN PROGRESS:
+-make rendering at 60 fps (maybe it will look smoother if the fps is not fluctuating as much) or, in other words, separate rendering logic from the "maxFps" value in config.json. maxFps should mean the rendering fps, not the inner updating rate
+-maybe make enginecore maintain a pointer for singletons renderingmaster and physicsmaster (getInstance is called very often)
+-there are some public vars which should be private (rendering master for ex)
 -try to merge addparticles with master/develop after smoke
-
 -do i really want to use the gbuffer buffer for particles or the default one with depth buffer copied?
+-sort individual particle renderers according to camera distance - maybe later
+-animation system
+-particle emitting component
+-debug mode (free roam camera, can manipulate objects etc)
+-make other volumes than cones for particles?
+
+
 
 -puzzle game pe titan, arma cu sfere care schimba legile fizicii. din cand in cand se aud tipete prin pereti si se misca ca o holograma. sunt sunete prinse in timp
