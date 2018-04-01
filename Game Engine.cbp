@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Game Engine" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/Game Engine" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-std=c++11" />
+					<Add option="-g" />
+					<Add directory="res/libraries/glm" />
+					<Add directory="res/libraries/SDL2/include" />
+					<Add directory="res/libraries/glew/include" />
+					<Add directory="res/libraries/bullet" />
+					<Add directory="res/libraries/bullet/bullet" />
+					<Add directory="Rendering" />
+					<Add directory="Core" />
+					<Add directory="res/libraries/rapidjson/include" />
+					<Add directory="Core/Utils" />
+					<Add directory="Game" />
+					<Add directory="Physics" />
+					<Add directory="res/libraries/stb" />
+				</Compiler>
+				<Linker>
+					<Add option="-lmingw32" />
+					<Add library="OpenGL32" />
+					<Add library="res/libraries/glew/bin/Release/x64/glew32.dll" />
+					<Add library="res/libraries/SDL2/lib/libSDL2main.a" />
+					<Add library="res/libraries/SDL2/bin/SDL2.dll" />
+					<Add library="res/libraries/bullet/lib/libBullet2FileLoader.dll" />
+					<Add library="res/libraries/bullet/lib/libBullet3Collision.dll" />
+					<Add library="res/libraries/bullet/lib/libBullet3Common.dll" />
+					<Add library="res/libraries/bullet/lib/libBullet3Dynamics.dll" />
+					<Add library="res/libraries/bullet/lib/libBullet3Geometry.dll" />
+					<Add library="res/libraries/bullet/lib/libBullet3OpenCL_clew.dll" />
+					<Add library="res/libraries/bullet/lib/libBulletCollision.dll" />
+					<Add library="res/libraries/bullet/lib/libBulletDynamics.dll" />
+					<Add library="res/libraries/bullet/lib/libBulletInverseDynamics.dll" />
+					<Add library="res/libraries/bullet/lib/libBulletSoftBody.dll" />
+					<Add library="res/libraries/bullet/lib/libLinearMath.dll" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/Game Engine" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add directory="Rendering" />
+					<Add directory="Core" />
+					<Add directory="Core/Utils" />
+					<Add directory="Game" />
+					<Add directory="Physics" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+		</Compiler>
+		<Unit filename="Core/Component.cpp" />
+		<Unit filename="Core/Component.h" />
+		<Unit filename="Core/ComponentFactory.cpp" />
+		<Unit filename="Core/ComponentFactory.h" />
+		<Unit filename="Core/EngineCore.cpp" />
+		<Unit filename="Core/EngineCore.h" />
+		<Unit filename="Core/Entity.cpp" />
+		<Unit filename="Core/Entity.h" />
+		<Unit filename="Core/IParticle.cpp" />
+		<Unit filename="Core/IParticle.h" />
+		<Unit filename="Core/Input.cpp" />
+		<Unit filename="Core/Input.h" />
+		<Unit filename="Core/ParticleFactory.cpp" />
+		<Unit filename="Core/ParticleFactory.h" />
+		<Unit filename="Core/ParticleRenderer.cpp" />
+		<Unit filename="Core/ParticleRenderer.h" />
+		<Unit filename="Core/Player.cpp" />
+		<Unit filename="Core/Player.h" />
+		<Unit filename="Core/SmokeParticle.cpp" />
+		<Unit filename="Core/SmokeParticle.h" />
+		<Unit filename="Core/Utils/FileUtils.cpp" />
+		<Unit filename="Core/Utils/FileUtils.h" />
+		<Unit filename="Core/Utils/MemoryPool.cpp" />
+		<Unit filename="Core/Utils/MemoryPool.h" />
+		<Unit filename="Core/Utils/MemoryPoolInterface.cpp" />
+		<Unit filename="Core/Utils/MemoryPoolInterface.h" />
+		<Unit filename="Core/Utils/ProfilingTimer.cpp" />
+		<Unit filename="Core/Utils/ProfilingTimer.h" />
+		<Unit filename="Game/Game.cpp" />
+		<Unit filename="Game/Game.h" />
+		<Unit filename="Game/game.json" />
+		<Unit filename="Physics/PhysicsComponent.cpp" />
+		<Unit filename="Physics/PhysicsComponent.h" />
+		<Unit filename="Physics/PhysicsMaster.cpp" />
+		<Unit filename="Physics/PhysicsMaster.h" />
+		<Unit filename="Rendering/Camera.cpp" />
+		<Unit filename="Rendering/Camera.h" />
+		<Unit filename="Rendering/Display.cpp" />
+		<Unit filename="Rendering/Display.h" />
+		<Unit filename="Rendering/FrameBuffer.cpp" />
+		<Unit filename="Rendering/FrameBuffer.h" />
+		<Unit filename="Rendering/GBuffer.cpp" />
+		<Unit filename="Rendering/GBuffer.h" />
+		<Unit filename="Rendering/Light.cpp" />
+		<Unit filename="Rendering/Light.h" />
+		<Unit filename="Rendering/Material.cpp" />
+		<Unit filename="Rendering/Material.h" />
+		<Unit filename="Rendering/Mesh.cpp" />
+		<Unit filename="Rendering/Mesh.h" />
+		<Unit filename="Rendering/PostProcess.cpp" />
+		<Unit filename="Rendering/PostProcess.h" />
+		<Unit filename="Rendering/RenderComponent.cpp" />
+		<Unit filename="Rendering/RenderComponent.h" />
+		<Unit filename="Rendering/RenderingMaster.cpp" />
+		<Unit filename="Rendering/RenderingMaster.h" />
+		<Unit filename="Rendering/Shader.cpp" />
+		<Unit filename="Rendering/Shader.h" />
+		<Unit filename="Rendering/ShaderUniform.cpp" />
+		<Unit filename="Rendering/ShaderUniform.h" />
+		<Unit filename="Rendering/TempAnimationComponent.cpp" />
+		<Unit filename="Rendering/TempAnimationComponent.h" />
+		<Unit filename="Rendering/Texture.cpp" />
+		<Unit filename="Rendering/Texture.h" />
+		<Unit filename="Rendering/Transform.cpp" />
+		<Unit filename="Rendering/Transform.h" />
+		<Unit filename="main.cpp" />
+		<Unit filename="res/configs/config.json" />
+		<Unit filename="res/particleVolumes/smokeCone.json" />
+		<Unit filename="res/particleVolumes/smokeCone2.json" />
+		<Unit filename="res/shaders/brightnessControlPostProcess.fs" />
+		<Unit filename="res/shaders/brightnessControlPostProcess.json" />
+		<Unit filename="res/shaders/brightnessControlPostProcess.vs" />
+		<Unit filename="res/shaders/bufferCombinationShader.fs" />
+		<Unit filename="res/shaders/bufferCombinationShader.json" />
+		<Unit filename="res/shaders/bufferCombinationShader.vs" />
+		<Unit filename="res/shaders/deferredShadingSceneShader.fs" />
+		<Unit filename="res/shaders/deferredShadingSceneShader.vs" />
+		<Unit filename="res/shaders/example.fs" />
+		<Unit filename="res/shaders/example.json" />
+		<Unit filename="res/shaders/example.vs" />
+		<Unit filename="res/shaders/hBlurPostProcess.fs" />
+		<Unit filename="res/shaders/hBlurPostProcess.json" />
+		<Unit filename="res/shaders/hBlurPostProcess.vs" />
+		<Unit filename="res/shaders/lightAccumulationBufferCreator.fs" />
+		<Unit filename="res/shaders/lightAccumulationBufferCreator.json" />
+		<Unit filename="res/shaders/lightAccumulationBufferCreator.vs" />
+		<Unit filename="res/shaders/particleRenderShader.fs" />
+		<Unit filename="res/shaders/particleRenderShader.gs" />
+		<Unit filename="res/shaders/particleRenderShader.json" />
+		<Unit filename="res/shaders/particleRenderShader.vs" />
+		<Unit filename="res/shaders/stencilBufferCreator.fs" />
+		<Unit filename="res/shaders/stencilBufferCreator.json" />
+		<Unit filename="res/shaders/stencilBufferCreator.vs" />
+		<Unit filename="res/shaders/wBlurPostProcess.fs" />
+		<Unit filename="res/shaders/wBlurPostProcess.json" />
+		<Unit filename="res/shaders/wBlurPostProcess.vs" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
