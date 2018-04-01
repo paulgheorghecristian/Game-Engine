@@ -11,7 +11,7 @@ ProfilingTimer::ProfilingTimer(BarGUI *barGUI) : total (0),
                                                   numOfCalls(0),
                                                   passedTime (0),
                                                   uptr_barGUI (barGUI) {
-
+    startTime = HighResolutionClock::now();
 }
 
 void ProfilingTimer::begin() {
@@ -41,7 +41,7 @@ void ProfilingTimer::printThis (const std::string &name) {
 }
 
 double ProfilingTimer::getPassedTimeAvg() {
-    if (numOfCalls == 0) {
+    if (numOfCalls == 0 || total == 0) {
         return 0;
     }
     return (double) total / numOfCalls;
