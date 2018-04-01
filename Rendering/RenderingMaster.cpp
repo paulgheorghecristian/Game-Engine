@@ -1,6 +1,7 @@
 #include "RenderingMaster.h"
 
 #include "ParticleRenderer.h"
+#include "ParticleFactory.h"
 
 RenderingMaster *RenderingMaster::m_instance = NULL;
 
@@ -146,9 +147,6 @@ RenderingMaster::RenderingMaster(Display *display,
         int z = rand() % 1000;
         lights[i]->getTransform().setPosition(glm::vec3(x, y, z));
     }*/
-    smokeRenderer = new ParticleRenderer<SmokeParticle, 100> (projectionMatrix,
-                                                              display->getWidth(),
-                                                              display->getHeight());
 }
 
 RenderingMaster::~RenderingMaster() {
@@ -169,6 +167,7 @@ RenderingMaster::~RenderingMaster() {
     delete brightnessControlPostProcess;
 
     delete smokeRenderer;
+    delete smokeRenderer2;
 }
 
 void RenderingMaster::init(Display *display,
@@ -273,6 +272,7 @@ void RenderingMaster::update() {
     deferredShading_LightAccumulationBufferCreator.updateUniform("cameraForwardVector", (void *) &forwardVectorInEyeSpace);
 
     smokeRenderer->update (*camera);
+    smokeRenderer2->update (*camera);
 }
 
 void RenderingMaster::computeStencilBufferForLight(Light *light) {

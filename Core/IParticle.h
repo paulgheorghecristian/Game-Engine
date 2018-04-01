@@ -7,12 +7,6 @@ class Shader;
 class Camera;
 class Texture;
 
-enum ParticleFlags {
-    ADDITIVE_BLENDING = 1,
-    ALPHA_BLENDING = 2,
-    TEXTURE_ATLAS = 4,
-};
-
 class IParticle
 {
     public:
@@ -42,7 +36,6 @@ class IParticle
         glm::vec3 initialScale, instaScale;
         glm::mat4 viewModelMatrix;
         unsigned int aliveForInMs;
-        char flags;
 
         void generateViewModelMatrix(const glm::mat4 &viewMatrix);
     private:

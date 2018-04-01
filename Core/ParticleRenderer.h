@@ -11,13 +11,19 @@
 
 #define NUM_OF_BYTES_PER_INSTANCE 16 /* 4 floats per matrix * sizeof (float) (without timeAlive) */
 
-template <typename P, unsigned int NUM_OF_PARTICLES = 1>
+enum BlendType {
+    ADDITIVE_BLENDING = 0,
+    ALPHA_BLENDING,
+};
+
+template <typename P>
 class ParticleRenderer
 {
     public:
         ParticleRenderer(const glm::mat4 &projectionMatrix,
                          int screenWidth,
-                         int screenHeight);
+                         int screenHeight,
+                         rapidjson::Document &particleVolumePropertiesJson);
         void update (Camera &camera);
         void draw ();
         Shader &getRenderingShader();
@@ -28,6 +34,7 @@ class ParticleRenderer
         std::vector<P> particles;
         GLuint vaoHandle, vboHandle;
         float *matricesBuffer;
+        BlendType m_blendType;
 
         void createVao();
         void createEmptyVbo();
@@ -35,23 +42,81 @@ class ParticleRenderer
         void insertParticleAttributesInBuffer(P &particle, int &offset);
 };
 
-template <typename P, unsigned int NUM_OF_PARTICLES>
-ParticleRenderer<P, NUM_OF_PARTICLES>::ParticleRenderer(const glm::mat4 &projectionMatrix,
+template <typename P>
+ParticleRenderer<P>::ParticleRenderer(const glm::mat4 &projectionMatrix,
                                                         int screenWidth,
-                                                        int screenHeight) {
+                                                        int screenHeight,
+                                                        rapidjson::Document &particleVolumePropertiesJson) {
     /* TODO make a GUI and make these modifiable by the GUI */
     /* each particle system should have a json properties file */
-    glm::vec3 Center (0, 0, 0); /* TODO remove hardcode */
+    glm::vec3 Center (0), orientation(0);
+    float R = 10.0f, r = 1.0f, H = 100.0f;
+    float initialScale = 5.0f, velocityMag = 150.0f;
+    float diffusionFactor = 50.0f, buoyancyFactor = 50.0f;
+    int delayMs = 20, liveForInMs = 3000;
+    int numParticles = 100;
     bool result = true;
+    m_blendType = ALPHA_BLENDING;
 
-    createVao();
+    if (particleVolumePropertiesJson.HasParseError()) {
+        assert (false);
+    }
 
-    #define R 3.0f
-    #define r 0.5f
-    #define H 100.0f
-    glm::vec3 center = Center;
-    center.y += H;
-    for (int i = 0; i < NUM_OF_PARTICLES; i++) {
+    if (particleVolumePropertiesJson.HasMember ("center")) {
+        Center.x = particleVolumePropertiesJson["center"].GetArray()[0].GetFloat();
+        Center.y = particleVolumePropertiesJson["center"].GetArray()[1].GetFloat();
+        Center.z = particleVolumePropertiesJson["center"].GetArray()[2].GetFloat();
+    }
+
+    if (particleVolumePropertiesJson.HasMember ("orientation")) {
+        orientation.x = glm::radians(particleVolumePropertiesJson["orientation"].GetArray()[0].GetFloat());
+        orientation.y = glm::radians(particleVolumePropertiesJson["orientation"].GetArray()[1].GetFloat());
+        orientation.z = glm::radians(particleVolumePropertiesJson["orientation"].GetArray()[2].GetFloat());
+    }
+
+    if (particleVolumePropertiesJson.HasMember ("blendType")) {
+        if (strcmp (particleVolumePropertiesJson["blendType"].GetString(), "additive") == 0) {
+            m_blendType = ADDITIVE_BLENDING;
+        } else if (strcmp (particleVolumePropertiesJson["blendType"].GetString(), "alpha") == 0) {
+            m_blendType = ALPHA_BLENDING;
+        }
+    }
+
+    R = particleVolumePropertiesJson.HasMember("R") ?
+    particleVolumePropertiesJson["R"].GetFloat() : R;
+
+    r = particleVolumePropertiesJson.HasMember("r") ?
+    particleVolumePropertiesJson["r"].GetFloat() : r;
+
+    H = particleVolumePropertiesJson.HasMember("H") ?
+    particleVolumePropertiesJson["H"].GetFloat() : H;
+
+    initialScale = particleVolumePropertiesJson.HasMember("initialScale") ?
+    particleVolumePropertiesJson["initialScale"].GetFloat() : initialScale;
+
+    velocityMag = particleVolumePropertiesJson.HasMember("velocityMag") ?
+    particleVolumePropertiesJson["velocityMag"].GetFloat() : velocityMag;
+
+    diffusionFactor = particleVolumePropertiesJson.HasMember("diffusionFactor") ?
+    particleVolumePropertiesJson["diffusionFactor"].GetFloat() : diffusionFactor;
+
+    buoyancyFactor = particleVolumePropertiesJson.HasMember("buoyancyFactor") ?
+    particleVolumePropertiesJson["buoyancyFactor"].GetFloat() : buoyancyFactor;
+
+    delayMs = particleVolumePropertiesJson.HasMember("delayMs") ?
+    particleVolumePropertiesJson["delayMs"].GetInt() : delayMs;
+
+    liveForInMs = particleVolumePropertiesJson.HasMember("liveForInMs") ?
+    particleVolumePropertiesJson["liveForInMs"].GetInt() : liveForInMs;
+
+    numParticles = particleVolumePropertiesJson.HasMember("maxParticles") ?
+    particleVolumePropertiesJson["maxParticles"].GetInt() : numParticles;
+
+    P::liveForInMs = liveForInMs;
+
+    glm::vec3 center = glm::vec3 (0, H, 0);
+    glm::quat rot(orientation);
+    for (int i = 0; i < numParticles; i++) {
         float x = (float) (rand()) / (RAND_MAX - 1);
         float z = (float) (rand()) / (RAND_MAX - 1);
         x *= (2.0f * R);
@@ -64,25 +129,24 @@ ParticleRenderer<P, NUM_OF_PARTICLES>::ParticleRenderer(const glm::mat4 &project
             continue;
         }
 
-        glm::vec3 dir = glm::vec3 (x, 0, z) - glm::vec3 (Center.x, 0, Center.z);
-        dir *= (R / r);
+        glm::vec3 dir = glm::vec3 (x, 0, z);
+        dir *= (r / R);
         glm::vec3 tmp = center + dir;
-        glm::vec3 velocity =  glm::normalize (tmp - glm::vec3 (x, 0, z)) * 150.0f;
+        glm::vec3 velocity =  glm::normalize (tmp - glm::vec3 (x, 0, z)) * velocityMag;
 
-        P p (glm::vec3 (x, Center.y, z), velocity, glm::vec3 (5));
-        p.simulate = false;
-        p.msDelay = ((1000.0 / 200)) * i;
+        glm::vec3 rotatedPos = (rot * glm::vec3 (x, 0, z)) + Center;
+
+        P p (rotatedPos, rot * velocity, glm::vec3 (initialScale), diffusionFactor, buoyancyFactor);
+        p.msDelay = delayMs * i;
         p.msDelayCopy = p.msDelay;
 
         particles.push_back (std::move (p));
     }
-    #undef R
-    #undef r
-    #undef H
 
-    assert (particles.size () == NUM_OF_PARTICLES);
+    assert (particles.size () == numParticles);
 
-    matricesBuffer = new float[NUM_OF_PARTICLES * 5];
+    createVao();
+    matricesBuffer = new float[numParticles * 5];
 
     result &= getRenderingShader().updateUniform ("particleSampler", 0);
     result &= getRenderingShader().updateUniform ("depthSampler", 3);
@@ -99,8 +163,8 @@ ParticleRenderer<P, NUM_OF_PARTICLES>::ParticleRenderer(const glm::mat4 &project
     assert (result);
 }
 
-template <typename P, unsigned int NUM_OF_PARTICLES>
-void ParticleRenderer<P, NUM_OF_PARTICLES>::update (Camera &camera) {
+template <typename P>
+void ParticleRenderer<P>::update (Camera &camera) {
     const glm::mat4 viewMatrix = camera.getViewMatrix ();
     const glm::vec3 cameraPosition = camera.getPosition ();
 
@@ -121,12 +185,16 @@ void ParticleRenderer<P, NUM_OF_PARTICLES>::update (Camera &camera) {
     /* TODO create here thread for sorting after X configurable updates */
 }
 
-template <typename P, unsigned int NUM_OF_PARTICLES>
-void ParticleRenderer<P, NUM_OF_PARTICLES>::draw () {
+template <typename P>
+void ParticleRenderer<P>::draw () {
     int offset = 0;
 
     glEnable (GL_BLEND);
-    glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    if (m_blendType == ADDITIVE_BLENDING) {
+        glBlendFunc (GL_ONE, GL_ONE);
+    } else if (m_blendType == ALPHA_BLENDING) {
+        glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    }
     glDepthMask (GL_FALSE);
 
     /* TODO make sure here the particles are sorted (wait for the thread in update) */
@@ -139,15 +207,15 @@ void ParticleRenderer<P, NUM_OF_PARTICLES>::draw () {
     glBindVertexArray (vaoHandle);
     getRenderingShader().bind ();
     P::getTexture().use();
-    glDrawArraysInstanced(GL_POINTS, 0, 1, NUM_OF_PARTICLES);
+    glDrawArraysInstanced(GL_POINTS, 0, 1, particles.size());
     glBindVertexArray(0);
 
     glDisable (GL_BLEND);
     glDepthMask (GL_TRUE);
 }
 
-template <typename P, unsigned int NUM_OF_PARTICLES>
-void ParticleRenderer<P, NUM_OF_PARTICLES>::createVao(){
+template <typename P>
+void ParticleRenderer<P>::createVao(){
     glGenVertexArrays(1, &vaoHandle);
     glBindVertexArray(vaoHandle);
 
@@ -165,16 +233,16 @@ void ParticleRenderer<P, NUM_OF_PARTICLES>::createVao(){
     glBindVertexArray(0);
 }
 
-template <typename P, unsigned int NUM_OF_PARTICLES>
-void ParticleRenderer<P, NUM_OF_PARTICLES>::createEmptyVbo(){
+template <typename P>
+void ParticleRenderer<P>::createEmptyVbo(){
     glGenBuffers(1, &vboHandle);
     glBindBuffer(GL_ARRAY_BUFFER, vboHandle);
-    glBufferData(GL_ARRAY_BUFFER, (NUM_OF_BYTES_PER_INSTANCE + sizeof (float)) * NUM_OF_PARTICLES, 0, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (NUM_OF_BYTES_PER_INSTANCE + sizeof (float)) * particles.size(), 0, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-template <typename P, unsigned int NUM_OF_PARTICLES>
-void ParticleRenderer<P, NUM_OF_PARTICLES>::insertParticleAttributesInBuffer(P &particle, int &offset) {
+template <typename P>
+void ParticleRenderer<P>::insertParticleAttributesInBuffer(P &particle, int &offset) {
     const glm::vec3 &pos = particle.getInstaPosition ();
     const glm::vec3 &scale = particle.getScale ();
 
@@ -185,15 +253,15 @@ void ParticleRenderer<P, NUM_OF_PARTICLES>::insertParticleAttributesInBuffer(P &
     matricesBuffer[offset++] = particle.getAliveForInMs ();
 }
 
-template <typename P, unsigned int NUM_OF_PARTICLES>
-void ParticleRenderer<P, NUM_OF_PARTICLES>::updateVbo(){
+template <typename P>
+void ParticleRenderer<P>::updateVbo(){
     glBindBuffer(GL_ARRAY_BUFFER, vboHandle);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, (NUM_OF_BYTES_PER_INSTANCE + sizeof (float)) * NUM_OF_PARTICLES, (void *) matricesBuffer);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, (NUM_OF_BYTES_PER_INSTANCE + sizeof (float)) * particles.size(), (void *) matricesBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-template <typename P, unsigned int NUM_OF_PARTICLES>
-ParticleRenderer<P, NUM_OF_PARTICLES>::~ParticleRenderer()
+template <typename P>
+ParticleRenderer<P>::~ParticleRenderer()
 {
     glDeleteBuffers(1, &vboHandle);
     glDeleteVertexArrays(1, &vaoHandle);
@@ -201,8 +269,8 @@ ParticleRenderer<P, NUM_OF_PARTICLES>::~ParticleRenderer()
     delete[] matricesBuffer;
 }
 
-template <typename P, unsigned int NUM_OF_PARTICLES>
-Shader &ParticleRenderer<P, NUM_OF_PARTICLES>::getRenderingShader()
+template <typename P>
+Shader &ParticleRenderer<P>::getRenderingShader()
 {
     static Shader shader ("res/shaders/particleRenderShader.json");
 

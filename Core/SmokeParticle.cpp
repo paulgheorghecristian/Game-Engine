@@ -4,14 +4,17 @@
 
 #include <glm/gtx/norm.hpp>
 
-const float SmokeParticle::liveForInS = 3.0f;
-const unsigned int SmokeParticle::liveForInMs = liveForInS * 1000;
+unsigned int SmokeParticle::liveForInMs;
 
 SmokeParticle::SmokeParticle(const glm::vec3 &position,
                              const glm::vec3 &velocity,
-                             const glm::vec3 &scale) : IParticle (position, velocity, scale)
+                             const glm::vec3 &scale,
+                             float diffusionFactor,
+                             float buoyancyFactor) : IParticle (position, velocity, scale),
+                                                    diffusionFactor (diffusionFactor),
+                                                    buoyancyFactor (buoyancyFactor)
 {
-
+    simulate = false;
 }
 
 void SmokeParticle::update (double delta, Camera &camera) {
@@ -31,9 +34,9 @@ void SmokeParticle::update (double delta, Camera &camera) {
         aliveForInMs += delta;
         deltaF = (float) delta / 1000;
 
-        instaScale.x += 150 * deltaF;
+        instaScale.x += diffusionFactor * deltaF;
 
-        instaPosition = instaPosition + instaVelocity*deltaF + (glm::vec3(0, acceleration.y+instaScale.x*50, 0))*(deltaF*deltaF/2.0f);
+        instaPosition = instaPosition + instaVelocity*deltaF + (glm::vec3(0, acceleration.y+instaScale.x*buoyancyFactor, 0))*(deltaF*deltaF/2.0f);
         instaVelocity = instaVelocity + acceleration*deltaF;
     } else {
         reset ();
@@ -42,8 +45,6 @@ void SmokeParticle::update (double delta, Camera &camera) {
     }
 
     distanceToCamera = -glm::distance2 (camera.getPosition(), instaPosition);
-    //distanceToCamera = (camera.getViewMatrix() * glm::vec4(instaPosition, 1.0)).z;
-    //generateViewModelMatrix(viewMatrix);
 }
 
 bool SmokeParticle::isAlive () {

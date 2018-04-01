@@ -15,7 +15,7 @@
 
 #include <vector>
 
-template<typename P, unsigned int NUM_OF_PARTICLES>
+template<typename P>
 class ParticleRenderer;
 
 class RenderingMaster
@@ -53,8 +53,8 @@ class RenderingMaster
 
         const std::vector <Light *> &getLights();
         /* TODO make these private */
-        ParticleRenderer<SmokeParticle, 100> *smokeRenderer;
-        ParticleRenderer<SmokeParticle, 150> *smokeRenderer2;
+        ParticleRenderer<SmokeParticle> *smokeRenderer;
+        ParticleRenderer<SmokeParticle> *smokeRenderer2;
         FrameBuffer particleForwardRenderFramebuffer;
         Texture particlesRTTexture;
         Texture *depthTexture;

@@ -10,7 +10,9 @@ class SmokeParticle : public IParticle
     public:
         SmokeParticle(const glm::vec3 &position,
                       const glm::vec3 &velocity,
-                      const glm::vec3 &scale);
+                      const glm::vec3 &scale,
+                      float diffusionFactor,
+                      float buoyancyFactor);
         void update (double delta, Camera &camera) override;
         bool isAlive () override;
         virtual ~SmokeParticle();
@@ -22,16 +24,15 @@ class SmokeParticle : public IParticle
         SmokeParticle &operator= (SmokeParticle &&particle) = default;
 
         float getDistanceToCamera ();
-        bool simulate;
-        float msDelay, msDelayCopy;
+        float msDelay, msDelayCopy; /* TODO maybe i want this to be in IParticle? */
+        static unsigned int liveForInMs; /* maybe i don't want this shared ? */
 
         static Texture &getTexture();
         static const unsigned int &getLiveForInMs ();
     protected:
     private:
-        static const unsigned int liveForInMs;
-        static const float liveForInS;
-        float distanceToCamera;
+        float distanceToCamera, diffusionFactor, buoyancyFactor;
+        bool simulate;
 };
 
 #endif // SMOKEPARTICLE_H

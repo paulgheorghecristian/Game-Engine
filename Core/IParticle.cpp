@@ -16,8 +16,7 @@ IParticle::IParticle(const glm::vec3 &position,
                                                        instaScale (scale),
                                                        initialScale (scale),
                                                        viewModelMatrix (1.0),
-                                                       aliveForInMs (0),
-                                                       flags (0)
+                                                       aliveForInMs (0)
 {
 
 }
