@@ -2,6 +2,7 @@
 
 #include <glm/gtx/rotate_vector.hpp>
 #include "ParticleRenderer.h"
+#include "ParticleFactory.h"
 
 EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false),
                                                             renderTime("render"),
@@ -116,6 +117,9 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) : isRunning (false),
     std::cout << "Number of entities: " << entities.size() << std::endl;
 
     outputType = 5;
+
+    RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
+    RenderingMaster::getInstance()->smokeRenderer2 = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone2.json");
 }
 
 void EngineCore::start() {
@@ -272,6 +276,12 @@ void EngineCore::input() {
     if (inputManager.getKeyDown (SDLK_r)) {
         RenderingMaster::getInstance()->resetLights ();
         RenderingMaster::getInstance()->smokeRenderer->getRenderingShader().reload();
+
+        delete RenderingMaster::getInstance()->smokeRenderer;
+        delete RenderingMaster::getInstance()->smokeRenderer2;
+
+        RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
+        RenderingMaster::getInstance()->smokeRenderer2 = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone2.json");
     }
     RenderingMaster::getInstance()->deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
 
@@ -332,8 +342,6 @@ void EngineCore::render() {
     PT_FromHere(screenDrawTime);
     RenderingMaster::getInstance()->swapBuffers();
     PT_ToHere(screenDrawTime);
-
-
 }
 
 void EngineCore::update() {
