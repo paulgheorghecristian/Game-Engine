@@ -26,6 +26,7 @@ class PhysicsComponent : public Component
         void init();
         const unsigned int getFlag() const;
         btRigidBody *getRigidBody();
+        const glm::vec3 &getBoundingBodyScale();
         virtual ~PhysicsComponent();
 
     protected:

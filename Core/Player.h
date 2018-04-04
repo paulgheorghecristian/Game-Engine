@@ -5,13 +5,10 @@
 #include "Camera.h"
 #include "PhysicsComponent.h"
 
-#define NECK_HEIGHT 10
-#define PLAYER_SPEED 450
-
 class Player : public Entity
 {
     public:
-        Player(Camera *camera, Transform &transform);
+        Player(Transform &transform);
         virtual ~Player();
 
     protected:
@@ -20,7 +17,7 @@ class Player : public Entity
         class FirstPersonComponent : public Component
         {
             public:
-                FirstPersonComponent (Camera *camera);
+                FirstPersonComponent ();
 
                 void input(Input &inputManager);
                 void update();
@@ -28,7 +25,23 @@ class Player : public Entity
                 const unsigned int getFlag() const;
                 void init();
             private:
-                Camera *camera;
+                Camera *m_camera;
+        };
+
+        class PlayerControllerComponent : public Component
+        {
+            public:
+                PlayerControllerComponent ();
+
+                void input(Input &inputManager);
+                void update();
+                void render();
+                const unsigned int getFlag() const;
+            private:
+                void jump(PhysicsComponent *physicsComponent);
+
+                bool m_isJumping, m_wasSpaceReleased;
+                Camera *m_camera;
         };
 };
 

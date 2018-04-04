@@ -30,6 +30,7 @@ class Entity : public MemoryPoolInterface<Entity>
             EMIT_PARTICLES, /* contains EmitParticlesComponent */
             ANIMATED,
             THIRD_PERSON_CAMERA, /* only for the player, maybe I should hide this? */
+            PLAYER_CONTROLLER
         };
     protected:
         Transform transform;

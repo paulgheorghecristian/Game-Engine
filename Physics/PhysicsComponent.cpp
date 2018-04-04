@@ -3,6 +3,7 @@
 PhysicsComponent::PhysicsComponent(BoundingBodyType type, glm::vec3 scale, float mass) : type (type),
                                                                                          boundingBodyScale (scale),
                                                                                          bodyMass (mass) {
+/* TODO maybe I want to take scale from entity as default?*/
 }
 
 void PhysicsComponent::input(Input &inputManager) {
@@ -85,6 +86,10 @@ const unsigned int PhysicsComponent::getFlag() const {
 
 btRigidBody *PhysicsComponent::getRigidBody() {
     return m_rigidBody;
+}
+
+const glm::vec3 &PhysicsComponent::getBoundingBodyScale() {
+    return boundingBodyScale;
 }
 
 PhysicsComponent::~PhysicsComponent() {

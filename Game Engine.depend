@@ -1149,7 +1149,7 @@
 	"Entity.h"
 	"Input.h"
 
-1517952929 c:\users\paul\desktop\game-engine\core\entity.h
+1522850897 c:\users\paul\desktop\game-engine\core\entity.h
 	"Transform.h"
 	"Component.h"
 	<vector>
@@ -2449,11 +2449,11 @@
 1522595406 source:c:\users\paul\desktop\game-engine\rendering\shaderuniform.cpp
 	"ShaderUniform.h"
 
-1522588498 source:c:\users\paul\desktop\game-engine\rendering\transform.cpp
+1522860444 source:c:\users\paul\desktop\game-engine\rendering\transform.cpp
 	"Transform.h"
 	<iostream>
 
-1522605467 source:c:\users\paul\desktop\game-engine\core\enginecore.cpp
+1522860521 source:c:\users\paul\desktop\game-engine\core\enginecore.cpp
 	"EngineCore.h"
 	<glm/gtx/rotate_vector.hpp>
 	"ParticleRenderer.h"
@@ -2467,10 +2467,10 @@
 	"TempAnimationComponent.h"
 	"TempAnimationComponent.h"
 
-1522595406 source:c:\users\paul\desktop\game-engine\physics\physicscomponent.cpp
+1522868603 source:c:\users\paul\desktop\game-engine\physics\physicscomponent.cpp
 	"PhysicsComponent.h"
 
-1517952923 c:\users\paul\desktop\game-engine\physics\physicscomponent.h
+1522854313 c:\users\paul\desktop\game-engine\physics\physicscomponent.h
 	"Component.h"
 	"glm/glm.hpp"
 	"bullet/btBulletDynamicsCommon.h"
@@ -3018,7 +3018,7 @@
 
 1522588175 
 
-1522595406 source:c:\users\paul\desktop\game-engine\physics\physicsmaster.cpp
+1522858927 source:c:\users\paul\desktop\game-engine\physics\physicsmaster.cpp
 	"PhysicsMaster.h"
 
 1522595406 source:c:\users\paul\desktop\game-engine\rendering\texture.cpp
@@ -3031,7 +3031,7 @@
 	"BarGUI.h"
 	<memory>
 
-1517952923 c:\users\paul\desktop\game-engine\core\player.h
+1522855668 c:\users\paul\desktop\game-engine\core\player.h
 	"Entity.h"
 	"Camera.h"
 	"PhysicsComponent.h"
@@ -3082,9 +3082,10 @@
 1522595406 source:c:\users\paul\desktop\game-engine\core\particlerenderer.cpp
 	"ParticleRenderer.h"
 
-1517952929 source:c:\users\paul\desktop\game-engine\core\player.cpp
+1522869748 source:c:\users\paul\desktop\game-engine\core\player.cpp
 	"Player.h"
-	"Player.h"
+	"RenderingMaster.h"
+	"PhysicsMaster.h"
 
 1522595406 source:c:\users\paul\desktop\game-engine\core\smokeparticle.cpp
 	"SmokeParticle.h"

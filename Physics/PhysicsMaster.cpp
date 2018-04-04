@@ -23,8 +23,8 @@ PhysicsMaster::PhysicsMaster(float gravity) : gravityAcc (gravity) {
     btStaticPlaneShape *plane = new btStaticPlaneShape(btVector3(0, 1, 0), btScalar(0));
     btMotionState *motion = new btDefaultMotionState(t);
     btRigidBody::btRigidBodyConstructionInfo info(0.0, motion, plane);
-    info.m_restitution = 0.3;
-    info.m_friction = 1.0;
+    info.m_restitution = 0.7;
+    info.m_friction = 0.5;
     planeRigidBody = new btRigidBody(info);
     world->addRigidBody(planeRigidBody);
 }

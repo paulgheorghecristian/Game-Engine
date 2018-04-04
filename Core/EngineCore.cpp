@@ -256,7 +256,7 @@ void EngineCore::input() {
         Light *newLight = new Light (Light::LightType::SPOT,
                                     glm::vec3(1.0f, 0.6f, 1.0f),
                                     Transform(cameraPosition,
-                                              cameraRotation,
+                                              glm::degrees(cameraRotation),
                                               glm::vec3(300.0f, 300.0f, 400.0f)));
         RenderingMaster::getInstance()->addLightToScene(newLight);
     }
@@ -372,13 +372,13 @@ void EngineCore::constructPlayer() {
     Transform playerTrans (glm::vec3(200, 10, 0), glm::vec3(0), glm::vec3(10));
     PhysicsComponent *playerPhysicsComponent = new PhysicsComponent (PhysicsComponent::BoundingBodyType::CAPSULE,
                                                                     glm::vec3(10),
-                                                                    50.0f);
-    entities.push_back ((new Player (RenderingMaster::getInstance()->getCamera(), playerTrans))
+                                                                    30.0f);
+    entities.push_back ((new Player (playerTrans))
                         ->addComponent (playerPhysicsComponent));
-    playerPhysicsComponent->getRigidBody()->setDamping(btScalar(0.1), btScalar(0.1));
+    playerPhysicsComponent->getRigidBody()->setDamping(btScalar(0.5), btScalar(0.0));
     playerPhysicsComponent->getRigidBody()->setSleepingThresholds(0.0, 0.0);
     playerPhysicsComponent->getRigidBody()->setAngularFactor(0.0);
-    playerPhysicsComponent->getRigidBody()->setFriction(0.7);
+    playerPhysicsComponent->getRigidBody()->setFriction(0.5);
     playerPhysicsComponent->getRigidBody()->setRestitution(0.6);
 }
 

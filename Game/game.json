@@ -111,6 +111,145 @@
                     "mass" : 10
                 }
             }
+        },
+        {
+            "Transform" : {
+                "position" : [150, 0, 200],
+                "rotation" : [0, 0, 0],
+                "scale" : [60, 10, 10]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/cube4.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/196.bmp",
+                    "Material" : {
+                        "ambient" : [1.0, 0.0, 0.5],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                },
+                "PhysicsComponent" : {
+                    "BoundingBodyType" : ["cube"],
+                    "scale": [60, 10, 10],
+                    "mass" : 0
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [150, 10, 210],
+                "rotation" : [0, 0, 0],
+                "scale" : [60, 10, 10]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/cube4.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/196.bmp",
+                    "Material" : {
+                        "ambient" : [1.0, 0.0, 0.5],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                },
+                "PhysicsComponent" : {
+                    "BoundingBodyType" : ["cube"],
+                    "scale": [60, 10, 10],
+                    "mass" : 0
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [150, 20, 220],
+                "rotation" : [0, 0, 0],
+                "scale" : [60, 10, 10]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/cube4.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/196.bmp",
+                    "Material" : {
+                        "ambient" : [1.0, 0.0, 0.5],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                },
+                "PhysicsComponent" : {
+                    "BoundingBodyType" : ["cube"],
+                    "scale": [60, 10, 10],
+                    "mass" : 0
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [150, 30, 230],
+                "rotation" : [0, 0, 0],
+                "scale" : [60, 10, 10]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/cube4.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/196.bmp",
+                    "Material" : {
+                        "ambient" : [1.0, 0.0, 0.5],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                },
+                "PhysicsComponent" : {
+                    "BoundingBodyType" : ["cube"],
+                    "scale": [60, 10, 10],
+                    "mass" : 0
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [150, 40, 240],
+                "rotation" : [0, 0, 0],
+                "scale" : [60, 10, 10]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/cube4.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/196.bmp",
+                    "Material" : {
+                        "ambient" : [1.0, 0.0, 0.5],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                },
+                "PhysicsComponent" : {
+                    "BoundingBodyType" : ["cube"],
+                    "scale": [60, 10, 10],
+                    "mass" : 0
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [150, 9, 203],
+                "rotation" : [-44.5, 0, 0],
+                "scale" : [60, 5, 99]
+            },
+            "Components" : {
+                "PhysicsComponent" : {
+                    "BoundingBodyType" : ["cube"],
+                    "scale": [60, 5, 99],
+                    "mass" : 0
+                }
+            }
         }
     ]
 }
