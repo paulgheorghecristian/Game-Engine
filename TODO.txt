@@ -15,6 +15,3 @@ IN PROGRESS:
 -debug mode (free roam camera, can manipulate objects etc)
 -make other volumes than cones for particles?
 
-
-
--puzzle game pe titan, arma cu sfere care schimba legile fizicii. din cand in cand se aud tipete prin pereti si se misca ca o holograma. sunt sunete prinse in timp
