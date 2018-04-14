@@ -9,6 +9,8 @@
 BarGUI::BarGUI(const glm::vec2 &position,
                const glm::vec2 &scale,
                const glm::vec3 &color,
+               float maxValue,
+               bool increasing,
                const glm::vec2 &rotation,
                const std::string &name) :   GUI (position, scale, rotation),
                                             m_color (color),
@@ -18,7 +20,9 @@ BarGUI::BarGUI(const glm::vec2 &position,
                                                          name),
                                             amountText (Font::getNormalFont (),
                                                         glm::vec3 (position.x - 20.0f, position.y - 10.0f, -10),
-                                                        color)
+                                                        color),
+                                            m_maxValue (maxValue),
+                                            m_increasing (increasing)
 {
 }
 
@@ -29,10 +33,10 @@ Shader &BarGUI::getBarGUIShader() {
 }
 
 Mesh &BarGUI::getBarGUIMesh() {
-    static Mesh mesh ({Vertex(glm::vec3(0, 20, 0), glm::vec3(0, 1, 0), glm::vec2(0, 1)),
+    static Mesh mesh ({Vertex(glm::vec3(0, 100, 0), glm::vec3(0, 1, 0), glm::vec2(0, 1)),
                        Vertex(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::vec2(0, 0)),
-                       Vertex(glm::vec3(20, 0, 0), glm::vec3(0, 1, 0), glm::vec2(1, 0)),
-                       Vertex(glm::vec3(20, 20, 0), glm::vec3(0, 1, 0), glm::vec2(1, 1))},
+                       Vertex(glm::vec3(100, 0, 0), glm::vec3(0, 1, 0), glm::vec2(1, 0)),
+                       Vertex(glm::vec3(100, 100, 0), glm::vec3(0, 1, 0), glm::vec2(1, 1))},
                       {0,1,3,1,2,3});
 
     return mesh;
@@ -42,10 +46,28 @@ void BarGUI::update (void *amount) {
     bool result = true;
     double msPassed = *(double *) amount;
 
-    m_transform.setScale (glm::vec3 ((msPassed * 2.0), 0.5, 0));
+    float scaleFactor = msPassed / m_maxValue;
+
+    m_transform.setScale (glm::vec3 (scaleFactor, 0.1, 0));
+    if (m_increasing) {
+        m_color.r = scaleFactor;
+        m_color.g = 1.0f - scaleFactor;
+    } else {
+        m_color.r = 1.0f - scaleFactor;
+        m_color.g = scaleFactor;
+    }
     amountText.displayDouble (msPassed);
 
     assert (result);
+}
+
+void BarGUI::update (double amount) {
+    BarGUI::update ((void *) &amount);
+}
+
+void BarGUI::update (int amount) {
+    double amountD = (double) amount;
+    BarGUI::update ((void *) &amountD);
 }
 
 void BarGUI::render () {

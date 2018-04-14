@@ -42,6 +42,8 @@ class EngineCore
         void constructPlayer();
 
         int outputType;
+
+        BarGUI *fpsGUI;
 };
 
 #endif // ENGINECORE_H

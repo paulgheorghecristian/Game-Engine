@@ -42,8 +42,8 @@ RenderingMaster::RenderingMaster(Display *display,
     deferredShading_LightAccumulationBufferCreator.construct ("res/shaders/lightAccumulationBufferCreator.json");
     result &= deferredShading_LightAccumulationBufferCreator.updateUniform("eyeSpaceNormalSampler", (void *) &normalTextureUnit);
     result &= deferredShading_LightAccumulationBufferCreator.updateUniform("depthSampler", (void *) &depthTextureUnit);
-    result &= deferredShading_LightAccumulationBufferCreator.updateUniform("screenWidth", (void *) &display->getWidth());
-    result &= deferredShading_LightAccumulationBufferCreator.updateUniform("screenHeight", (void *) &display->getHeight());
+    result &= deferredShading_LightAccumulationBufferCreator.updateUniform("screenWidth", display->getWidth ());
+    result &= deferredShading_LightAccumulationBufferCreator.updateUniform("screenHeight", display->getHeight ());
     result &= deferredShading_LightAccumulationBufferCreator.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= deferredShading_LightAccumulationBufferCreator.updateUniform("spotLightDepthSampler", (void *) &spotLightDepthMapUnit);
     assert (result);
@@ -154,7 +154,7 @@ RenderingMaster::RenderingMaster(Display *display,
     }
 #endif
     int fontAtlasSamplerId = 0;
-    GUI::init (display->getWidth (), display->getHeight());
+    GUI::init (display->getWidth (), display->getHeight ());
     simpleTextShader.construct ("res/shaders/simpleTextShader.json");
     result &= simpleTextShader.updateUniform ("projectionMatrix", (void *) &GUI::projectionMatrix);
     result &= simpleTextShader.updateUniform ("fontAtlas", (void *) &fontAtlasSamplerId);

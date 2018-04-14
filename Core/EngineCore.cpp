@@ -49,7 +49,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
 
     /* this needs to be called first before doing anything with OpenGL */
     display = new Display (screenWidth, screenHeight, screenTitle, isFullScreen, maxFps, vSync);
-    aspectRatio = (float) display->getWidth() / (float ) display->getHeight();
+    aspectRatio = (float) display->getWidth() / (float) display->getHeight();
     inputManager.setWarpMouse (this->warpMouse);
     SDL_ShowCursor(this->showMouse);
 
@@ -113,6 +113,14 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
 
     RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
     RenderingMaster::getInstance()->smokeRenderer2 = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone2.json");
+
+    fpsGUI = new BarGUI (glm::vec3(100, 100, 0),
+                         glm::vec2(0, 0),
+                         glm::vec3(1,0,0),
+                         maxFps,
+                         false,
+                         glm::vec2(0),
+                         "FPS");
 }
 
 void EngineCore::start() {
@@ -134,22 +142,28 @@ void EngineCore::start() {
     while (isRunning) {
 
         if (frame_counter >= 1000000) {
+            #if 0
             std::cout << "----------------------" << std::endl;
             std::cout << "FPS: " << FPS << std::endl;
             std::cout << ((double) frame_counter / 1000) / FPS << " milliseconds frametime" << std::endl;
+            #endif
+            fpsGUI->update((int) FPS);
+            //printf ("FPS=%d\n", (int) FPS);
             FPS = 0;
             frame_counter = 0;
-            PT_PrintAndReset("input");
-            PT_PrintAndReset("update");
-            PT_PrintAndReset("render");
-            PT_PrintAndReset("renderScene");
-            PT_PrintAndReset("lightAcc");
-            PT_PrintAndReset("computeDepthTexture");
-            PT_PrintAndReset("swapBuffers");
-            PT_PrintAndReset("particleDraw");
-            PT_PrintAndReset("buffersDraw");
-            PT_PrintAndReset("GUIRender");
+            PT_Reset("input");
+            PT_Reset("update");
+            PT_Reset("render");
+            PT_Reset("renderScene");
+            PT_Reset("lightAcc");
+            PT_Reset("computeDepthTexture");
+            PT_Reset("swapBuffers");
+            PT_Reset("particleDraw");
+            PT_Reset("buffersDraw");
+            PT_Reset("GUIRender");
+            #if 0
             std::cout << "----------------------" << std::endl;
+            #endif
         }
         auto last_time = HighResolutionClock::now();
         unsigned int passed_time = std::chrono::duration_cast<std::chrono::microseconds>(last_time - start_time).count();
@@ -191,6 +205,8 @@ void EngineCore::start() {
                 //entities[i]->setTransform (save_state[i]);
             }*/
             FPS++;
+        } else {
+            SDL_Delay (1);
         }
     }
 }
@@ -307,8 +323,8 @@ void EngineCore::render() {
     /*end generate deferred shading buffers*/
 
     const std::vector <Light *> &lights = RenderingMaster::getInstance ()->getLights ();
-    PT_FromHere("computeDepthTexture");
 
+    PT_FromHere("computeDepthTexture");
     /* begin drawing the spot light depth map for each spot light*/
     for (Light *light : lights) {
         if (light->getLightType() == Light::LightType::SPOT) {
@@ -316,7 +332,7 @@ void EngineCore::render() {
             for (auto entity : entities) {
                 RenderComponent *renderComponent;
                 if ((renderComponent =
-                     static_cast<RenderComponent *> (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
+                     (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
                     renderComponent->render(&RenderingMaster::getInstance()->deferredShading_StencilBufferCreator);
                 }
             }
@@ -346,6 +362,7 @@ void EngineCore::render() {
 
     PT_FromHere("GUIRender");
     ProfilingTimer::renderAllBarGUIs();
+    fpsGUI->render();
     PT_ToHere ("GUIRender");
 
     PT_FromHere("swapBuffers");

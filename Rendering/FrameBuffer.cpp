@@ -51,8 +51,12 @@ void FrameBuffer::bindSingleRenderTarget (unsigned int index) {
     assert (index >= 0 && index < numOfRenderTargets);
 
     GLenum buffer[]= {GL_COLOR_ATTACHMENT0 + index};
+#if 0
+    /* very inefficient and I think
+     * I don't even need it, inspect further
+     */
     glGetIntegerv (GL_VIEWPORT, previousViewport);
-
+#endif
     glBindFramebuffer (GL_FRAMEBUFFER, frameBufferId);
     glDrawBuffers (1, buffer);
     glClearColor (0, 0, 0, 0);
@@ -63,8 +67,9 @@ void FrameBuffer::bindSingleRenderTarget (unsigned int index) {
 
 void FrameBuffer::bindAllRenderTargets() {
     //bind-eaza acest framebuffer si deseneaza pe el, nu pe cel default
+#if 0
     glGetIntegerv(GL_VIEWPORT, previousViewport);
-
+#endif
     glBindFramebuffer (GL_FRAMEBUFFER, frameBufferId);
     if (renderTargets.size() > 0) {
         glDrawBuffers (renderTargets.size(), &renderTargets[0]);

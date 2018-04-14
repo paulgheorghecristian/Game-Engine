@@ -14,14 +14,14 @@ class Display
                 const char * title,
                 bool fullscreen,
                 unsigned int maxFps,
-                bool vSync);
+                bool vSync = false);
         virtual ~Display();
         void swapBuffers();
         bool isClosed();
         void setViewport(float, float, float, float);
         void clear(float, float, float, float, GLbitfield field);
-		const int &getWidth() const;
-		const int &getHeight() const;
+        int getWidth();
+        int getHeight();
         static bool isWindowClosed;
         static int delta;
         SDL_Window * getWindow();

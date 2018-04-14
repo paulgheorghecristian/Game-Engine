@@ -9,8 +9,8 @@ uniform float pixelHeight;
 uniform sampler2D textureSampler;
 
 void main(){
-    float weights[] = {0.0093, 0.028002, 0.065984, 0.121703, 0.175713,
-                        0.198596, 0.175713, 0.121703, 0.065984, 0.028002, 0.0093};
+    float weights[] = float[](0.0093, 0.028002, 0.065984, 0.121703, 0.175713,
+                        0.198596, 0.175713, 0.121703, 0.065984, 0.028002, 0.0093);
     vec2 coords;
     vec3 pixel = vec3(0);
 
