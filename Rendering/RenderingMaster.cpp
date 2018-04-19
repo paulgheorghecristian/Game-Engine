@@ -3,7 +3,7 @@
 #include "ParticleRenderer.h"
 #include "ParticleFactory.h"
 #include "GUI.h"
-
+#include "MathUtils.h"
 
 RenderingMaster *RenderingMaster::m_instance = NULL;
 Shader RenderingMaster::simpleTextShader;
@@ -159,6 +159,10 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= simpleTextShader.updateUniform ("projectionMatrix", (void *) &GUI::projectionMatrix);
     result &= simpleTextShader.updateUniform ("fontAtlas", (void *) &fontAtlasSamplerId);
     assert (result);
+
+    cuboidMesh = new Mesh (true);
+    frustumMesh = new Mesh (true);
+    fauxCamera = new Camera (glm::vec3(0), 0, 0, 0);
 }
 
 RenderingMaster::~RenderingMaster() {
@@ -286,6 +290,13 @@ void RenderingMaster::update() {
 
     smokeRenderer->update (*camera, updateDt);
     smokeRenderer2->update (*camera, updateDt);
+
+    Frustum frustum, cuboid;
+    glm::vec3 lightDir = glm::vec3(1, 0, 1);
+    MathUtils::calculateFrustum(fauxCamera, 1.0f, 50.0f, 25.0f, 16.0f/9.0f, frustum);
+    MathUtils::calculateFrustumSurroundingCuboid(fauxCamera, frustum, lightDir, cuboid);
+    MathUtils::updateMeshFromCuboid(cuboidMesh, cuboid);
+    MathUtils::updateMeshFromCuboid(frustumMesh, frustum);
 }
 
 void RenderingMaster::computeStencilBufferForLight(Light *light) {

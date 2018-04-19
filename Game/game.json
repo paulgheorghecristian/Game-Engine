@@ -83,7 +83,7 @@
                 "PhysicsComponent" : {
                     "BoundingBodyType" : ["cube"],
                     "scale": [60, 60, 60],
-                    "mass" : 10
+                    "mass" : 0
                 }
             }
         },

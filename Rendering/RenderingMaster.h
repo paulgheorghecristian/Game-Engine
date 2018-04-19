@@ -59,6 +59,9 @@ class RenderingMaster
         FrameBuffer particleForwardRenderFramebuffer;
         Texture particlesRTTexture;
         Texture *depthTexture;
+
+        Mesh *cuboidMesh, *frustumMesh;
+        Camera *fauxCamera;
     protected:
 
     private:

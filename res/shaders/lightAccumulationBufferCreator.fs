@@ -27,6 +27,11 @@ const int PCFStartingIndex = PCFKernelSideSize / 2;
 const int PCFKernelSize = PCFKernelSideSize * PCFKernelSideSize;
 const float depthMapTexelSize = 1.0f/2048.0f; /* TODO remove hardcode */
 
+uniform vec3 lightPosition;
+uniform mat4 modelMatrix;
+
+in vec3 lightDir;
+
 void main() {
     bool getLight;
     vec2 texCoord = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
@@ -45,6 +50,7 @@ void main() {
     }
     vec3 eyeSpaceNormal = texture (eyeSpaceNormalSampler, texCoord).rgb * 2.0 - vec3(1);
     float dotProduct = dot (dirNormalized, eyeSpaceNormal);
+    float spotLightAttCoef = 1;
 
     if (cutOff < 0) {
         /* spot light */
@@ -70,6 +76,7 @@ void main() {
         }
 
         lightStrength = 1.0f - (totalPixelsInShadow / PCFKernelSize);
+        spotLightAttCoef = max(0.0, dot (normalize(worldPosition.xyz - lightPosition), normalize(mat3(modelMatrix) * vec3(0,0,-1))));
     }
 
     vec3 H = normalize (dirNormalized + normalize (-cameraForwardVector));
@@ -78,11 +85,12 @@ void main() {
     float diffuseStrength = max (0.0, dotProduct);
     float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 50.0);
 
-    float a = 0.0, b = 0.001, c = 0.0002;
+    float a = 0.0, b = 0.001, c = 0.00005;
+    c *= pow (3, sign(cutOff)); /* don't attenuate as much for spot light */
     float att = 1.0 / (a + b*l + c * l * l);
 
-    vec3 diffuseLight = att * diffuseStrength * lightColor;
-    vec3 specularLight = att * specularStrength * lightColor;
+    vec3 diffuseLight = (0.35 - acos(spotLightAttCoef)) * att * diffuseStrength * lightColor;
+    vec3 specularLight = (0.35 - acos(spotLightAttCoef)) * att * specularStrength * lightColor;
 
     outLight = diffuseLight;
     if (getLight) {

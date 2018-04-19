@@ -16,6 +16,8 @@ class Entity : public MemoryPoolInterface<Entity>
         Entity();
         Entity *addChild(Entity *child);
         Entity *addComponent(Component *component);
+        Entity *updateComponent (Component *component);
+        void removeComponent (unsigned int flag);
         Transform &getTransform();
         void setTransform(const Transform &transform);
         Component *getComponent (const unsigned int flag);

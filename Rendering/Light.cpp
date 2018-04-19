@@ -2,6 +2,7 @@
 
 Mesh *Light::pointMesh;
 Mesh *Light::spotMesh;
+Mesh *Light::directionalMesh;
 
 Light::Light(LightType type,
              const glm::vec3 color,
@@ -36,14 +37,16 @@ void Light::render(Shader &shader) {
     shader.updateUniform("lightPosition", (void *) &m_transform.getPosition());
     if (m_type == SPOT) {
         cutOff = -1;
+    } else if (m_type == DIRECTIONAL) {
+        cutOff = 0;
     }
     shader.updateUniform("cutOff", (void *) &cutOff);
 
     shader.bind();
     switch (m_type) {
         case DIRECTIONAL:
-            assert (false);
-            //currently not supported
+            directionalMesh->draw();
+            break;
         case POINT:
             pointMesh->draw();
             break;
@@ -65,6 +68,10 @@ void Light::setPointMesh (Mesh *pointMesh) {
 
 void Light::setSpotMesh (Mesh *spotMesh) {
     Light::spotMesh = spotMesh;
+}
+
+void Light::setDirectionalMesh (Mesh *directionalMesh) {
+    Light::directionalMesh = directionalMesh;
 }
 
 Transform &Light::getTransform() {

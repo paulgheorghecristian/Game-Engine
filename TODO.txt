@@ -2,6 +2,7 @@ DONE:
 -make particles support particle atlas with animations (try to create smoke logic after)
 -make particles alpha blended or additive
 -try to merge addparticles with master/develop after smoke
+-jumping and climbing hills
 
 IN PROGRESS:
 -make rendering at 60 fps (maybe it will look smoother if the fps is not fluctuating as much) or, in other words, separate rendering logic from the "maxFps" value in config.json. maxFps should mean the rendering fps, not the inner updating rate
@@ -14,7 +15,9 @@ IN PROGRESS:
 -particle emitting component
 -debug mode (free roam camera, can manipulate objects etc)
 -make other volumes than cones for particles?
-
-
+-interface for drawing vectors (lines basically) maybe a debug global queue
+-sun + directional light + directional light shadows + day-night cycle
+-difference between rendering and display size
+-free roam camera
 
 -puzzle game pe titan, arma cu sfere care schimba legile fizicii. din cand in cand se aud tipete prin pereti si se misca ca o holograma. sunt sunete prinse in timp

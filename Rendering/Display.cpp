@@ -38,8 +38,8 @@ Display::Display(const int WIDTH,
     }
 
     window = SDL_CreateWindow (title,
-                               SDL_WINDOWPOS_CENTERED,
-                               SDL_WINDOWPOS_CENTERED,
+                               SDL_WINDOWPOS_CENTERED_DISPLAY(0),
+                               SDL_WINDOWPOS_CENTERED_DISPLAY(0),
                                this->width,
                                this->height,
                                SDL_WINDOW_OPENGL | (fullscreen ? SDL_WINDOW_FULLSCREEN : SDL_WINDOW_RESIZABLE));

@@ -94,7 +94,6 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
             entities.push_back (newEntity);
         }
     }
-    constructPlayer();
     Transform floorTransform(glm::vec3(0), glm::vec3(0, 0, 0), glm::vec3(5000.0f));
     Entity *floor = new Entity();
     floor->setTransform(floorTransform);
@@ -107,6 +106,34 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                                      glm::vec3(1.0f),
                                                      0.5f)));
     entities.push_back (floor);
+    entities.clear();
+    constructPlayer();
+
+    Entity *debugCuboid = new Entity();
+    Transform cuboidTransform(glm::vec3(0), glm::vec3(0, 0, 0), glm::vec3(1.0f));
+    debugCuboid->setTransform(cuboidTransform);
+    debugCuboid->addComponent(new RenderComponent(RenderingMaster::getInstance()->cuboidMesh,
+                                                    (new Shader())->construct("res/shaders/example.json"),
+                                                    NULL,
+                                                    NULL,
+                                                    Material(glm::vec3(0.0f, 1.0f, 1.0f),
+                                                             glm::vec3(1.0f),
+                                                             glm::vec3(1.0f),
+                                                             0.5f)));
+    entities.push_back (debugCuboid);
+
+    Entity *frustumEntity = new Entity();
+    Transform frustumTransform(glm::vec3(0), glm::vec3(0, 0, 0), glm::vec3(1.0f));
+    frustumEntity->setTransform(frustumTransform);
+    frustumEntity->addComponent(new RenderComponent(RenderingMaster::getInstance()->frustumMesh,
+                                                    (new Shader())->construct("res/shaders/example.json"),
+                                                    NULL,
+                                                    NULL,
+                                                    Material(glm::vec3(1.0f, 0.0f, 0.0f),
+                                                             glm::vec3(1.0f),
+                                                             glm::vec3(1.0f),
+                                                             0.5f)));
+    entities.push_back (frustumEntity);
     std::cout << "Number of entities: " << entities.size() << std::endl;
 
     outputType = 5;
@@ -281,6 +308,19 @@ void EngineCore::input() {
         RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
         RenderingMaster::getInstance()->smokeRenderer2 = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone2.json");
     }
+
+    if (inputManager.getKeyDown (SDLK_u)) {
+        RenderingMaster::getInstance()->fauxCamera->rotateX(0.09f);
+    }
+    if (inputManager.getKeyDown (SDLK_i)) {
+        RenderingMaster::getInstance()->fauxCamera->rotateX(-0.09f);
+    }
+    if (inputManager.getKeyDown (SDLK_o)) {
+        RenderingMaster::getInstance()->fauxCamera->rotateY(0.09f);
+    }
+    if (inputManager.getKeyDown (SDLK_p)) {
+        RenderingMaster::getInstance()->fauxCamera->rotateY(-0.09f);
+    }
     RenderingMaster::getInstance()->deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
 
     for (auto const &entity : entities) {
@@ -289,6 +329,8 @@ void EngineCore::input() {
 }
 
 void EngineCore::render() {
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    glDisable(GL_CULL_FACE);
     /*generate deferred shading buffers*/
     PT_FromHere("renderScene");
     RenderingMaster::getInstance()->getGBuffer().bindForScene();
@@ -297,11 +339,11 @@ void EngineCore::render() {
     for (auto entity : entities) {
         RenderComponent *renderComponent;
         if ((renderComponent =
-             static_cast<RenderComponent *> (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
+             (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
             renderComponent->render(&RenderingMaster::getInstance()->deferredShading_SceneShader);
         }
     }
-
+    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     RenderingMaster::getInstance()->getGBuffer().unbind();
     PT_ToHere("renderScene");
     /*end generate deferred shading buffers*/

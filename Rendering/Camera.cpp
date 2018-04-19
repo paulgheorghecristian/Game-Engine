@@ -128,7 +128,7 @@ glm::vec3 Camera::getUp() {
     if (forwardNeedsUpdate) {
         computeForward ();
     }
-    return glm::normalize (glm::cross (forward, getRight ()));
+    return glm::normalize (glm::cross (getRight (), forward));
 }
 
 void Camera::setPosition(const glm::vec3& pos) {

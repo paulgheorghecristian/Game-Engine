@@ -38,10 +38,9 @@ class EngineCore
 
         float mouseMoveSpeed, mouseRotationSpeed;
         bool warpMouse, showMouse;
+        int outputType;
 
         void constructPlayer();
-
-        int outputType;
 };
 
 #endif // ENGINECORE_H

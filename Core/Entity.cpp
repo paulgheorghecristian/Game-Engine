@@ -24,6 +24,23 @@ Entity *Entity::addComponent(Component *component) {
     return this;
 }
 
+Entity *Entity::updateComponent (Component *component) {
+    if (components[component->getFlag()] != NULL) {
+        Component *prevComponent = components[component->getFlag()];
+        components[component->getFlag()] = NULL;
+        delete prevComponent;
+    }
+
+    return this->addComponent (component);
+}
+
+void Entity::removeComponent (unsigned int flag) {
+    Component *prevComponent = components[flag];
+
+    components[flag] = NULL;
+    delete prevComponent;
+}
+
 void Entity::update() {
     for (auto const &it : components) {
         if (it.second != NULL) {

@@ -51,7 +51,7 @@ void FrameBuffer::bindSingleRenderTarget (unsigned int index) {
     assert (index >= 0 && index < numOfRenderTargets);
 
     GLenum buffer[]= {GL_COLOR_ATTACHMENT0 + index};
-    glGetIntegerv (GL_VIEWPORT, previousViewport);
+    //glGetIntegerv (GL_VIEWPORT, previousViewport);
 
     glBindFramebuffer (GL_FRAMEBUFFER, frameBufferId);
     glDrawBuffers (1, buffer);
@@ -63,7 +63,7 @@ void FrameBuffer::bindSingleRenderTarget (unsigned int index) {
 
 void FrameBuffer::bindAllRenderTargets() {
     //bind-eaza acest framebuffer si deseneaza pe el, nu pe cel default
-    glGetIntegerv(GL_VIEWPORT, previousViewport);
+    //glGetIntegerv(GL_VIEWPORT, previousViewport);
 
     glBindFramebuffer (GL_FRAMEBUFFER, frameBufferId);
     if (renderTargets.size() > 0) {

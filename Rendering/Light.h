@@ -22,6 +22,7 @@ class Light
         void render(Shader &shader);
         static void setPointMesh (Mesh *pointMesh);
         static void setSpotMesh (Mesh *spotMesh);
+        static void setDirectionalMesh (Mesh *directionalMesh);
         Transform &getTransform();
         Light::LightType getLightType();
         const glm::mat4 &getSpotLightPerspectiveMatrix();
@@ -42,6 +43,7 @@ class Light
 
         static Mesh *pointMesh;
         static Mesh *spotMesh;
+        static Mesh *directionalMesh;
 };
 
 #endif // LIGHT_H
