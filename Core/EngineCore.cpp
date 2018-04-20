@@ -3,6 +3,8 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include "ParticleRenderer.h"
 #include "ParticleFactory.h"
+#include <thread>
+#include <chrono>
 
 EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     //create renderingmaster, physicsmaster and entities
@@ -206,7 +208,7 @@ void EngineCore::start() {
             }*/
             FPS++;
         } else {
-            SDL_Delay (1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
 }
