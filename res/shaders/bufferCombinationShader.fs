@@ -10,6 +10,7 @@ uniform sampler2D colorSampler;
 uniform sampler2D blurredLightAccSampler;
 uniform sampler2D spotLightDepthMap;
 uniform sampler2D particlesSampler;
+uniform sampler2D dirLightDepthSampler;
 
 uniform int outputType;
 
@@ -44,6 +45,11 @@ vec3 blurredLightAcc() {
     return texture(blurredLightAccSampler, textureCoords).xyz;
 }
 
+vec3 dirLightDepthMap() {
+    float t2 = pow(texture(dirLightDepthSampler, textureCoords).x , 256);
+    return vec3(t2, t2, t2);
+}
+
 void main() {
     if (outputType == 1) outColor = vec4 (color(), 1);
 	if (outputType == 2) outColor = vec4 (worldNormal(), 1);
@@ -57,4 +63,5 @@ void main() {
     }
     if (outputType == 6) outColor =  vec4(blurredLightAcc(), 1);
     if (outputType == 7) outColor = vec4 (spotLightDepth(), 1);
+    if (outputType == 8) outColor = vec4(dirLightDepthMap(), 1);
 }

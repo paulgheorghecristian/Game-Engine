@@ -115,12 +115,14 @@ const glm::vec3 &Camera::getForward() {
 }
 
 const glm::vec3 &Camera::getRight() {
-    float yRot = rotation.y - glm::radians(90.0f);
-    right.x = -glm::sin(yRot);
-    right.y = 0;
-    right.z = -glm::cos(yRot);
+    float yRot = rotation.y - glm::radians (90.0f);
 
-    right = glm::normalize(right);
+    right.x = -glm::sin (yRot);
+    right.y = 0;
+    right.z = -glm::cos (yRot);
+
+    right = glm::normalize (right);
+
     return right;
 }
 

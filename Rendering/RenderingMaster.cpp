@@ -7,6 +7,7 @@
 
 RenderingMaster *RenderingMaster::m_instance = NULL;
 Shader RenderingMaster::simpleTextShader;
+glm::vec3 RenderingMaster::dirLightColor, RenderingMaster::dirLightDirection;
 
 RenderingMaster::RenderingMaster(Display *display,
                                  Camera *camera,
@@ -37,16 +38,30 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
     result &= deferredShading_BufferCombinationShader.updateUniform("spotLightDepthMap", (void *) &spotLightDepthMapUnit);
     result &= deferredShading_BufferCombinationShader.updateUniform ("particlesSampler", 6);
+    result &= deferredShading_BufferCombinationShader.updateUniform("dirLightDepthSampler", 8);
     assert (result);
 
     deferredShading_LightAccumulationBufferCreator.construct ("res/shaders/lightAccumulationBufferCreator.json");
     result &= deferredShading_LightAccumulationBufferCreator.updateUniform("eyeSpaceNormalSampler", (void *) &normalTextureUnit);
     result &= deferredShading_LightAccumulationBufferCreator.updateUniform("depthSampler", (void *) &depthTextureUnit);
-    result &= deferredShading_LightAccumulationBufferCreator.updateUniform("screenWidth", (void *) &display->getWidth());
-    result &= deferredShading_LightAccumulationBufferCreator.updateUniform("screenHeight", (void *) &display->getHeight());
+    result &= deferredShading_LightAccumulationBufferCreator.updateUniform("screenWidth", display->getWidth());
+    result &= deferredShading_LightAccumulationBufferCreator.updateUniform("screenHeight", display->getHeight());
     result &= deferredShading_LightAccumulationBufferCreator.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= deferredShading_LightAccumulationBufferCreator.updateUniform("spotLightDepthSampler", (void *) &spotLightDepthMapUnit);
     assert (result);
+
+    RenderingMaster::dirLightColor = glm::vec3(1, 0.7, 0.4);//0.75f, 0.1);
+    RenderingMaster::dirLightDirection = -glm::normalize(glm::vec3(1, 3, 1));
+    deferredShading_LightAccumulationBufferCreatorDirLight.construct("res/shaders/lightAccBufCreatorDirLight.json");
+    result &= deferredShading_LightAccumulationBufferCreatorDirLight.updateUniform("dirLightDepthSampler", 8);
+    result &= deferredShading_LightAccumulationBufferCreatorDirLight.updateUniform("lightColor", (void *) &RenderingMaster::dirLightColor);
+    result &= deferredShading_LightAccumulationBufferCreatorDirLight.updateUniform("lightDirection", (void *) &RenderingMaster::dirLightDirection);
+    result &= deferredShading_LightAccumulationBufferCreatorDirLight.updateUniform("screenWidth", display->getWidth());
+    result &= deferredShading_LightAccumulationBufferCreatorDirLight.updateUniform("screenHeight", display->getHeight());
+    result &= deferredShading_LightAccumulationBufferCreatorDirLight.updateUniform("eyeSpaceNormalSampler", (void *) &normalTextureUnit);
+    result &= deferredShading_LightAccumulationBufferCreatorDirLight.updateUniform("depthSampler", (void *) &depthTextureUnit);
+    result &= deferredShading_LightAccumulationBufferCreatorDirLight.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    assert(result);
 
     deferredShading_StencilBufferCreator.construct ("res/shaders/stencilBufferCreator.json");
     result &= deferredShading_StencilBufferCreator.updateUniform("projectionMatrix", (void *) &projectionMatrix);
@@ -70,6 +85,13 @@ RenderingMaster::RenderingMaster(Display *display,
                                         "res/shaders/wBlurPostProcess.json");
     blurredLightAccTexture = new Texture (wBlurPostProcess->getResultingTextureId(), blurredLightAccUnit);
     screenSizeRectangle = Mesh::getRectangle();
+#if 1
+    lights.push_back (new Light (Light::LightType::DIRECTIONAL,
+                                 glm::vec3(0.9, 0, 0),
+                                 Transform(glm::vec3(100.0f, 50.0f, 250.0f),
+                                           glm::vec3(0),
+                                           glm::vec3(500.0f))));
+#endif
 #if 0
     lights.push_back (new Light (Light::LightType::POINT,
                                  glm::vec3(0.9, 0, 0),
@@ -154,7 +176,7 @@ RenderingMaster::RenderingMaster(Display *display,
     }
 #endif
     int fontAtlasSamplerId = 0;
-    GUI::init (display->getWidth (), display->getHeight());
+    GUI::init (1920, 1080);
     simpleTextShader.construct ("res/shaders/simpleTextShader.json");
     result &= simpleTextShader.updateUniform ("projectionMatrix", (void *) &GUI::projectionMatrix);
     result &= simpleTextShader.updateUniform ("fontAtlas", (void *) &fontAtlasSamplerId);
@@ -259,12 +281,13 @@ void RenderingMaster::drawDeferredShadingBuffers() {
 
     deferredShading_BufferCombinationShader.bind();
 
-    albedoTexture->use ();
-    normalTexture->use ();
-    lightAccumulationTexture->use ();
-    depthTexture->use ();
-    blurredLightAccTexture->use ();
+    albedoTexture->use();
+    normalTexture->use();
+    lightAccumulationTexture->use();
+    depthTexture->use();
+    blurredLightAccTexture->use();
     particlesRTTexture.use ();
+    Light::depthTextureDirLight->use();
     for (Light *light : lights) {
         if (light->getLightType() == Light::LightType::SPOT) {
             light->getDepthTextureForSpotLight().use();
@@ -288,22 +311,33 @@ void RenderingMaster::update() {
     deferredShading_LightAccumulationBufferCreator.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     deferredShading_LightAccumulationBufferCreator.updateUniform("cameraForwardVector", (void *) &forwardVectorInEyeSpace);
 
+    deferredShading_LightAccumulationBufferCreatorDirLight.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
+
     smokeRenderer->update (*camera, updateDt);
     smokeRenderer2->update (*camera, updateDt);
 
     Frustum frustum, cuboid;
-    glm::vec3 lightDir = glm::vec3(1, 0, 1);
-    MathUtils::calculateFrustum(fauxCamera, 1.0f, 50.0f, 25.0f, 16.0f/9.0f, frustum);
-    MathUtils::calculateFrustumSurroundingCuboid(fauxCamera, frustum, lightDir, cuboid);
+    MathUtils::calculateFrustum(camera, 1.0f, 500.0f, 75.0f, 16.0f/9.0f, frustum);
+    MathUtils::calculateFrustumSurroundingCuboid(camera,
+                                                 frustum,
+                                                 RenderingMaster::dirLightDirection,
+                                                 cuboid,
+                                                 Light::dirLightProjMatrix,
+                                                 Light::dirLightViewMatrix);
     MathUtils::updateMeshFromCuboid(cuboidMesh, cuboid);
     MathUtils::updateMeshFromCuboid(frustumMesh, frustum);
+
+    deferredShading_LightAccumulationBufferCreatorDirLight.updateUniform("dirLightProjMatrix", (void *) &Light::dirLightProjMatrix);
+    deferredShading_LightAccumulationBufferCreatorDirLight.updateUniform("dirLightViewMatrix", (void *) &Light::dirLightViewMatrix);
+
 }
 
 void RenderingMaster::computeStencilBufferForLight(Light *light) {
     gBuffer.unbind();
     gBuffer.bindForStencil();
 
-    if (light->getLightType() == Light::LightType::POINT) {
+    if (light->getLightType() == Light::LightType::POINT ||
+        light->getLightType() == Light::LightType::DIRECTIONAL) {
         glDisable (GL_STENCIL_TEST);
         return;
     }
@@ -327,6 +361,17 @@ void RenderingMaster::computeStencilBufferForLight(Light *light) {
 void RenderingMaster::computeLightAccumulationBufferForLight(Light *light) {
     gBuffer.unbind();
     gBuffer.bindForLights();
+
+    if (light->getLightType() == Light::LightType::DIRECTIONAL) {
+        normalTexture->use();
+        depthTexture->use();
+        Light::depthTextureDirLight->use();
+
+        glDepthMask(GL_FALSE);
+
+        light->render (deferredShading_LightAccumulationBufferCreatorDirLight);
+        return;
+    }
 
     glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
 
@@ -386,6 +431,21 @@ void RenderingMaster::endCreateDepthTextureForSpotLight(Light *light) {
     assert (light->getLightType() == Light::LightType::SPOT);
 
     light->getDepthTextureFrameBufferForSpotLight().unbind();
+    glCullFace(GL_BACK);
+}
+
+void RenderingMaster::beginCreateDepthTextureForDirLight() {
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+
+    Light::depthTextureFBDirLight->bindAllRenderTargets();
+
+    deferredShading_StencilBufferCreator.updateUniform("viewMatrix", (void *) &Light::dirLightViewMatrix);
+    deferredShading_StencilBufferCreator.updateUniform("projectionMatrix", (void *) &Light::dirLightProjMatrix);
+}
+
+void RenderingMaster::endCreateDepthTextureForDirLight() {
+    Light::depthTextureFBDirLight->unbind();
     glCullFace(GL_BACK);
 }
 

@@ -9,6 +9,7 @@
                     "colorSampler" : "INT",
                     "outputType" : "INT",
                     "blurredLightAccSampler" : "INT",
-                    "spotLightDepthMap" : "INT"
+                    "spotLightDepthMap" : "INT",
+                    "dirLightDepthSampler" : "INT"
                  }
 }

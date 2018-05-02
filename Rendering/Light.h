@@ -31,6 +31,10 @@ class Light
         Texture &getDepthTextureForSpotLight();
         void recomputeSpotLightViewMatrix();
         virtual ~Light();
+
+        static glm::mat4 dirLightProjMatrix, dirLightViewMatrix;
+        static FrameBuffer *depthTextureFBDirLight;
+        static Texture *depthTextureDirLight;
     protected:
     private:
         LightType m_type;

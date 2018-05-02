@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp>
 #include <cmath>
+#include <iostream>
 
 class Camera;
 class Mesh;
@@ -11,7 +12,7 @@ class Mesh;
 struct Frustum {
     glm::vec3 nbl, nbr, ntl, ntr, fbl, fbr, ftl, ftr;
     float fovY, fovX;
-    glm::vec3 nearCenter;
+    glm::vec3 center;
 };
 
 class MathUtils
@@ -24,13 +25,12 @@ class MathUtils
                                       float aspect,
                                       Frustum &frustum);
         static void calculateFrustumSurroundingCuboid (Camera *camera,
-                                                       const Frustum &inputFrustum,
+                                                       Frustum &inputFrustum,
                                                        const glm::vec3 &lightDirection,
-                                                       Frustum &outputCuboid);
+                                                       Frustum &outputCuboid,
+                                                       glm::mat4 &projectionMatrix,
+                                                       glm::mat4 &viewMatrix);
         static void updateMeshFromCuboid (Mesh *mesh, const Frustum &cuboid);
-        static void findPointOfIntersection (const glm::vec2 &line1,
-                                             const glm::vec2 &line2,
-                                             glm::vec2 &pointOfIntersection);
 
     protected:
 

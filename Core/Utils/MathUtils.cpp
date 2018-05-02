@@ -45,30 +45,26 @@ void MathUtils::calculateFrustum(Camera *camera,
     frustum.fovY = fov / 2.0f;
     frustum.fovX = glm::degrees (glm::atan (farPlaneWidth, 2.0f * far));
 
-    frustum.nearCenter = (farCenter + nearCenter) / 2.0f;
+    frustum.center = (farCenter + nearCenter) / 2.0f;
 }
 
 void MathUtils::calculateFrustumSurroundingCuboid (Camera *camera,
-                                                   const Frustum &inputFrustum,
+                                                   Frustum &inputFrustum,
                                                    const glm::vec3 &lightDirection, /* don't forget to normalize */
-                                                   Frustum &outputCuboid) {
+                                                   Frustum &outputCuboid,
+                                                   glm::mat4 &projectionMatrix,
+                                                   glm::mat4 &viewMatrix) {
     float minX, maxX, minY, maxY, minZ, maxZ;
-    glm::vec3 cameraForward = camera->getForward ();
-    float forwardLightDirAngle = glm::orientedAngle (glm::normalize(glm::vec2(cameraForward.x, cameraForward.z)),
-                                                     glm::normalize(glm::vec2(lightDirection.x, lightDirection.z)));
-    float absAngle = glm::abs (glm::degrees(forwardLightDirAngle));
-    float yRotCameraAngle = glm::degrees (camera->getRotation().x);
+    glm::vec3 cameraForward = glm::normalize(camera->getForward ());
+    float xRot = glm::asin(lightDirection.y / glm::length(lightDirection));
+    float yRot = glm::atan(-lightDirection.x, -lightDirection.z);
 
-    glm::vec3 up, down, left, right;
-#if 1
-    std::cout << "angle=" << glm::degrees(forwardLightDirAngle) << std::endl;
-    //std::cout << "fovX=" << inputFrustum.fovX << std::endl;
-    //std::cout << "fovY=" << inputFrustum.fovY << std::endl;
-    //std::cout << "yRot=" << yRotCameraAngle << std::endl;
-#endif
-    int yCase = 0;
+    glm::quat quatRotateX = glm::angleAxis (-xRot,
+                                     glm::vec3 (1, 0, 0));
+    glm::quat quatRotateY = glm::angleAxis (-yRot,
+                                     glm::vec3 (0, 1, 0));
 
-    glm::quat rotY = glm::angleAxis (-glm::orientedAngle(glm::vec2(0, -1), glm::normalize(glm::vec2(lightDirection.x, lightDirection.z))), glm::vec3(0,1,0));
+    glm::quat allRot = glm::normalize(quatRotateX*quatRotateY);
     glm::vec3 points[8], rotatedPoints[8];
 
     points[0] = inputFrustum.fbl;
@@ -81,226 +77,48 @@ void MathUtils::calculateFrustumSurroundingCuboid (Camera *camera,
     points[7] = inputFrustum.ntr;
 
     for (int i = 0; i < 8; i++) {
-        rotatedPoints[i] = rotY * (points[i]-inputFrustum.nearCenter);
-        rotatedPoints[i] = rotatedPoints[i] + inputFrustum.nearCenter;
+        rotatedPoints[i] = allRot * (points[i]-inputFrustum.center);
+        rotatedPoints[i] = rotatedPoints[i] + inputFrustum.center;
     }
 
     minX = std::numeric_limits<float>::max();
     maxX = std::numeric_limits<float>::min();
     minZ = std::numeric_limits<float>::max();
     maxZ = std::numeric_limits<float>::min();
-
-    int minXi, maxXi, minZi, maxZi;
+    minY = std::numeric_limits<float>::max();
+    maxY = std::numeric_limits<float>::min();
 
     for (int i = 0; i < 8; i++) {
         if (rotatedPoints[i].x < minX) {
-            up = points[i];
             minX = rotatedPoints[i].x;
         }
         if (rotatedPoints[i].x > maxX) {
-            down = points[i];
             maxX = rotatedPoints[i].x;
         }
         if (rotatedPoints[i].z < minZ) {
-            left = points[i];
             minZ = rotatedPoints[i].z;
         }
         if (rotatedPoints[i].z > maxZ) {
-            right = points[i];
             maxZ = rotatedPoints[i].z;
         }
-    }
-
-    if (yRotCameraAngle <= 90 - inputFrustum.fovY &&
-        yRotCameraAngle > inputFrustum.fovY) {
-        yCase = 1;
-        std::cout << "caz 1 min=NBL max=FTL" << std::endl;
-        minY = inputFrustum.nbl.y;
-        maxY = inputFrustum.ftl.y;
-    } else if (yRotCameraAngle <= inputFrustum.fovY &&
-               yRotCameraAngle > -inputFrustum.fovY) {
-        yCase = 2;
-        std::cout << "caz 2 min=FBL max=FTL" << std::endl;
-        minY = inputFrustum.fbl.y;
-        maxY = inputFrustum.ftl.y;
-    } else {
-        yCase = 3;
-        std::cout << "caz 3 min=FBL max=NTL" << std::endl;
-        minY = inputFrustum.fbl.y;
-        maxY = inputFrustum.ntl.y;
-    }
-
-/*
-    if (absAngle < inputFrustum.fovX) {
-        std::cout << "caz1" << std::endl;
-
-        if (forwardLightDirAngle >= 0) {
-            right = inputFrustum.ftr;
-            if (yCase == 1) {
-                left = inputFrustum.ftl;
-                up = inputFrustum.fbr;
-                down = inputFrustum.ntl;
-            } else {
-                left = inputFrustum.fbl;
-                up = inputFrustum.ftr;
-                down = inputFrustum.nbl;
-            }
-        } else {
-            left = inputFrustum.ftl;
-            if (yCase == 1) {
-                up = inputFrustum.fbl;
-                down = inputFrustum.ntr;
-                right = inputFrustum.ftr;
-            } else {
-                up = inputFrustum.ftl;
-                down = inputFrustum.nbr;
-                right = inputFrustum.fbr;
-            }
+        if (rotatedPoints[i].y < minY) {
+            minY = rotatedPoints[i].y;
         }
-    } else if (absAngle > inputFrustum.fovX &&
-               absAngle <= 90 - inputFrustum.fovX) {
-        std::cout << "caz2" << std::endl;
-        if (forwardLightDirAngle >= 0) {
-            up = inputFrustum.ftr;
-            down = inputFrustum.ntl;
-            if (yCase == 1) {
-                left = inputFrustum.fbl;
-                right = inputFrustum.ntr;
-            } else {
-                left = inputFrustum.ftl;
-                right = inputFrustum.nbr;
-            }
-        } else {
-            up = inputFrustum.ftl;
-            down = inputFrustum.ntr;
-            if (yCase == 1) {
-                left = inputFrustum.nbl;
-                right = inputFrustum.ftr;
-            } else {
-                left = inputFrustum.ntl;
-                right = inputFrustum.fbr;
-            }
-        }
-    } else if (absAngle > 90 - inputFrustum.fovX &&
-               absAngle <= 90) {
-        std::cout << "caz3" << std::endl;
-        if (forwardLightDirAngle >= 0) {
-            up = inputFrustum.ftr;
-            down = inputFrustum.ftl;
-            left = inputFrustum.ftl;
-            right = inputFrustum.ntr;
-        } else {
-            up = inputFrustum.ftl;
-            down = inputFrustum.ftr;
-            left = inputFrustum.ntl;
-            right = inputFrustum.ftr;
-        }
-    } else if (absAngle > 90 &&
-                absAngle <= 90 + inputFrustum.fovX) {
-        std::cout << "caz4" << std::endl;
-        if (forwardLightDirAngle >= 0) {
-            up = inputFrustum.ftr;
-            down = inputFrustum.ftl;
-            left = inputFrustum.ftr;
-            right = inputFrustum.ntl;
-        } else {
-            up = inputFrustum.ftl;
-            down = inputFrustum.ftr;
-            left = inputFrustum.ntr;
-            right = inputFrustum.ftl;
-        }
-    } else if (absAngle > 90 + inputFrustum.fovX &&
-                absAngle <= 180 - inputFrustum.fovX) {
-        std::cout << "caz5" << std::endl;
-        if (forwardLightDirAngle >= 0) {
-            up = inputFrustum.ntr;
-            down = inputFrustum.ftl;
-            left = inputFrustum.ftr;
-            right = inputFrustum.ntl;
-        } else {
-            up = inputFrustum.ntl;
-            down = inputFrustum.ftr;
-            left = inputFrustum.ntr;
-            right = inputFrustum.ftl;
-        }
-    } else if (absAngle > 180 - inputFrustum.fovX) {
-        std::cout << "caz6" << std::endl;
-        left = inputFrustum.ftr;
-        right = inputFrustum.ftl;
-
-        if (forwardLightDirAngle >= 0) {
-            up = inputFrustum.ntr;
-            down = inputFrustum.ftl;
-        } else {
-            up = inputFrustum.ntl;
-            down = inputFrustum.ftr;
+        if (rotatedPoints[i].y > maxY) {
+            maxY = rotatedPoints[i].y;
         }
     }
-*/
-    glm::vec2 leftLine, rightLine, upLine, downLine;
-    float lightDirectionSlope = lightDirection.z / lightDirection.x;
-
-    if (std::fpclassify (lightDirectionSlope) == FP_INFINITE) {
-        leftLine.x = lightDirectionSlope;
-        leftLine.y = left.x;
-
-        rightLine.x = lightDirectionSlope;
-        rightLine.y = right.x;
-
-        upLine.x = 0;
-        upLine.y = up.z;
-
-        downLine.x = 0;
-        downLine.y = down.z;
-    } else if (std::fpclassify (lightDirectionSlope) == FP_NORMAL) {
-        leftLine.x = lightDirectionSlope;
-        leftLine.y = -lightDirectionSlope*left.x + left.z;
-
-        rightLine.x = lightDirectionSlope;
-        rightLine.y = -lightDirectionSlope*right.x + right.z;
-
-        upLine.x = (-1.0f / lightDirectionSlope);
-        upLine.y = (1.0f / lightDirectionSlope)*up.x + up.z;
-
-        downLine.x = (-1.0f / lightDirectionSlope);
-        downLine.y = (1.0f / lightDirectionSlope)*down.x + down.z;
-    } else if (lightDirectionSlope == 0) {
-        assert (false);
-    } else {
-        assert (false);
-    }
-
-    glm::vec2 FTL, FTR, NTL, NTR;
-
-    findPointOfIntersection (leftLine, upLine, FTL);
-    findPointOfIntersection (upLine, rightLine, FTR);
-    findPointOfIntersection (rightLine, downLine, NTR);
-    findPointOfIntersection (downLine, leftLine, NTL);
-
-    outputCuboid.ftl = glm::vec3 (FTL.x, maxY, FTL.y);
-    outputCuboid.ftr = glm::vec3 (FTR.x, maxY, FTR.y);
-    outputCuboid.ntr = glm::vec3 (NTR.x, maxY, NTR.y);
-    outputCuboid.ntl = glm::vec3 (NTL.x, maxY, NTL.y);
-
-    outputCuboid.fbl = outputCuboid.ftl;
-    outputCuboid.fbl.y = minY;
-    outputCuboid.fbr = outputCuboid.ftr;
-    outputCuboid.fbr.y = minY;
-    outputCuboid.nbr = outputCuboid.ntr;
-    outputCuboid.nbr.y = minY;
-    outputCuboid.nbl = outputCuboid.ntl;
-    outputCuboid.nbl.y = minY;
 
 #if 0
-    outputCuboid.fbl = rotatedPoints[0];
-    outputCuboid.fbr = rotatedPoints[1];
-    outputCuboid.ftl = rotatedPoints[2];
-    outputCuboid.ftr = rotatedPoints[3];
-    outputCuboid.nbl = rotatedPoints[4];
-    outputCuboid.nbr = rotatedPoints[5];
-    outputCuboid.ntl = rotatedPoints[6];
-    outputCuboid.ntr = rotatedPoints[7];
-
+    outputCuboid.fbl = points[0];
+    outputCuboid.fbr = points[1];
+    outputCuboid.ftl = points[2];
+    outputCuboid.ftr = points[3];
+    outputCuboid.nbl = points[4];
+    outputCuboid.nbr = points[5];
+    outputCuboid.ntl = points[6];
+    outputCuboid.ntr = points[7];
+//#else
     outputCuboid.fbl = glm::vec3(minX, minY, minZ);
     outputCuboid.fbr = glm::vec3(maxX, minY, minZ);
     outputCuboid.ftl = glm::vec3(minX, maxY, minZ);
@@ -308,27 +126,19 @@ void MathUtils::calculateFrustumSurroundingCuboid (Camera *camera,
     outputCuboid.nbl = glm::vec3(minX, minY, maxZ);
     outputCuboid.nbr = glm::vec3(maxX, minY, maxZ);
     outputCuboid.ntl = glm::vec3(minX, maxY, maxZ);
-    outputCuboid.ntr = glm::vec3(maxZ, maxY, maxZ);
+    outputCuboid.ntr = glm::vec3(maxX, maxY, maxZ);
 #endif
-}
 
-void MathUtils::findPointOfIntersection (const glm::vec2 &line1,
-                                         const glm::vec2 &line2,
-                                         glm::vec2 &pointOfIntersection) {
+    float width = (maxX - minX) / 2;
+    float height = (maxY - minY) / 2;
+    float depth = (maxZ - minZ) / 2;
 
-    if (std::fpclassify (line1.x) == FP_INFINITE) {
-        pointOfIntersection.x = line1.y;
-        pointOfIntersection.y = line2.x * line1.y + line2.y;
-    } else if (std::fpclassify (line2.x) == FP_INFINITE) {
-        pointOfIntersection.x = line2.y;
-        pointOfIntersection.y = line1.x * line2.y + line1.y;
-    } else {
-        assert (std::fpclassify (line1.x) == FP_NORMAL &&
-                std::fpclassify (line2.x) == FP_NORMAL);
+    projectionMatrix = glm::ortho (-width, width,
+                                   -height, height,
+                                   -depth, depth);
 
-        pointOfIntersection.x = (line2.y - line1.y) / (line1.x - line2.x);
-        pointOfIntersection.y = (line1.x*line2.y - line2.x*line1.y) / (line1.x - line2.x);
-    }
+    viewMatrix = glm::mat4_cast (allRot);
+    viewMatrix = glm::translate(viewMatrix, -inputFrustum.center);
 }
 
 void MathUtils::updateMeshFromCuboid (Mesh *mesh, const Frustum &cuboid) {

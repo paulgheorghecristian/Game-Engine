@@ -174,6 +174,7 @@ bool Shader::updateUniform (const std::string &name, int data) {
         uniform->updateUniform (&data);
         return true;
     } else {
+        assert(false);
         return false;
     }
 }

@@ -3,6 +3,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include "ParticleRenderer.h"
 #include "ParticleFactory.h"
+#include "Light.h"
 
 EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     //create renderingmaster, physicsmaster and entities
@@ -55,8 +56,13 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
 
     Light::setPointMesh(Mesh::loadObject("res/models/lightSphere.obj"));
     Light::setSpotMesh(Mesh::loadObject("res/models/SpotLightMesh5.obj"));
+    Light::setDirectionalMesh(Mesh::getRectangle());
+
+    Light::depthTextureFBDirLight = new FrameBuffer (2048, 2048, 1);
+    Light::depthTextureDirLight = new Texture (Light::depthTextureFBDirLight->getDepthTextureId(), 8);
+
     RenderingMaster::init (display,
-                           new Camera (glm::vec3(-500, 0, 0), 0, glm::radians(90.0f), 0),
+                           new Camera (glm::vec3(-500, 0, 0), 0, 0, 0),
                            glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane));
     PhysicsMaster::init (gravity);
 
@@ -106,9 +112,9 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                                      glm::vec3(1.0f),
                                                      0.5f)));
     entities.push_back (floor);
-    entities.clear();
+    //entities.clear();
     constructPlayer();
-
+#if 0
     Entity *debugCuboid = new Entity();
     Transform cuboidTransform(glm::vec3(0), glm::vec3(0, 0, 0), glm::vec3(1.0f));
     debugCuboid->setTransform(cuboidTransform);
@@ -116,7 +122,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                                     (new Shader())->construct("res/shaders/example.json"),
                                                     NULL,
                                                     NULL,
-                                                    Material(glm::vec3(0.0f, 1.0f, 1.0f),
+                                                    Material(glm::vec3(0.0f, 0.0f, 1.0f),
                                                              glm::vec3(1.0f),
                                                              glm::vec3(1.0f),
                                                              0.5f)));
@@ -134,6 +140,37 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                                              glm::vec3(1.0f),
                                                              0.5f)));
     entities.push_back (frustumEntity);
+
+    Entity *zArrow = new Entity();
+    Transform zTransform(glm::vec3(0), glm::vec3(0, 0, 0), glm::vec3(10.0f));
+    zArrow->setTransform(zTransform);
+    zArrow->addComponent(new RenderComponent(Mesh::getArrowMesh(),
+                                                    (new Shader())->construct("res/shaders/example.json"),
+                                                    NULL,
+                                                    NULL,
+                                                    Material(glm::vec3(1.0f, 0.0f, 0.0f),
+                                                             glm::vec3(1.0f),
+                                                             glm::vec3(1.0f),
+                                                             0.5f)));
+    entities.push_back (zArrow);
+
+    Entity *lightDir = new Entity();
+    glm::vec3 lightDirVec = RenderingMaster::dirLightDirection;
+    float xRot = glm::degrees(glm::asin(lightDirVec.y / glm::length(lightDirVec)));
+    float yRot = glm::degrees(glm::atan(-lightDirVec.x, -lightDirVec.z));
+    std::cout << "xRot=" << xRot << " " << "yRot=" << yRot << std::endl;
+    Transform zTransform2(glm::vec3(0), glm::vec3(xRot, yRot, 0), glm::vec3(10.0f));
+    lightDir->setTransform(zTransform2);
+    lightDir->addComponent(new RenderComponent(Mesh::getArrowMesh(),
+                                                    (new Shader())->construct("res/shaders/example.json"),
+                                                    NULL,
+                                                    NULL,
+                                                    Material(glm::vec3(0.0f, 0.0f, 1.0f),
+                                                             glm::vec3(1.0f),
+                                                             glm::vec3(1.0f),
+                                                             0.5f)));
+    entities.push_back (lightDir);
+#endif
     std::cout << "Number of entities: " << entities.size() << std::endl;
 
     outputType = 5;
@@ -161,22 +198,27 @@ void EngineCore::start() {
     while (isRunning) {
 
         if (frame_counter >= 1000000) {
+            #if 0
             std::cout << "----------------------" << std::endl;
             std::cout << "FPS: " << FPS << std::endl;
             std::cout << ((double) frame_counter / 1000) / FPS << " milliseconds frametime" << std::endl;
+            #endif
             FPS = 0;
             frame_counter = 0;
-            PT_PrintAndReset("input");
-            PT_PrintAndReset("update");
-            PT_PrintAndReset("render");
-            PT_PrintAndReset("renderScene");
-            PT_PrintAndReset("lightAcc");
-            PT_PrintAndReset("computeDepthTexture");
-            PT_PrintAndReset("swapBuffers");
-            PT_PrintAndReset("particleDraw");
-            PT_PrintAndReset("buffersDraw");
-            PT_PrintAndReset("GUIRender");
+            PT_Reset("input");
+            PT_Reset("update");
+            PT_Reset("render");
+            PT_Reset("renderScene");
+            PT_Reset("lightAcc");
+            PT_Reset("computeDepthTexture");
+            PT_Reset("swapBuffers");
+            PT_Reset("particleDraw");
+            PT_Reset("buffersDraw");
+            PT_Reset("GUIRender");
+            PT_Reset("computeDepthTextureDirLight");
+            #if 0
             std::cout << "----------------------" << std::endl;
+            #endif
         }
         auto last_time = HighResolutionClock::now();
         unsigned int passed_time = std::chrono::duration_cast<std::chrono::microseconds>(last_time - start_time).count();
@@ -276,6 +318,9 @@ void EngineCore::input() {
     if (inputManager.getKeyDown (SDLK_7)) {
         outputType = 7;
     }
+    if (inputManager.getKeyDown(SDLK_8)) {
+        outputType = 8;
+    }
 
     if (inputManager.getKeyDown (SDLK_q)) {
         glm::vec3 cameraPosition = RenderingMaster::getInstance()->getCamera()->getPosition();
@@ -321,6 +366,9 @@ void EngineCore::input() {
     if (inputManager.getKeyDown (SDLK_p)) {
         RenderingMaster::getInstance()->fauxCamera->rotateY(-0.09f);
     }
+    if (inputManager.getKeyDown (SDLK_k)) {
+        RenderingMaster::getInstance()->fauxCamera->moveForward(0.9f);
+    }
     RenderingMaster::getInstance()->deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
 
     for (auto const &entity : entities) {
@@ -329,21 +377,21 @@ void EngineCore::input() {
 }
 
 void EngineCore::render() {
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-    glDisable(GL_CULL_FACE);
+    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    //glDisable(GL_CULL_FACE);
     /*generate deferred shading buffers*/
     PT_FromHere("renderScene");
     RenderingMaster::getInstance()->getGBuffer().bindForScene();
     RenderingMaster::getInstance()->clearScreen (1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (auto entity : entities) {
+    for (unsigned int i = 0; i < entities.size(); i++) {
         RenderComponent *renderComponent;
         if ((renderComponent =
-             (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
+             (RenderComponent *) (entities[i]->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
             renderComponent->render(&RenderingMaster::getInstance()->deferredShading_SceneShader);
         }
     }
-    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+    //glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     RenderingMaster::getInstance()->getGBuffer().unbind();
     PT_ToHere("renderScene");
     /*end generate deferred shading buffers*/
@@ -367,6 +415,18 @@ void EngineCore::render() {
     }
     /* end drawing the spot light depth map */
     PT_ToHere("computeDepthTexture");
+
+    PT_FromHere("computeDepthTextureDirLight");
+    RenderingMaster::getInstance()->beginCreateDepthTextureForDirLight();
+    for (unsigned int i = 0; i < entities.size(); i++) {
+        RenderComponent *renderComponent;
+        if ((renderComponent =
+             static_cast<RenderComponent *> (entities[i]->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
+            renderComponent->render(&RenderingMaster::getInstance()->deferredShading_StencilBufferCreator);
+        }
+    }
+    RenderingMaster::getInstance()->endCreateDepthTextureForDirLight();
+    PT_ToHere("computeDepthTextureDirLight");
 
     PT_FromHere("lightAcc");
     RenderingMaster::getInstance()->createLightAccumulationBuffer();

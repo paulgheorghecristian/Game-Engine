@@ -15,6 +15,7 @@ uniform int screenWidth, screenHeight;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 
+/* soft particles */
 #define EPS 40
 
 void main(){

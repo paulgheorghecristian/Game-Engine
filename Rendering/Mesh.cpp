@@ -526,3 +526,31 @@ void Mesh::update (const std::vector<Vertex> &vertices,
 
     glBindVertexArray(0);
 }
+
+Mesh *Mesh::getArrowMesh() {
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+
+    vertices.push_back(Vertex(glm::vec3(-0.1f, 0, 1)));
+    vertices.push_back(Vertex(glm::vec3(0.1f, 0, 1)));
+    vertices.push_back(Vertex(glm::vec3(0.1f, 0, -0.6)));
+    vertices.push_back(Vertex(glm::vec3(-0.1f, 0, -0.6)));
+
+    vertices.push_back(Vertex(glm::vec3(-0.3f, 0, -0.6)));
+    vertices.push_back(Vertex(glm::vec3(0, 0, -1)));
+    vertices.push_back(Vertex(glm::vec3(0.3f, 0, -0.6)));
+
+    indices.push_back (0);
+    indices.push_back (1);
+    indices.push_back (2);
+
+    indices.push_back (0);
+    indices.push_back (2);
+    indices.push_back (3);
+
+    indices.push_back (4);
+    indices.push_back (6);
+    indices.push_back (5);
+
+    return new Mesh (vertices, indices);
+}

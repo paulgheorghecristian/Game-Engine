@@ -53,6 +53,7 @@ class Mesh
         static Mesh* getDome(int, int);
         static Mesh* getCircle(float, float, float, int);
         static Mesh* getRectangleYUp();
+        static Mesh *getArrowMesh();
         void update (const std::vector<Vertex> &vertices,
                      const std::vector<unsigned int> &indices);
         virtual ~Mesh();

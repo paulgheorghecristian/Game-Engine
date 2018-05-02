@@ -1,0 +1,17 @@
+{
+    "VSPath" : "res/shaders/lightAccBufCreatorDirLight.vs",
+    "FSPath" : "res/shaders/lightAccBufCreatorDirLight.fs",
+    "Uniforms" : {
+                    "dirLightDepthSampler" : "INT",
+                    "lightColor" : "VEC3",
+                    "lightDirection" : "VEC3",
+                    "screenWidth" : "INT",
+                    "screenHeight" : "INT",
+                    "eyeSpaceNormalSampler" : "INT",
+                    "depthSampler" : "INT",
+                    "projectionMatrix" : "MAT4",
+                    "viewMatrix" : "MAT4",
+                    "dirLightProjMatrix" : "MAT4",
+                    "dirLightViewMatrix" : "MAT4"
+                 }
+}

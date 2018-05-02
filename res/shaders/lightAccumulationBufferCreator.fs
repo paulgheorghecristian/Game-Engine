@@ -25,7 +25,7 @@ const int PCFStrength = 3;
 const int PCFKernelSideSize = PCFStrength * 2 + 1;
 const int PCFStartingIndex = PCFKernelSideSize / 2;
 const int PCFKernelSize = PCFKernelSideSize * PCFKernelSideSize;
-const float depthMapTexelSize = 1.0f/2048.0f; /* TODO remove hardcode */
+const float depthMapTexelSize = 1.0f/512.0f; /* TODO remove hardcode */
 
 uniform vec3 lightPosition;
 uniform mat4 modelMatrix;

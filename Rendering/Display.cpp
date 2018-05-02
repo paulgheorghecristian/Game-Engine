@@ -84,11 +84,11 @@ void Display::swapBuffers() {
     SDL_GL_SwapWindow(window);
 }
 
-const int &Display::getWidth() const {
+int Display::getWidth() const {
     return width;
 }
 
-const int &Display::getHeight() const {
+int Display::getHeight() const {
     return height;
 }
 

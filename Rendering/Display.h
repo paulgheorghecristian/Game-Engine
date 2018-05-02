@@ -20,8 +20,8 @@ class Display
         bool isClosed();
         void setViewport(float, float, float, float);
         void clear(float, float, float, float, GLbitfield field);
-		const int &getWidth() const;
-		const int &getHeight() const;
+        int getWidth() const;
+        int getHeight() const;
         static bool isWindowClosed;
         static int delta;
         SDL_Window * getWindow();

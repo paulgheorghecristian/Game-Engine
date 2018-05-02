@@ -3,14 +3,18 @@
 Mesh *Light::pointMesh;
 Mesh *Light::spotMesh;
 Mesh *Light::directionalMesh;
+glm::mat4 Light::dirLightProjMatrix;
+glm::mat4 Light::dirLightViewMatrix;
+FrameBuffer *Light::depthTextureFBDirLight;
+Texture *Light::depthTextureDirLight;
 
 Light::Light(LightType type,
              const glm::vec3 color,
              const Transform &transform) : m_type (type),
                                            m_transform (transform),
                                            m_lightColor (color),
-                                           m_depthTextureFrameBufferForSpotLight (2048,
-                                                                                  2048,
+                                           m_depthTextureFrameBufferForSpotLight (512,
+                                                                                  512,
                                                                                   0),
                                            m_depthTextureForSpotLight (m_depthTextureFrameBufferForSpotLight.getDepthTextureId(),
                                                                        5) {
@@ -32,15 +36,16 @@ Light::Light(LightType type,
 
 void Light::render(Shader &shader) {
     float cutOff = m_transform.getScale().x - LIGHT_CUTOFF_OFFSET;
-    shader.updateUniform("modelMatrix", (void *) &m_transform.getModelMatrix());
-    shader.updateUniform("lightColor", (void *) &m_lightColor);
-    shader.updateUniform("lightPosition", (void *) &m_transform.getPosition());
-    if (m_type == SPOT) {
-        cutOff = -1;
-    } else if (m_type == DIRECTIONAL) {
-        cutOff = 0;
+
+    if (m_type != DIRECTIONAL) {
+        shader.updateUniform("modelMatrix", (void *) &m_transform.getModelMatrix());
+        shader.updateUniform("lightColor", (void *) &m_lightColor);
+        shader.updateUniform("lightPosition", (void *) &m_transform.getPosition());
+        if (m_type == SPOT) {
+            cutOff = -1;
+        }
+        shader.updateUniform("cutOff", (void *) &cutOff);
     }
-    shader.updateUniform("cutOff", (void *) &cutOff);
 
     shader.bind();
     switch (m_type) {

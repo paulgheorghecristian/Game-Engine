@@ -52,6 +52,10 @@ class RenderingMaster
         void beginCreateDepthTextureForSpotLight(Light *light);
         void endCreateDepthTextureForSpotLight(Light *light);
 
+        void beginCreateDepthTextureForDirLight();
+        void endCreateDepthTextureForDirLight();
+        static glm::vec3 dirLightColor, dirLightDirection;
+
         const std::vector <Light *> &getLights();
         /* TODO make these private */
         ParticleRenderer<SmokeParticle> *smokeRenderer;
@@ -62,6 +66,9 @@ class RenderingMaster
 
         Mesh *cuboidMesh, *frustumMesh;
         Camera *fauxCamera;
+
+        Mesh *arrowMesh;
+        std::vector <glm::vec3> dirs;
     protected:
 
     private:
@@ -79,6 +86,7 @@ class RenderingMaster
         Texture *albedoTexture, *normalTexture, *lightAccumulationTexture;
         Texture *blurredLightAccTexture;
         Shader deferredShading_LightAccumulationBufferCreator;
+        Shader deferredShading_LightAccumulationBufferCreatorDirLight;
         Mesh *screenSizeRectangle;
 
         void computeStencilBufferForLight(Light *light);
