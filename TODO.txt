@@ -19,5 +19,3 @@ IN PROGRESS:
 -sun + directional light + directional light shadows + day-night cycle
 -difference between rendering and display size
 -free roam camera
-
--puzzle game pe titan, arma cu sfere care schimba legile fizicii. din cand in cand se aud tipete prin pereti si se misca ca o holograma. sunt sunete prinse in timp

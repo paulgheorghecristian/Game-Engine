@@ -52,7 +52,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
 
     /* this needs to be called first before doing anything with OpenGL */
     display = new Display (screenWidth, screenHeight, screenTitle, isFullScreen, maxFps, vSync);
-    aspectRatio = (float) display->getWidth() / (float ) display->getHeight();
+    aspectRatio = (float) display->getWidth() / (float) display->getHeight();
     inputManager.setWarpMouse (this->warpMouse);
     SDL_ShowCursor(this->showMouse);
 
@@ -177,6 +177,13 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                                                          glm::vec3(0)),
                                                                          RenderingMaster::sunLightColor,
                                                                          RenderingMaster::sunLightDirection));
+    fpsGUI = new BarGUI (glm::vec3(100, 100, 0),
+                         glm::vec2(0, 0),
+                         glm::vec3(1,0,0),
+                         maxFps,
+                         false,
+                         glm::vec2(0),
+                         "FPS");
 }
 
 void EngineCore::start() {
@@ -203,6 +210,8 @@ void EngineCore::start() {
             std::cout << "FPS: " << FPS << std::endl;
             std::cout << ((double) frame_counter / 1000) / FPS << " milliseconds frametime" << std::endl;
             #endif
+            fpsGUI->update((int) FPS);
+            //printf ("FPS=%d\n", (int) FPS);
             FPS = 0;
             frame_counter = 0;
             PT_Reset("input");
@@ -259,6 +268,8 @@ void EngineCore::start() {
                 //entities[i]->setTransform (save_state[i]);
             }*/
             FPS++;
+        } else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
 }
@@ -399,7 +410,7 @@ void EngineCore::render() {
             for (auto entity : entities) {
                 RenderComponent *renderComponent;
                 if ((renderComponent =
-                     static_cast<RenderComponent *> (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
+                     (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
                     renderComponent->render(&RenderingMaster::getInstance()->depthMapCreator);
                 }
             }
@@ -429,6 +440,7 @@ void EngineCore::render() {
 
     PT_FromHere("GUIRender");
     ProfilingTimer::renderAllBarGUIs();
+    fpsGUI->render();
     PT_ToHere ("GUIRender");
 
     PT_FromHere("swapBuffers");

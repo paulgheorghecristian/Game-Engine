@@ -195,6 +195,11 @@ void Text::move(glm::vec3 dr) {
     isModelMatrixModified = true;
 }
 
+const std::string &Text::getCurrentString() {
+    return currentString;
+}
+
+
 Text::~Text() {
 
 }

@@ -29,7 +29,8 @@ class Text
         void display (const std::string& str);
         void displayDouble (double number, int prec = 3);
         void draw (Shader &shader);
-        virtual ~Text();
+        const std::string &getCurrentString();
+        ~Text();
     protected:
     private:
         Font &m_font;

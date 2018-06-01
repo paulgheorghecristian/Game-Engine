@@ -58,6 +58,8 @@ void ProfilingTimer::begin (const std::string &name) {
             timers.insert (std::make_pair (name, ProfilingTimer (new BarGUI (lastPosition,
                                                                               glm::vec2 (0, 0.5),
                                                                               glm::vec3 (1, 0, 0),
+                                                                              16.0f,
+                                                                              true,
                                                                               glm::vec2 (0),
                                                                               name))));
         } else {
@@ -65,6 +67,8 @@ void ProfilingTimer::begin (const std::string &name) {
             timers.insert (std::make_pair (name, ProfilingTimer (new BarGUI (lastPosition,
                                                                               glm::vec2 (0, 0.5),
                                                                               glm::vec3 (1, 0, 0),
+                                                                              16.0f,
+                                                                              true,
                                                                               glm::vec2 (0),
                                                                               name))));
         }
@@ -110,7 +114,7 @@ void ProfilingTimer::renderAllBarGUIs () {
 void ProfilingTimer::updateAllBarGUIs () {
     for (auto &bar : timers) {
         double time = bar.second.getPassedTimeAvg();
-        bar.second.uptr_barGUI->update ((void *) &time);
+        bar.second.uptr_barGUI->update (time);
     }
 }
 

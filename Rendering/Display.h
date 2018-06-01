@@ -14,7 +14,7 @@ class Display
                 const char * title,
                 bool fullscreen,
                 unsigned int maxFps,
-                bool vSync);
+                bool vSync = false);
         virtual ~Display();
         void swapBuffers();
         bool isClosed();

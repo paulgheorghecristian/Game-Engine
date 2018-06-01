@@ -8,7 +8,9 @@ Display::Display(const int WIDTH,
                  const char * title,
                  bool fullscreen,
                  unsigned int maxFps,
-                 bool vSync = false) : MAX_FPS (maxFps), FRAME_TIME_IN_MS (1000.0f/MAX_FPS) {
+                 bool vSync) : MAX_FPS (maxFps), FRAME_TIME_IN_MS (1000.0f/MAX_FPS) {
+    int rc;
+
     SDL_Init (SDL_INIT_EVERYTHING);
 
     SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -45,6 +47,18 @@ Display::Display(const int WIDTH,
                                SDL_WINDOW_OPENGL | (fullscreen ? SDL_WINDOW_FULLSCREEN : SDL_WINDOW_RESIZABLE));
     glContext = SDL_GL_CreateContext (window);
 
+    if (vSync) {
+        rc = SDL_GL_SetSwapInterval (1);
+        if (rc < 0) {
+            std::cout << "Cannot set swap interval!" << std::endl;
+        }
+    } else {
+        rc = SDL_GL_SetSwapInterval (0);
+        if (rc < 0) {
+            std::cout << "Cannot set swap interval!" << std::endl;
+        }
+    }
+
     GLenum status = glewInit ();
     if (status != GLEW_OK) {
         std::cerr << "Glew failed to initialize !" << std::endl;
@@ -54,11 +68,8 @@ Display::Display(const int WIDTH,
     glEnable (GL_DEPTH_TEST);
     glDepthFunc (GL_LEQUAL);
     glEnable (GL_CULL_FACE);
+    glCullFace (GL_BACK);
     glViewport (0.0f, 0.0f, this->width, this->height);
-
-    if (vSync) {
-        SDL_GL_SetSwapInterval  (1);
-    }
 }
 
 Display::~Display() {

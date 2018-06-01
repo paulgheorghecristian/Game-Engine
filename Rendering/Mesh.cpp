@@ -40,8 +40,6 @@ Mesh::Mesh(const std::vector<Vertex> &vertices,
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3*sizeof(glm::vec3) + sizeof (glm::vec2)));
 
     glBindVertexArray (0);
-    glBindBuffer (GL_ARRAY_BUFFER, 0);
-    glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 Mesh::Mesh (bool willBeUpdated) : numberOfTriangles (0), willBeUpdated (willBeUpdated) {
