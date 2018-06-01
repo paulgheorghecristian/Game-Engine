@@ -1149,7 +1149,7 @@
 	"Entity.h"
 	"Input.h"
 
-1522850897 c:\users\paul\desktop\game-engine\core\entity.h
+1527861882 c:\users\paul\desktop\game-engine\core\entity.h
 	"Transform.h"
 	"Component.h"
 	<vector>
@@ -1857,7 +1857,7 @@
 	"RenderingMaster.h"
 	"Texture.h"
 
-1522588498 c:\users\paul\desktop\game-engine\rendering\mesh.h
+1527861882 c:\users\paul\desktop\game-engine\rendering\mesh.h
 	<GL/glew.h>
 	<glm/glm.hpp>
 	<vector>
@@ -1882,7 +1882,7 @@
 	<OpenGL/glu.h>
 	<GL/glu.h>
 
-1522595406 c:\users\paul\desktop\game-engine\rendering\shader.h
+1527861882 c:\users\paul\desktop\game-engine\rendering\shader.h
 	<stdlib.h>
 	<stdio.h>
 	<fstream>
@@ -1959,8 +1959,7 @@
 	"glm/glm.hpp"
 	"glm/glm.hpp"
 
-1517952929 source:c:\users\paul\desktop\game-engine\core\entity.cpp
-	"Entity.h"
+1527861882 source:c:\users\paul\desktop\game-engine\core\entity.cpp
 	"Entity.h"
 
 1502019729 source:c:\users\paul\desktop\game-engine\core\input.cpp
@@ -2291,7 +2290,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1517952929 c:\users\paul\desktop\game-engine\rendering\display.h
+1527862045 c:\users\paul\desktop\game-engine\rendering\display.h
 	<SDL2/SDL.h>
 	<iostream>
 	<GL/glew.h>
@@ -2307,7 +2306,7 @@
 	<stdlib.h>
 	<iostream>
 
-1522595406 c:\users\paul\desktop\game-engine\rendering\renderingmaster.h
+1527861882 c:\users\paul\desktop\game-engine\rendering\renderingmaster.h
 	"rapidjson/document.h"
 	"Display.h"
 	"Camera.h"
@@ -2333,7 +2332,7 @@
 	"EngineCore.h"
 	"EngineCore.h"
 
-1522595406 c:\users\paul\desktop\game-engine\core\enginecore.h
+1527862020 c:\users\paul\desktop\game-engine\core\enginecore.h
 	"Display.h"
 	"Input.h"
 	"Entity.h"
@@ -2364,34 +2363,25 @@
 	<GL/glew.h>
 	<iostream>
 
-1522595406 c:\users\paul\desktop\game-engine\rendering\texture.h
+1527861883 c:\users\paul\desktop\game-engine\rendering\texture.h
 	<string>
 	<GL/glew.h>
 	<iostream>
+	"ErrorUtils.h"
 
-1517952929 c:\users\paul\desktop\game-engine\rendering\light.h
+1527861882 c:\users\paul\desktop\game-engine\rendering\light.h
 	"Transform.h"
 	"Mesh.h"
-	"Shader.h"
-	"FrameBuffer.h"
-	"Texture.h"
-	"Camera.h"
-	"Transform.h"
-	"Mesh.h"
-	"Shader.h"
 	"FrameBuffer.h"
 	"Texture.h"
 	"Camera.h"
 
-1517952929 c:\users\paul\desktop\game-engine\rendering\framebuffer.h
+1527861882 c:\users\paul\desktop\game-engine\rendering\framebuffer.h
 	<vector>
 	<GL/glew.h>
 	<iostream>
 	<cassert>
-	<vector>
-	<GL/glew.h>
-	<iostream>
-	<cassert>
+	"ErrorUtils.h"
 
 1517952929 c:\users\paul\desktop\game-engine\rendering\postprocess.h
 	"FrameBuffer.h"
@@ -2419,31 +2409,34 @@
 	<iostream>
 	"Game.h"
 
-1522595406 source:c:\users\paul\desktop\game-engine\rendering\camera.cpp
+1527861882 source:c:\users\paul\desktop\game-engine\rendering\camera.cpp
 	"camera.h"
 
-1522248274 source:c:\users\paul\desktop\game-engine\rendering\display.cpp
-	"Display.h"
+1527862038 source:c:\users\paul\desktop\game-engine\rendering\display.cpp
 	"Display.h"
 
 1517952929 source:c:\users\paul\desktop\game-engine\rendering\material.cpp
 	"Material.h"
 	"Material.h"
 
-1522595406 source:c:\users\paul\desktop\game-engine\rendering\mesh.cpp
+1527861885 source:c:\users\paul\desktop\game-engine\rendering\mesh.cpp
 	"mesh.h"
 	<iostream>
 
-1522595406 source:c:\users\paul\desktop\game-engine\rendering\rendercomponent.cpp
+1527861882 source:c:\users\paul\desktop\game-engine\rendering\rendercomponent.cpp
 	"RenderComponent.h"
 
-1522604588 source:c:\users\paul\desktop\game-engine\rendering\renderingmaster.cpp
+1527862175 source:c:\users\paul\desktop\game-engine\rendering\renderingmaster.cpp
 	"RenderingMaster.h"
 	"ParticleRenderer.h"
 	"ParticleFactory.h"
 	"GUI.h"
+	"MathUtils.h"
+	"SpotLight.h"
+	"DirectionalLight.h"
+	"PointLight.h"
 
-1522595406 source:c:\users\paul\desktop\game-engine\rendering\shader.cpp
+1527861882 source:c:\users\paul\desktop\game-engine\rendering\shader.cpp
 	"Shader.h"
 
 1522595406 source:c:\users\paul\desktop\game-engine\rendering\shaderuniform.cpp
@@ -2453,11 +2446,16 @@
 	"Transform.h"
 	<iostream>
 
-1522860521 source:c:\users\paul\desktop\game-engine\core\enginecore.cpp
+1527862281 source:c:\users\paul\desktop\game-engine\core\enginecore.cpp
 	"EngineCore.h"
 	<glm/gtx/rotate_vector.hpp>
 	"ParticleRenderer.h"
 	"ParticleFactory.h"
+	"SpotLight.h"
+	"DirectionalLight.h"
+	"PointLight.h"
+	<chrono>
+	<thread>
 
 1517952923 c:\users\paul\desktop\game-engine\rendering\tempanimationcomponent.h
 	"Component.h"
@@ -3021,12 +3019,13 @@
 1522858927 source:c:\users\paul\desktop\game-engine\physics\physicsmaster.cpp
 	"PhysicsMaster.h"
 
-1522595406 source:c:\users\paul\desktop\game-engine\rendering\texture.cpp
+1527861883 source:c:\users\paul\desktop\game-engine\rendering\texture.cpp
 	"texture.h"
+	"ErrorUtils.h"
 	"stb_image.h"
 	"stb_image_write.h"
 
-1522588498 source:c:\users\paul\desktop\game-engine\core\utils\profilingtimer.cpp
+1527861885 source:c:\users\paul\desktop\game-engine\core\utils\profilingtimer.cpp
 	"ProfilingTimer.h"
 	"BarGUI.h"
 	<memory>
@@ -3056,7 +3055,7 @@
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\rotate_vector.inl
 
-1522595406 c:\users\paul\desktop\game-engine\core\particlerenderer.h
+1527865491 c:\users\paul\desktop\game-engine\core\particlerenderer.h
 	<vector>
 	<GL/glew.h>
 	<glm/glm.hpp>
@@ -3082,7 +3081,7 @@
 1522595406 source:c:\users\paul\desktop\game-engine\core\particlerenderer.cpp
 	"ParticleRenderer.h"
 
-1522869748 source:c:\users\paul\desktop\game-engine\core\player.cpp
+1522871346 source:c:\users\paul\desktop\game-engine\core\player.cpp
 	"Player.h"
 	"RenderingMaster.h"
 	"PhysicsMaster.h"
@@ -3125,13 +3124,13 @@
 
 1500216055 .h"
 
-1522595406 source:c:\users\paul\desktop\game-engine\rendering\framebuffer.cpp
+1527862128 source:c:\users\paul\desktop\game-engine\rendering\framebuffer.cpp
 	"FrameBuffer.h"
 
 1522595406 source:c:\users\paul\desktop\game-engine\rendering\gbuffer.cpp
 	"GBuffer.h"
 
-1522602115 source:c:\users\paul\desktop\game-engine\rendering\light.cpp
+1527862151 source:c:\users\paul\desktop\game-engine\rendering\light.cpp
 	"Light.h"
 
 1517952929 source:c:\users\paul\desktop\game-engine\rendering\postprocess.cpp
@@ -3140,15 +3139,15 @@
 	"PostProcess.h"
 	<utility>
 
-1522588498 c:\users\paul\desktop\game-engine\rendering\bargui.h
+1527861885 c:\users\paul\desktop\game-engine\rendering\bargui.h
 	"GUI.h"
 	"Text.h"
 
-1522588498 c:\users\paul\desktop\game-engine\rendering\gui.h
+1527861885 c:\users\paul\desktop\game-engine\rendering\gui.h
 	<glm/glm.hpp>
 	"Transform.h"
 
-1522588498 c:\users\paul\desktop\game-engine\rendering\text.h
+1527861885 c:\users\paul\desktop\game-engine\rendering\text.h
 	"Font.h"
 	"Mesh.h"
 	<string>
@@ -3188,7 +3187,7 @@
 	<intrin.h>
 	<arm_neon.h>
 
-1522588498 source:c:\users\paul\desktop\game-engine\rendering\bargui.cpp
+1527861885 source:c:\users\paul\desktop\game-engine\rendering\bargui.cpp
 	"BarGUI.h"
 	"Shader.h"
 	"Mesh.h"
@@ -3203,7 +3202,7 @@
 	"BarGUI.h"
 	"Shader.h"
 
-1522594064 source:c:\users\paul\desktop\game-engine\rendering\text.cpp
+1527861885 source:c:\users\paul\desktop\game-engine\rendering\text.cpp
 	"text.h"
 	<math.h>
 
@@ -3214,4 +3213,69 @@
 	<string.h>
 	<math.h>
 	<assert.h>
+
+1527861882 c:\users\paul\desktop\game-engine\core\utils\errorutils.h
+
+1527861882 c:\users\paul\desktop\game-engine\rendering\spotlight.h
+	"Light.h"
+
+1527861882 c:\users\paul\desktop\game-engine\rendering\directionallight.h
+	"Light.h"
+
+1527861882 c:\users\paul\desktop\game-engine\rendering\pointlight.h
+	"Light.h"
+
+1527861882 c:\users\paul\desktop\game-engine\core\utils\mathutils.h
+	<glm/glm.hpp>
+	<glm/gtx/vector_angle.hpp>
+	<cmath>
+	<iostream>
+
+1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\vector_angle.hpp
+	"../glm.hpp"
+	"../gtc/epsilon.hpp"
+	"../gtx/quaternion.hpp"
+	"../gtx/rotate_vector.hpp"
+	"vector_angle.inl"
+
+1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtc\epsilon.hpp
+	"../detail/setup.hpp"
+	"../detail/precision.hpp"
+	"epsilon.inl"
+
+1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtc\epsilon.inl
+	"quaternion.hpp"
+	"../vector_relational.hpp"
+	"../common.hpp"
+	"../vec2.hpp"
+	"../vec3.hpp"
+	"../vec4.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\vector_angle.inl
+
+1527861882 source:c:\users\paul\desktop\game-engine\rendering\directionallight.cpp
+	"DirectionalLight.h"
+	"MathUtils.h"
+	"RenderingMaster.h"
+	"Shader.h"
+
+1527861882 source:c:\users\paul\desktop\game-engine\rendering\pointlight.cpp
+	"PointLight.h"
+	"Shader.h"
+
+1527861882 source:c:\users\paul\desktop\game-engine\rendering\spotlight.cpp
+	"SpotLight.h"
+	"Shader.h"
+
+1527861882 source:c:\users\paul\desktop\game-engine\core\utils\errorutils.cpp
+	"ErrorUtils.h"
+	<cstdio>
+	<stdarg.h>
+
+1527861882 source:c:\users\paul\desktop\game-engine\core\utils\mathutils.cpp
+	"MathUtils.h"
+	"Camera.h"
+	"Mesh.h"
+	<vector>
+	<limits>
 
