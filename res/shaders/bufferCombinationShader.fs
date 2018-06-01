@@ -40,7 +40,7 @@ vec3 lightAccumulation() {
 }
 
 vec3 blurredLightAcc() {
-    return texture(blurredLightAccSampler, textureCoords).xyz;
+    return texture(blurredLightAccSampler, textureCoords).xyz * 0.75;
 }
 
 vec3 dirLightDepthMap() {
@@ -49,17 +49,23 @@ vec3 dirLightDepthMap() {
 }
 
 void main() {
-    if (outputType == 1) outColor = vec4 (color(), 1);
-	if (outputType == 2) outColor = vec4 (worldNormal(), 1);
-    if (outputType == 3) outColor = vec4 (depth(), 1);
-	if (outputType == 4) outColor = vec4 (lightAccumulation(), 1);
+    if (outputType == 1) outColor = vec4(color(), 1);
+	if (outputType == 2) outColor = vec4(worldNormal(), 1);
+    if (outputType == 3) outColor = vec4(depth(), 1);
+	if (outputType == 4) outColor = vec4(lightAccumulation(), 1);
 	if (outputType == 5) {
-        vec3 finalColor = color() * lightAccumulation() + blurredLightAcc();
-        vec4 part = particles ();
-        finalColor = part.xyz + finalColor * (1.0 - part.a);
-        outColor = vec4 (finalColor, 1);
+        vec4 particlesPixel = particles();
+        vec3 albedoPixel = color();
+
+        if (depth().x != 1) {
+            vec3 finalColor = albedoPixel * lightAccumulation() + blurredLightAcc();
+            finalColor = particlesPixel.xyz + finalColor * (1.0 - particlesPixel.a);
+            outColor = vec4(finalColor, 1);
+        } else {
+            outColor = vec4(particlesPixel.xyz + albedoPixel * (1.0 - particlesPixel.a), 1);
+        }
     }
     if (outputType == 6) outColor = vec4(blurredLightAcc(), 1);
-    if (outputType == 7) outColor = vec4 (spotLightDepth(), 1);
+    if (outputType == 7) outColor = vec4(spotLightDepth(), 1);
     if (outputType == 8) outColor = vec4(dirLightDepthMap(), 1);
 }

@@ -88,9 +88,11 @@
 		<Unit filename="Core/Player.h" />
 		<Unit filename="Core/SmokeParticle.cpp" />
 		<Unit filename="Core/SmokeParticle.h" />
+		<Unit filename="Core/Utils/ErrorUtils.cpp" />
 		<Unit filename="Core/Utils/ErrorUtils.h" />
 		<Unit filename="Core/Utils/FileUtils.cpp" />
 		<Unit filename="Core/Utils/FileUtils.h" />
+		<Unit filename="Core/Utils/MathUtils.cpp" />
 		<Unit filename="Core/Utils/MathUtils.h" />
 		<Unit filename="Core/Utils/MemoryPool.cpp" />
 		<Unit filename="Core/Utils/MemoryPool.h" />
@@ -109,6 +111,7 @@
 		<Unit filename="Rendering/BarGUI.h" />
 		<Unit filename="Rendering/Camera.cpp" />
 		<Unit filename="Rendering/Camera.h" />
+		<Unit filename="Rendering/DirectionalLight.cpp" />
 		<Unit filename="Rendering/DirectionalLight.h" />
 		<Unit filename="Rendering/Display.cpp" />
 		<Unit filename="Rendering/Display.h" />
@@ -126,6 +129,7 @@
 		<Unit filename="Rendering/Material.h" />
 		<Unit filename="Rendering/Mesh.cpp" />
 		<Unit filename="Rendering/Mesh.h" />
+		<Unit filename="Rendering/PointLight.cpp" />
 		<Unit filename="Rendering/PointLight.h" />
 		<Unit filename="Rendering/PostProcess.cpp" />
 		<Unit filename="Rendering/PostProcess.h" />
@@ -137,6 +141,7 @@
 		<Unit filename="Rendering/Shader.h" />
 		<Unit filename="Rendering/ShaderUniform.cpp" />
 		<Unit filename="Rendering/ShaderUniform.h" />
+		<Unit filename="Rendering/SpotLight.cpp" />
 		<Unit filename="Rendering/SpotLight.h" />
 		<Unit filename="Rendering/TempAnimationComponent.cpp" />
 		<Unit filename="Rendering/TempAnimationComponent.h" />
@@ -180,9 +185,6 @@
 		<Unit filename="res/shaders/lightAccCreatorSpotLight.fs" />
 		<Unit filename="res/shaders/lightAccCreatorSpotLight.json" />
 		<Unit filename="res/shaders/lightAccCreatorSpotLight.vs" />
-		<Unit filename="res/shaders/lightAccumulationBufferCreator.fs" />
-		<Unit filename="res/shaders/lightAccumulationBufferCreator.json" />
-		<Unit filename="res/shaders/lightAccumulationBufferCreator.vs" />
 		<Unit filename="res/shaders/particleRenderShader.fs" />
 		<Unit filename="res/shaders/particleRenderShader.gs" />
 		<Unit filename="res/shaders/particleRenderShader.json" />
@@ -190,6 +192,9 @@
 		<Unit filename="res/shaders/simpleTextShader.fs" />
 		<Unit filename="res/shaders/simpleTextShader.json" />
 		<Unit filename="res/shaders/simpleTextShader.vs" />
+		<Unit filename="res/shaders/skyShader.fs" />
+		<Unit filename="res/shaders/skyShader.json" />
+		<Unit filename="res/shaders/skyShader.vs" />
 		<Unit filename="res/shaders/stencilBufferCreator.fs" />
 		<Unit filename="res/shaders/stencilBufferCreator.json" />
 		<Unit filename="res/shaders/stencilBufferCreator.vs" />

@@ -13,5 +13,5 @@ void main(){
     float brightness = (pixelColor.r * 0.2126)+
                        (pixelColor.g * 0.7152)+
                        (pixelColor.b * 0.0722);
-    outColor = pixelColor * pow (brightness, 2.0);
+    outColor = pixelColor * pow (brightness, 10.0);
 }

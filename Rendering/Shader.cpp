@@ -1,14 +1,17 @@
 #include "Shader.h"
 
-Shader::Shader() : shaderPath ("") {
+Shader::Shader()
+{
 
 }
 
-Shader::Shader (const std::string &jsonPath) : shaderPath (jsonPath) {
-    construct (jsonPath);
+Shader::Shader (const std::string &jsonPath) : shaderPath (jsonPath)
+{
+    construct(jsonPath);
 }
 
-Shader *Shader::construct (const std::string &jsonPath) {
+Shader *Shader::construct (const std::string &jsonPath)
+{
     GLint compileResult = 0, linkResult = 0;
     char infoLogMessage[1024];
     std::string jsonBody;

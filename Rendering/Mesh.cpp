@@ -152,76 +152,6 @@ Mesh *Mesh::getSurface(int width, int height){
     return new Mesh(vertices, indices);
 }
 
-Mesh *Mesh::getDome(int x, int y){
-    float pi = 3.1415;
-    float phiUpperBound = pi / 2.0;
-    float thetaUpperBound = 2 * pi;
-
-    int numOfPointsY = y;
-    int numOfPointsXZ = x;
-
-    float stepY = phiUpperBound / (float)(numOfPointsY-1);
-    float stepXZ = thetaUpperBound / (float)(numOfPointsXZ-1);
-
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
-
-    for(int i = 0; i < numOfPointsXZ; i++){
-        float theta = (float)i*stepXZ;
-        for(int j = 0; j < numOfPointsY; j++){
-            float phi = (float)j*stepY;
-
-            float x = glm::cos(theta) * glm::sin(phi) * 0.5f;
-            float z = glm::sin(theta) * glm::sin(phi) * 0.5f;
-            float y = glm::cos(phi) * 0.5f;
-
-            float u = theta / thetaUpperBound;
-            float v = phi / phiUpperBound;
-
-            vertices.push_back(Vertex(glm::vec3(x, y, z), glm::vec2(u, v)));
-
-            int index = numOfPointsY * i + j;
-            int nextIndex = (numOfPointsY * (i+1)) + j;
-
-            if(j < numOfPointsY-1 && i < numOfPointsXZ-1){
-                indices.push_back(index);
-                indices.push_back(nextIndex);
-                indices.push_back(index+1);
-
-                indices.push_back(index+1);
-                indices.push_back(nextIndex);
-                indices.push_back(nextIndex+1);}
-        }
-    }
-
-    int index = (numOfPointsXZ-1) * numOfPointsY;
-    int index2 = (numOfPointsXZ * numOfPointsY);
-
-    for(int i = 0; i < numOfPointsY-1; i++){
-        float phi = (float)i*stepY;
-
-        float x = glm::sin(phi) * 0.5f;
-        float z = 0;
-        float y = glm::cos(phi) * 0.5f;
-
-        float v = phi / phiUpperBound;
-
-        vertices.push_back(Vertex(glm::vec3(x, y, z), glm::vec2(1.0, v)));
-
-        indices.push_back(index+i);
-        indices.push_back(index2+i);
-        indices.push_back(index+i+1);
-
-        indices.push_back(index+i+1);
-        indices.push_back(index2+i);
-        indices.push_back(index2+i+1);
-    }
-
-    vertices.push_back(Vertex(glm::vec3(0.5, 0, 0), glm::vec2(1.0, 1.0)));
-
-    return new Mesh(vertices, indices);
-}
-
 Mesh *Mesh::getCircle(float x, float y, float radius, int numOfTriangles){
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
@@ -290,7 +220,7 @@ void Mesh::_faceTokenize(const std::string &source, std::vector<std::string> &to
     _stringTokenize(aux,tokens);
 }
 
-Mesh* Mesh::loadObject(std::string filename){
+Mesh* Mesh::loadObject(const std::string &filename){
     /* TODO indices created by this functions are not really useful,
         they simply replicate triangles, without reusing vertices
     */
@@ -551,4 +481,75 @@ Mesh *Mesh::getArrowMesh() {
     indices.push_back (5);
 
     return new Mesh (vertices, indices);
+}
+
+Mesh* Mesh::getDome(int widthPoints, int heightPoints)
+{
+    float pi = 3.1415;
+    float phiUpperBound = pi / 2.0;
+    float thetaUpperBound = 2 * pi;
+
+    int numOfPointsY = heightPoints;
+    int numOfPointsXZ = widthPoints;
+
+    float stepY = phiUpperBound / (float)(numOfPointsY-1);
+    float stepXZ = thetaUpperBound / (float)(numOfPointsXZ-1);
+
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+
+    for(int i = 0; i < numOfPointsXZ; i++){
+        float theta = (float)i*stepXZ;
+        for(int j = 0; j < numOfPointsY; j++){
+            float phi = (float)j*stepY;
+
+            float x = glm::cos(theta) * glm::sin(phi) * 0.5f;
+            float z = glm::sin(theta) * glm::sin(phi) * 0.5f;
+            float y = glm::cos(phi) * 0.5f;
+
+            float u = theta / thetaUpperBound;
+            float v = phi / phiUpperBound;
+
+            vertices.push_back(Vertex(glm::vec3(x, y, z), glm::vec2(u, v)));
+
+            int index = numOfPointsY * i + j;
+            int nextIndex = (numOfPointsY * (i+1)) + j;
+
+            if(j < numOfPointsY-1 && i < numOfPointsXZ-1){
+                indices.push_back(index);
+                indices.push_back(nextIndex);
+                indices.push_back(index+1);
+
+                indices.push_back(index+1);
+                indices.push_back(nextIndex);
+                indices.push_back(nextIndex+1);}
+        }
+    }
+
+    int index = (numOfPointsXZ-1) * numOfPointsY;
+    int index2 = (numOfPointsXZ * numOfPointsY);
+
+    for(int i = 0; i < numOfPointsY-1; i++){
+        float phi = (float)i*stepY;
+
+        float x = glm::sin(phi) * 0.5f;
+        float z = 0;
+        float y = glm::cos(phi) * 0.5f;
+
+        float v = phi / phiUpperBound;
+
+        vertices.push_back(Vertex(glm::vec3(x, y, z), glm::vec2(1.0, v)));
+
+        indices.push_back(index+i);
+        indices.push_back(index2+i);
+        indices.push_back(index+i+1);
+
+        indices.push_back(index+i+1);
+        indices.push_back(index2+i);
+        indices.push_back(index2+i+1);
+    }
+
+    vertices.push_back(Vertex(glm::vec3(0.5, 0, 0), glm::vec2(1.0, 1.0)));
+
+    return new Mesh(vertices, indices);
 }

@@ -53,6 +53,8 @@ class RenderingMaster
         void beginCreateDepthTextureForLight(Light *light);
         void endCreateDepthTextureForLight(Light *light);
 
+        void drawSky();
+
         static glm::vec3 sunLightColor, sunLightDirection;
 
         const std::vector <Light *> &getLights();
@@ -68,7 +70,9 @@ class RenderingMaster
 
         Mesh *arrowMesh;
         std::vector <glm::vec3> dirs;
-    protected:
+
+        Entity skyDomeEntity;
+        Shader *skyShader;
 
     private:
         RenderingMaster(Display *display,

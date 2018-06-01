@@ -47,13 +47,13 @@ class Mesh
         GLuint getVao();
         void draw();
         GLsizei getNumberOfTriangles();
-        static Mesh* getRectangle();
-        static Mesh* loadObject(std::string);
-        static Mesh* getSurface(int, int);
-        static Mesh* getDome(int, int);
-        static Mesh* getCircle(float, float, float, int);
-        static Mesh* getRectangleYUp();
+        static Mesh *getRectangle();
+        static Mesh *loadObject(const std::string &filePath);
+        static Mesh *getSurface(int, int);
+        static Mesh *getCircle(float, float, float, int);
+        static Mesh *getRectangleYUp();
         static Mesh *getArrowMesh();
+        static Mesh *getDome(int widthPoints, int heightPoints);
         void update (const std::vector<Vertex> &vertices,
                      const std::vector<unsigned int> &indices);
         virtual ~Mesh();

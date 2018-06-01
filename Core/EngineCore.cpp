@@ -179,6 +179,15 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                                                          glm::vec3(0)),
                                                                          RenderingMaster::sunLightColor,
                                                                          RenderingMaster::sunLightDirection));
+
+    RenderingMaster::getInstance()->skyShader = new Shader("res/shaders/skyShader.json");
+    RenderingMaster::getInstance()->skyDomeEntity.addComponent(new RenderComponent(Mesh::getDome(10, 10),
+                                                   RenderingMaster::getInstance()->skyShader,
+                                                   NULL,
+                                                   NULL,
+                                                   Material(glm::vec3(0), glm::vec3(0), glm::vec3(0), 0)));
+    RenderingMaster::getInstance()->skyDomeEntity.setTransform(Transform(glm::vec3(0, -10, 0), glm::vec3(0), glm::vec3(100.0f)));
+
     fpsGUI = new BarGUI (glm::vec3(100, 100, 0),
                          glm::vec2(0, 0),
                          glm::vec3(1,0,0),
@@ -283,7 +292,7 @@ void EngineCore::stop() {
 void EngineCore::input() {
     inputManager.update (RenderingMaster::getInstance()->getDisplay());
 
-    if(inputManager.getKeyDown (SDLK_ESCAPE)){
+    if (inputManager.getKeyDown(SDLK_ESCAPE)) {
         stop ();
     }
 
@@ -298,8 +307,8 @@ void EngineCore::input() {
         newEntity->setTransform (transform);
         entities.push_back (newEntity->addComponent (new RenderComponent(Mesh::loadObject("res/models/cube4.obj"),
                                                                                        (new Shader())->construct("res/shaders/example.json"),
-                                                                                       new Texture ("res/textures/196.bmp",0),
-                                                                                       new Texture ("res/textures/196_norm.bmp",1),
+                                                                                       new Texture ("res/textures/158.JPG",0),
+                                                                                       new Texture ("res/textures/158_norm.JPG",1),
                                                                                        Material (glm::vec3(1, 0, 0),
                                                                                                  glm::vec3(0),
                                                                                                  glm::vec3(0),
@@ -340,7 +349,7 @@ void EngineCore::input() {
         RenderingMaster::getInstance()->addLightToScene(new SpotLight(Transform(cameraPosition,
                                                                   glm::degrees(cameraRotation),
                                                                   glm::vec3(300.0f, 300.0f, 400.0f)),
-                                                        glm::vec3(1.0f, 0.8f, 1.0f)));
+                                                        glm::vec3(0.98f, 0.8f, 0.8f)));
     }
 
     if (inputManager.getKeyDown (SDLK_e)) {
@@ -348,7 +357,7 @@ void EngineCore::input() {
         RenderingMaster::getInstance()->addLightToScene(new PointLight(Transform(cameraPosition,
                                                                                   glm::vec3(0),
                                                                                   glm::vec3(500.0f)),
-                                                                       glm::vec3(1.0f, 0.0f, 0.0f)));
+                                                                       glm::vec3(1.0f, 0.7f, 0.2f)));
 
     }
 
@@ -389,7 +398,9 @@ void EngineCore::render() {
     /*generate deferred shading buffers*/
     PT_FromHere("renderScene");
     RenderingMaster::getInstance()->getGBuffer().bindForScene();
-    RenderingMaster::getInstance()->clearScreen (1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    RenderingMaster::getInstance()->clearScreen(1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    RenderingMaster::getInstance()->drawSky();
 
     for (auto entity : entities) {
         RenderComponent *renderComponent;

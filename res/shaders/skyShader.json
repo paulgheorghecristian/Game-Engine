@@ -1,0 +1,9 @@
+{
+    "VSPath" : "res/shaders/skyShader.vs",
+    "FSPath" : "res/shaders/skyShader.fs",
+    "Uniforms" : {
+                    "modelMatrix" : "MAT4",
+                    "viewMatrix" : "MAT4",
+                    "projectionMatrix" : "MAT4"
+                 }
+}

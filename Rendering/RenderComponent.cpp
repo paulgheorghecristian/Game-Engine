@@ -35,7 +35,7 @@ RenderComponent::RenderComponent(Mesh * mesh,
     result &= shader->updateUniform ("hasTexture", (void *) &hasTexture);
     result &= shader->updateUniform ("hasNormalMap", (void *) &hasNormalMap);
 
-    assert (result);
+    //assert (result);
 }
 
 void RenderComponent::input(Input &inputManager) {

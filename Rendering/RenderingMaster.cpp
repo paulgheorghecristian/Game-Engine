@@ -54,8 +54,8 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= SpotLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
     assert (result);
 
-    RenderingMaster::sunLightColor = glm::vec3(1, 0.7, 0.4);
-    RenderingMaster::sunLightDirection = glm::normalize(glm::vec3(1, 3, 1));
+    RenderingMaster::sunLightColor = glm::vec3(0.95, 0.7, 0.4);
+    RenderingMaster::sunLightDirection = glm::normalize(glm::vec3(1, 1.5, 1));
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("dirLightDepthSampler", 0);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("eyeSpaceNormalSampler", 1);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("depthSampler", 2);
@@ -71,11 +71,11 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= PointLight::getLightAccumulationShader().updateUniform("screenWidth", display->getWidth());
     result &= PointLight::getLightAccumulationShader().updateUniform("screenHeight", display->getHeight());
     result &= PointLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
-    assert (result);
+    assert(result);
 
     deferredShading_StencilBufferCreator.construct ("res/shaders/stencilBufferCreator.json");
     result &= deferredShading_StencilBufferCreator.updateUniform("projectionMatrix", (void *) &projectionMatrix);
-    assert (result);
+    assert(result);
 
     depthMapCreator.construct("res/shaders/depthMapCreator.json");
 
@@ -98,94 +98,10 @@ RenderingMaster::RenderingMaster(Display *display,
     blurredLightAccTexture = new Texture (wBlurPostProcess->getResultingTextureId(), blurredLightAccUnit);
     screenSizeRectangle = Mesh::getRectangle();
 
-#if 0
-    lights.push_back (new Light (Light::LightType::POINT,
-                                 glm::vec3(0.9, 0, 0),
-                                 Transform(glm::vec3(100.0f, 50.0f, 250.0f),
-                                           glm::vec3(0),
-                                           glm::vec3(500.0f))));
-    lights.push_back (new Light (Light::LightType::POINT,
-                                 glm::vec3(0.9f, 0.9f, 0.0f),
-                                 Transform(glm::vec3(30.0f, 50.0f, 20.0f),
-                                           glm::vec3(0),
-                                           glm::vec3(500.0f))));
-    lights.push_back (new Light (Light::LightType::POINT,
-                                 glm::vec3(0.9f, 0.9f, 0.8f),
-                                 Transform(glm::vec3(100.0f, 50.0f, 50.0f),
-                                           glm::vec3(0),
-                                           glm::vec3(500.0f))));
-    lights.push_back (new Light (Light::LightType::POINT,
-                                 glm::vec3(1.0f, 0.0f, 0.5f),
-                                 Transform(glm::vec3(200.0f, 100.0f, 50.0f),
-                                           glm::vec3(0),
-                                           glm::vec3(500.0f))));
-    lights.push_back (new Light (Light::LightType::POINT,
-                                 glm::vec3(0.6f, 1.0f, 0.0f),
-                                 Transform(glm::vec3(70.0f, 200.0f, 50.0f),
-                                           glm::vec3(0),
-                                           glm::vec3(500.0f))));
-    lights.push_back (new Light (Light::LightType::POINT,
-                                 glm::vec3(1.0f, 1.0f, 0.7f),
-                                 Transform(glm::vec3(10.0f, 250.0f, 100.0f),
-                                           glm::vec3(0),
-                                           glm::vec3(500.0f))));
-    lights.push_back (new Light (Light::LightType::POINT,
-                                 glm::vec3(0.0f, 0.6f, 0.7f),
-                                 Transform(glm::vec3(70.0f, 200.0f, 200.0f),
-                                           glm::vec3(0),
-                                           glm::vec3(500.0f))));
-    lights.push_back (new Light (Light::LightType::POINT,
-                                 glm::vec3(1.0f, 1.0f, 1.0f),
-                                 Transform(glm::vec3(70.0f, 209.0f, 50.0f),
-                                           glm::vec3(0),
-                                           glm::vec3(500.0f))));
-    lights.push_back (new Light (Light::LightType::POINT,
-                                 glm::vec3(0.0f, 1.0f, 0.0f),
-                                 Transform(glm::vec3(700.0f, 209.0f, 500.0f),
-                                           glm::vec3(0),
-                                           glm::vec3(500.0f))));
-    lights.push_back (new Light (Light::LightType::POINT,
-                                 glm::vec3(1.0f, 1.0f, 1.0f),
-                                 Transform(glm::vec3(700.0f, 290.0f, 300.0f),
-                                           glm::vec3(0),
-                                           glm::vec3(500.0f))));
-    lights.push_back (new Light (Light::LightType::POINT,
-                                 glm::vec3(0.0f, 0.0f, 1.0f),
-                                 Transform(glm::vec3(50.0f, 100.0f, 250.0f),
-                                           glm::vec3(0),
-                                           glm::vec3(500.0f))));
-    lights.push_back (new Light (Light::LightType::POINT,
-                                 glm::vec3(1.0f, 1.0f, 0.0f),
-                                 Transform(glm::vec3(70.0f, 20.0f, 50.0f),
-                                           glm::vec3(0),
-                                           glm::vec3(500.0f))));
-    lights.push_back (new Light (Light::LightType::POINT,
-                                 glm::vec3(1.0f, 1.0f, 0.0f),
-                                 Transform(glm::vec3(70.0f, 20.0f, 50.0f),
-                                           glm::vec3(0),
-                                           glm::vec3(500.0f))));
-    for (unsigned int i = 0; i < 50; i++) {
-        float x = rand() % 1000;
-        float y = rand() % 1000;
-        float z = rand() % 1000;
-        lights.push_back (new Light (Light::LightType::POINT,
-                             glm::vec3(x/1200.0f, y/1200.0f, z/1200.0f),
-                             Transform(glm::vec3(x, y, z),
-                                       glm::vec3(0),
-                                       glm::vec3(500.0f))));
-    }
-    for (unsigned int i = 0; i < lights.size(); i++) {
-        int x = rand() % 1000;
-        int y = rand() % 1000;
-        int z = rand() % 1000;
-        lights[i]->getTransform().setPosition(glm::vec3(x, y, z));
-    }
-#endif
-    int fontAtlasSamplerId = 0;
     GUI::init (1920, 1080);
     simpleTextShader.construct ("res/shaders/simpleTextShader.json");
     result &= simpleTextShader.updateUniform ("projectionMatrix", (void *) &GUI::projectionMatrix);
-    result &= simpleTextShader.updateUniform ("fontAtlas", (void *) &fontAtlasSamplerId);
+    result &= simpleTextShader.updateUniform ("fontAtlas", 0);
     assert (result);
 
     cuboidMesh = new Mesh (true);
@@ -339,6 +255,7 @@ void RenderingMaster::update() {
 
     deferredShading_StencilBufferCreator.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     deferredShading_SceneShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
+    skyShader->updateUniform("viewMatrix", (void *) &cameraViewMatrix);
 
     smokeRenderer->update(*camera, updateDt);
     smokeRenderer2->update(*camera, updateDt);
@@ -454,4 +371,15 @@ void RenderingMaster::resetLights()
 const std::vector <Light *> &RenderingMaster::getLights()
 {
     return lights;
+}
+
+void RenderingMaster::drawSky()
+{
+    glDepthMask(GL_FALSE);
+    glDisable(GL_CULL_FACE);
+
+    skyDomeEntity.getComponent(Entity::Flags::RENDERABLE)->render();
+
+    glDepthMask(GL_TRUE);
+    glEnable(GL_CULL_FACE);
 }

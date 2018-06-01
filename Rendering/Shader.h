@@ -23,16 +23,16 @@ class ShaderUniform;
 class Shader : public MemoryPoolInterface <Shader>
 {
     public:
-        Shader ();
+        Shader();
         Shader(const std::string &jsonPath);
-        Shader *construct (const std::string &jsonPath);
+        Shader *construct(const std::string &jsonPath);
         void reload();
         void bind();
         void unbind();
         GLuint getUniformLocation(const std::string &name);
-        bool updateUniform (const std::string &name, void * data);
-        bool updateUniform (const std::string &name, int data);
-        bool updateUniform (const std::string &name, float data);
+        bool updateUniform(const std::string &name, void * data);
+        bool updateUniform(const std::string &name, int data);
+        bool updateUniform(const std::string &name, float data);
         virtual ~Shader();
 
     protected:

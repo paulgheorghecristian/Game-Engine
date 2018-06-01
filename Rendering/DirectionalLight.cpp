@@ -4,8 +4,8 @@
 #include "RenderingMaster.h"
 #include "Shader.h"
 
-#define SHADOW_MAP_WIDTH 2048
-#define SHADOW_MAP_HEIGHT 2048
+#define SHADOW_MAP_WIDTH 3000
+#define SHADOW_MAP_HEIGHT 3000
 
 DirectionalLight::DirectionalLight(const Transform &transform,
                                    const glm::vec3 &color,
@@ -20,7 +20,7 @@ DirectionalLight::DirectionalLight(const Transform &transform,
     Frustum frustum;
 
     /* TODO remove hardcode */
-    MathUtils::calculateFrustum(RenderingMaster::getInstance()->getCamera(), 1.0f, 500.0f, 75.0f, 16.0f/9.0f, frustum);
+    MathUtils::calculateFrustum(RenderingMaster::getInstance()->getCamera(), 1.0f, 250.0f, 75.0f, 16.0f/9.0f, frustum);
     MathUtils::calculateFrustumSurroundingCuboid(RenderingMaster::getInstance()->getCamera(),
                                                  frustum,
                                                  m_lightDirection,
@@ -81,7 +81,7 @@ void DirectionalLight::recomputeShadowMapViewMatrix()
     Frustum frustum;
 
     /* TODO remove hardcode */
-    MathUtils::calculateFrustum(RenderingMaster::getInstance()->getCamera(), 1.0f, 500.0f, 75.0f, 16.0f/9.0f, frustum);
+    MathUtils::calculateFrustum(RenderingMaster::getInstance()->getCamera(), 1.0f, 250.0f, 75.0f, 16.0f/9.0f, frustum);
     MathUtils::calculateFrustumSurroundingCuboid(RenderingMaster::getInstance()->getCamera(),
                                                  frustum,
                                                  m_lightDirection,
