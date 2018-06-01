@@ -1,5 +1,7 @@
 #include "texture.h"
 
+#include "ErrorUtils.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
@@ -17,15 +19,41 @@ const static GLint internalFormat[][5] = {
                                             { 0, GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F }
                                         };
 
-Texture::Texture(const std::string& textureFilename,
+Texture::Texture(const std::string &textureFilename,
                  int textureUnit,
                  int numOfSubTxtsW,
-                 int numOfSubTxtsH) : textureUnit (textureUnit),
-                                      numOfSubTxtsH (numOfSubTxtsH),
-                                      numOfSubTxtsW (numOfSubTxtsW),
-                                      totalNumOfSubTxts (numOfSubTxtsH * numOfSubTxtsW) {
+                 int numOfSubTxtsH)
+{
+    ErrorCode ec;
+
+    ec = init(textureFilename, textureUnit, numOfSubTxtsW, numOfSubTxtsH);
+    assert(ec == NO_ERROR);
+}
+
+Texture::Texture(GLuint textureId, int textureUnit,
+                 int numOfSubTxtsW,
+                 int numOfSubTxtsH)
+{
+    (void) init(textureId, textureUnit);
+}
+
+ErrorCode Texture::init(const std::string &filename,
+                       int textureUnit,
+                       int numOfSubTxtsW,
+                       int numOfSubTxtsH)
+{
     int width, height, chn;
-	unsigned char *data = stbi_load (textureFilename.c_str (), &width, &height, &chn, 0);
+	unsigned char *data = stbi_load (filename.c_str(), &width, &height, &chn, 0);
+
+	if (data == NULL) {
+        print_error(FILE_NOT_FOUND, filename.c_str());
+        return FILE_NOT_FOUND;
+    }
+
+    this->textureUnit = textureUnit;
+    this->numOfSubTxtsH = numOfSubTxtsH;
+    this->numOfSubTxtsW = numOfSubTxtsW;
+    this->totalNumOfSubTxts = numOfSubTxtsH * numOfSubTxtsW;
 
 	if (numOfSubTxtsH < numOfSubTxtsW) {
         subWidth = 1.0f / numOfSubTxtsW;
@@ -34,11 +62,6 @@ Texture::Texture(const std::string& textureFilename,
         subWidth = 1.0f / numOfSubTxtsH;
         subHeight = 1.0f / numOfSubTxtsH;
 	}
-
-    if (data == NULL) {
-        std::cerr << "Loading texture " << textureFilename << " error!" << std::endl;
-        exit(1);
-    }
 
     //genereaza textura
     glGenTextures(1, &textureId);
@@ -65,11 +88,23 @@ Texture::Texture(const std::string& textureFilename,
 
     glBindTexture(GL_TEXTURE_2D, 0);
     stbi_image_free(data);
+
+    print_error(NO_ERROR, "Loading", filename.c_str());
+    return NO_ERROR;
 }
 
-Texture::Texture(GLuint textureId, int textureUnit) : textureId(textureId), textureUnit(textureUnit)
+ErrorCode Texture::init(GLuint textureId,
+                        int textureUnit,
+                        int numOfSubTxtsW,
+                        int numOfSubTxtsH)
 {
+    this->textureId = textureId;
+    this->textureUnit = textureUnit;
+    this->numOfSubTxtsH = numOfSubTxtsH;
+    this->numOfSubTxtsW = numOfSubTxtsW;
+    this->totalNumOfSubTxts = numOfSubTxtsH * numOfSubTxtsW;
 
+    return NO_ERROR;
 }
 
 Texture::~Texture()
@@ -82,31 +117,37 @@ GLuint Texture::getTextureId(){
     return textureId;
 }
 
-const int &Texture::getTextureUnit(){
+int Texture::getTextureUnit(){
     return textureUnit;
 }
 
-const int &Texture::getNumOfSubTxtsW () {
+int Texture::getNumOfSubTxtsW () {
     return numOfSubTxtsW;
 }
 
-const int &Texture::getNumOfSubTxtsH () {
+int Texture::getNumOfSubTxtsH () {
     return numOfSubTxtsH;
 }
 
-const int &Texture::getTotalNumOfSubTxts () {
+int Texture::getTotalNumOfSubTxts () {
     return totalNumOfSubTxts;
 }
 
-const float &Texture::getSubWidth () {
+float Texture::getSubWidth () {
     return subWidth;
 }
 
-const float &Texture::getSubHeight () {
+float Texture::getSubHeight () {
     return subHeight;
 }
 
-void Texture::use(){
+void Texture::use()
+{
+    Texture::use(textureUnit);
+}
+
+void Texture::use(int textureUnit)
+{
     glActiveTexture(GL_TEXTURE0 + textureUnit);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textureId);

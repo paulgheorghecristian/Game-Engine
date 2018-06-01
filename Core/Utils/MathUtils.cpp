@@ -55,11 +55,11 @@ void MathUtils::calculateFrustumSurroundingCuboid (Camera *camera,
                                                    glm::mat4 &projectionMatrix,
                                                    glm::mat4 &viewMatrix) {
     float minX, maxX, minY, maxY, minZ, maxZ;
-    glm::vec3 cameraForward = glm::normalize(camera->getForward ());
-    float xRot = glm::asin(lightDirection.y / glm::length(lightDirection));
-    float yRot = glm::atan(-lightDirection.x, -lightDirection.z);
+    float xRot = glm::asin(lightDirection.y);
+    float yRot = glm::atan(lightDirection.x, lightDirection.z);
 
-    glm::quat quatRotateX = glm::angleAxis (-xRot,
+    /* TODO don't really understand why xRot needn't be negative */
+    glm::quat quatRotateX = glm::angleAxis (xRot,
                                      glm::vec3 (1, 0, 0));
     glm::quat quatRotateY = glm::angleAxis (-yRot,
                                      glm::vec3 (0, 1, 0));
@@ -88,7 +88,7 @@ void MathUtils::calculateFrustumSurroundingCuboid (Camera *camera,
     minY = std::numeric_limits<float>::max();
     maxY = std::numeric_limits<float>::min();
 
-    for (int i = 0; i < 8; i++) {
+    for (unsigned int i = 0; i < 8; i++) {
         if (rotatedPoints[i].x < minX) {
             minX = rotatedPoints[i].x;
         }
@@ -109,33 +109,13 @@ void MathUtils::calculateFrustumSurroundingCuboid (Camera *camera,
         }
     }
 
-#if 0
-    outputCuboid.fbl = points[0];
-    outputCuboid.fbr = points[1];
-    outputCuboid.ftl = points[2];
-    outputCuboid.ftr = points[3];
-    outputCuboid.nbl = points[4];
-    outputCuboid.nbr = points[5];
-    outputCuboid.ntl = points[6];
-    outputCuboid.ntr = points[7];
-//#else
-    outputCuboid.fbl = glm::vec3(minX, minY, minZ);
-    outputCuboid.fbr = glm::vec3(maxX, minY, minZ);
-    outputCuboid.ftl = glm::vec3(minX, maxY, minZ);
-    outputCuboid.ftr = glm::vec3(maxX, maxY, minZ);
-    outputCuboid.nbl = glm::vec3(minX, minY, maxZ);
-    outputCuboid.nbr = glm::vec3(maxX, minY, maxZ);
-    outputCuboid.ntl = glm::vec3(minX, maxY, maxZ);
-    outputCuboid.ntr = glm::vec3(maxX, maxY, maxZ);
-#endif
+    float halfWidth = (maxX - minX) / 2;
+    float halfHeight = (maxY - minY) / 2;
+    float halfDepth = (maxZ - minZ) / 2;
 
-    float width = (maxX - minX) / 2;
-    float height = (maxY - minY) / 2;
-    float depth = (maxZ - minZ) / 2;
-
-    projectionMatrix = glm::ortho (-width, width,
-                                   -height, height,
-                                   -depth, depth);
+    projectionMatrix = glm::ortho (-halfWidth, halfWidth,
+                                   -halfHeight, halfHeight,
+                                   -halfDepth, halfDepth);
 
     viewMatrix = glm::mat4_cast (allRot);
     viewMatrix = glm::translate(viewMatrix, -inputFrustum.center);

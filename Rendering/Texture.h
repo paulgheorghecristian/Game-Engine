@@ -4,6 +4,7 @@
 #include <string>
 #include <GL/glew.h>
 #include <iostream>
+#include "ErrorUtils.h"
 
 class Texture
 {
@@ -12,17 +13,30 @@ class Texture
                  int textureUnit,
                  int numOfSubTxtsW = 1,
                  int numOfSubTxtsH = 1);
-        Texture (GLuint textureId, int textureUnit);
-        GLuint getTextureId();
-        const int &getTextureUnit();
-        void use();
-        virtual ~Texture();
+        Texture (GLuint textureId = -1, int textureUnit = -1,
+                 int numOfSubTxtsW = 1,
+                 int numOfSubTxtsH = 1);
+        ~Texture();
 
-        const int &getNumOfSubTxtsW ();
-        const int &getNumOfSubTxtsH ();
-        const int &getTotalNumOfSubTxts ();
-        const float &getSubWidth ();
-        const float &getSubHeight ();
+        ErrorCode init(const std::string &filename,
+                       int textureUnit,
+                       int numOfSubTxtsW = 1,
+                       int numOfSubTxtsH = 1);
+        ErrorCode init(GLuint textureId,
+                       int textureUnit,
+                       int numOfSubTxtsW = 1,
+                       int numOfSubTxtsH = 1);
+
+        void use();
+        void use(int textureUnit);
+
+        GLuint getTextureId();
+        int getTextureUnit();
+        int getNumOfSubTxtsW ();
+        int getNumOfSubTxtsH ();
+        int getTotalNumOfSubTxts ();
+        float getSubWidth ();
+        float getSubHeight ();
 
     protected:
     private:

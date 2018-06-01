@@ -15,13 +15,13 @@ RenderComponent::RenderComponent(Mesh * mesh,
     bool hasNormalMap = false;
 
     if (texture != NULL) {
-        result &= shader->updateUniform ("textureSampler", (void *) &texture->getTextureUnit());
+        result &= shader->updateUniform ("textureSampler", texture->getTextureUnit());
         hasTexture = true;
         this->material.setAmbient(glm::vec3(1));
     }
 
     if (normalMapTexture != NULL) {
-        result &= shader->updateUniform ("normalMapSampler", (void *) &normalMapTexture->getTextureUnit());
+        result &= shader->updateUniform ("normalMapSampler", normalMapTexture->getTextureUnit());
         hasNormalMap = true;
     }
 
@@ -59,12 +59,12 @@ void RenderComponent::render (Shader *externShader) {
         result &= externShader->updateUniform ("material.shininess", (void *) &material.getShininess());
 
         if (texture != NULL) {
-            result &= externShader->updateUniform ("textureSampler", (void *) &texture->getTextureUnit());
+            result &= externShader->updateUniform ("textureSampler", texture->getTextureUnit());
             hasTexture = true;
         }
 
         if (normalMapTexture != NULL) {
-            result &= externShader->updateUniform ("normalMapSampler", (void *) &normalMapTexture->getTextureUnit());
+            result &= externShader->updateUniform ("normalMapSampler", normalMapTexture->getTextureUnit());
             hasNormalMap = true;
         }
 
@@ -73,9 +73,7 @@ void RenderComponent::render (Shader *externShader) {
     }
 
     result &= externShader->updateUniform ("modelMatrix", (void *) &_entity->getTransform().getModelMatrix());
-    if (externShader != &RenderingMaster::getInstance()->deferredShading_StencilBufferCreator) {
-        result &= externShader->updateUniform ("viewMatrix", (void *) &RenderingMaster::getInstance()->getCamera()->getViewMatrix());
-    }
+
     externShader->bind ();
     if (texture != NULL) {
         texture->use();

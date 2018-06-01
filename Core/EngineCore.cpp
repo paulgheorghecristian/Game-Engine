@@ -3,7 +3,9 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include "ParticleRenderer.h"
 #include "ParticleFactory.h"
-#include "Light.h"
+#include "SpotLight.h"
+#include "DirectionalLight.h"
+#include "PointLight.h"
 
 EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     //create renderingmaster, physicsmaster and entities
@@ -53,13 +55,6 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     aspectRatio = (float) display->getWidth() / (float ) display->getHeight();
     inputManager.setWarpMouse (this->warpMouse);
     SDL_ShowCursor(this->showMouse);
-
-    Light::setPointMesh(Mesh::loadObject("res/models/lightSphere.obj"));
-    Light::setSpotMesh(Mesh::loadObject("res/models/SpotLightMesh5.obj"));
-    Light::setDirectionalMesh(Mesh::getRectangle());
-
-    Light::depthTextureFBDirLight = new FrameBuffer (2048, 2048, 1);
-    Light::depthTextureDirLight = new Texture (Light::depthTextureFBDirLight->getDepthTextureId(), 8);
 
     RenderingMaster::init (display,
                            new Camera (glm::vec3(-500, 0, 0), 0, 0, 0),
@@ -177,6 +172,11 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
 
     RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
     RenderingMaster::getInstance()->smokeRenderer2 = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone2.json");
+    RenderingMaster::getInstance()->addLightToScene(new DirectionalLight(Transform(glm::vec3(0),
+                                                                         glm::vec3(0),
+                                                                         glm::vec3(0)),
+                                                                         RenderingMaster::sunLightColor,
+                                                                         RenderingMaster::sunLightDirection));
 }
 
 void EngineCore::start() {
@@ -210,12 +210,11 @@ void EngineCore::start() {
             PT_Reset("render");
             PT_Reset("renderScene");
             PT_Reset("lightAcc");
-            PT_Reset("computeDepthTexture");
+            PT_Reset("computeDepthTextureForLight");
             PT_Reset("swapBuffers");
             PT_Reset("particleDraw");
             PT_Reset("buffersDraw");
             PT_Reset("GUIRender");
-            PT_Reset("computeDepthTextureDirLight");
             #if 0
             std::cout << "----------------------" << std::endl;
             #endif
@@ -325,26 +324,23 @@ void EngineCore::input() {
     if (inputManager.getKeyDown (SDLK_q)) {
         glm::vec3 cameraPosition = RenderingMaster::getInstance()->getCamera()->getPosition();
         glm::vec3 cameraRotation = RenderingMaster::getInstance()->getCamera()->getRotation();
-        Light *newLight = new Light (Light::LightType::SPOT,
-                                    glm::vec3(1.0f, 0.6f, 1.0f),
-                                    Transform(cameraPosition,
-                                              glm::degrees(cameraRotation),
-                                              glm::vec3(300.0f, 300.0f, 400.0f)));
-        RenderingMaster::getInstance()->addLightToScene(newLight);
+        RenderingMaster::getInstance()->addLightToScene(new SpotLight(Transform(cameraPosition,
+                                                                  glm::degrees(cameraRotation),
+                                                                  glm::vec3(300.0f, 300.0f, 400.0f)),
+                                                        glm::vec3(1.0f, 0.8f, 1.0f)));
     }
 
     if (inputManager.getKeyDown (SDLK_e)) {
         glm::vec3 cameraPosition = RenderingMaster::getInstance()->getCamera()->getPosition();
-        RenderingMaster::getInstance()->addLightToScene(new Light (Light::LightType::POINT,
-                                                    glm::vec3(1.0f, 0.0f, 0.0f),
-                                                    Transform(cameraPosition,
-                                                              glm::vec3(0),
-                                                              glm::vec3(500.0f))));
+        RenderingMaster::getInstance()->addLightToScene(new PointLight(Transform(cameraPosition,
+                                                                                  glm::vec3(0),
+                                                                                  glm::vec3(500.0f)),
+                                                                       glm::vec3(1.0f, 0.0f, 0.0f)));
 
     }
 
     if (inputManager.getKeyDown (SDLK_r)) {
-        RenderingMaster::getInstance()->resetLights ();
+        RenderingMaster::getInstance()->resetLights();
         RenderingMaster::getInstance()->smokeRenderer->getRenderingShader().reload();
 
         delete RenderingMaster::getInstance()->smokeRenderer;
@@ -377,56 +373,41 @@ void EngineCore::input() {
 }
 
 void EngineCore::render() {
-    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-    //glDisable(GL_CULL_FACE);
     /*generate deferred shading buffers*/
     PT_FromHere("renderScene");
     RenderingMaster::getInstance()->getGBuffer().bindForScene();
     RenderingMaster::getInstance()->clearScreen (1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (unsigned int i = 0; i < entities.size(); i++) {
+    for (auto entity : entities) {
         RenderComponent *renderComponent;
         if ((renderComponent =
-             (RenderComponent *) (entities[i]->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
+             (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
             renderComponent->render(&RenderingMaster::getInstance()->deferredShading_SceneShader);
         }
     }
-    //glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     RenderingMaster::getInstance()->getGBuffer().unbind();
     PT_ToHere("renderScene");
     /*end generate deferred shading buffers*/
 
     const std::vector <Light *> &lights = RenderingMaster::getInstance ()->getLights ();
-    PT_FromHere("computeDepthTexture");
+    PT_FromHere("computeDepthTextureForLight");
 
-    /* begin drawing the spot light depth map for each spot light*/
+    /* begin drawing the spot light depth map for each light*/
     for (Light *light : lights) {
-        if (light->getLightType() == Light::LightType::SPOT) {
-            RenderingMaster::getInstance()->beginCreateDepthTextureForSpotLight(light);
+        if (light->isCastingShadow()) {
+            RenderingMaster::getInstance()->beginCreateDepthTextureForLight(light);
             for (auto entity : entities) {
                 RenderComponent *renderComponent;
                 if ((renderComponent =
                      static_cast<RenderComponent *> (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
-                    renderComponent->render(&RenderingMaster::getInstance()->deferredShading_StencilBufferCreator);
+                    renderComponent->render(&RenderingMaster::getInstance()->depthMapCreator);
                 }
             }
-            RenderingMaster::getInstance()->endCreateDepthTextureForSpotLight(light);
+            RenderingMaster::getInstance()->endCreateDepthTextureForLight(light);
         }
     }
-    /* end drawing the spot light depth map */
-    PT_ToHere("computeDepthTexture");
-
-    PT_FromHere("computeDepthTextureDirLight");
-    RenderingMaster::getInstance()->beginCreateDepthTextureForDirLight();
-    for (unsigned int i = 0; i < entities.size(); i++) {
-        RenderComponent *renderComponent;
-        if ((renderComponent =
-             static_cast<RenderComponent *> (entities[i]->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
-            renderComponent->render(&RenderingMaster::getInstance()->deferredShading_StencilBufferCreator);
-        }
-    }
-    RenderingMaster::getInstance()->endCreateDepthTextureForDirLight();
-    PT_ToHere("computeDepthTextureDirLight");
+    /* end drawing the light depth map */
+    PT_ToHere("computeDepthTextureForLight");
 
     PT_FromHere("lightAcc");
     RenderingMaster::getInstance()->createLightAccumulationBuffer();
@@ -435,11 +416,11 @@ void EngineCore::render() {
     RenderingMaster::getInstance()->getGBuffer().unbind();
 
     PT_FromHere("particleDraw");
-    RenderingMaster::getInstance ()->particleForwardRenderFramebuffer.bindAllRenderTargets ();
-    RenderingMaster::getInstance ()->depthTexture->use ();
-    RenderingMaster::getInstance ()->smokeRenderer->draw ();
-    RenderingMaster::getInstance ()->smokeRenderer2->draw();
-    RenderingMaster::getInstance ()->particleForwardRenderFramebuffer.unbind ();
+    RenderingMaster::getInstance()->particleForwardRenderFramebuffer.bindAllRenderTargets();
+    RenderingMaster::getInstance()->depthTexture->use();
+    RenderingMaster::getInstance()->smokeRenderer->draw();
+    RenderingMaster::getInstance()->smokeRenderer2->draw();
+    RenderingMaster::getInstance()->particleForwardRenderFramebuffer.unbind();
     PT_ToHere("particleDraw");
 
     PT_FromHere("buffersDraw");

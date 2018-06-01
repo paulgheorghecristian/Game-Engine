@@ -9,6 +9,8 @@ uniform sampler2D eyeSpaceNormalSampler;
 uniform sampler2D depthSampler;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
+uniform vec3 cameraForwardVector;
+uniform vec3 cameraForwardVectorEyeSpace;
 
 uniform mat4 dirLightProjMatrix, dirLightViewMatrix;
 
@@ -23,6 +25,8 @@ const float depthMapTexelSize = 1.0f/2048.0f; /* TODO remove hardcode */
 /* TODO remove hardcode */
 const float maxDist = 500.0f;
 
+flat in vec3 lightDirectionEyeSpace;
+
 void main() {
     vec3 view = vec3(viewRay.xy/-viewRay.z, -1.0);
     vec2 texCoord = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
@@ -31,14 +35,16 @@ void main() {
     vec3 viewPosition = view * eyeZ;
     vec3 eyeSpaceNormal = texture (eyeSpaceNormalSampler, texCoord).rgb * 2.0 - vec3(1);
     mat4 inverseViewMatrix = inverse(viewMatrix);
+    bool getLight;
 
-    float lightIntensity = max(0.2, dot(normalize(mat3(viewMatrix) * -lightDirection), eyeSpaceNormal));
+    float dotProd = dot(lightDirectionEyeSpace, eyeSpaceNormal);
+    float lightIntensity = max(0.0, dotProd);
 
     vec4 dirLightClip = (dirLightProjMatrix * dirLightViewMatrix * inverseViewMatrix * vec4(viewPosition, 1.0));
     vec3 dirLightNDC = dirLightClip.xyz / dirLightClip.w;
     vec3 dirLightNDCNormalized = dirLightNDC.xyz * 0.5f + 0.5f;
 
-    float eyeZObjectDepth = -1.0f/(dirLightNDCNormalized.z);
+    float eyeZObjectDepth = dirLightNDCNormalized.z;
     float cutOff = 1.0f - eyeZ / maxDist;
     cutOff = clamp(cutOff, 0.0, 1.0);
     float totalPixelsInShadow = 0;
@@ -47,7 +53,7 @@ void main() {
     for (int i = -PCFStartingIndex; i <= PCFStartingIndex; i++) {
         for (int j = -PCFStartingIndex; j <= PCFStartingIndex; j++) {
             float currentDepth = texture (dirLightDepthSampler, dirLightNDCNormalized.xy + vec2(depthMapTexelSize*i, depthMapTexelSize*j)).x;
-            float eyeZODepthMap = -1.0f/(currentDepth);
+            float eyeZODepthMap = currentDepth;
 
             if (eyeZODepthMap < eyeZObjectDepth) {
                 totalPixelsInShadow++;
@@ -57,5 +63,16 @@ void main() {
 
     lightStrength = 1.0f - (cutOff*(totalPixelsInShadow / PCFKernelSize));
 
-    outLight = lightIntensity * lightColor * lightStrength;
+    vec3 H = normalize(lightDirectionEyeSpace + (-cameraForwardVectorEyeSpace));
+    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 50.0);
+    getLight = dotProd > 0;
+
+    vec3 diffuseLight = lightIntensity * lightColor;
+    vec3 specularLight = specularStrength * lightColor;
+
+    outLight = diffuseLight;
+    if (getLight)
+        outLight += specularLight;
+
+    outLight *= lightStrength;
 }

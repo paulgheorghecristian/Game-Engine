@@ -174,7 +174,20 @@ bool Shader::updateUniform (const std::string &name, int data) {
         uniform->updateUniform (&data);
         return true;
     } else {
-        assert(false);
+        //assert(false);
+        return false;
+    }
+}
+
+bool Shader::updateUniform (const std::string &name, float data) {
+    ShaderUniform *uniform = uniforms[name];
+
+    if (uniform != NULL) {
+        assert (uniform->getUniformType() == UNIFORM_FLOAT);
+        uniform->updateUniform (&data);
+        return true;
+    } else {
+        //assert(false);
         return false;
     }
 }

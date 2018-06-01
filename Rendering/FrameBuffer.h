@@ -5,19 +5,26 @@
 #include <GL/glew.h>
 #include <iostream>
 #include <cassert>
+#include "ErrorUtils.h"
 
 class FrameBuffer
 {
     public:
-        FrameBuffer (int width, int height, unsigned int numOfRenderTargets);
+        FrameBuffer(int width, int height, unsigned int numOfRenderTargets);
+        FrameBuffer();
+        ~FrameBuffer();
+
+        ErrorCode init(int width, int height, unsigned int numOfRenderTargets);
+
         void bindAllRenderTargets();
         void bindSingleRenderTarget (unsigned int index);
         void unbind();
+
         unsigned int getNumOfRenderTargets();
         GLuint getDepthTextureId();
         GLuint getFrameBufferObject();
         const std::vector<GLuint> &getRenderTargets();
-        virtual ~FrameBuffer();
+
     protected:
     private:
         int width, height;

@@ -1,11 +1,25 @@
 #include "FrameBuffer.h"
 
-FrameBuffer::FrameBuffer (int width, int height, unsigned int numOfRenderTargets) : width (width),
-                                                                                    height (height),
-                                                                                    numOfRenderTargets (numOfRenderTargets),
-                                                                                    renderTargets (numOfRenderTargets) {
+FrameBuffer::FrameBuffer() : width(-1), height(-1), numOfRenderTargets(-1)
+{
+}
 
+FrameBuffer::FrameBuffer(int width, int height, unsigned int numOfRenderTargets)
+{
+    ErrorCode ec;
+
+    ec = init(width, height, numOfRenderTargets);
+    assert(ec == NO_ERROR);
+}
+
+ErrorCode FrameBuffer::init(int width, int height, unsigned int numOfRenderTargets)
+{
     glGetIntegerv (GL_VIEWPORT, previousViewport);
+
+    this->width = width;
+    this->height = height;
+    this->numOfRenderTargets = numOfRenderTargets;
+    this->renderTargets.resize(numOfRenderTargets);
 
     //generare framebuffer
     glGenFramebuffers (1, &frameBufferId);
@@ -39,15 +53,19 @@ FrameBuffer::FrameBuffer (int width, int height, unsigned int numOfRenderTargets
     glFramebufferTexture (GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthBufferId, 0);
 
     if (glCheckFramebufferStatus (GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "Framebuffer isn't complete!" << glCheckFramebufferStatus(GL_FRAMEBUFFER) << std::endl;
-        exit(1);
+        print_error(OPENGL_ERROR, "Framebuffer is incomplete");
+        return OPENGL_ERROR;
     }
 
     glBindFramebuffer (GL_FRAMEBUFFER, 0);
     glBindTexture (GL_TEXTURE_2D, 0);
+
+    return NO_ERROR;
 }
 
-void FrameBuffer::bindSingleRenderTarget (unsigned int index) {
+
+void FrameBuffer::bindSingleRenderTarget (unsigned int index)
+{
     assert (index >= 0 && index < numOfRenderTargets);
 
     GLenum buffer[]= {GL_COLOR_ATTACHMENT0 + index};
@@ -61,7 +79,8 @@ void FrameBuffer::bindSingleRenderTarget (unsigned int index) {
     glViewport (0, 0, width, height);
 }
 
-void FrameBuffer::bindAllRenderTargets() {
+void FrameBuffer::bindAllRenderTargets()
+{
     //bind-eaza acest framebuffer si deseneaza pe el, nu pe cel default
     //glGetIntegerv(GL_VIEWPORT, previousViewport);
 
@@ -84,23 +103,28 @@ void FrameBuffer::unbind() {
     glViewport (previousViewport[0], previousViewport[1], previousViewport[2], previousViewport[3]);
 }
 
-unsigned int FrameBuffer::getNumOfRenderTargets() {
+unsigned int FrameBuffer::getNumOfRenderTargets()
+{
     return renderTargets.size();
 }
 
-const std::vector<GLuint> &FrameBuffer::getRenderTargets() {
+const std::vector<GLuint> &FrameBuffer::getRenderTargets()
+{
     return renderTargets;
 }
 
-GLuint FrameBuffer::getDepthTextureId() {
+GLuint FrameBuffer::getDepthTextureId()
+{
     return depthBufferId;
 }
 
-GLuint FrameBuffer::getFrameBufferObject() {
+GLuint FrameBuffer::getFrameBufferObject()
+{
     return frameBufferId;
 }
 
-FrameBuffer::~FrameBuffer() {
+FrameBuffer::~FrameBuffer()
+{
     unbind ();
     glDeleteFramebuffers (1, &frameBufferId);
 }

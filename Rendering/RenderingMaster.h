@@ -43,18 +43,17 @@ class RenderingMaster
         Shader deferredShading_SceneShader;
         Shader deferredShading_BufferCombinationShader;
         Shader deferredShading_StencilBufferCreator;
+        Shader depthMapCreator;
 
         void drawDeferredShadingBuffers();
         void createLightAccumulationBuffer();
 
         void addLightToScene (Light *light);
         void resetLights ();
-        void beginCreateDepthTextureForSpotLight(Light *light);
-        void endCreateDepthTextureForSpotLight(Light *light);
+        void beginCreateDepthTextureForLight(Light *light);
+        void endCreateDepthTextureForLight(Light *light);
 
-        void beginCreateDepthTextureForDirLight();
-        void endCreateDepthTextureForDirLight();
-        static glm::vec3 dirLightColor, dirLightDirection;
+        static glm::vec3 sunLightColor, sunLightDirection;
 
         const std::vector <Light *> &getLights();
         /* TODO make these private */
@@ -85,8 +84,6 @@ class RenderingMaster
 
         Texture *albedoTexture, *normalTexture, *lightAccumulationTexture;
         Texture *blurredLightAccTexture;
-        Shader deferredShading_LightAccumulationBufferCreator;
-        Shader deferredShading_LightAccumulationBufferCreatorDirLight;
         Mesh *screenSizeRectangle;
 
         void computeStencilBufferForLight(Light *light);

@@ -17,5 +17,5 @@ void main(){
     viewPosition = viewMatrix * modelMatrix * vec4(inPosition, 1.0);
     viewRay = viewPosition.xyz;
     lightPositionEyeSpace = (viewMatrix * vec4(lightPosition, 1.0)).xyz;
-	gl_Position = projectionMatrix * viewPosition;
+    gl_Position = projectionMatrix * viewPosition;
 }

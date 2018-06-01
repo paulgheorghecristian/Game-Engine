@@ -3,51 +3,63 @@
 
 #include "Transform.h"
 #include "Mesh.h"
-#include "Shader.h"
 #include "FrameBuffer.h"
 #include "Texture.h"
 #include "Camera.h"
 
-#define LIGHT_CUTOFF_OFFSET 50
+class Shader;
 
 class Light
 {
     public:
-        enum LightType {
-            DIRECTIONAL = 1,
-            POINT,
-            SPOT
-        };
-        Light(LightType type, glm::vec3 color, const Transform &transform);
-        void render(Shader &shader);
-        static void setPointMesh (Mesh *pointMesh);
-        static void setSpotMesh (Mesh *spotMesh);
-        static void setDirectionalMesh (Mesh *directionalMesh);
-        Transform &getTransform();
-        Light::LightType getLightType();
-        const glm::mat4 &getSpotLightPerspectiveMatrix();
-        const glm::mat4 &getSpotLightViewMatrix();
-        FrameBuffer &getDepthTextureFrameBufferForSpotLight();
-        Texture &getDepthTextureForSpotLight();
-        void recomputeSpotLightViewMatrix();
+        Light(const Transform &transform,
+              const glm::vec3 &color,
+              int depthMapWidth, int depthMapHeight,
+              bool casts_shadow = false,
+              bool needs_stencil = true);
+
+        Light(const Transform &transform,
+              const glm::vec3 &color,
+              bool casts_shadow = false,
+              bool needs_stencil = true);
         virtual ~Light();
 
-        static glm::mat4 dirLightProjMatrix, dirLightViewMatrix;
-        static FrameBuffer *depthTextureFBDirLight;
-        static Texture *depthTextureDirLight;
+        virtual void update();
+
+        virtual void render(Shader &shader) = 0;
+        virtual void render() = 0;
+        virtual void recomputeShadowMapViewMatrix();
+        virtual void recomputeShadowMapProjectionMatrix();
+
+        Transform &getTransform();
+        const glm::mat4 &getShadowMapProjectionMatrix();
+        const glm::mat4 &getShadowMapViewMatrix();
+        FrameBuffer &getShadowMapFrameBuffer();
+        Texture &getShadowMapTexture();
+
+        inline bool isCastingShadow()
+        {
+            return m_casts_shadow;
+        }
+        inline void setCastShadow(bool flag)
+        {
+            m_casts_shadow = flag;
+        }
+        inline bool needsStencilTest()
+        {
+            return m_needs_stencil_test;
+        }
+
     protected:
-    private:
-        LightType m_type;
         Transform m_transform;
         glm::vec3 m_lightColor;
 
-        glm::mat4 m_spotLightPerspectiveMatrix, m_spotLightViewMatrix;
-        FrameBuffer m_depthTextureFrameBufferForSpotLight;
-        Texture m_depthTextureForSpotLight;
+        glm::mat4 m_shadowMapProjectionMatrix, m_shadowMapViewMatrix;
+        FrameBuffer m_shadowMapFrameBuffer;
+        Texture m_shadowMapTexture;
 
-        static Mesh *pointMesh;
-        static Mesh *spotMesh;
-        static Mesh *directionalMesh;
+        bool m_casts_shadow, m_needs_stencil_test;
+    private:
 };
 
 #endif // LIGHT_H

@@ -152,11 +152,11 @@ ParticleRenderer<P>::ParticleRenderer(const glm::mat4 &projectionMatrix,
     result &= getRenderingShader().updateUniform ("depthSampler", 3);
     result &= getRenderingShader().updateUniform ("projectionMatrix", (void *) &projectionMatrix);
     result &= getRenderingShader().updateUniform ("liveForInMs", (void *) &P::getLiveForInMs ());
-    result &= getRenderingShader().updateUniform ("totalNumOfSubTxts", (void *) &P::getTexture().getTotalNumOfSubTxts ());
-    result &= getRenderingShader().updateUniform ("numOfSubTxtsH", (void *) &P::getTexture().getNumOfSubTxtsH ());
-    result &= getRenderingShader().updateUniform ("numOfSubTxtsW", (void *) &P::getTexture().getNumOfSubTxtsW ());
-    result &= getRenderingShader().updateUniform ("subWidth", (void *) &P::getTexture().getSubWidth ());
-    result &= getRenderingShader().updateUniform ("subHeight", (void *) &P::getTexture().getSubHeight());
+    result &= getRenderingShader().updateUniform ("totalNumOfSubTxts", P::getTexture().getTotalNumOfSubTxts ());
+    result &= getRenderingShader().updateUniform ("numOfSubTxtsH", P::getTexture().getNumOfSubTxtsH ());
+    result &= getRenderingShader().updateUniform ("numOfSubTxtsW", P::getTexture().getNumOfSubTxtsW ());
+    result &= getRenderingShader().updateUniform ("subWidth", P::getTexture().getSubWidth());
+    result &= getRenderingShader().updateUniform ("subHeight", P::getTexture().getSubHeight());
     result &= getRenderingShader().updateUniform ("screenHeight", (void *) &screenHeight);
     result &= getRenderingShader().updateUniform ("screenWidth", (void *) &screenWidth);
 
