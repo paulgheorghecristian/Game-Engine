@@ -6,6 +6,8 @@
 #include "SpotLight.h"
 #include "DirectionalLight.h"
 #include "PointLight.h"
+#include <chrono>
+#include <thread>
 
 EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     //create renderingmaster, physicsmaster and entities

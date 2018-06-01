@@ -27,11 +27,9 @@ vec3 spotLightDepth() {
     return vec3(t2, t2, t2);
 }
 vec3 color() {
-    vec4 particlesColor = particles ();
     vec3 albedoColor = texture(colorSampler, textureCoords).xyz;
 
-   // return particlesColor.xyz + albedoColor * (1.0 - particlesColor.a);
-   return albedoColor;
+    return albedoColor;
 }
 vec3 worldNormal() {
     return texture(normalSampler, textureCoords).xyz;
@@ -56,12 +54,12 @@ void main() {
     if (outputType == 3) outColor = vec4 (depth(), 1);
 	if (outputType == 4) outColor = vec4 (lightAccumulation(), 1);
 	if (outputType == 5) {
-        vec3 finalColor = color() * lightAccumulation();
+        vec3 finalColor = color() * lightAccumulation() + blurredLightAcc();
         vec4 part = particles ();
         finalColor = part.xyz + finalColor * (1.0 - part.a);
-        outColor = vec4 (finalColor + blurredLightAcc(), 1);
+        outColor = vec4 (finalColor, 1);
     }
-    if (outputType == 6) outColor =  vec4(blurredLightAcc(), 1);
+    if (outputType == 6) outColor = vec4(blurredLightAcc(), 1);
     if (outputType == 7) outColor = vec4 (spotLightDepth(), 1);
     if (outputType == 8) outColor = vec4(dirLightDepthMap(), 1);
 }
