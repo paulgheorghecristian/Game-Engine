@@ -8,6 +8,7 @@
                     "depthSampler" : "INT",
                     "lightColor" : "VEC3",
                     "lightPosition" : "VEC3",
+                    "cameraPosition" : "VEC3",
                     "screenWidth" : "INT",
                     "screenHeight" : "INT",
                     "volumetricLightDepthSampler" : "INT",

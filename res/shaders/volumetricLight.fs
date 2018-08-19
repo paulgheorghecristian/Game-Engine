@@ -14,6 +14,7 @@ uniform vec3 lightPosition;
 //uniform vec3 lightDir;
 //uniform vec3 lightRadius;
 uniform int screenWidth, screenHeight;
+uniform vec3 cameraPosition;
 
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
@@ -22,14 +23,16 @@ uniform mat4 projectionMatrix;
 in vec3 viewRay;
 flat in vec3 lightPositionEyeSpace;
 
-const int numSamplePoints = 60;
+const int numSamplePoints = 100;
 const float lightRadius = 600;
 const float alpha = 0.3;
 
+in vec3 positionModelSpace;
+
 bool coneIntersection(vec3 rayDir, inout float t1, inout float t2)
 {
-    vec3 lightDir = normalize(mat3(viewMatrix) * mat3(modelMatrix) * vec3(0,0,-1));
-    vec3 negateLightPositionEyeSpace = -(lightPositionEyeSpace);
+    vec3 lightDir = normalize(mat3(modelMatrix) * vec3(0,0,-1));
+    vec3 negateLightPositionEyeSpace = cameraPosition - lightPosition;
     float cos_alpha2 = pow(cos(alpha), 2); // 0.91266780745 = cos(0.3) ^ 2
     float light_ray_dot = dot(lightDir, rayDir);
     float light_pos_dir_dot = dot(negateLightPositionEyeSpace, lightDir);
@@ -56,7 +59,7 @@ bool coneIntersection(vec3 rayDir, inout float t1, inout float t2)
 
 bool sphereIntersection(vec3 rayDir, inout float t1, inout float t2)
 {
-    vec3 negateLightPositionEyeSpace = -(lightPositionEyeSpace);
+    vec3 negateLightPositionEyeSpace = cameraPosition - lightPosition;
     float a = 1;
     float b = 2.0 * dot(rayDir, negateLightPositionEyeSpace);
     float c = dot(negateLightPositionEyeSpace,negateLightPositionEyeSpace) - lightRadius * lightRadius;
@@ -79,29 +82,26 @@ bool sphereIntersection(vec3 rayDir, inout float t1, inout float t2)
 bool spotLightIntersection(vec3 rayDir, inout float tmin, inout float tmax)
 {
     float tc1, tc2, ts1, ts2;
-    /* why does this need to be normalized?? */
-    /* it's in view space, the same for eyeZNorm */
-    rayDir = normalize(rayDir);
     bool coneIntersect = coneIntersection(rayDir, tc1, tc2);
     if (!coneIntersect)
         return false;
     bool sphereIntersect = false;
 
-    vec3 lightDir = normalize(mat3(viewMatrix) * mat3(modelMatrix) * vec3(0,0,-1));
+    vec3 lightDir = normalize(mat3(modelMatrix) * vec3(0,0,-1));
 
     sphereIntersect = sphereIntersection(rayDir, ts1, ts2);
     if (!sphereIntersect)
         return false;
 
-	vec3 c1 = rayDir * tc1;
-	vec3 c2 = rayDir * tc2;
-	vec3 s1 = rayDir * ts1;
-	vec3 s2 = rayDir * ts2;
+	vec3 c1 = cameraPosition + rayDir * tc1;
+	vec3 c2 = cameraPosition + rayDir * tc2;
+	vec3 s1 = cameraPosition + rayDir * ts1;
+	vec3 s2 = cameraPosition + rayDir * ts2;
 
-	vec3 coneToC1 = c1 - lightPositionEyeSpace;
-	vec3 coneToC2 = c2 - lightPositionEyeSpace;
-	vec3 coneToS1 = s1 - lightPositionEyeSpace;
-	vec3 coneToS2 = s2 - lightPositionEyeSpace;
+	vec3 coneToC1 = c1 - lightPosition;
+	vec3 coneToC2 = c2 - lightPosition;
+	vec3 coneToS1 = s1 - lightPosition;
+	vec3 coneToS2 = s2 - lightPosition;
 
 	float hits[4]; // Needs 4 for literal edge cases.
 	int index = 0;
@@ -146,21 +146,37 @@ void main() {
 
     mat4 inverseViewMatrix = inverse(viewMatrix);
 
-    bool spotIntersect = spotLightIntersection(-view, tmin, tmax);
+    vec3 ray = normalize(positionModelSpace - cameraPosition);
+
+    bool spotIntersect = spotLightIntersection(ray, tmin, tmax);
 
     if (!spotIntersect) {
         discard;
     }
 
-    tmin = -tmin;//* 0.53;
-    tmax = -tmax;
+    vec4 worldPosMin = vec4(cameraPosition + ray*tmin, 1.0);
+    vec4 worldPosMinClip = (projectionMatrix * viewMatrix * worldPosMin);
+    vec3 worldPosMinNDC = worldPosMinClip.xyz / worldPosMinClip.w;
+    vec3 worldPosMinNDCNormalized = worldPosMinNDC.xyz;;
 
-    if (tmax < eyeZNorm) {
-        tmax = eyeZNorm;
+    float eyeZMin = worldPosMinNDCNormalized.z;
+    float linearMinDepth = -projectionMatrix[3][2]/(eyeZMin + projectionMatrix[2][2]);
+
+    vec4 worldPosMax = vec4(cameraPosition + ray*tmax, 1.0);
+    vec4 worldPosMaxClip = (projectionMatrix * viewMatrix * worldPosMax);
+    vec3 worldPosMaxNDC = worldPosMaxClip.xyz / worldPosMaxClip.w;
+    vec3 worldPosMaxNDCNormalized = worldPosMaxNDC.xyz;
+
+    float eyeZMax = worldPosMaxNDCNormalized.z;
+    float linearMaxDepth = -projectionMatrix[3][2]/(eyeZMax + projectionMatrix[2][2]);
+
+    if (linearMinDepth < eyeZNorm) {
+        discard;
     }
 
-    if (tmin < eyeZNorm) {
-        discard;
+    if (linearMaxDepth < eyeZNorm) {
+        vec4 modelPos = inverseViewMatrix * vec4(view * eyeZNorm, 1.0);
+        tmax = length(modelPos.xyz - cameraPosition);
     }
 
     float rayLength = abs(tmax - tmin);
@@ -169,10 +185,10 @@ void main() {
     float begin = (rayLength == 0 ? numSamplePoints : 0);
 
     for (float t = begin; t <= numSamplePoints; t++) {
-        float currentT = tmin - sampleLength * t;
+        float currentT = tmin + sampleLength * t;
         vec3 viewPositionLocal = view * currentT;
 
-        vec4 worldPosition = (inverseViewMatrix * vec4(viewPositionLocal, 1.0));
+        vec4 worldPosition = vec4(cameraPosition + ray*currentT, 1.0);//inverseViewMatrix * vec4(viewPositionLocal, 1.0));
         vec4 volumetricLightClip = (volumetricLightProjectionMatrix * volumetricLightViewMatrix * worldPosition);
         vec3 volumetricLightNDC = volumetricLightClip.xyz / volumetricLightClip.w;
         vec3 volumetricLightNDCNormalized = volumetricLightNDC.xyz * 0.5f + 0.5f;

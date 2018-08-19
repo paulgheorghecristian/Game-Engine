@@ -9,14 +9,16 @@ uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform vec3 lightPosition;
 
-out vec3 viewRay;
+out vec3 positionModelSpace;
 flat out vec3 lightPositionEyeSpace;
+out vec3 viewRay;
 
 void main(){
     vec4 viewPosition;
 
     viewPosition = viewMatrix * modelMatrix * vec4(inPosition, 1.0);
     viewRay = viewPosition.xyz;
+    positionModelSpace = (modelMatrix * vec4(inPosition, 1.0)).xyz;
     lightPositionEyeSpace = (viewMatrix * vec4(lightPosition, 1.0)).xyz;
 
     gl_Position = projectionMatrix * viewPosition;
