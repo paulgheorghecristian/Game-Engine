@@ -1,0 +1,18 @@
+{
+    "VSPath" : "res/shaders/volumetricLight.vs",
+    "FSPath" : "res/shaders/volumetricLight.fs",
+    "Uniforms" : {
+                    "modelMatrix" : "MAT4",
+                    "viewMatrix" : "MAT4",
+                    "projectionMatrix" : "MAT4",
+                    "depthSampler" : "INT",
+                    "lightColor" : "VEC3",
+                    "lightPosition" : "VEC3",
+                    "screenWidth" : "INT",
+                    "screenHeight" : "INT",
+                    "volumetricLightDepthSampler" : "INT",
+                    "volumetricLightProjectionMatrix" : "MAT4",
+                    "volumetricLightViewMatrix" : "MAT4",
+                    "blueNoiseSampler" : "INT"
+                 }
+}
