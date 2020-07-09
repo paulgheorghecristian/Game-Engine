@@ -22,43 +22,43 @@ ErrorCode FrameBuffer::init(int width, int height, unsigned int numOfRenderTarge
     this->renderTargets.resize(numOfRenderTargets);
 
     //generare framebuffer
-    glGenFramebuffers (1, &frameBufferId);
-    glBindFramebuffer (GL_FRAMEBUFFER, frameBufferId);
+    glGenFramebuffers(1, &frameBufferId);
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBufferId);
 
     if (numOfRenderTargets > 0) {
-        glGenTextures (numOfRenderTargets, &renderTargets[0]);
+        glGenTextures(numOfRenderTargets, &renderTargets[0]);
     }
     for (unsigned int i = 0; i < numOfRenderTargets; i++) {
         glBindTexture (GL_TEXTURE_2D, renderTargets[i]);
-        glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     }
 
     glGenTextures (1, &depthBufferId);
-    glBindTexture (GL_TEXTURE_2D, depthBufferId);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-    glTexImage2D (GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
+    glBindTexture(GL_TEXTURE_2D, depthBufferId);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
 
     //selecteaza attachment-ul pentru desenare color buffer
     for (unsigned int i = 0; i < numOfRenderTargets; i++) {
-        glFramebufferTexture (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, renderTargets[i], 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, renderTargets[i], 0);
     }
 
-    glFramebufferTexture (GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthBufferId, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthBufferId, 0);
 
-    if (glCheckFramebufferStatus (GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         print_error(OPENGL_ERROR, "Framebuffer is incomplete");
         return OPENGL_ERROR;
     }
 
-    glBindFramebuffer (GL_FRAMEBUFFER, 0);
-    glBindTexture (GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     return NO_ERROR;
 }

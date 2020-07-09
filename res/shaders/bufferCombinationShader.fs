@@ -11,8 +11,13 @@ uniform sampler2D blurredLightAccSampler;
 uniform sampler2D spotLightDepthMap;
 uniform sampler2D particlesSampler;
 uniform sampler2D dirLightDepthSampler;
+uniform sampler2D volumetricLightSampler;
 
 uniform int outputType;
+
+vec4 volumetrics() {
+    return texture(volumetricLightSampler, textureCoords);
+}
 
 vec4 particles () {
     return texture (particlesSampler, textureCoords);
@@ -36,11 +41,14 @@ vec3 worldNormal() {
 }
 vec3 lightAccumulation() {
     vec3 lightAcc = texture (lightAccumulationSampler, textureCoords).xyz;
-    return lightAcc + vec3(0.2,0.2,0.2);	//diffuse + specular + ambiental
+    return lightAcc + vec3(0.2);	//diffuse + specular + ambiental
 }
 
 vec3 blurredLightAcc() {
-    return texture(blurredLightAccSampler, textureCoords).xyz * 0.75;
+#if 1
+    return texture(blurredLightAccSampler, textureCoords).xyz;
+#endif
+    return vec3(0);
 }
 
 vec3 dirLightDepthMap() {
@@ -55,17 +63,22 @@ void main() {
 	if (outputType == 4) outColor = vec4(lightAccumulation(), 1);
 	if (outputType == 5) {
         vec4 particlesPixel = particles();
+        vec4 volumetricPixel = volumetrics();
         vec3 albedoPixel = color();
 
         if (depth().x != 1) {
             vec3 finalColor = albedoPixel * lightAccumulation() + blurredLightAcc();
             finalColor = particlesPixel.xyz + finalColor * (1.0 - particlesPixel.a);
+            finalColor = volumetricPixel.xyz + finalColor * (1.0 - volumetricPixel.a);
             outColor = vec4(finalColor, 1);
         } else {
-            outColor = vec4(particlesPixel.xyz + albedoPixel * (1.0 - particlesPixel.a), 1);
+            vec3 finalColor = particlesPixel.xyz + albedoPixel * (1.0 - particlesPixel.a);
+            finalColor = volumetricPixel.xyz + finalColor * (1.0 - volumetricPixel.a);
+            outColor = vec4(finalColor, 1);
         }
     }
     if (outputType == 6) outColor = vec4(blurredLightAcc(), 1);
     if (outputType == 7) outColor = vec4(spotLightDepth(), 1);
     if (outputType == 8) outColor = vec4(dirLightDepthMap(), 1);
+    if (outputType == 9) outColor = volumetrics();
 }

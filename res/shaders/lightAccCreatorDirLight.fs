@@ -23,7 +23,7 @@ const int PCFKernelSize = PCFKernelSideSize * PCFKernelSideSize;
 const float depthMapTexelSize = 1.0f/3000.0f; /* TODO remove hardcode */
 
 /* TODO remove hardcode */
-const float maxDist = 250.0f;
+const float maxDist = 400.0f;
 
 flat in vec3 lightDirectionEyeSpace;
 
@@ -64,7 +64,7 @@ void main() {
     lightStrength = 1.0f - (cutOff*(totalPixelsInShadow / PCFKernelSize));
 
     vec3 H = normalize(lightDirectionEyeSpace + (-cameraForwardVectorEyeSpace));
-    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 50.0);
+    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 1000.0);
     getLight = dotProd > 0;
 
     vec3 diffuseLight = lightIntensity * lightColor;

@@ -13,6 +13,8 @@ class SpotLight : public Light
 
         void render(Shader &shader) override;
         void render() override;
+        void prepareOpenGLForLightPass() override;
+        void prepareOpenGLForStencilPass() override;
 
         void recomputeShadowMapViewMatrix() override;
         void recomputeShadowMapProjectionMatrix() override;

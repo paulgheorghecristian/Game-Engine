@@ -28,6 +28,9 @@ class Light
 
         virtual void render(Shader &shader) = 0;
         virtual void render() = 0;
+        virtual void prepareOpenGLForLightPass() = 0;
+        virtual void prepareOpenGLForStencilPass() = 0;
+
         virtual void recomputeShadowMapViewMatrix();
         virtual void recomputeShadowMapProjectionMatrix();
 
@@ -37,17 +40,18 @@ class Light
         FrameBuffer &getShadowMapFrameBuffer();
         Texture &getShadowMapTexture();
 
-        inline bool isCastingShadow()
-        {
+        inline bool isCastingShadow() {
             return m_casts_shadow;
         }
-        inline void setCastShadow(bool flag)
-        {
+        inline void setCastShadow(bool flag) {
             m_casts_shadow = flag;
         }
-        inline bool needsStencilTest()
-        {
+        inline bool needsStencilTest() {
             return m_needs_stencil_test;
+        }
+
+        inline const glm::vec3 &getLightColor() {
+            return m_lightColor;
         }
 
     protected:

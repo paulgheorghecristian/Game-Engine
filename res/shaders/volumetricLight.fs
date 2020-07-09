@@ -206,14 +206,14 @@ void main() {
         float len = length(dir);
 
         float dist1 = lightRadius*0.5;
-        float dist2 = lightRadius*0.3;
+        float dist2 = lightRadius*0.1;
         float alpha1 = cos(alpha);
         float alpha2 = cos(0.1);
 
         float sm1 = smoothstep(1.0, 0, (len-dist2)/(dist1-dist2));
         float sm2 = smoothstep(1.0, 0, (volumetricLightAttCoef-alpha2)/(alpha1-alpha2));
 
-        if (linearEyeZODepthMap < linearObjectDepth-0.9) {
+        if (linearEyeZODepthMap < linearObjectDepth) {
             pointsNotInShadow += sm1 * sm2;
         }
     }

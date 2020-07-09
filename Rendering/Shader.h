@@ -41,7 +41,7 @@ class Shader : public MemoryPoolInterface <Shader>
         GLuint vertexHandle, fragmentHandle, geometryHandle;
         GLuint program;
         std::unordered_map<std::string, ShaderUniform *> uniforms;
-        const std::string shaderPath;
+        std::string shaderPath;
 
         const std::string loadShader(const std::string &filename);
 };

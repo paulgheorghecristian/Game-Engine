@@ -12,6 +12,8 @@ class PointLight : public Light
 
         void render(Shader &shader) override;
         void render() override;
+        void prepareOpenGLForLightPass() override;
+        void prepareOpenGLForStencilPass() override;
 
         static Shader &getLightAccumulationShader();
         static Mesh &getLightMesh();

@@ -98,6 +98,7 @@
                     "Mesh" : "res/models/cube4.obj",
                     "Shader" : "res/shaders/example.json",
                     "Texture" : "res/textures/196.bmp",
+                    "NormalMapTexture" : "res/textures/196_norm.bmp",
                     "Material" : {
                         "ambient" : [1.0, 0.0, 0.5],
                         "diffuse" : [0, 0, 0],
@@ -248,6 +249,45 @@
                     "BoundingBodyType" : ["cube"],
                     "scale": [60, 5, 99],
                     "mass" : 0
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [200, 0, 230],
+                "rotation" : [0, 0, 0],
+                "scale" : [0.4, 0.15, 0.2]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/fence.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/rust.jpg",
+                    "Material" : {
+                        "ambient" : [1.0, 0.0, 0.5],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 10.0
+                    }
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [250, 0, 200],
+                "rotation" : [0, 0, 0],
+                "scale" : [3,3,3]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/NFsimplified.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Material" : {
+                        "ambient" : [0.9, 0.7, 0.7],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 100.0
+                    }
                 }
             }
         }

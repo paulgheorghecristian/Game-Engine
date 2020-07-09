@@ -2,7 +2,7 @@
 #define INPUT_H
 
 #include <SDL2/SDL.h>
-#include "display.h"
+#include "Display.h"
 #include <glm/glm.hpp>
 
 class Input

@@ -26,14 +26,14 @@ Font::Font(const std::string& fontFilename, const std::string& fontAtlasName) : 
         while(*aux != ' '){
             aux++;
         }
-        aux = '\0';
+        *aux = '\0';
         scaleW = atoi(p);
 
         aux = q;
         while(*aux != ' '){
             aux++;
         }
-        aux = '\0';
+        *aux = '\0';
         scaleH = atoi(q);
     }
     std::getline(file, line);

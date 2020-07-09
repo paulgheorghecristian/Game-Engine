@@ -19,7 +19,7 @@ uniform mat4 viewMatrix;
 #define EPS 40
 
 void main(){
-    vec2 texCoord = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
+    vec2 texCoord = gl_FragCoord.xy / (vec2(screenWidth, screenHeight)/2);
     vec4 textColor = texture(particleSampler, textCoords);
     vec4 prevTextColor = texture(particleSampler, previousTextCoords);
 

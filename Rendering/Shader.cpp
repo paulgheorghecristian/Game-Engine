@@ -21,6 +21,8 @@ Shader *Shader::construct (const std::string &jsonPath)
     rapidjson::Document jsonShaderDocument;
     rapidjson::ParseResult parseResult;
 
+    shaderPath = jsonPath;
+
     jsonBody = FileUtils::loadFileInString (jsonPath);
     parseResult = jsonShaderDocument.Parse (jsonBody.c_str ());
     if (!parseResult) {

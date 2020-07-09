@@ -3,9 +3,9 @@
 
 #include <glm/glm.hpp>
 #include <SDL2/SDL.h>
-#include "input.h"
+#include "Input.h"
 #include <iostream>
-#include "display.h"
+#include "Display.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 

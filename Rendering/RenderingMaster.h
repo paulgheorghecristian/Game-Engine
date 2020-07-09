@@ -54,25 +54,21 @@ class RenderingMaster
         void endCreateDepthTextureForLight(Light *light);
 
         void drawSky();
+        void renderVolumetricLight();
 
         static glm::vec3 sunLightColor, sunLightDirection;
 
         const std::vector <Light *> &getLights();
         /* TODO make these private */
         ParticleRenderer<SmokeParticle> *smokeRenderer;
-        ParticleRenderer<SmokeParticle> *smokeRenderer2;
         FrameBuffer particleForwardRenderFramebuffer;
         Texture particlesRTTexture;
         Texture *depthTexture;
 
-        Mesh *cuboidMesh, *frustumMesh;
-        Camera *fauxCamera;
-
-        Mesh *arrowMesh;
-        std::vector <glm::vec3> dirs;
-
         Entity skyDomeEntity;
         Shader *skyShader;
+
+        Shader volumetricLightShader;
 
     private:
         RenderingMaster(Display *display,
@@ -93,13 +89,19 @@ class RenderingMaster
         void computeStencilBufferForLight(Light *light);
         void computeLightAccumulationBufferForLight(Light *light);
 
+        void updateLastSpotLight();
+
+#if 0
         PostProcess *hBlurPostProcess,
                     *wBlurPostProcess,
                     *brightnessControlPostProcess;
-
+#endif
         double updateDt;
 
         std::vector <Light *> lights;
+
+        FrameBuffer volumetricLightFB;
+        Texture volumetricLightTxt;
 };
 
 #endif // RENDERINGMASTER_H

@@ -9,14 +9,18 @@
 #include "DirectionalLight.h"
 #include "PointLight.h"
 
+#include <typeinfo>
+
 RenderingMaster *RenderingMaster::m_instance = NULL;
 Shader RenderingMaster::simpleTextShader;
 glm::vec3 RenderingMaster::sunLightColor, RenderingMaster::sunLightDirection;
 
 RenderingMaster::RenderingMaster(Display *display,
                                  Camera *camera,
-                                 glm::mat4 projectionMatrix) : particleForwardRenderFramebuffer (display->getWidth(), display->getHeight(), 1),
-                                                                particlesRTTexture (particleForwardRenderFramebuffer.getRenderTargets ()[0], 6)
+                                 glm::mat4 projectionMatrix) :  particleForwardRenderFramebuffer (display->getWidth()/2, display->getHeight()/2, 1),
+                                                                particlesRTTexture (particleForwardRenderFramebuffer.getRenderTargets ()[0], 6),
+                                                                volumetricLightFB (display->getWidth()/2, display->getHeight()/2, 1),
+                                                                volumetricLightTxt (volumetricLightFB.getRenderTargets()[0], 9)
 {
     int albedoTextureUnit = 0, normalTextureUnit = 1, lightAccumulationTextureUnit = 2;
     int depthTextureUnit = 3, outputType = 1, blurredLightAccUnit = 4, spotLightDepthMapUnit = 5;
@@ -44,6 +48,7 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= deferredShading_BufferCombinationShader.updateUniform("spotLightDepthMap", (void *) &spotLightDepthMapUnit);
     result &= deferredShading_BufferCombinationShader.updateUniform("particlesSampler", 6);
     result &= deferredShading_BufferCombinationShader.updateUniform("dirLightDepthSampler", 8);
+    result &= deferredShading_BufferCombinationShader.updateUniform("volumetricLightSampler", 9);
     assert (result);
 
     result &= SpotLight::getLightAccumulationShader().updateUniform("spotLightDepthSampler", 0);
@@ -54,8 +59,8 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= SpotLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
     assert (result);
 
-    RenderingMaster::sunLightColor = glm::vec3(0.95, 0.7, 0.4);
-    RenderingMaster::sunLightDirection = glm::normalize(glm::vec3(1, 1.5, 1));
+    RenderingMaster::sunLightColor = glm::vec3(0.80, 0.4, 0.3)*0.9f;
+    RenderingMaster::sunLightDirection = glm::normalize(glm::vec3(1, 0.7, 1));
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("dirLightDepthSampler", 0);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("eyeSpaceNormalSampler", 1);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("depthSampler", 2);
@@ -79,23 +84,34 @@ RenderingMaster::RenderingMaster(Display *display,
 
     depthMapCreator.construct("res/shaders/depthMapCreator.json");
 
+    volumetricLightShader.construct("res/shaders/volumetricLight.json");
+    result &= volumetricLightShader.updateUniform("volumetricLightDepthSampler", 0);
+    result &= volumetricLightShader.updateUniform("depthSampler", 1);
+    result &= volumetricLightShader.updateUniform("blueNoiseSampler", 2);
+    result &= volumetricLightShader.updateUniform("screenWidth", display->getWidth());
+    result &= volumetricLightShader.updateUniform("screenHeight", display->getHeight());
+    result &= volumetricLightShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    assert(result);
+
     albedoTexture = new Texture (gBuffer.getColorTexture(), albedoTextureUnit);
     normalTexture = new Texture (gBuffer.getNormalTexture(), normalTextureUnit);
     lightAccumulationTexture = new Texture (gBuffer.getLightAccumulationTexture(), lightAccumulationTextureUnit);
     depthTexture = new Texture (gBuffer.getDepthTexture(), depthTextureUnit);
 
-    brightnessControlPostProcess = new PostProcess (display->getWidth()/8, display->getHeight()/8,
+#if 0
+    brightnessControlPostProcess = new PostProcess (display->getWidth()/4, display->getHeight()/4,
                                                     gBuffer.getLightAccumulationTexture(),
                                                     "res/shaders/brightnessControlPostProcess.json");
 
-    hBlurPostProcess = new PostProcess (display->getWidth()/8, display->getHeight()/8,
+    hBlurPostProcess = new PostProcess (display->getWidth()/4, display->getHeight()/4,
                                         brightnessControlPostProcess->getResultingTextureId(),
                                         "res/shaders/hBlurPostProcess.json");
 
-    wBlurPostProcess = new PostProcess (display->getWidth()/8, display->getHeight()/8,
+    wBlurPostProcess = new PostProcess (display->getWidth()/4, display->getHeight()/4,
                                         hBlurPostProcess->getResultingTextureId(),
                                         "res/shaders/wBlurPostProcess.json");
     blurredLightAccTexture = new Texture (wBlurPostProcess->getResultingTextureId(), blurredLightAccUnit);
+#endif
     screenSizeRectangle = Mesh::getRectangle();
 
     GUI::init (1920, 1080);
@@ -103,10 +119,6 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= simpleTextShader.updateUniform ("projectionMatrix", (void *) &GUI::projectionMatrix);
     result &= simpleTextShader.updateUniform ("fontAtlas", 0);
     assert (result);
-
-    cuboidMesh = new Mesh (true);
-    frustumMesh = new Mesh (true);
-    fauxCamera = new Camera (glm::vec3(0), 0, 0, 0);
 }
 
 RenderingMaster::~RenderingMaster()
@@ -117,16 +129,16 @@ RenderingMaster::~RenderingMaster()
     delete normalTexture;
     delete lightAccumulationTexture;
     delete depthTexture;
-    delete blurredLightAccTexture;
 
     delete screenSizeRectangle;
 
+#if 0
+    delete blurredLightAccTexture;
     delete hBlurPostProcess;
     delete wBlurPostProcess;
     delete brightnessControlPostProcess;
-
+#endif
     delete smokeRenderer;
-    delete smokeRenderer2;
 
     display->close();
     delete display;
@@ -206,6 +218,7 @@ void RenderingMaster::drawDeferredShadingBuffers()
     gBuffer.unbind();
     clearScreen(1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+#if 0
     brightnessControlPostProcess->bind();
     brightnessControlPostProcess->process();
 
@@ -214,19 +227,22 @@ void RenderingMaster::drawDeferredShadingBuffers()
 
     wBlurPostProcess->bind();
     wBlurPostProcess->process();
-
+#endif
     deferredShading_BufferCombinationShader.bind();
 
     albedoTexture->use();
     normalTexture->use();
     lightAccumulationTexture->use();
     depthTexture->use();
+#if 0
     blurredLightAccTexture->use();
+#endif
     particlesRTTexture.use ();
     for (Light *light : lights) {
         light->getShadowMapTexture().use(8);
         break;
     }
+    volumetricLightTxt.use(9);
 
     screenSizeRectangle->draw();
 
@@ -256,9 +272,9 @@ void RenderingMaster::update() {
     deferredShading_StencilBufferCreator.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     deferredShading_SceneShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     skyShader->updateUniform("viewMatrix", (void *) &cameraViewMatrix);
+    volumetricLightShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
 
     smokeRenderer->update(*camera, updateDt);
-    smokeRenderer2->update(*camera, updateDt);
 
     for (Light *light : lights) {
         if (light->isCastingShadow()) {
@@ -266,28 +282,16 @@ void RenderingMaster::update() {
             light->recomputeShadowMapProjectionMatrix();
         }
     }
+
+    //updateLastSpotLight();
 }
 
 void RenderingMaster::computeStencilBufferForLight(Light *light)
 {
     gBuffer.unbind();
-    if (!light->needsStencilTest()) {
-        glDisable(GL_STENCIL_TEST);
-        return;
-    }
     gBuffer.bindForStencil();
 
-    glClear(GL_STENCIL_BUFFER_BIT);
-    glEnable(GL_STENCIL_TEST);
-    glStencilFunc(GL_ALWAYS, 0, 0);
-    glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
-    glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
-
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
-
-    glDisable(GL_CULL_FACE);
-
+    light->prepareOpenGLForStencilPass();
     light->render(deferredShading_StencilBufferCreator);
 }
 
@@ -296,23 +300,8 @@ void RenderingMaster::computeLightAccumulationBufferForLight(Light *light)
     gBuffer.unbind();
     gBuffer.bindForLights();
 
-    if (!light->needsStencilTest()) {
-        glDepthMask(GL_FALSE);
-        goto renderTag;
-    }
+    light->prepareOpenGLForLightPass();
 
-    glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
-
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
-
-    glDisable(GL_DEPTH_TEST);
-
-    glEnable(GL_BLEND);
-    glBlendEquation(GL_FUNC_ADD);
-    glBlendFunc(GL_ONE, GL_ONE);
-
-renderTag:
     normalTexture->use(1);
     depthTexture->use(2);
 
@@ -327,7 +316,9 @@ void RenderingMaster::createLightAccumulationBuffer()
     glClear(GL_COLOR_BUFFER_BIT);
 
     for (Light *light : lights) {
-        computeStencilBufferForLight(light);
+        if (light->needsStencilTest()) {
+            computeStencilBufferForLight(light);
+        }
         computeLightAccumulationBufferForLight(light);
     }
 
@@ -361,14 +352,18 @@ void RenderingMaster::addLightToScene(Light *light)
 
 void RenderingMaster::resetLights()
 {
-    for (Light *light : lights) {
-        delete(light);
+    auto it = lights.begin();
+    for (; it != lights.end();) {
+        if (dynamic_cast<DirectionalLight*>(*it) == nullptr) {
+            delete *it;
+            it = lights.erase(it);
+        } else {
+            ++it;
+        }
     }
-
-    lights.clear();
 }
 
-const std::vector <Light *> &RenderingMaster::getLights()
+const std::vector<Light *> &RenderingMaster::getLights()
 {
     return lights;
 }
@@ -382,4 +377,63 @@ void RenderingMaster::drawSky()
 
     glDepthMask(GL_TRUE);
     glEnable(GL_CULL_FACE);
+}
+
+void RenderingMaster::updateLastSpotLight()
+{
+    //TODO dead code
+    Light *lastSpotLight = NULL;
+    bool result = true;
+
+    for (int i = lights.size()-1; i >= 0; i--) {
+        if (typeid(*lights[i]) == typeid(SpotLight)) {
+            lastSpotLight = lights[i];
+            break;
+        }
+    }
+
+    if (lastSpotLight == NULL) {
+        return;
+    }
+
+#if 0
+    result &= volumetricLightShader.updateUniform("volumetricLightProjectionMatrix", (void *) &lastSpotLight->getShadowMapProjectionMatrix());
+    result &= volumetricLightShader.updateUniform("volumetricLightViewMatrix", (void *) &lastSpotLight->getShadowMapViewMatrix());
+    result &= volumetricLightShader.updateUniform("lightColor", (void *) &lastSpotLight->getLightColor());
+    result &= volumetricLightShader.updateUniform("lightPosition", (void *) &lastSpotLight->getTransform().getPosition());
+    result &= volumetricLightShader.updateUniform("modelMatrix", (void *) &lastSpotLight->getTransform().getModelMatrix());
+    assert(result);
+#endif
+
+    //lastSpotLight->getTransform().addRotation(0, 0.01, 0.01);
+}
+
+void RenderingMaster::renderVolumetricLight()
+{
+    volumetricLightFB.bindAllRenderTargets();
+    for (int i = lights.size()-1; i >= 0; i--) {
+        if (typeid(*lights[i]) == typeid(SpotLight)) {
+            lights[i]->getShadowMapTexture().use(0);
+            depthTexture->use(1);
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_FRONT);
+            glDisable(GL_DEPTH_TEST);
+            glDepthMask(GL_FALSE);
+            glEnable(GL_BLEND);
+            glBlendEquation(GL_FUNC_ADD);
+            glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+            volumetricLightShader.updateUniform("volumetricLightProjectionMatrix", (void *) &lights[i]->getShadowMapProjectionMatrix());
+            volumetricLightShader.updateUniform("volumetricLightViewMatrix", (void *) &lights[i]->getShadowMapViewMatrix());
+            volumetricLightShader.updateUniform("lightColor", (void *) &lights[i]->getLightColor());
+            volumetricLightShader.updateUniform("lightPosition", (void *) &lights[i]->getTransform().getPosition());
+            volumetricLightShader.updateUniform("modelMatrix", (void *) &lights[i]->getTransform().getModelMatrix());
+            volumetricLightShader.updateUniform("cameraPosition", (void *) &camera->getPosition());
+            lights[i]->render(volumetricLightShader);
+            glEnable(GL_DEPTH_TEST);
+            glDepthMask(GL_TRUE);
+            glCullFace(GL_BACK);
+            glDisable(GL_BLEND);
+        }
+    }
+    volumetricLightFB.unbind();
 }

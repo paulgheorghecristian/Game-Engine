@@ -13,13 +13,13 @@ Shader &PointLight::getLightAccumulationShader()
 
 Mesh &PointLight::getLightMesh()
 {
-    static Mesh *mesh = Mesh::loadObject("res/models/lightSphere.obj");
+    static Mesh *mesh = Mesh::loadObject("res/models/lightsphere.obj");
 
     return *mesh;
 }
 
 PointLight::PointLight(const Transform &transform,
-                       const glm::vec3 &color) : Light(transform, color, false, true)
+                       const glm::vec3 &color) : Light(transform, color, false, false)
                        /* for now it doesn't cast shadow */
 {
 
@@ -52,4 +52,37 @@ void PointLight::render()
     shader.bind();
     getLightMesh().draw();
     shader.unbind();
+}
+
+void PointLight::prepareOpenGLForLightPass()
+{
+    if (needsStencilTest()) {
+        glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
+    } else {
+        glDisable(GL_STENCIL_TEST);
+    }
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+
+    glEnable(GL_BLEND);
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_ONE, GL_ONE);
+}
+
+void PointLight::prepareOpenGLForStencilPass()
+{
+    glClear(GL_STENCIL_BUFFER_BIT);
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_ALWAYS, 0, 0);
+    glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+    glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+
+    glDisable(GL_CULL_FACE);
 }

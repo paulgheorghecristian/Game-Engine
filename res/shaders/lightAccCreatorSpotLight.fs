@@ -30,12 +30,14 @@ const float depthMapTexelSize = 1.0f/1024.0f; /* TODO remove hardcode */
 uniform vec3 lightPosition;
 uniform mat4 modelMatrix;
 
+const float lightRadius = 300;
+
 void main() {
     bool getLight;
     vec2 texCoord = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
-    vec3 view = vec3(viewRay.xy/-viewRay.z, -1.0);
+    vec3 view = vec3(viewRay.xy/viewRay.z, 1.0);
     float depth = 2.0 * texture(depthSampler, texCoord).x - 1.0;
-    float eyeZ = projectionMatrix[3][2]/(depth + projectionMatrix[2][2]);
+    float eyeZ = -projectionMatrix[3][2]/(depth + projectionMatrix[2][2]);
     vec3 viewPosition = view * eyeZ;
     vec3 dir = lightPositionEyeSpace - viewPosition;
     vec3 dirNormalized = normalize (dir);
@@ -47,11 +49,13 @@ void main() {
     float dotProduct = dot (dirNormalized, eyeSpaceNormal);
     float spotLightAttCoef;
 
+
+    //TODO uniform instead of calculate here
     mat4 inverseViewMatrix = inverse (viewMatrix);
 
+    // TODO investigate how to move this to VS
     vec4 worldPosition = (inverseViewMatrix * vec4(viewPosition, 1.0));
-    vec4 spotLightEyePosition = (spotLightViewMatrix * worldPosition);
-    vec4 spotLightClip = (spotLightProjectionMatrix * spotLightViewMatrix * inverseViewMatrix * vec4(viewPosition, 1.0));
+    vec4 spotLightClip = (spotLightProjectionMatrix * spotLightViewMatrix * worldPosition);
     vec3 spotLightNDC = spotLightClip.xyz / spotLightClip.w;
     vec3 spotLightNDCNormalized = spotLightNDC.xyz * 0.5f + 0.5f;
 
@@ -75,13 +79,14 @@ void main() {
     getLight = (dotProduct > 0);
 
     float diffuseStrength = max (0.0, dotProduct);
-    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 50.0);
+    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 1000.0);
 
-    float a = 0.0, b = 0.001, c = 0.000005;
+    float a = 0.0, b = 0.0001, c = 0.000005;
     float att = 1.0 / (a + b*l + c * l * l);
+    float lenAtt = max(1.0 - (l / lightRadius), 0);
 
-    vec3 diffuseLight = (0.35 - acos(spotLightAttCoef)) * att * diffuseStrength * lightColor;
-    vec3 specularLight = (0.35 - acos(spotLightAttCoef)) * att * specularStrength * lightColor;
+    vec3 diffuseLight = (0.3 - acos(spotLightAttCoef)) * att * lenAtt * diffuseStrength * lightColor;
+    vec3 specularLight = (0.3 - acos(spotLightAttCoef)) * att * lenAtt * specularStrength * lightColor;
 
     outLight = diffuseLight;
     if (getLight) {

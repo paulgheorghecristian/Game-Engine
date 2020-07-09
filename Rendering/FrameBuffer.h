@@ -6,7 +6,7 @@
 #include <iostream>
 #include <cassert>
 #include "ErrorUtils.h"
-
+//TODO add texture
 class FrameBuffer
 {
     public:

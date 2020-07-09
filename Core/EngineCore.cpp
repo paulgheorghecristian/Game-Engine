@@ -97,6 +97,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
             entities.push_back (newEntity);
         }
     }
+
     Transform floorTransform(glm::vec3(0), glm::vec3(0, 0, 0), glm::vec3(5000.0f));
     Entity *floor = new Entity();
     floor->setTransform(floorTransform);
@@ -108,77 +109,21 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                                      glm::vec3(1.0f),
                                                      glm::vec3(1.0f),
                                                      0.5f)));
-    entities.push_back (floor);
-    //entities.clear();
+    entities.push_back(floor);
     constructPlayer();
-#if 0
-    Entity *debugCuboid = new Entity();
-    Transform cuboidTransform(glm::vec3(0), glm::vec3(0, 0, 0), glm::vec3(1.0f));
-    debugCuboid->setTransform(cuboidTransform);
-    debugCuboid->addComponent(new RenderComponent(RenderingMaster::getInstance()->cuboidMesh,
-                                                    (new Shader())->construct("res/shaders/example.json"),
-                                                    NULL,
-                                                    NULL,
-                                                    Material(glm::vec3(0.0f, 0.0f, 1.0f),
-                                                             glm::vec3(1.0f),
-                                                             glm::vec3(1.0f),
-                                                             0.5f)));
-    entities.push_back (debugCuboid);
 
-    Entity *frustumEntity = new Entity();
-    Transform frustumTransform(glm::vec3(0), glm::vec3(0, 0, 0), glm::vec3(1.0f));
-    frustumEntity->setTransform(frustumTransform);
-    frustumEntity->addComponent(new RenderComponent(RenderingMaster::getInstance()->frustumMesh,
-                                                    (new Shader())->construct("res/shaders/example.json"),
-                                                    NULL,
-                                                    NULL,
-                                                    Material(glm::vec3(1.0f, 0.0f, 0.0f),
-                                                             glm::vec3(1.0f),
-                                                             glm::vec3(1.0f),
-                                                             0.5f)));
-    entities.push_back (frustumEntity);
-
-    Entity *zArrow = new Entity();
-    Transform zTransform(glm::vec3(0), glm::vec3(0, 0, 0), glm::vec3(10.0f));
-    zArrow->setTransform(zTransform);
-    zArrow->addComponent(new RenderComponent(Mesh::getArrowMesh(),
-                                                    (new Shader())->construct("res/shaders/example.json"),
-                                                    NULL,
-                                                    NULL,
-                                                    Material(glm::vec3(1.0f, 0.0f, 0.0f),
-                                                             glm::vec3(1.0f),
-                                                             glm::vec3(1.0f),
-                                                             0.5f)));
-    entities.push_back (zArrow);
-
-    Entity *lightDir = new Entity();
-    glm::vec3 lightDirVec = RenderingMaster::dirLightDirection;
-    float xRot = glm::degrees(glm::asin(lightDirVec.y / glm::length(lightDirVec)));
-    float yRot = glm::degrees(glm::atan(-lightDirVec.x, -lightDirVec.z));
-    std::cout << "xRot=" << xRot << " " << "yRot=" << yRot << std::endl;
-    Transform zTransform2(glm::vec3(0), glm::vec3(xRot, yRot, 0), glm::vec3(10.0f));
-    lightDir->setTransform(zTransform2);
-    lightDir->addComponent(new RenderComponent(Mesh::getArrowMesh(),
-                                                    (new Shader())->construct("res/shaders/example.json"),
-                                                    NULL,
-                                                    NULL,
-                                                    Material(glm::vec3(0.0f, 0.0f, 1.0f),
-                                                             glm::vec3(1.0f),
-                                                             glm::vec3(1.0f),
-                                                             0.5f)));
-    entities.push_back (lightDir);
-#endif
     std::cout << "Number of entities: " << entities.size() << std::endl;
 
     outputType = 5;
 
     RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
-    RenderingMaster::getInstance()->smokeRenderer2 = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone2.json");
+    #if 1
     RenderingMaster::getInstance()->addLightToScene(new DirectionalLight(Transform(glm::vec3(0),
                                                                          glm::vec3(0),
                                                                          glm::vec3(0)),
                                                                          RenderingMaster::sunLightColor,
                                                                          RenderingMaster::sunLightDirection));
+    #endif
 
     RenderingMaster::getInstance()->skyShader = new Shader("res/shaders/skyShader.json");
     RenderingMaster::getInstance()->skyDomeEntity.addComponent(new RenderComponent(Mesh::getDome(10, 10),
@@ -234,7 +179,6 @@ void EngineCore::start() {
             PT_Reset("swapBuffers");
             PT_Reset("particleDraw");
             PT_Reset("buffersDraw");
-            PT_Reset("GUIRender");
             #if 0
             std::cout << "----------------------" << std::endl;
             #endif
@@ -342,14 +286,17 @@ void EngineCore::input() {
     if (inputManager.getKeyDown(SDLK_8)) {
         outputType = 8;
     }
+    if (inputManager.getKeyDown(SDLK_9)) {
+        outputType = 9;
+    }
 
     if (inputManager.getKeyDown (SDLK_q)) {
         glm::vec3 cameraPosition = RenderingMaster::getInstance()->getCamera()->getPosition();
         glm::vec3 cameraRotation = RenderingMaster::getInstance()->getCamera()->getRotation();
         RenderingMaster::getInstance()->addLightToScene(new SpotLight(Transform(cameraPosition,
                                                                   glm::degrees(cameraRotation),
-                                                                  glm::vec3(300.0f, 300.0f, 400.0f)),
-                                                        glm::vec3(0.98f, 0.8f, 0.8f)));
+                                                                  glm::vec3(300.0f, 300.0f, 300.0f)),
+                                                        glm::vec3(0.98f, 0.85f, 0.85f)));
     }
 
     if (inputManager.getKeyDown (SDLK_e)) {
@@ -362,31 +309,17 @@ void EngineCore::input() {
     }
 
     if (inputManager.getKeyDown (SDLK_r)) {
+        RenderingMaster::getInstance()->volumetricLightShader.reload();
+        SpotLight::getLightAccumulationShader().reload();
+
         RenderingMaster::getInstance()->resetLights();
         RenderingMaster::getInstance()->smokeRenderer->getRenderingShader().reload();
 
         delete RenderingMaster::getInstance()->smokeRenderer;
-        delete RenderingMaster::getInstance()->smokeRenderer2;
 
         RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
-        RenderingMaster::getInstance()->smokeRenderer2 = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone2.json");
     }
 
-    if (inputManager.getKeyDown (SDLK_u)) {
-        RenderingMaster::getInstance()->fauxCamera->rotateX(0.09f);
-    }
-    if (inputManager.getKeyDown (SDLK_i)) {
-        RenderingMaster::getInstance()->fauxCamera->rotateX(-0.09f);
-    }
-    if (inputManager.getKeyDown (SDLK_o)) {
-        RenderingMaster::getInstance()->fauxCamera->rotateY(0.09f);
-    }
-    if (inputManager.getKeyDown (SDLK_p)) {
-        RenderingMaster::getInstance()->fauxCamera->rotateY(-0.09f);
-    }
-    if (inputManager.getKeyDown (SDLK_k)) {
-        RenderingMaster::getInstance()->fauxCamera->moveForward(0.9f);
-    }
     RenderingMaster::getInstance()->deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
 
     for (auto const &entity : entities) {
@@ -443,22 +376,25 @@ void EngineCore::render() {
     RenderingMaster::getInstance()->particleForwardRenderFramebuffer.bindAllRenderTargets();
     RenderingMaster::getInstance()->depthTexture->use();
     RenderingMaster::getInstance()->smokeRenderer->draw();
-    RenderingMaster::getInstance()->smokeRenderer2->draw();
     RenderingMaster::getInstance()->particleForwardRenderFramebuffer.unbind();
     PT_ToHere("particleDraw");
+
+    PT_FromHere_GPU("volumetric");
+    RenderingMaster::getInstance()->renderVolumetricLight();
+    PT_ToHere_GPU("volumetric");
 
     PT_FromHere("buffersDraw");
     RenderingMaster::getInstance()->drawDeferredShadingBuffers();
     PT_ToHere ("buffersDraw");
 
-    PT_FromHere("GUIRender");
     ProfilingTimer::renderAllBarGUIs();
     fpsGUI->render();
-    PT_ToHere ("GUIRender");
 
     PT_FromHere("swapBuffers");
     RenderingMaster::getInstance()->swapBuffers();
     PT_ToHere("swapBuffers");
+
+    ProfilingTimer::updateGPUTimers();
 }
 
 void EngineCore::update() {
@@ -468,8 +404,6 @@ void EngineCore::update() {
 
     PhysicsMaster::getInstance()->update();
     RenderingMaster::getInstance()->update();
-
-    ProfilingTimer::updateAllBarGUIs();
 }
 
 std::vector<Entity *> &EngineCore::getEntities() {

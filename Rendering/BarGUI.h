@@ -4,10 +4,6 @@
 #include "GUI.h"
 #include "Text.h"
 
-#define START_X 1500
-#define START_Y 100
-#define Y_OFFSET 100
-
 class Shader;
 class Mesh;
 

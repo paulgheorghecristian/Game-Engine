@@ -1,5 +1,6 @@
-#include "mesh.h"
+#include "Mesh.h"
 #include <iostream>
+
 Mesh::Mesh(const std::vector<Vertex> &vertices,
            const std::vector<unsigned int> &indices,
            bool willBeUpdated) : vertices(vertices), indices(indices), willBeUpdated (willBeUpdated)
@@ -370,6 +371,7 @@ Mesh* Mesh::loadObject(const std::string &filename){
 				}//end for
 
 				/* try and calculate tangent and bitangent for face vertices */
+				/* TODO this fails on some objects, why? */
                 assert (tokens.size() == 4); /* only triangles */
                 int numOfVertices = vertices.size();
                 computeTangentAndBi (vertices[numOfVertices-3],
