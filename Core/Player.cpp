@@ -141,9 +141,11 @@ void Player::PlayerControllerComponent::update() {
     if(currentGroundDistance <= 36 && currentVel.y() <= 0){
         m_isJumping = false;
 
-        m_body->setDamping(btScalar(0.5), btScalar(0));
-        if (glm::dot(glm::vec3(0,1,0),
-                     glm::vec3(normal.x(), normal.y(), normal.z())) < 0.7) {
+        float dot_prod = glm::dot(glm::vec3(0,1,0),
+                            glm::vec3(normal.x(), normal.y(), normal.z()));
+
+        m_body->setDamping(btScalar(0.4+(1.1-dot_prod)), btScalar(0));
+        if (dot_prod < 0.7) {
             m_isJumping = true;
         }
     }
