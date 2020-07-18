@@ -6,17 +6,20 @@ endif
 
 INCLUDES := \
 -Ires/libraries/glm \
--Ires/libraries/SDL2/include \
 -Ires/libraries/glew/include \
 -Ires/libraries/bullet \
 -Ires/libraries/bullet/bullet \
+-Ires/libraries/bullet/bullet/BulletCollision/CollisionDispatch \
 -IRendering \
 -ICore \
 -Ires/libraries/rapidjson/include \
 -ICore/Utils \
 -IGame \
 -IPhysics \
--Ires/libraries/stb
+-IComponents \
+-Ires/libraries/stb \
+-Ires/libraries/imgui \
+-I/usr/include/SDL2
 
 GAME_ENGINE_BINARY := ge
 
@@ -26,7 +29,9 @@ $(wildcard Core/*.cpp) \
 $(wildcard Core/Utils/*.cpp) \
 $(wildcard Game/*.cpp) \
 $(wildcard Physics/*.cpp) \
-$(wildcard Rendering/*.cpp)
+$(wildcard Rendering/*.cpp) \
+$(wildcard Components/*.cpp) \
+$(wildcard res/libraries/imgui/*.cpp)
 
 CC_PREFIX :=
 
@@ -36,6 +41,8 @@ LIBS := \
 -lGL \
 -lGLEW \
 -lSDL2 \
+-lSDL2_image \
+-lSDL2_ttf \
 -lBulletCollision \
 -lLinearMath \
 -lBulletDynamics

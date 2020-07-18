@@ -44,6 +44,10 @@ const glm::quat &Transform::getRotation() const {
     return rotation;
 }
 
+const glm::vec3 Transform::getEulerRotation() const {
+    return glm::eulerAngles(rotation) * 3.14159f / 180.f;
+}
+
 const glm::vec3 &Transform::getScale() const {
     return scale;
 }

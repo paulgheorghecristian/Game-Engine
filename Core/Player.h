@@ -42,6 +42,7 @@ class Player : public Entity
 
                 bool m_isJumping, m_wasSpaceReleased;
                 Camera *m_camera;
+                bool m_freeRoam;
         };
 };
 

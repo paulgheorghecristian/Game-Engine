@@ -32,7 +32,7 @@ class Display
     protected:
     private:
         SDL_Window * window;
-        SDL_GLContext glContext;
+        SDL_GLContext gl_context;
         int width, height;
         const unsigned int MAX_FPS;
         const float FRAME_TIME_IN_MS;

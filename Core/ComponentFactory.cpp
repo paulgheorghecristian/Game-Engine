@@ -84,7 +84,9 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                            itr->value["scale"].GetArray()[2].GetFloat());
         mass = itr->value["mass"].GetFloat();
 
-        return new PhysicsComponent (type, scale, mass);
+        return new PhysicsComponent(type, scale, mass);
+    } else if (strcmp (itr->name.GetString(), "GrabComponent") == 0) {
+        return new GrabComponent(itr->value["radius"].GetFloat());
     } else {
         return NULL;
     }

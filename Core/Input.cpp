@@ -1,5 +1,7 @@
 #include "Input.h"
 
+#include "imgui_impl_sdl.h"
+
 Input::Input() : mousePosition(0.0)
 {
     for(unsigned int i = 0; i < NUM_KEYS; i++){
@@ -81,6 +83,7 @@ void Input::update(Display * display){
                 break;
             }
         }
+        ImGui_ImplSDL2_ProcessEvent(&event);
     }
     if (warpMouse) {
         SDL_WarpMouseInWindow(display->getWindow(), display->getWidth()/2, display->getHeight()/2);

@@ -2,6 +2,7 @@
 
 Component::Component() {
     _entity = NULL;
+    m_disabled = false;
 }
 
 void Component::setEntity (Entity *entity) {
@@ -16,4 +17,12 @@ void Component::init(){}
 
 Component::~Component()
 {
+}
+
+void Component::enable() {
+    m_disabled = false;
+}
+
+void Component::disable() {
+    m_disabled = true;
 }

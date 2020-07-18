@@ -16,23 +16,48 @@ void PhysicsComponent::update() {
     btVector3 origin;
     struct btQuaternionFloatData quatXYZ;
 
-    m_rigidBody->getMotionState()->getWorldTransform(t);
+    t = m_rigidBody->getCenterOfMassTransform();
     float mat[16];
     t.getOpenGLMatrix(mat);
 
     t.getRotation().serializeFloat(quatXYZ);
     origin = t.getOrigin();
 
-    _entity->getTransform().setPosition(glm::vec3(origin.x(), origin.y(), origin.z()));
-    _entity->getTransform().setRotation (glm::quat (quatXYZ.m_floats[0],
-                                                    quatXYZ.m_floats[1],
-                                                    quatXYZ.m_floats[2],
-                                                    quatXYZ.m_floats[3]));
-    _entity->getTransform().setModelMatrix(glm::scale(glm::make_mat4(mat), _entity->getTransform().getScale()));
+    if (!m_disabled) {
+        _entity->getTransform().setPosition(glm::vec3(origin.x(), origin.y(), origin.z()));
+        _entity->getTransform().setRotation (glm::quat (quatXYZ.m_floats[0],
+                                                        quatXYZ.m_floats[1],
+                                                        quatXYZ.m_floats[2],
+                                                        quatXYZ.m_floats[3]));
+        _entity->getTransform().setModelMatrix(glm::scale(glm::make_mat4(mat), _entity->getTransform().getScale()));
+    }
 }
 
 void PhysicsComponent::render() {
 
+}
+
+void PhysicsComponent::enable() {
+    m_rigidBody->setCollisionFlags(m_rigidBody->getCollisionFlags() &
+                              ~btCollisionObject::CF_NO_CONTACT_RESPONSE);
+
+    btTransform t = m_rigidBody->getCenterOfMassTransform();
+    const glm::vec3 &pos = _entity->getTransform().getPosition();
+    const glm::quat &rotation = _entity->getTransform().getRotation();
+
+    t.setOrigin(btVector3(pos.x, pos.y, pos.z));
+    t.setRotation (btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
+    m_rigidBody->setCenterOfMassTransform(t);
+    m_rigidBody->activate(true);
+
+    Component::enable();
+}
+
+void PhysicsComponent::disable() {
+    m_rigidBody->setCollisionFlags(m_rigidBody->getCollisionFlags() |
+                              btCollisionObject::CF_NO_CONTACT_RESPONSE);
+
+    Component::disable();
 }
 
 void PhysicsComponent::init() {

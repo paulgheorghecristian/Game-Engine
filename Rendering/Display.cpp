@@ -1,5 +1,9 @@
 #include "Display.h"
 
+#include "imgui.h"
+#include "imgui_impl_sdl.h"
+#include "imgui_impl_opengl3.h"
+
 int Display::delta = 0;
 bool Display::isWindowClosed;
 
@@ -25,6 +29,8 @@ Display::Display(const int WIDTH,
     SDL_GL_SetAttribute (SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute (SDL_GL_STENCIL_SIZE, 8);
 
+    const char* glsl_version = "#version 130";
+
     if (fullscreen) {
         SDL_DisplayMode dm;
 
@@ -45,7 +51,22 @@ Display::Display(const int WIDTH,
                                this->width,
                                this->height,
                                SDL_WINDOW_OPENGL | (fullscreen ? SDL_WINDOW_FULLSCREEN : SDL_WINDOW_RESIZABLE));
-    glContext = SDL_GL_CreateContext (window);
+    gl_context = SDL_GL_CreateContext (window);
+    SDL_GL_MakeCurrent(window, gl_context);
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsClassic();
+
+    // Setup Platform/Renderer bindings
+    ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
+    ImGui_ImplOpenGL3_Init(glsl_version);
 
     if (vSync) {
         rc = SDL_GL_SetSwapInterval (1);
@@ -73,7 +94,7 @@ Display::Display(const int WIDTH,
 }
 
 Display::~Display() {
-    SDL_GL_DeleteContext (glContext);
+    SDL_GL_DeleteContext (gl_context);
     SDL_DestroyWindow (window);
     SDL_Quit ();
 }

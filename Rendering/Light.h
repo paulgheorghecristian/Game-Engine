@@ -54,6 +54,10 @@ class Light
             return m_lightColor;
         }
 
+        void setLightColor(const glm::vec3 &light) {
+            m_lightColor = light;
+        }
+
     protected:
         Transform m_transform;
         glm::vec3 m_lightColor;

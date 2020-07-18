@@ -9,6 +9,7 @@
 #include <chrono>
 #include <thread>
 
+
 EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     //create renderingmaster, physicsmaster and entities
     rapidjson::Document configDocument;
@@ -224,7 +225,7 @@ void EngineCore::start() {
             }*/
             FPS++;
         } else {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
     }
 }
@@ -240,26 +241,40 @@ void EngineCore::input() {
         stop ();
     }
 
-    RenderingMaster::getInstance()->rotateCameraX(inputManager.getMouseDelta().y * this->mouseRotationSpeed);
-    RenderingMaster::getInstance()->rotateCameraY(inputManager.getMouseDelta().x * this->mouseRotationSpeed);
+    if (inputManager.getKeyDown(SDLK_m)) {
+        bool warpMouse = !inputManager.getWarpMouse();
+        inputManager.setWarpMouse(warpMouse);
+    }
 
-    if (inputManager.getMouse(1)) {
-        Transform transform (RenderingMaster::getInstance()->getCamera()->getPosition(),
-                             glm::vec3 (0),
-                             glm::vec3 (20));
-        Entity *newEntity = new Entity();
-        newEntity->setTransform (transform);
-        entities.push_back (newEntity->addComponent (new RenderComponent(Mesh::loadObject("res/models/cube4.obj"),
-                                                                                       (new Shader())->construct("res/shaders/example.json"),
-                                                                                       new Texture ("res/textures/158.JPG",0),
-                                                                                       new Texture ("res/textures/158_norm.JPG",1),
-                                                                                       Material (glm::vec3(1, 0, 0),
-                                                                                                 glm::vec3(0),
-                                                                                                 glm::vec3(0),
-                                                                                                 0.0f)))
-                                                    ->addComponent (new PhysicsComponent(PhysicsComponent::BoundingBodyType::CUBE,
-                                                                                         glm::vec3 (20),
-                                                                                         20.0f)));
+    if (inputManager.getWarpMouse()) {
+
+        RenderingMaster::getInstance()->rotateCameraX(inputManager.getMouseDelta().y * this->mouseRotationSpeed);
+        RenderingMaster::getInstance()->rotateCameraY(inputManager.getMouseDelta().x * this->mouseRotationSpeed);
+
+        if (inputManager.getMouse(1)) {
+            Transform transform (RenderingMaster::getInstance()->getCamera()->getPosition(),
+                                glm::vec3 (0),
+                                glm::vec3 (20));
+            Entity *newEntity = new Entity();
+            newEntity->setTransform (transform);
+            entities.push_back (newEntity->addComponent (new RenderComponent(Mesh::loadObject("res/models/cube4.obj"),
+                                                                                        (new Shader())->construct("res/shaders/example.json"),
+                                                                                        new Texture ("res/textures/158.JPG",0),
+                                                                                        new Texture ("res/textures/158_norm.JPG",1),
+                                                                                        Material (glm::vec3(1, 0, 0),
+                                                                                                    glm::vec3(0),
+                                                                                                    glm::vec3(0),
+                                                                                                    0.0f)))
+                                                        ->addComponent (new PhysicsComponent(PhysicsComponent::BoundingBodyType::CUBE,
+                                                                                            glm::vec3 (20),
+                                                                                            20.0f)));
+        }
+
+    }
+
+    if (!inputManager.getWarpMouse()) {
+        RenderingMaster::getInstance()->computeWorldPosRay(inputManager.getMousePos().x,
+                                                            inputManager.getMousePos().y);
     }
 
     if (inputManager.getKeyDown(SDLK_1)) {
@@ -389,6 +404,16 @@ void EngineCore::render() {
 
     ProfilingTimer::renderAllBarGUIs();
     fpsGUI->render();
+    RenderingMaster::getInstance()->startIMGUIFrame();
+    for (auto entity : entities) {
+        GrabComponent *grabComponent;
+        if ((grabComponent =
+             (GrabComponent *) (entity->getComponent (Entity::Flags::GRAB))) != NULL) {
+            grabComponent->render();
+        }
+    }
+    RenderingMaster::getInstance()->imguiDrawCalls();
+    RenderingMaster::getInstance()->renderIMGUI();
 
     PT_FromHere("swapBuffers");
     RenderingMaster::getInstance()->swapBuffers();

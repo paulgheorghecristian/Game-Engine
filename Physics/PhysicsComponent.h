@@ -24,6 +24,8 @@ class PhysicsComponent : public Component
         void update();
         void render();
         void init();
+        void enable();
+        void disable();
         const unsigned int getFlag() const;
         btRigidBody *getRigidBody();
         const glm::vec3 &getBoundingBodyScale();

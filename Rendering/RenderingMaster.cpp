@@ -11,6 +11,10 @@
 
 #include <typeinfo>
 
+#include "imgui.h"
+#include "imgui_impl_sdl.h"
+#include "imgui_impl_opengl3.h"
+
 RenderingMaster *RenderingMaster::m_instance = NULL;
 Shader RenderingMaster::simpleTextShader;
 glm::vec3 RenderingMaster::sunLightColor, RenderingMaster::sunLightDirection;
@@ -119,6 +123,18 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= simpleTextShader.updateUniform ("projectionMatrix", (void *) &GUI::projectionMatrix);
     result &= simpleTextShader.updateUniform ("fontAtlas", 0);
     assert (result);
+
+    for (int i = 0; i < GUIVarsEnum_f::NUM_VARS_f; i++) {
+        data_f[i] = 0;
+    }
+
+    for (int i = 0; i < GUIVarsEnum_vec3::NUM_VARS_v3; i++) {
+        data_vec3[i] = {0,0,0};
+    }
+
+    for (int i = 0; i < GUIVarsEnum_int::NUM_VARS_i; i++) {
+        data_i[i] = 0;
+    }
 }
 
 RenderingMaster::~RenderingMaster()
@@ -142,6 +158,10 @@ RenderingMaster::~RenderingMaster()
 
     display->close();
     delete display;
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
 }
 
 void RenderingMaster::init(Display *display,
@@ -424,6 +444,7 @@ void RenderingMaster::renderVolumetricLight()
             glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
             volumetricLightShader.updateUniform("volumetricLightProjectionMatrix", (void *) &lights[i]->getShadowMapProjectionMatrix());
             volumetricLightShader.updateUniform("volumetricLightViewMatrix", (void *) &lights[i]->getShadowMapViewMatrix());
+            lights[i]->setLightColor(data_vec3[0]);
             volumetricLightShader.updateUniform("lightColor", (void *) &lights[i]->getLightColor());
             volumetricLightShader.updateUniform("lightPosition", (void *) &lights[i]->getTransform().getPosition());
             volumetricLightShader.updateUniform("modelMatrix", (void *) &lights[i]->getTransform().getModelMatrix());
@@ -436,4 +457,67 @@ void RenderingMaster::renderVolumetricLight()
         }
     }
     volumetricLightFB.unbind();
+}
+
+void RenderingMaster::startIMGUIFrame() {
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame(display->getWindow());
+    ImGui::NewFrame();
+}
+
+void RenderingMaster::imguiDrawCalls() {
+    {
+        ImGui::Begin("Hello, world!");
+
+        ImGui::Text("This is some useful text.");
+
+        for (int i = 0; i < GUIVarsEnum_f::NUM_VARS_f; i++) {
+            ImGui::SliderFloat("float", &data_f[i], 0.0f, 100.0f);
+        }
+
+        for (int i = 0; i < GUIVarsEnum_vec3::NUM_VARS_v3; i++) {
+            ImGui::ColorEdit3("clear color"+i, (float*)&data_vec3[i]);
+        }
+
+        for (int i = 0; i < GUIVarsEnum_int::NUM_VARS_i; i++) {
+            if (ImGui::Button("Button"))
+                data_i[i]++;
+
+            ImGui::SameLine();
+            ImGui::Text("counter_%d = %d", i, data_i[i]);
+        }
+
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::End();
+    }
+}
+
+void RenderingMaster::renderIMGUI() {
+    {
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    }
+}
+
+glm::vec3 RenderingMaster::getWorldSpaceMouseRay(float mouseX, float mouseY) {
+    float ndcX = 2.0f*mouseX / display->getWidth() - 1;
+    float ndcY = 2.0f*(display->getHeight()-mouseY) / display->getHeight() - 1;
+
+    glm::vec4 ndc(ndcX, ndcY, -1.0f, 1.0f);
+
+    glm::vec4 clipSpace = glm::inverse(projectionMatrix) * ndc;
+    glm::vec4 eyeSpace = glm::vec4(clipSpace.x, clipSpace.y, -1.0f, 0.0f);
+
+    glm::vec4 worldSpace = glm::inverse(camera->getViewMatrix()) * eyeSpace;
+
+    return glm::normalize(glm::vec3(worldSpace.x, worldSpace.y, worldSpace.z));
+}
+
+void RenderingMaster::computeWorldPosRay(float mouseX, float mouseY) {
+    currMouseRayWorldPos = getWorldSpaceMouseRay(mouseX, mouseY);
+}
+
+const glm::vec3 &RenderingMaster::getCurrWorldPosRay() {
+    return currMouseRayWorldPos;
 }

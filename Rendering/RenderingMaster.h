@@ -18,6 +18,22 @@
 template<typename P>
 class ParticleRenderer;
 
+enum GUIVarsEnum_f {
+    VAR1_f = 0,
+    NUM_VARS_f
+};
+
+enum GUIVarsEnum_int {
+    VAR1_i = 0,
+    NUM_VARS_i
+};
+
+enum GUIVarsEnum_vec3 {
+    VAR1_v3 = 0,
+    VAR2_v3,
+    NUM_VARS_v3
+};
+
 class RenderingMaster
 {
     public:
@@ -56,9 +72,16 @@ class RenderingMaster
         void drawSky();
         void renderVolumetricLight();
 
+        void renderIMGUI();
+        void startIMGUIFrame();
+        void imguiDrawCalls();
+        void computeWorldPosRay(float mouseX, float mouseY);
+        const glm::vec3 &getCurrWorldPosRay();
+
         static glm::vec3 sunLightColor, sunLightDirection;
 
         const std::vector <Light *> &getLights();
+        const glm::vec3 &getWorldPosRay();
         /* TODO make these private */
         ParticleRenderer<SmokeParticle> *smokeRenderer;
         FrameBuffer particleForwardRenderFramebuffer;
@@ -90,6 +113,7 @@ class RenderingMaster
         void computeLightAccumulationBufferForLight(Light *light);
 
         void updateLastSpotLight();
+        glm::vec3 getWorldSpaceMouseRay(float mouseX, float mouseY);
 
 #if 0
         PostProcess *hBlurPostProcess,
@@ -102,6 +126,12 @@ class RenderingMaster
 
         FrameBuffer volumetricLightFB;
         Texture volumetricLightTxt;
+
+        float data_f[GUIVarsEnum_f::NUM_VARS_f];
+        int data_i[GUIVarsEnum_int::NUM_VARS_i];
+        glm::vec3 data_vec3[GUIVarsEnum_vec3::NUM_VARS_v3];
+
+        glm::vec3 currMouseRayWorldPos;
 };
 
 #endif // RENDERINGMASTER_H
