@@ -19,6 +19,8 @@ uniform vec3 cameraForwardVectorEyeSpace;
 
 uniform float cutOff;
 
+const float fact = 0.5;
+
 void main() {
     bool getLight;
     vec2 texCoord = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
@@ -42,14 +44,14 @@ void main() {
     float diffuseStrength = max (0.0, dotProduct);
     float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 50.0);
 
-    float a = 0.0, b = 0.0005, c = 0.0005;
+    float a = 0.0, b = 0.005, c = 0.0002;
     float att = 1.0 / (a + b*l + c * l * l);
 
     vec3 diffuseLight = att * diffuseStrength * lightColor;
     vec3 specularLight = att * specularStrength * lightColor;
 
-    outLight = diffuseLight;
+    outLight = diffuseLight*fact;
     if (getLight) {
-        outLight += specularLight;
+        outLight += specularLight*(1.0-fact);
     }
 }

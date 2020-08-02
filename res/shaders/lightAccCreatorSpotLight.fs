@@ -31,6 +31,7 @@ uniform vec3 lightPosition;
 uniform mat4 modelMatrix;
 
 const float lightRadius = 300;
+const float fact = 0.5;
 
 void main() {
     bool getLight;
@@ -81,16 +82,20 @@ void main() {
     float diffuseStrength = max (0.0, dotProduct);
     float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 1000.0);
 
+<<<<<<< Updated upstream
     float a = 0.0, b = 0.0001, c = 0.000005;
+=======
+    float a = 0.0, b = 0.0001, c = 0.0005;
+>>>>>>> Stashed changes
     float att = 1.0 / (a + b*l + c * l * l);
     float lenAtt = max(1.0 - (l / lightRadius), 0);
 
     vec3 diffuseLight = (0.3 - acos(spotLightAttCoef)) * att * lenAtt * diffuseStrength * lightColor;
     vec3 specularLight = (0.3 - acos(spotLightAttCoef)) * att * lenAtt * specularStrength * lightColor;
 
-    outLight = diffuseLight;
+    outLight = diffuseLight*fact;
     if (getLight) {
-        outLight += specularLight;
+        outLight += specularLight*(1.0-fact);
     }
 
     outLight *= lightStrength;

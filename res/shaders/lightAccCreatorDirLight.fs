@@ -23,9 +23,11 @@ const int PCFKernelSize = PCFKernelSideSize * PCFKernelSideSize;
 const float depthMapTexelSize = 1.0f/3000.0f; /* TODO remove hardcode */
 
 /* TODO remove hardcode */
-const float maxDist = 400.0f;
+const float maxDist = 5000.0f;
 
 flat in vec3 lightDirectionEyeSpace;
+
+const float fac = 0.5;
 
 void main() {
     vec3 view = vec3(viewRay.xy/-viewRay.z, -1.0);
@@ -70,9 +72,9 @@ void main() {
     vec3 diffuseLight = lightIntensity * lightColor;
     vec3 specularLight = specularStrength * lightColor;
 
-    outLight = diffuseLight;
+    outLight = diffuseLight*fac;
     if (getLight)
-        outLight += specularLight;
+        outLight += (1.0-fac)*specularLight;
 
     outLight *= lightStrength;
 }

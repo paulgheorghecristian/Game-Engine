@@ -11,7 +11,7 @@ SpotLight::SpotLight(const Transform &transform,
                                                 color,
                                                 SHADOW_MAP_WIDTH,
                                                 SHADOW_MAP_HEIGHT,
-                                                casts_shadow, false)
+                                                casts_shadow, false, true)
 {
     float near = 1.0f;
     float far = m_transform.getScale().z+near;

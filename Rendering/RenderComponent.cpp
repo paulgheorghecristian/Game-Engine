@@ -17,7 +17,6 @@ RenderComponent::RenderComponent(Mesh * mesh,
     if (texture != NULL) {
         result &= shader->updateUniform ("textureSampler", texture->getTextureUnit());
         hasTexture = true;
-        this->material.setAmbient(glm::vec3(1));
     }
 
     if (normalMapTexture != NULL) {

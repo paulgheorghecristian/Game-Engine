@@ -24,7 +24,9 @@ flat in mat3 fromTangentToModelSpace;
 void main(){
 
     if (hasTexture){
-        vec3 color = texture (textureSampler, textureCoords).rgb;
+        vec2 tran_tc = textureCoords;
+        tran_tc.y = 1.0 - tran_tc.y;
+        vec3 color = texture (textureSampler, tran_tc).rgb;
         outColor = vec4 (color * material.ambient, 1.0);
     } else {
         outColor = vec4 (material.ambient, 1.0);
@@ -35,7 +37,9 @@ void main(){
     if (!hasNormalMap) {
         outEyeSpaceNormal = (normalize(eyeSpaceNormal * frontCond) + vec3(1)) * 0.5;
 	} else {
-        vec3 normalMapNormal = texture (normalMapSampler, textureCoords).xyz;
+        vec2 tran_tc = textureCoords;
+        tran_tc.y = 1.0 - tran_tc.y;
+        vec3 normalMapNormal = texture (normalMapSampler, tran_tc).xyz;
         normalMapNormal = normalMapNormal * 2.0 - 1.0;
 
         outEyeSpaceNormal = (normalize(mat3(viewMatrix) * mat3(modelMatrix) * fromTangentToModelSpace * normalMapNormal * frontCond) + vec3(1.0)) * 0.5;

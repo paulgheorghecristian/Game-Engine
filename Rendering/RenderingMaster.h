@@ -132,6 +132,7 @@ class RenderingMaster
         glm::vec3 data_vec3[GUIVarsEnum_vec3::NUM_VARS_v3];
 
         glm::vec3 currMouseRayWorldPos;
+        Light *currentLight;
 };
 
 #endif // RENDERINGMASTER_H

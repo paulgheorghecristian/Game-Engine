@@ -13,10 +13,10 @@
                     "Mesh" : "res/models/rock.obj",
                     "Shader" : "res/shaders/example.json",
                     "Material" : {
-                        "ambient" : [0.5, 0.5, 0.8],
+                        "ambient" : [1, 1, 1],
                         "diffuse" : [0, 0, 0],
                         "specular" : [0, 0, 0],
-                        "shininess" : 0.0
+                        "shininess" : 100.0
                     }
                 }
             }
@@ -32,10 +32,10 @@
                     "Mesh" : "res/models/rock.obj",
                     "Shader" : "res/shaders/example.json",
                     "Material" : {
-                        "ambient" : [0.5, 0.5, 0.8],
+                        "ambient" : [1, 1, 1],
                         "diffuse" : [0, 0, 0],
                         "specular" : [0, 0, 0],
-                        "shininess" : 0.0
+                        "shininess" : 100.0
                     }
                 }
             }
@@ -53,7 +53,7 @@
                     "Texture" : "res/textures/196.bmp",
                     "NormalMapTexture" : "res/textures/196_norm.bmp",
                     "Material" : {
-                        "ambient" : [0.5, 0.5, 0.8],
+                        "ambient" : [1, 1, 1],
                         "diffuse" : [0, 0, 0],
                         "specular" : [0, 0, 0],
                         "shininess" : 0.0
@@ -63,7 +63,7 @@
         },
         {
             "Transform" : {
-                "position" : [0, 100, 200],
+                "position" : [0, 100, 0],
                 "rotation" : [0, 0, 0],
                 "scale" : [60, 60, 60]
             },
@@ -74,42 +74,19 @@
                     "Texture" : "res/textures/196.bmp",
                     "NormalMapTexture" : "res/textures/196_norm.bmp",
                     "Material" : {
-                        "ambient" : [1.0, 0.0, 0.5],
+                        "ambient" : [1, 1, 1],
                         "diffuse" : [0, 0, 0],
                         "specular" : [0, 0, 0],
-                        "shininess" : 0.0
+                        "shininess" : 1000.0
                     }
                 },
                 "PhysicsComponent" : {
                     "BoundingBodyType" : ["cube"],
                     "scale": [60, 60, 60],
                     "mass" : 20
-                }
-            }
-        },
-        {
-            "Transform" : {
-                "position" : [150, 100, 200],
-                "rotation" : [0, 0, 0],
-                "scale" : [60, 60, 60]
-            },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/cube4.obj",
-                    "Shader" : "res/shaders/example.json",
-                    "Texture" : "res/textures/196.bmp",
-                    "NormalMapTexture" : "res/textures/196_norm.bmp",
-                    "Material" : {
-                        "ambient" : [1.0, 0.0, 0.5],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 0.0
-                    }
                 },
-                "PhysicsComponent" : {
-                    "BoundingBodyType" : ["cube"],
-                    "scale": [60, 60, 60],
-                    "mass" : 10
+                "GrabComponent" : {
+                    "radius" : 30
                 }
             }
         },
@@ -125,7 +102,7 @@
                     "Shader" : "res/shaders/example.json",
                     "Texture" : "res/textures/196.bmp",
                     "Material" : {
-                        "ambient" : [1.0, 0.0, 0.5],
+                        "ambient" : [1, 1, 1],
                         "diffuse" : [0, 0, 0],
                         "specular" : [0, 0, 0],
                         "shininess" : 0.0
@@ -150,7 +127,7 @@
                     "Shader" : "res/shaders/example.json",
                     "Texture" : "res/textures/196.bmp",
                     "Material" : {
-                        "ambient" : [1.0, 0.0, 0.5],
+                        "ambient" : [1, 1, 1],
                         "diffuse" : [0, 0, 0],
                         "specular" : [0, 0, 0],
                         "shininess" : 0.0
@@ -175,7 +152,7 @@
                     "Shader" : "res/shaders/example.json",
                     "Texture" : "res/textures/196.bmp",
                     "Material" : {
-                        "ambient" : [1.0, 0.0, 0.5],
+                        "ambient" : [1, 1, 1],
                         "diffuse" : [0, 0, 0],
                         "specular" : [0, 0, 0],
                         "shininess" : 0.0
@@ -200,7 +177,7 @@
                     "Shader" : "res/shaders/example.json",
                     "Texture" : "res/textures/196.bmp",
                     "Material" : {
-                        "ambient" : [1.0, 0.0, 0.5],
+                        "ambient" : [1, 1, 1],
                         "diffuse" : [0, 0, 0],
                         "specular" : [0, 0, 0],
                         "shininess" : 0.0
@@ -225,7 +202,7 @@
                     "Shader" : "res/shaders/example.json",
                     "Texture" : "res/textures/196.bmp",
                     "Material" : {
-                        "ambient" : [1.0, 0.0, 0.5],
+                        "ambient" : [1, 1, 1],
                         "diffuse" : [0, 0, 0],
                         "specular" : [0, 0, 0],
                         "shininess" : 0.0
@@ -264,11 +241,14 @@
                     "Shader" : "res/shaders/example.json",
                     "Texture" : "res/textures/rust.jpg",
                     "Material" : {
-                        "ambient" : [1.0, 0.0, 0.5],
+                        "ambient" : [1, 1, 1],
                         "diffuse" : [0, 0, 0],
                         "specular" : [0, 0, 0],
                         "shininess" : 10.0
                     }
+                },
+                "GrabComponent" : {
+                    "radius" : 30
                 }
             }
         },
@@ -283,11 +263,62 @@
                     "Mesh" : "res/models/NFsimplified.obj",
                     "Shader" : "res/shaders/example.json",
                     "Material" : {
-                        "ambient" : [0.9, 0.7, 0.7],
+                        "ambient" : [1, 1, 1],
                         "diffuse" : [0, 0, 0],
                         "specular" : [0, 0, 0],
                         "shininess" : 100.0
                     }
+                },
+                "GrabComponent" : {
+                    "radius" : 30
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [100, 30, 200],
+                "rotation" : [0, 0, 0],
+                "scale" : [15,15,15]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/frame.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/bark_albedo.bmp",
+                    "NormalMapTexture" : "res/textures/bark_normal.bmp",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 500.0
+                    }
+                },
+                "GrabComponent" : {
+                    "radius" : 5
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [100, 30, 200],
+                "rotation" : [0, 0, 0],
+                "scale" : [15,15,15]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/picture.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/face3.bmp",
+                    "NormalMapTexture" : "res/textures/173_norm.bmp",
+                    "Material" : {
+                        "ambient" : [1.0, 0.5, 0.5],
+                        "diffuse" : [0.0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                },
+                "GrabComponent" : {
+                    "radius" : 5
                 }
             }
         }

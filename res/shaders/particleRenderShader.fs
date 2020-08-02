@@ -42,6 +42,6 @@ void main(){
     }
 
     outColor.a *= (1.0 - aliveFor);
-    outColor.xyz += vec3(0.5,0.5,0.25) * 0.4;
+    outColor.xyz += vec3(0.5,0.5,0.5) * 0.5;
     outColor.xyz *= outColor.a;
 }
