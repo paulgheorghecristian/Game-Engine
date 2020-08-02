@@ -82,11 +82,7 @@ void main() {
     float diffuseStrength = max (0.0, dotProduct);
     float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 1000.0);
 
-<<<<<<< Updated upstream
-    float a = 0.0, b = 0.0001, c = 0.000005;
-=======
     float a = 0.0, b = 0.0001, c = 0.0005;
->>>>>>> Stashed changes
     float att = 1.0 / (a + b*l + c * l * l);
     float lenAtt = max(1.0 - (l / lightRadius), 0);
 

@@ -70,13 +70,8 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= SpotLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
     assert (result);
 
-<<<<<<< Updated upstream
-    RenderingMaster::sunLightColor = glm::vec3(0.80, 0.4, 0.3)*0.9f;
-    RenderingMaster::sunLightDirection = glm::normalize(glm::vec3(1, 0.7, 1));
-=======
     RenderingMaster::sunLightColor = glm::vec3(0.7, 0.3, 0.2)*0.3f;
     RenderingMaster::sunLightDirection = glm::normalize(glm::vec3(1, 0.4, -1));
->>>>>>> Stashed changes
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("dirLightDepthSampler", 0);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("eyeSpaceNormalSampler", 1);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("depthSampler", 2);
@@ -147,11 +142,7 @@ RenderingMaster::RenderingMaster(Display *display,
     for (int i = 0; i < GUIVarsEnum_int::NUM_VARS_i; i++) {
         data_i[i] = 0;
     }
-<<<<<<< Updated upstream
-=======
-
     currentLight = NULL;
->>>>>>> Stashed changes
 }
 
 RenderingMaster::~RenderingMaster()
@@ -320,8 +311,6 @@ void RenderingMaster::update() {
         }
     }
 
-<<<<<<< Updated upstream
-=======
     {
         // perform ray intersection with object
         const glm::vec3 &currWorldPos = camera->getPosition();
@@ -349,8 +338,6 @@ void RenderingMaster::update() {
 
     }
 
-
->>>>>>> Stashed changes
     //updateLastSpotLight();
 }
 
@@ -578,8 +565,4 @@ void RenderingMaster::computeWorldPosRay(float mouseX, float mouseY) {
 
 const glm::vec3 &RenderingMaster::getCurrWorldPosRay() {
     return currMouseRayWorldPos;
-<<<<<<< Updated upstream
 }
-=======
-}
->>>>>>> Stashed changes
