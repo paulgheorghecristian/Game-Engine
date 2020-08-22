@@ -8,6 +8,13 @@
 #include "SpotLight.h"
 #include "DirectionalLight.h"
 #include "PointLight.h"
+#include "Common.h"
+
+#include <typeinfo>
+
+#include "imgui.h"
+#include "imgui_impl_sdl.h"
+#include "imgui_impl_opengl3.h"
 
 #include <typeinfo>
 
@@ -63,8 +70,8 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= SpotLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
     assert (result);
 
-    RenderingMaster::sunLightColor = glm::vec3(0.80, 0.4, 0.3)*0.9f;
-    RenderingMaster::sunLightDirection = glm::normalize(glm::vec3(1, 0.7, 1));
+    RenderingMaster::sunLightColor = glm::vec3(0.7, 0.3, 0.2)*0.3f;
+    RenderingMaster::sunLightDirection = glm::normalize(glm::vec3(1, 0.4, -1));
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("dirLightDepthSampler", 0);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("eyeSpaceNormalSampler", 1);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("depthSampler", 2);
@@ -135,6 +142,7 @@ RenderingMaster::RenderingMaster(Display *display,
     for (int i = 0; i < GUIVarsEnum_int::NUM_VARS_i; i++) {
         data_i[i] = 0;
     }
+    currentLight = NULL;
 }
 
 RenderingMaster::~RenderingMaster()
@@ -303,6 +311,33 @@ void RenderingMaster::update() {
         }
     }
 
+    {
+        // perform ray intersection with object
+        const glm::vec3 &currWorldPos = camera->getPosition();
+        const glm::vec3 &dir = getCurrWorldPosRay();
+
+        glm::vec3 from_glm = currWorldPos+dir*10.0f;
+        glm::vec3 to_glm = currWorldPos+dir*1000.0f;
+
+        btVector3 from = btVector3(from_glm.x, from_glm.y, from_glm.z);
+        btVector3 to = btVector3(to_glm.x, to_glm.y, to_glm.z);
+
+        btCollisionWorld::AllHitsRayResultCallback rayCallback(from, to);
+        PhysicsMaster::getInstance()->getWorld()->rayTest(from, to, rayCallback);
+
+        for (int i = 0; i < rayCallback.m_hitFractions.size(); i++) {
+            UserData *data = (UserData*) rayCallback.m_collisionObjects[i]->getUserPointer();
+
+            if (data && data->type == PointerType::LIGHT) {
+                Light *light = data->pointer.light;
+
+                currentLight = light;
+                break;
+            }
+        }
+
+    }
+
     //updateLastSpotLight();
 }
 
@@ -444,7 +479,6 @@ void RenderingMaster::renderVolumetricLight()
             glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
             volumetricLightShader.updateUniform("volumetricLightProjectionMatrix", (void *) &lights[i]->getShadowMapProjectionMatrix());
             volumetricLightShader.updateUniform("volumetricLightViewMatrix", (void *) &lights[i]->getShadowMapViewMatrix());
-            lights[i]->setLightColor(data_vec3[0]);
             volumetricLightShader.updateUniform("lightColor", (void *) &lights[i]->getLightColor());
             volumetricLightShader.updateUniform("lightPosition", (void *) &lights[i]->getTransform().getPosition());
             volumetricLightShader.updateUniform("modelMatrix", (void *) &lights[i]->getTransform().getModelMatrix());
@@ -468,10 +502,9 @@ void RenderingMaster::startIMGUIFrame() {
 
 void RenderingMaster::imguiDrawCalls() {
     {
-        ImGui::Begin("Hello, world!");
+        ImGui::Begin("GUI!");
 
-        ImGui::Text("This is some useful text.");
-
+        //ImGui::Text("This is some useful text.");
         for (int i = 0; i < GUIVarsEnum_f::NUM_VARS_f; i++) {
             ImGui::SliderFloat("float", &data_f[i], 0.0f, 100.0f);
         }
@@ -489,6 +522,18 @@ void RenderingMaster::imguiDrawCalls() {
         }
 
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        if (currentLight != NULL) {
+            glm::vec3 &lightColor = currentLight->getLightColor();
+            ImGui::ColorEdit3("light color", (float *) &lightColor);
+
+            glm::vec3 pos = currentLight->getTransform().getPosition();
+
+            ImGui::DragFloat("x", &pos.x, 0.05f);
+            ImGui::DragFloat("y", &pos.y, 0.05f);
+            ImGui::DragFloat("z", &pos.z, 0.05f);
+
+            currentLight->getTransform().setPosition(pos);
+        }
         ImGui::End();
     }
 }

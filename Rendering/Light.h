@@ -7,6 +7,9 @@
 #include "Texture.h"
 #include "Camera.h"
 
+#include "btGhostObject.h"
+#include "PhysicsMaster.h"
+
 class Shader;
 
 class Light
@@ -16,12 +19,14 @@ class Light
               const glm::vec3 &color,
               int depthMapWidth, int depthMapHeight,
               bool casts_shadow = false,
-              bool needs_stencil = true);
+              bool needs_stencil = true,
+              bool grab = false);
 
         Light(const Transform &transform,
               const glm::vec3 &color,
               bool casts_shadow = false,
-              bool needs_stencil = true);
+              bool needs_stencil = true,
+              bool grab = false);
         virtual ~Light();
 
         virtual void update();
@@ -50,7 +55,7 @@ class Light
             return m_needs_stencil_test;
         }
 
-        inline const glm::vec3 &getLightColor() {
+        inline glm::vec3 &getLightColor() {
             return m_lightColor;
         }
 
@@ -61,12 +66,16 @@ class Light
     protected:
         Transform m_transform;
         glm::vec3 m_lightColor;
+        btGhostObject *m_ghostObj;
 
         glm::mat4 m_shadowMapProjectionMatrix, m_shadowMapViewMatrix;
         FrameBuffer m_shadowMapFrameBuffer;
         Texture m_shadowMapTexture;
 
         bool m_casts_shadow, m_needs_stencil_test;
+        bool m_can_be_grabbed, m_grabbed;
+
+        void initPhysics(const Transform& transform, bool grab);
     private:
 };
 

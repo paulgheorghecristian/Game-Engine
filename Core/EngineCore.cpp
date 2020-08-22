@@ -261,7 +261,7 @@ void EngineCore::input() {
                                                                                         (new Shader())->construct("res/shaders/example.json"),
                                                                                         new Texture ("res/textures/158.JPG",0),
                                                                                         new Texture ("res/textures/158_norm.JPG",1),
-                                                                                        Material (glm::vec3(1, 0, 0),
+                                                                                        Material (glm::vec3(1, 1, 1),
                                                                                                     glm::vec3(0),
                                                                                                     glm::vec3(0),
                                                                                                     0.0f)))
@@ -423,12 +423,18 @@ void EngineCore::render() {
 }
 
 void EngineCore::update() {
+    const std::vector <Light *> &lights = RenderingMaster::getInstance ()->getLights ();
+
     for (auto entity : entities) {
         entity->update ();
     }
 
     PhysicsMaster::getInstance()->update();
     RenderingMaster::getInstance()->update();
+
+    for (Light *light : lights) {
+        light->update();
+    }
 }
 
 std::vector<Entity *> &EngineCore::getEntities() {

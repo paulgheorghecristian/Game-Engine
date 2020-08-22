@@ -19,7 +19,7 @@ Mesh &PointLight::getLightMesh()
 }
 
 PointLight::PointLight(const Transform &transform,
-                       const glm::vec3 &color) : Light(transform, color, false, false)
+                       const glm::vec3 &color) : Light(transform, color, false, false, true)
                        /* for now it doesn't cast shadow */
 {
 
