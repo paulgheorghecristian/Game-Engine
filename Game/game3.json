@@ -1,0 +1,313 @@
+{
+    "ConfigFilePath" : "res/configs/config.json",
+    "gravity" : -10.0,
+    "Entities" : [
+        {
+            "Transform" : {
+                "position" : [0, 0.1, 0],
+                "rotation" : [0, 0, 0],
+                "scale" : [75, 75, 75]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/room1_try2.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/atlas.bmp",
+                    "NormalMapTexture" : "res/textures/atlas_norm.bmp",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 100.0
+                    }
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [0, 0.1, 0],
+                "rotation" : [0, 0, 0],
+                "scale" : [75, 75, 75]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/fence_room1.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 100.0
+                    }
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [0, 0.1, 0],
+                "rotation" : [0, 0, 0],
+                "scale" : [75, 75, 75]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/stairs1.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Material" : {
+                        "ambient" : [1, 1, 0],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 100.0
+                    }
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [0, 0.1, 0],
+                "rotation" : [0, 0, 0],
+                "scale" : [75, 75, 75]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/stairs2.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Material" : {
+                        "ambient" : [1, 1, 0],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 100.0
+                    }
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [300, 0, 100],
+                "rotation" : [0, 0, 0],
+                "scale" : [25, 25, 25]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/rock.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 100.0
+                    }
+                },
+                "GrabComponent" : {
+                    "radius" : 50
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [13, 0, -60],
+                "rotation" : [0, -90, 0],
+                "scale" : [17,17,17]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/stone.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/rock2k.jpg",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 50.0
+                    }
+                },
+                "GrabComponent" : {
+                    "radius" : 10
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [13, 27.4, -60],
+                "rotation" : [0, -90, 0],
+                "scale" : [17,17,17]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/3-7.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/atlas_puzzle1.jpg",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 50.0
+                    }
+                },
+                "GrabComponent" : {
+                    "radius" : 10
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [13, 0, -20],
+                "rotation" : [0, -90, 0],
+                "scale" : [17,17,17]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/stone.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/rock2k.jpg",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 50.0
+                    }
+                },
+                "GrabComponent" : {
+                    "radius" : 10
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [13, 27.4, -20],
+                "rotation" : [0, -90, 0],
+                "scale" : [17,17,17]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/0-1.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/atlas_puzzle1.jpg",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 50.0
+                    }
+                },
+                "GrabComponent" : {
+                    "radius" : 10
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [13, 0, 20],
+                "rotation" : [0, -90, 0],
+                "scale" : [17,17,17]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/stone.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/rock2k.jpg",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 50.0
+                    }
+                },
+                "GrabComponent" : {
+                    "radius" : 10
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [13, 27.4, 20],
+                "rotation" : [0, -90, 0],
+                "scale" : [17,17,17]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/2-1.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/atlas_puzzle1.jpg",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 50.0
+                    }
+                },
+                "GrabComponent" : {
+                    "radius" : 10
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [13, 0, 60],
+                "rotation" : [0, -90, 0],
+                "scale" : [17,17,17]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/stone.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/rock2k.jpg",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 50.0
+                    }
+                },
+                "GrabComponent" : {
+                    "radius" : 10
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [13, 27.4, 60],
+                "rotation" : [0, -90, 0],
+                "scale" : [17,17,17]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/8-1.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/atlas_puzzle1.jpg",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 50.0
+                    }
+                },
+                "GrabComponent" : {
+                    "radius" : 10
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [13, 0, -120],
+                "rotation" : [0, 180, 0],
+                "scale" : [1.8, 1.8, 1.8]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/spot.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/spot_atlas.jpg",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 50.0
+                    }
+                },
+                "GrabComponent" : {
+                    "radius" : 10
+                }
+            }
+        }
+    ]
+}
