@@ -1149,7 +1149,7 @@
 	"Entity.h"
 	"Input.h"
 
-1527861882 c:\users\paul\desktop\game-engine\core\entity.h
+1527865900 c:\users\paul\desktop\game-engine\core\entity.h
 	"Transform.h"
 	"Component.h"
 	<vector>
@@ -1642,17 +1642,8 @@
 	"../vec4.hpp"
 	"../gtc/constants.hpp"
 	"matrix_transform.inl"
-	"../mat4x4.hpp"
-	"../vec2.hpp"
-	"../vec3.hpp"
-	"../vec4.hpp"
-	"../gtc/constants.hpp"
-	"matrix_transform.inl"
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtc\matrix_transform.inl
-	"../geometric.hpp"
-	"../trigonometric.hpp"
-	"../matrix.hpp"
 	"../geometric.hpp"
 	"../trigonometric.hpp"
 	"../matrix.hpp"
@@ -1661,28 +1652,14 @@
 
 1517952929 source:c:\users\paul\desktop\game-engine\core\componentfactory.cpp
 	"ComponentFactory.h"
-	"ComponentFactory.h"
 
 1504289507 c:\users\paul\desktop\game-engine\core\componentfactory.h
 	"rapidjson/document.h"
 	"RenderComponent.h"
 	"TempAnimationComponent.h"
 	"PhysicsComponent.h"
-	"rapidjson/document.h"
-	"RenderComponent.h"
-	"TempAnimationComponent.h"
-	"PhysicsComponent.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\document.h
-	"reader.h"
-	"internal/meta.h"
-	"internal/strfunc.h"
-	"memorystream.h"
-	"encodedstream.h"
-	<new>
-	<limits>
-	<iterator>
-	<utility>
 	"reader.h"
 	"internal/meta.h"
 	"internal/strfunc.h"
@@ -1709,38 +1686,11 @@
 	"rapidjson/error/error.h"
 	"rapidjson/reader.h"
 	"error/error.h"
-	"allocators.h"
-	"stream.h"
-	"encodedstream.h"
-	"internal/meta.h"
-	"internal/stack.h"
-	"internal/strtod.h"
-	<limits>
-	<intrin.h>
-	<nmmintrin.h>
-	<emmintrin.h>
-	<arm_neon.h>
-	<stdexcept>
-	"rapidjson/error/error.h"
-	"rapidjson/reader.h"
-	"error/error.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\allocators.h
 	"rapidjson.h"
-	"rapidjson.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\rapidjson.h
-	<cstdlib>
-	<cstring>
-	"rapidjson/..."
-	<string>
-	"msinttypes/stdint.h"
-	"msinttypes/inttypes.h"
-	<stdint.h>
-	<inttypes.h>
-	<endian.h>
-	"rapidjson/..."
-	<cassert>
 	<cstdlib>
 	<cstring>
 	"rapidjson/..."
@@ -1757,50 +1707,34 @@
 	<stdint.h>
 	<limits.h>
 	<wchar.h>
-	<stdint.h>
-	<limits.h>
-	<wchar.h>
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\msinttypes\inttypes.h
-	"stdint.h"
-	<inttypes.h>
 	"stdint.h"
 	<inttypes.h>
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\stream.h
 	"rapidjson.h"
 	"encodings.h"
-	"rapidjson.h"
-	"encodings.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\encodings.h
-	"rapidjson.h"
 	"rapidjson.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\encodedstream.h
 	"stream.h"
 	"memorystream.h"
-	"stream.h"
-	"memorystream.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\memorystream.h
 	"stream.h"
-	"stream.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\meta.h
-	"../rapidjson.h"
-	<type_traits>
 	"../rapidjson.h"
 	<type_traits>
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\stack.h
 	"../allocators.h"
 	"swap.h"
-	"../allocators.h"
-	"swap.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\swap.h
-	"../rapidjson.h"
 	"../rapidjson.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\strtod.h
@@ -1808,38 +1742,25 @@
 	"biginteger.h"
 	"diyfp.h"
 	"pow10.h"
-	"ieee754.h"
-	"biginteger.h"
-	"diyfp.h"
-	"pow10.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\ieee754.h
 	"../rapidjson.h"
-	"../rapidjson.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\biginteger.h
-	"../rapidjson.h"
-	<intrin.h>
 	"../rapidjson.h"
 	<intrin.h>
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\diyfp.h
 	"../rapidjson.h"
 	<intrin.h>
-	"../rapidjson.h"
-	<intrin.h>
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\pow10.h
-	"../rapidjson.h"
 	"../rapidjson.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\error\error.h
 	"../rapidjson.h"
-	"../rapidjson.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\internal\strfunc.h
-	"../stream.h"
-	<cwchar>
 	"../stream.h"
 	<cwchar>
 
@@ -1850,14 +1771,8 @@
 	"Component.h"
 	"RenderingMaster.h"
 	"Texture.h"
-	"Mesh.h"
-	"Shader.h"
-	"Material.h"
-	"Component.h"
-	"RenderingMaster.h"
-	"Texture.h"
 
-1527861882 c:\users\paul\desktop\game-engine\rendering\mesh.h
+1527871828 c:\users\paul\desktop\game-engine\rendering\mesh.h
 	<GL/glew.h>
 	<glm/glm.hpp>
 	<vector>
@@ -1874,15 +1789,8 @@
 	<Availability.h>
 	<OpenGL/glu.h>
 	<GL/glu.h>
-	<stddef.h>
-	<inttypes.h>
-	<stdint.h>
-	<inttypes.h>
-	<Availability.h>
-	<OpenGL/glu.h>
-	<GL/glu.h>
 
-1527861882 c:\users\paul\desktop\game-engine\rendering\shader.h
+1530434585 c:\users\paul\desktop\game-engine\rendering\shader.h
 	<stdlib.h>
 	<stdio.h>
 	<fstream>
@@ -1921,24 +1829,8 @@
 	"../mat4x4.hpp"
 	<cstring>
 	"type_ptr.inl"
-	"../gtc/quaternion.hpp"
-	"../vec2.hpp"
-	"../vec3.hpp"
-	"../vec4.hpp"
-	"../mat2x2.hpp"
-	"../mat2x3.hpp"
-	"../mat2x4.hpp"
-	"../mat3x2.hpp"
-	"../mat3x3.hpp"
-	"../mat3x4.hpp"
-	"../mat4x2.hpp"
-	"../mat4x3.hpp"
-	"../mat4x4.hpp"
-	<cstring>
-	"type_ptr.inl"
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtc\type_ptr.inl
-	<cstring>
 	<cstring>
 
 1501441540 c:\users\paul\desktop\game-engine\core\utils\fileutils.h
@@ -1946,24 +1838,17 @@
 	<fstream>
 	<iostream>
 	"rapidjson/document.h"
-	<string>
-	<fstream>
-	<iostream>
-	"rapidjson/document.h"
 
 1499903876 c:\users\paul\desktop\game-engine\res\libraries\rapidjson\include\rapidjson\error\en.h
-	"error.h"
 	"error.h"
 
 1501428027 c:\users\paul\desktop\game-engine\rendering\material.h
 	"glm/glm.hpp"
-	"glm/glm.hpp"
 
-1527861882 source:c:\users\paul\desktop\game-engine\core\entity.cpp
+1527865900 source:c:\users\paul\desktop\game-engine\core\entity.cpp
 	"Entity.h"
 
 1502019729 source:c:\users\paul\desktop\game-engine\core\input.cpp
-	"input.h"
 	"input.h"
 
 1502019404 c:\users\paul\desktop\game-engine\core\input.h
@@ -2290,7 +2175,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1527862045 c:\users\paul\desktop\game-engine\rendering\display.h
+1527865900 c:\users\paul\desktop\game-engine\rendering\display.h
 	<SDL2/SDL.h>
 	<iostream>
 	<GL/glew.h>
@@ -2298,15 +2183,12 @@
 
 1517952923 c:\users\paul\desktop\game-engine\core\utils\memorypoolinterface.h
 	"MemoryPool.h"
-	"MemoryPool.h"
 
 1517952923 c:\users\paul\desktop\game-engine\core\utils\memorypool.h
 	<stdlib.h>
 	<iostream>
-	<stdlib.h>
-	<iostream>
 
-1527861882 c:\users\paul\desktop\game-engine\rendering\renderingmaster.h
+1530958727 c:\users\paul\desktop\game-engine\rendering\renderingmaster.h
 	"rapidjson/document.h"
 	"Display.h"
 	"Camera.h"
@@ -2322,17 +2204,14 @@
 
 1500216055 source:c:\users\paul\desktop\game-engine\core\utils\fileutils.cpp
 	"FileUtils.h"
-	"FileUtils.h"
 
 1503251668 source:c:\users\paul\desktop\game-engine\game\game.cpp
-	"Game.h"
 	"Game.h"
 
 1502795935 c:\users\paul\desktop\game-engine\game\game.h
 	"EngineCore.h"
-	"EngineCore.h"
 
-1527862020 c:\users\paul\desktop\game-engine\core\enginecore.h
+1527865900 c:\users\paul\desktop\game-engine\core\enginecore.h
 	"Display.h"
 	"Input.h"
 	"Entity.h"
@@ -2360,23 +2239,21 @@
 1517952929 c:\users\paul\desktop\game-engine\rendering\gbuffer.h
 	<GL/glew.h>
 	<iostream>
-	<GL/glew.h>
-	<iostream>
 
-1527861883 c:\users\paul\desktop\game-engine\rendering\texture.h
+1527865900 c:\users\paul\desktop\game-engine\rendering\texture.h
 	<string>
 	<GL/glew.h>
 	<iostream>
 	"ErrorUtils.h"
 
-1527861882 c:\users\paul\desktop\game-engine\rendering\light.h
+1529228489 c:\users\paul\desktop\game-engine\rendering\light.h
 	"Transform.h"
 	"Mesh.h"
 	"FrameBuffer.h"
 	"Texture.h"
 	"Camera.h"
 
-1527861882 c:\users\paul\desktop\game-engine\rendering\framebuffer.h
+1529176474 c:\users\paul\desktop\game-engine\rendering\framebuffer.h
 	<vector>
 	<GL/glew.h>
 	<iostream>
@@ -2384,11 +2261,6 @@
 	"ErrorUtils.h"
 
 1517952929 c:\users\paul\desktop\game-engine\rendering\postprocess.h
-	"FrameBuffer.h"
-	"Shader.h"
-	"Mesh.h"
-	"Texture.h"
-	<string>
 	"FrameBuffer.h"
 	"Shader.h"
 	"Mesh.h"
@@ -2403,30 +2275,27 @@
 
 1522588175 pp>
 
-1503512616 source:c:\users\paul\desktop\game-engine\main.cpp
-	<iostream>
-	"Game.h"
+1538516315 source:c:\users\paul\desktop\game-engine\main.cpp
 	<iostream>
 	"Game.h"
 
-1527861882 source:c:\users\paul\desktop\game-engine\rendering\camera.cpp
+1527865900 source:c:\users\paul\desktop\game-engine\rendering\camera.cpp
 	"camera.h"
 
-1527862038 source:c:\users\paul\desktop\game-engine\rendering\display.cpp
+1531653058 source:c:\users\paul\desktop\game-engine\rendering\display.cpp
 	"Display.h"
 
 1517952929 source:c:\users\paul\desktop\game-engine\rendering\material.cpp
 	"Material.h"
-	"Material.h"
 
-1527861885 source:c:\users\paul\desktop\game-engine\rendering\mesh.cpp
+1530985912 source:c:\users\paul\desktop\game-engine\rendering\mesh.cpp
 	"mesh.h"
 	<iostream>
 
-1527861882 source:c:\users\paul\desktop\game-engine\rendering\rendercomponent.cpp
+1527872568 source:c:\users\paul\desktop\game-engine\rendering\rendercomponent.cpp
 	"RenderComponent.h"
 
-1527862175 source:c:\users\paul\desktop\game-engine\rendering\renderingmaster.cpp
+1535890725 source:c:\users\paul\desktop\game-engine\rendering\renderingmaster.cpp
 	"RenderingMaster.h"
 	"ParticleRenderer.h"
 	"ParticleFactory.h"
@@ -2435,8 +2304,9 @@
 	"SpotLight.h"
 	"DirectionalLight.h"
 	"PointLight.h"
+	<typeinfo>
 
-1527861882 source:c:\users\paul\desktop\game-engine\rendering\shader.cpp
+1531769077 source:c:\users\paul\desktop\game-engine\rendering\shader.cpp
 	"Shader.h"
 
 1522595406 source:c:\users\paul\desktop\game-engine\rendering\shaderuniform.cpp
@@ -2446,7 +2316,7 @@
 	"Transform.h"
 	<iostream>
 
-1527862281 source:c:\users\paul\desktop\game-engine\core\enginecore.cpp
+1577108579 source:c:\users\paul\desktop\game-engine\core\enginecore.cpp
 	"EngineCore.h"
 	<glm/gtx/rotate_vector.hpp>
 	"ParticleRenderer.h"
@@ -2462,7 +2332,6 @@
 	"glm/glm.hpp"
 
 1517952923 source:c:\users\paul\desktop\game-engine\rendering\tempanimationcomponent.cpp
-	"TempAnimationComponent.h"
 	"TempAnimationComponent.h"
 
 1522868603 source:c:\users\paul\desktop\game-engine\physics\physicscomponent.cpp
@@ -3006,26 +2875,27 @@
 	"LinearMath/btScalar.h"
 	"btRigidBody.h"
 
-1522588498 c:\users\paul\desktop\game-engine\core\utils\profilingtimer.h
+1532181850 c:\users\paul\desktop\game-engine\core\utils\profilingtimer.h
 	<chrono>
 	<string>
 	<iostream>
 	<unordered_map>
 	<glm/glm.hpp>
 	<memory>
+	<GL/glew.h>
 
 1522588175 
 
-1522858927 source:c:\users\paul\desktop\game-engine\physics\physicsmaster.cpp
+1577108537 source:c:\users\paul\desktop\game-engine\physics\physicsmaster.cpp
 	"PhysicsMaster.h"
 
-1527861883 source:c:\users\paul\desktop\game-engine\rendering\texture.cpp
+1527865900 source:c:\users\paul\desktop\game-engine\rendering\texture.cpp
 	"texture.h"
 	"ErrorUtils.h"
 	"stb_image.h"
 	"stb_image_write.h"
 
-1527861885 source:c:\users\paul\desktop\game-engine\core\utils\profilingtimer.cpp
+1532182026 source:c:\users\paul\desktop\game-engine\core\utils\profilingtimer.cpp
 	"ProfilingTimer.h"
 	"BarGUI.h"
 	<memory>
@@ -3039,14 +2909,8 @@
 	"../glm.hpp"
 	"../gtx/transform.hpp"
 	"rotate_vector.inl"
-	"../glm.hpp"
-	"../gtx/transform.hpp"
-	"rotate_vector.inl"
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\transform.hpp
-	"../glm.hpp"
-	"../gtc/matrix_transform.hpp"
-	"transform.inl"
 	"../glm.hpp"
 	"../gtc/matrix_transform.hpp"
 	"transform.inl"
@@ -3055,7 +2919,7 @@
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\rotate_vector.inl
 
-1527865491 c:\users\paul\desktop\game-engine\core\particlerenderer.h
+1527865900 c:\users\paul\desktop\game-engine\core\particlerenderer.h
 	<vector>
 	<GL/glew.h>
 	<glm/glm.hpp>
@@ -3086,16 +2950,13 @@
 	"RenderingMaster.h"
 	"PhysicsMaster.h"
 
-1522595406 source:c:\users\paul\desktop\game-engine\core\smokeparticle.cpp
+1528534804 source:c:\users\paul\desktop\game-engine\core\smokeparticle.cpp
 	"SmokeParticle.h"
 	"Texture.h"
 	"Camera.h"
 	<glm/gtx/norm.hpp>
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\norm.hpp
-	"../detail/func_geometric.hpp"
-	"../gtx/quaternion.hpp"
-	"norm.inl"
 	"../detail/func_geometric.hpp"
 	"../gtx/quaternion.hpp"
 	"norm.inl"
@@ -3106,40 +2967,30 @@
 	"../gtc/quaternion.hpp"
 	"../gtx/norm.hpp"
 	"quaternion.inl"
-	"../glm.hpp"
-	"../gtc/constants.hpp"
-	"../gtc/quaternion.hpp"
-	"../gtx/norm.hpp"
-	"quaternion.inl"
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\quaternion.inl
-	<limits>
-	"../gtc/constants.hpp"
 	<limits>
 	"../gtc/constants.hpp"
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\norm.inl
 	"../detail/precision.hpp"
-	"../detail/precision.hpp"
 
 1500216055 .h"
 
-1527862128 source:c:\users\paul\desktop\game-engine\rendering\framebuffer.cpp
+1531768001 source:c:\users\paul\desktop\game-engine\rendering\framebuffer.cpp
 	"FrameBuffer.h"
 
-1522595406 source:c:\users\paul\desktop\game-engine\rendering\gbuffer.cpp
+1531768402 source:c:\users\paul\desktop\game-engine\rendering\gbuffer.cpp
 	"GBuffer.h"
 
-1527862151 source:c:\users\paul\desktop\game-engine\rendering\light.cpp
+1527865900 source:c:\users\paul\desktop\game-engine\rendering\light.cpp
 	"Light.h"
 
 1517952929 source:c:\users\paul\desktop\game-engine\rendering\postprocess.cpp
 	"PostProcess.h"
 	<utility>
-	"PostProcess.h"
-	<utility>
 
-1527861885 c:\users\paul\desktop\game-engine\rendering\bargui.h
+1531643154 c:\users\paul\desktop\game-engine\rendering\bargui.h
 	"GUI.h"
 	"Text.h"
 
@@ -3214,18 +3065,18 @@
 	<math.h>
 	<assert.h>
 
-1527861882 c:\users\paul\desktop\game-engine\core\utils\errorutils.h
+1527865900 c:\users\paul\desktop\game-engine\core\utils\errorutils.h
 
-1527861882 c:\users\paul\desktop\game-engine\rendering\spotlight.h
+1528581308 c:\users\paul\desktop\game-engine\rendering\spotlight.h
 	"Light.h"
 
-1527861882 c:\users\paul\desktop\game-engine\rendering\directionallight.h
+1528581313 c:\users\paul\desktop\game-engine\rendering\directionallight.h
 	"Light.h"
 
-1527861882 c:\users\paul\desktop\game-engine\rendering\pointlight.h
+1528581328 c:\users\paul\desktop\game-engine\rendering\pointlight.h
 	"Light.h"
 
-1527861882 c:\users\paul\desktop\game-engine\core\utils\mathutils.h
+1527865900 c:\users\paul\desktop\game-engine\core\utils\mathutils.h
 	<glm/glm.hpp>
 	<glm/gtx/vector_angle.hpp>
 	<cmath>
@@ -3253,29 +3104,2187 @@
 
 1487192408 c:\users\paul\desktop\game-engine\res\libraries\glm\glm\gtx\vector_angle.inl
 
-1527861882 source:c:\users\paul\desktop\game-engine\rendering\directionallight.cpp
+1528583711 source:c:\users\paul\desktop\game-engine\rendering\directionallight.cpp
 	"DirectionalLight.h"
 	"MathUtils.h"
 	"RenderingMaster.h"
 	"Shader.h"
 
-1527861882 source:c:\users\paul\desktop\game-engine\rendering\pointlight.cpp
+1528584376 source:c:\users\paul\desktop\game-engine\rendering\pointlight.cpp
 	"PointLight.h"
 	"Shader.h"
 
-1527861882 source:c:\users\paul\desktop\game-engine\rendering\spotlight.cpp
+1534705945 source:c:\users\paul\desktop\game-engine\rendering\spotlight.cpp
 	"SpotLight.h"
 	"Shader.h"
 
-1527861882 source:c:\users\paul\desktop\game-engine\core\utils\errorutils.cpp
+1527865900 source:c:\users\paul\desktop\game-engine\core\utils\errorutils.cpp
 	"ErrorUtils.h"
 	<cstdio>
 	<stdarg.h>
 
-1527861882 source:c:\users\paul\desktop\game-engine\core\utils\mathutils.cpp
+1527878495 source:c:\users\paul\desktop\game-engine\core\utils\mathutils.cpp
 	"MathUtils.h"
 	"Camera.h"
 	"Mesh.h"
 	<vector>
 	<limits>
+
+1596364029 source:c:\users\paul\desktop\game-engine3\core\component.cpp
+	"Component.h"
+
+1596364029 c:\users\paul\desktop\game-engine3\core\component.h
+	"Entity.h"
+	"Input.h"
+
+1596364029 c:\users\paul\desktop\game-engine3\core\entity.h
+	"Transform.h"
+	"Component.h"
+	<vector>
+	<unordered_map>
+	"Input.h"
+	"MemoryPoolInterface.h"
+
+1596364029 c:\users\paul\desktop\game-engine3\rendering\transform.h
+	<glm/glm.hpp>
+	<glm/gtc/quaternion.hpp>
+	<glm/gtc/matrix_transform.hpp>
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\glm.hpp
+	"detail/_fixes.hpp"
+	<cmath>
+	<climits>
+	<cfloat>
+	<limits>
+	<cassert>
+	"fwd.hpp"
+	"vec2.hpp"
+	"vec3.hpp"
+	"vec4.hpp"
+	"mat2x2.hpp"
+	"mat2x3.hpp"
+	"mat2x4.hpp"
+	"mat3x2.hpp"
+	"mat3x3.hpp"
+	"mat3x4.hpp"
+	"mat4x2.hpp"
+	"mat4x3.hpp"
+	"mat4x4.hpp"
+	"trigonometric.hpp"
+	"exponential.hpp"
+	"common.hpp"
+	"packing.hpp"
+	"geometric.hpp"
+	"matrix.hpp"
+	"vector_relational.hpp"
+	"integer.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\_fixes.hpp
+	<cmath>
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\fwd.hpp
+	"detail/type_int.hpp"
+	"detail/type_float.hpp"
+	"detail/type_vec.hpp"
+	"detail/type_mat.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_int.hpp
+	"setup.hpp"
+	<type_traits>
+	<cstdint>
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\setup.hpp
+	<cassert>
+	<cstddef>
+	"../simd/platform.h"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\simd\platform.h
+	<cuda.h>
+	<intrin.h>
+	<immintrin.h>
+	<immintrin.h>
+	<nmmintrin.h>
+	<smmintrin.h>
+	<tmmintrin.h>
+	<pmmintrin.h>
+	<emmintrin.h>
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_float.hpp
+	"setup.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_vec.hpp
+	"precision.hpp"
+	"type_int.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\precision.hpp
+	"setup.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat.hpp
+	"precision.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\vec2.hpp
+	"detail/type_vec2.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_vec2.hpp
+	"type_vec.hpp"
+	"_swizzle.hpp"
+	"_swizzle_func.hpp"
+	<cstddef>
+	"type_vec2.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\_swizzle.hpp
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\_swizzle_func.hpp
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_vec2.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\vec3.hpp
+	"detail/type_vec3.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_vec3.hpp
+	"type_vec.hpp"
+	"_swizzle.hpp"
+	"_swizzle_func.hpp"
+	<cstddef>
+	"type_vec3.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_vec3.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\vec4.hpp
+	"detail/type_vec4.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_vec4.hpp
+	"type_vec.hpp"
+	"_swizzle.hpp"
+	"_swizzle_func.hpp"
+	<cstddef>
+	"type_vec4.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_vec4.inl
+	"type_vec4_simd.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_vec4_simd.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\mat2x2.hpp
+	"detail/type_mat2x2.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat2x2.hpp
+	"../fwd.hpp"
+	"type_vec2.hpp"
+	"type_mat.hpp"
+	<limits>
+	<cstddef>
+	"type_mat2x2.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat2x2.inl
+	"func_matrix.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_matrix.hpp
+	"../detail/precision.hpp"
+	"../detail/setup.hpp"
+	"../detail/type_mat.hpp"
+	"../vec2.hpp"
+	"../vec3.hpp"
+	"../vec4.hpp"
+	"../mat2x2.hpp"
+	"../mat2x3.hpp"
+	"../mat2x4.hpp"
+	"../mat3x2.hpp"
+	"../mat3x3.hpp"
+	"../mat3x4.hpp"
+	"../mat4x2.hpp"
+	"../mat4x3.hpp"
+	"../mat4x4.hpp"
+	"func_matrix.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\mat2x3.hpp
+	"detail/type_mat2x3.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat2x3.hpp
+	"../fwd.hpp"
+	"type_vec2.hpp"
+	"type_vec3.hpp"
+	"type_mat.hpp"
+	<limits>
+	<cstddef>
+	"type_mat2x3.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat2x3.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\mat2x4.hpp
+	"detail/type_mat2x4.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat2x4.hpp
+	"../fwd.hpp"
+	"type_vec2.hpp"
+	"type_vec4.hpp"
+	"type_mat.hpp"
+	<limits>
+	<cstddef>
+	"type_mat2x4.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat2x4.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\mat3x2.hpp
+	"detail/type_mat3x2.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat3x2.hpp
+	"../fwd.hpp"
+	"type_vec2.hpp"
+	"type_vec3.hpp"
+	"type_mat.hpp"
+	<limits>
+	<cstddef>
+	"type_mat3x2.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat3x2.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\mat3x3.hpp
+	"detail/type_mat3x3.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat3x3.hpp
+	"../fwd.hpp"
+	"type_vec3.hpp"
+	"type_mat.hpp"
+	<limits>
+	<cstddef>
+	"type_mat3x3.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat3x3.inl
+	"func_matrix.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\mat3x4.hpp
+	"detail/type_mat3x4.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat3x4.hpp
+	"../fwd.hpp"
+	"type_vec3.hpp"
+	"type_vec4.hpp"
+	"type_mat.hpp"
+	<limits>
+	<cstddef>
+	"type_mat3x4.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat3x4.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\mat4x2.hpp
+	"detail/type_mat4x2.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat4x2.hpp
+	"../fwd.hpp"
+	"type_vec2.hpp"
+	"type_vec4.hpp"
+	"type_mat.hpp"
+	<limits>
+	<cstddef>
+	"type_mat4x2.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat4x2.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\mat4x3.hpp
+	"detail/type_mat4x3.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat4x3.hpp
+	"../fwd.hpp"
+	"type_vec3.hpp"
+	"type_vec4.hpp"
+	"type_mat.hpp"
+	<limits>
+	<cstddef>
+	"type_mat4x3.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat4x3.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\mat4x4.hpp
+	"detail/type_mat4x4.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat4x4.hpp
+	"../fwd.hpp"
+	"type_vec4.hpp"
+	"type_mat.hpp"
+	<limits>
+	<cstddef>
+	"type_mat4x4.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat4x4.inl
+	"func_matrix.hpp"
+	"type_mat4x4_simd.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_mat4x4_simd.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_matrix.inl
+	"../geometric.hpp"
+	<limits>
+	"func_matrix_simd.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\geometric.hpp
+	"detail/func_geometric.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_geometric.hpp
+	"type_vec3.hpp"
+	"func_geometric.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_geometric.inl
+	"func_exponential.hpp"
+	"func_common.hpp"
+	"type_vec2.hpp"
+	"type_vec4.hpp"
+	"type_float.hpp"
+	"func_geometric_simd.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_exponential.hpp
+	"type_vec1.hpp"
+	"type_vec2.hpp"
+	"type_vec3.hpp"
+	"type_vec4.hpp"
+	<cmath>
+	"func_exponential.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_vec1.hpp
+	"../fwd.hpp"
+	"type_vec.hpp"
+	"_swizzle.hpp"
+	"_swizzle_func.hpp"
+	<cstddef>
+	"type_vec1.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_vec1.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_exponential.inl
+	"func_vector_relational.hpp"
+	"_vectorize.hpp"
+	<limits>
+	<cmath>
+	<cassert>
+	"func_exponential_simd.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_vector_relational.hpp
+	"precision.hpp"
+	"setup.hpp"
+	"func_vector_relational.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_vector_relational.inl
+	<limits>
+	"func_vector_relational_simd.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_vector_relational_simd.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\_vectorize.hpp
+	"type_vec1.hpp"
+	"type_vec2.hpp"
+	"type_vec3.hpp"
+	"type_vec4.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_exponential_simd.inl
+	"../simd/exponential.h"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\simd\exponential.h
+	"platform.h"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_common.hpp
+	"setup.hpp"
+	"precision.hpp"
+	"type_int.hpp"
+	"_fixes.hpp"
+	"func_common.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_common.inl
+	"func_vector_relational.hpp"
+	"type_vec2.hpp"
+	"type_vec3.hpp"
+	"type_vec4.hpp"
+	"_vectorize.hpp"
+	<limits>
+	"func_common_simd.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_common_simd.inl
+	"../simd/common.h"
+	<immintrin.h>
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\simd\common.h
+	"platform.h"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_geometric_simd.inl
+	"../simd/geometric.h"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\simd\geometric.h
+	"common.h"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_matrix_simd.inl
+	"type_mat4x4.hpp"
+	"func_geometric.hpp"
+	"../simd/matrix.h"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\simd\matrix.h
+	"geometric.h"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\trigonometric.hpp
+	"detail/func_trigonometric.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_trigonometric.hpp
+	"setup.hpp"
+	"precision.hpp"
+	"func_trigonometric.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_trigonometric.inl
+	"_vectorize.hpp"
+	<cmath>
+	<limits>
+	"func_trigonometric_simd.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_trigonometric_simd.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\exponential.hpp
+	"detail/func_exponential.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\common.hpp
+	"detail/func_common.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\packing.hpp
+	"detail/func_packing.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_packing.hpp
+	"type_vec2.hpp"
+	"type_vec4.hpp"
+	"func_packing.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_packing.inl
+	"func_common.hpp"
+	"type_half.hpp"
+	"../fwd.hpp"
+	"func_packing_simd.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_half.hpp
+	"setup.hpp"
+	"type_half.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\type_half.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_packing_simd.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\matrix.hpp
+	"detail/func_matrix.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\vector_relational.hpp
+	"detail/func_vector_relational.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\integer.hpp
+	"detail/func_integer.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_integer.hpp
+	"setup.hpp"
+	"precision.hpp"
+	"func_common.hpp"
+	"func_vector_relational.hpp"
+	"func_integer.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_integer.inl
+	"type_vec2.hpp"
+	"type_vec3.hpp"
+	"type_vec4.hpp"
+	"type_int.hpp"
+	"_vectorize.hpp"
+	<intrin.h>
+	<limits>
+	"func_integer_simd.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\detail\func_integer_simd.inl
+	"../simd/integer.h"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\simd\integer.h
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtc\quaternion.hpp
+	"../mat3x3.hpp"
+	"../mat4x4.hpp"
+	"../vec3.hpp"
+	"../vec4.hpp"
+	"../gtc/constants.hpp"
+	"quaternion.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtc\constants.hpp
+	"../detail/setup.hpp"
+	"constants.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtc\constants.inl
+	<limits>
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtc\quaternion.inl
+	"../trigonometric.hpp"
+	"../geometric.hpp"
+	"../exponential.hpp"
+	<limits>
+	"quaternion_simd.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtc\quaternion_simd.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtc\matrix_transform.hpp
+	"../mat4x4.hpp"
+	"../vec2.hpp"
+	"../vec3.hpp"
+	"../vec4.hpp"
+	"../gtc/constants.hpp"
+	"matrix_transform.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtc\matrix_transform.inl
+	"../geometric.hpp"
+	"../trigonometric.hpp"
+	"../matrix.hpp"
+
+1596364029 c:\users\paul\desktop\game-engine3\core\input.h
+	<SDL2/SDL.h>
+	"Display.h"
+	<glm/glm.hpp>
+
+1487192404 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl.h
+	"SDL_main.h"
+	"SDL_stdinc.h"
+	"SDL_assert.h"
+	"SDL_atomic.h"
+	"SDL_audio.h"
+	"SDL_clipboard.h"
+	"SDL_cpuinfo.h"
+	"SDL_endian.h"
+	"SDL_error.h"
+	"SDL_events.h"
+	"SDL_filesystem.h"
+	"SDL_joystick.h"
+	"SDL_gamecontroller.h"
+	"SDL_haptic.h"
+	"SDL_hints.h"
+	"SDL_loadso.h"
+	"SDL_log.h"
+	"SDL_messagebox.h"
+	"SDL_mutex.h"
+	"SDL_power.h"
+	"SDL_render.h"
+	"SDL_rwops.h"
+	"SDL_system.h"
+	"SDL_thread.h"
+	"SDL_timer.h"
+	"SDL_version.h"
+	"SDL_video.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_main.h
+	"SDL_stdinc.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_stdinc.h
+	"SDL_config.h"
+	<sys/types.h>
+	<stdio.h>
+	<stdlib.h>
+	<stddef.h>
+	<stdarg.h>
+	<stdlib.h>
+	<malloc.h>
+	<stddef.h>
+	<stdarg.h>
+	<memory.h>
+	<string.h>
+	<strings.h>
+	<inttypes.h>
+	<stdint.h>
+	<ctype.h>
+	<math.h>
+	<float.h>
+	<iconv.h>
+	<sal.h>
+	"begin_code.h"
+	<alloca.h>
+	<malloc.h>
+	<malloc.h>
+	<malloc.h>
+	<stdlib.h>
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_config.h
+	"SDL_platform.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_platform.h
+	"AvailabilityMacros.h"
+	"TargetConditionals.h"
+	<winapifamily.h>
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\begin_code.h
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\close_code.h
+
+1487192404 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_assert.h
+	"SDL_config.h"
+	"begin_code.h"
+	<signal.h>
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_atomic.h
+	"SDL_stdinc.h"
+	"SDL_platform.h"
+	"begin_code.h"
+	<mbarrier.h>
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_audio.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_endian.h"
+	"SDL_mutex.h"
+	"SDL_thread.h"
+	"SDL_rwops.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_error.h
+	"SDL_stdinc.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_endian.h
+	"SDL_stdinc.h"
+	<endian.h>
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_mutex.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_thread.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_atomic.h"
+	"SDL_mutex.h"
+	"begin_code.h"
+	<process.h>
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_rwops.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_clipboard.h
+	"SDL_stdinc.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_cpuinfo.h
+	"SDL_stdinc.h"
+	<intrin.h>
+	<intrin.h>
+	<altivec.h>
+	<mmintrin.h>
+	<mm3dnow.h>
+	<xmmintrin.h>
+	<emmintrin.h>
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_events.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_video.h"
+	"SDL_keyboard.h"
+	"SDL_mouse.h"
+	"SDL_joystick.h"
+	"SDL_gamecontroller.h"
+	"SDL_quit.h"
+	"SDL_gesture.h"
+	"SDL_touch.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_video.h
+	"SDL_stdinc.h"
+	"SDL_pixels.h"
+	"SDL_rect.h"
+	"SDL_surface.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_pixels.h
+	"SDL_stdinc.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_rect.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_pixels.h"
+	"SDL_rwops.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_surface.h
+	"SDL_stdinc.h"
+	"SDL_pixels.h"
+	"SDL_rect.h"
+	"SDL_blendmode.h"
+	"SDL_rwops.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_blendmode.h
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_keyboard.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_keycode.h"
+	"SDL_video.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_keycode.h
+	"SDL_stdinc.h"
+	"SDL_scancode.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_scancode.h
+	"SDL_stdinc.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_mouse.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_video.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_joystick.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_gamecontroller.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_rwops.h"
+	"SDL_joystick.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_quit.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_gesture.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_video.h"
+	"SDL_touch.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_touch.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_video.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_filesystem.h
+	"SDL_stdinc.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_haptic.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_joystick.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_hints.h
+	"SDL_stdinc.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_loadso.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_log.h
+	"SDL_stdinc.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_messagebox.h
+	"SDL_stdinc.h"
+	"SDL_video.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_power.h
+	"SDL_stdinc.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_render.h
+	"SDL_stdinc.h"
+	"SDL_rect.h"
+	"SDL_video.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_system.h
+	"SDL_stdinc.h"
+	"SDL_keyboard.h"
+	"SDL_render.h"
+	"SDL_video.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_timer.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"begin_code.h"
+	"close_code.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_version.h
+	"SDL_stdinc.h"
+	"begin_code.h"
+	"close_code.h"
+
+1596364029 c:\users\paul\desktop\game-engine3\rendering\display.h
+	<SDL2/SDL.h>
+	<iostream>
+	<GL/glew.h>
+	<glm/glm.hpp>
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glew\include\gl\glew.h
+	<stddef.h>
+	<inttypes.h>
+	<stdint.h>
+	<inttypes.h>
+	<Availability.h>
+	<OpenGL/glu.h>
+	<GL/glu.h>
+
+1584788428 c:\users\paul\desktop\game-engine3\core\utils\memorypoolinterface.h
+	"MemoryPool.h"
+
+1584788428 c:\users\paul\desktop\game-engine3\core\utils\memorypool.h
+	<stdlib.h>
+	<iostream>
+
+1596364029 source:c:\users\paul\desktop\game-engine3\core\componentfactory.cpp
+	"ComponentFactory.h"
+
+1596364029 c:\users\paul\desktop\game-engine3\core\componentfactory.h
+	"rapidjson/document.h"
+	"RenderComponent.h"
+	"TempAnimationComponent.h"
+	"PhysicsComponent.h"
+	"GrabComponent.h"
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\document.h
+	"reader.h"
+	"internal/meta.h"
+	"internal/strfunc.h"
+	"memorystream.h"
+	"encodedstream.h"
+	<new>
+	<limits>
+	<iterator>
+	<utility>
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\reader.h
+	"allocators.h"
+	"stream.h"
+	"encodedstream.h"
+	"internal/meta.h"
+	"internal/stack.h"
+	"internal/strtod.h"
+	<limits>
+	<intrin.h>
+	<nmmintrin.h>
+	<emmintrin.h>
+	<arm_neon.h>
+	<stdexcept>
+	"rapidjson/error/error.h"
+	"rapidjson/reader.h"
+	"error/error.h"
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\allocators.h
+	"rapidjson.h"
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\rapidjson.h
+	<cstdlib>
+	<cstring>
+	"rapidjson/..."
+	<string>
+	"msinttypes/stdint.h"
+	"msinttypes/inttypes.h"
+	<stdint.h>
+	<inttypes.h>
+	<endian.h>
+	"rapidjson/..."
+	<cassert>
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\msinttypes\stdint.h
+	<stdint.h>
+	<limits.h>
+	<wchar.h>
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\msinttypes\inttypes.h
+	"stdint.h"
+	<inttypes.h>
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\stream.h
+	"rapidjson.h"
+	"encodings.h"
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\encodings.h
+	"rapidjson.h"
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\encodedstream.h
+	"stream.h"
+	"memorystream.h"
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\memorystream.h
+	"stream.h"
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\internal\meta.h
+	"../rapidjson.h"
+	<type_traits>
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\internal\stack.h
+	"../allocators.h"
+	"swap.h"
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\internal\swap.h
+	"../rapidjson.h"
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\internal\strtod.h
+	"ieee754.h"
+	"biginteger.h"
+	"diyfp.h"
+	"pow10.h"
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\internal\ieee754.h
+	"../rapidjson.h"
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\internal\biginteger.h
+	"../rapidjson.h"
+	<intrin.h>
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\internal\diyfp.h
+	"../rapidjson.h"
+	<intrin.h>
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\internal\pow10.h
+	"../rapidjson.h"
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\error\error.h
+	"../rapidjson.h"
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\internal\strfunc.h
+	"../stream.h"
+	<cwchar>
+
+1595274232 c:\users\paul\desktop\game-engine3\rendering\rendercomponent.h
+	"Mesh.h"
+	"Shader.h"
+	"Material.h"
+	"Component.h"
+	"RenderingMaster.h"
+	"Texture.h"
+
+1584788428 c:\users\paul\desktop\game-engine3\rendering\mesh.h
+	<GL/glew.h>
+	<glm/glm.hpp>
+	<vector>
+	<string>
+	<sstream>
+	<fstream>
+	<limits>
+
+1596364029 c:\users\paul\desktop\game-engine3\rendering\shader.h
+	<stdlib.h>
+	<stdio.h>
+	<fstream>
+	<iostream>
+	<GL/glew.h>
+	<string.h>
+	<glm/glm.hpp>
+	<string>
+	<unordered_map>
+	"ShaderUniform.h"
+	"FileUtils.h"
+	"rapidjson/document.h"
+	"rapidjson/error/en.h"
+	"MemoryPoolInterface.h"
+
+1584788428 c:\users\paul\desktop\game-engine3\rendering\shaderuniform.h
+	"glm/glm.hpp"
+	"Shader.h"
+	<string>
+	<unordered_map>
+	<glm/gtc/type_ptr.hpp>
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtc\type_ptr.hpp
+	"../gtc/quaternion.hpp"
+	"../vec2.hpp"
+	"../vec3.hpp"
+	"../vec4.hpp"
+	"../mat2x2.hpp"
+	"../mat2x3.hpp"
+	"../mat2x4.hpp"
+	"../mat3x2.hpp"
+	"../mat3x3.hpp"
+	"../mat3x4.hpp"
+	"../mat4x2.hpp"
+	"../mat4x3.hpp"
+	"../mat4x4.hpp"
+	<cstring>
+	"type_ptr.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtc\type_ptr.inl
+	<cstring>
+
+1584788428 c:\users\paul\desktop\game-engine3\core\utils\fileutils.h
+	<string>
+	<fstream>
+	<iostream>
+	"rapidjson/document.h"
+
+1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\error\en.h
+	"error.h"
+
+1584788428 c:\users\paul\desktop\game-engine3\rendering\material.h
+	"glm/glm.hpp"
+
+1596364364 c:\users\paul\desktop\game-engine3\rendering\renderingmaster.h
+	"rapidjson/document.h"
+	"Display.h"
+	"Camera.h"
+	"Entity.h"
+	"Shader.h"
+	"RenderComponent.h"
+	"GBuffer.h"
+	"Texture.h"
+	"Light.h"
+	"PostProcess.h"
+	"SmokeParticle.h"
+	<vector>
+
+1596364029 c:\users\paul\desktop\game-engine3\rendering\camera.h
+	<glm/glm.hpp>
+	<SDL2/SDL.h>
+	"Input.h"
+	<iostream>
+	"Display.h"
+	<glm/gtc/matrix_transform.hpp>
+	<glm/gtc/quaternion.hpp>
+
+1584788428 c:\users\paul\desktop\game-engine3\rendering\gbuffer.h
+	<GL/glew.h>
+	<iostream>
+
+1584788428 c:\users\paul\desktop\game-engine3\rendering\texture.h
+	<string>
+	<GL/glew.h>
+	<iostream>
+	"ErrorUtils.h"
+
+1584788428 c:\users\paul\desktop\game-engine3\core\utils\errorutils.h
+
+1596364301 c:\users\paul\desktop\game-engine3\rendering\light.h
+	"Transform.h"
+	"Mesh.h"
+	"FrameBuffer.h"
+	"Texture.h"
+	"Camera.h"
+	"btGhostObject.h"
+	"PhysicsMaster.h"
+
+1596364029 c:\users\paul\desktop\game-engine3\rendering\framebuffer.h
+	<vector>
+	<GL/glew.h>
+	<iostream>
+	<cassert>
+	"ErrorUtils.h"
+
+1584788428 c:\users\paul\desktop\game-engine3\rendering\postprocess.h
+	"FrameBuffer.h"
+	"Shader.h"
+	"Mesh.h"
+	"Texture.h"
+	<string>
+
+1584788428 c:\users\paul\desktop\game-engine3\core\smokeparticle.h
+	"IParticle.h"
+
+1584788428 c:\users\paul\desktop\game-engine3\core\iparticle.h
+	<glm/glm.hpp>
+
+1584788428 c:\users\paul\desktop\game-engine3\rendering\tempanimationcomponent.h
+	"Component.h"
+	"glm/glm.hpp"
+
+1596364029 c:\users\paul\desktop\game-engine3\physics\physicscomponent.h
+	"Component.h"
+	"glm/glm.hpp"
+	"bullet/btBulletDynamicsCommon.h"
+	"glm/gtc/type_ptr.hpp"
+	"PhysicsMaster.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\btbulletdynamicscommon.h
+	"btBulletCollisionCommon.h"
+	"BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h"
+	"BulletDynamics/Dynamics/btSimpleDynamicsWorld.h"
+	"BulletDynamics/Dynamics/btRigidBody.h"
+	"BulletDynamics/ConstraintSolver/btPoint2PointConstraint.h"
+	"BulletDynamics/ConstraintSolver/btHingeConstraint.h"
+	"BulletDynamics/ConstraintSolver/btConeTwistConstraint.h"
+	"BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.h"
+	"BulletDynamics/ConstraintSolver/btSliderConstraint.h"
+	"BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.h"
+	"BulletDynamics/ConstraintSolver/btUniversalConstraint.h"
+	"BulletDynamics/ConstraintSolver/btHinge2Constraint.h"
+	"BulletDynamics/ConstraintSolver/btGearConstraint.h"
+	"BulletDynamics/ConstraintSolver/btFixedConstraint.h"
+	"BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h"
+	"BulletDynamics/Vehicle/btRaycastVehicle.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\btbulletcollisioncommon.h
+	"BulletCollision/CollisionDispatch/btCollisionWorld.h"
+	"BulletCollision/CollisionDispatch/btCollisionObject.h"
+	"BulletCollision/CollisionShapes/btBoxShape.h"
+	"BulletCollision/CollisionShapes/btSphereShape.h"
+	"BulletCollision/CollisionShapes/btCapsuleShape.h"
+	"BulletCollision/CollisionShapes/btCylinderShape.h"
+	"BulletCollision/CollisionShapes/btConeShape.h"
+	"BulletCollision/CollisionShapes/btStaticPlaneShape.h"
+	"BulletCollision/CollisionShapes/btConvexHullShape.h"
+	"BulletCollision/CollisionShapes/btTriangleMesh.h"
+	"BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h"
+	"BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
+	"BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h"
+	"BulletCollision/CollisionShapes/btTriangleMeshShape.h"
+	"BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h"
+	"BulletCollision/CollisionShapes/btCompoundShape.h"
+	"BulletCollision/CollisionShapes/btTetrahedronShape.h"
+	"BulletCollision/CollisionShapes/btEmptyShape.h"
+	"BulletCollision/CollisionShapes/btMultiSphereShape.h"
+	"BulletCollision/CollisionShapes/btUniformScalingShape.h"
+	"BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.h"
+	"BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h"
+	"BulletCollision/CollisionDispatch/btCollisionDispatcher.h"
+	"BulletCollision/BroadphaseCollision/btSimpleBroadphase.h"
+	"BulletCollision/BroadphaseCollision/btAxisSweep3.h"
+	"BulletCollision/BroadphaseCollision/btMultiSapBroadphase.h"
+	"BulletCollision/BroadphaseCollision/btDbvtBroadphase.h"
+	"LinearMath/btQuaternion.h"
+	"LinearMath/btTransform.h"
+	"LinearMath/btDefaultMotionState.h"
+	"LinearMath/btQuickprof.h"
+	"LinearMath/btIDebugDraw.h"
+	"LinearMath/btSerializer.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisiondispatch\btcollisionworld.h
+	"LinearMath/btVector3.h"
+	"LinearMath/btTransform.h"
+	"btCollisionObject.h"
+	"btCollisionDispatcher.h"
+	"BulletCollision/BroadphaseCollision/btOverlappingPairCache.h"
+	"LinearMath/btAlignedObjectArray.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btvector3.h
+	"btScalar.h"
+	"btMinMax.h"
+	"btAlignedAllocator.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btscalar.h
+	<math.h>
+	<stdlib.h>
+	<float.h>
+	<ppcintrinsics.h>
+	<emmintrin.h>
+	<stdio.h>
+	<assert.h>
+	<assert.h>
+	<spu_printf.h>
+	<assert.h>
+	<smmintrin.h>
+	<tmmintrin.h>
+	<pmmintrin.h>
+	<emmintrin.h>
+	<arm_neon.h>
+	<assert.h>
+	<stdio.h>
+	<assert.h>
+	<arm_neon.h>
+	<arm_neon.h>
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btminmax.h
+	"btScalar.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btalignedallocator.h
+	"btScalar.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\bttransform.h
+	"btMatrix3x3.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btmatrix3x3.h
+	"btVector3.h"
+	"btQuaternion.h"
+	<stdio.h>
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btquaternion.h
+	"btVector3.h"
+	"btQuadWord.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btquadword.h
+	"btScalar.h"
+	"btMinMax.h"
+	<altivec.h>
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisiondispatch\btcollisionobject.h
+	"LinearMath/btTransform.h"
+	"LinearMath/btMotionState.h"
+	"LinearMath/btAlignedAllocator.h"
+	"LinearMath/btAlignedObjectArray.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btmotionstate.h
+	"btTransform.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btalignedobjectarray.h
+	"btScalar.h"
+	"btAlignedAllocator.h"
+	<memory.h>
+	<string.h>
+	<new>
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisiondispatch\btcollisiondispatcher.h
+	"BulletCollision/BroadphaseCollision/btDispatcher.h"
+	"BulletCollision/NarrowPhaseCollision/btPersistentManifold.h"
+	"BulletCollision/CollisionDispatch/btManifoldResult.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+	"LinearMath/btAlignedObjectArray.h"
+	"btCollisionCreateFunc.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btdispatcher.h
+	"LinearMath/btScalar.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\narrowphasecollision\btpersistentmanifold.h
+	"LinearMath/btVector3.h"
+	"LinearMath/btTransform.h"
+	"btManifoldPoint.h"
+	"LinearMath/btAlignedAllocator.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\narrowphasecollision\btmanifoldpoint.h
+	"LinearMath/btVector3.h"
+	"LinearMath/btTransformUtil.h"
+	"physics_effects/base_level/solver/pfx_constraint_row.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\bttransformutil.h
+	"btTransform.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisiondispatch\btmanifoldresult.h
+	"BulletCollision/NarrowPhaseCollision/btPersistentManifold.h"
+	"BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h"
+	"LinearMath/btTransform.h"
+	"BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h"
+	"BulletCollision/CollisionDispatch/btCollisionObject.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\narrowphasecollision\btdiscretecollisiondetectorinterface.h
+	"LinearMath/btTransform.h"
+	"LinearMath/btVector3.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisiondispatch\btcollisionobjectwrapper.h
+	"LinearMath/btScalar.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btbroadphaseproxy.h
+	"LinearMath/btScalar.h"
+	"LinearMath/btVector3.h"
+	"LinearMath/btAlignedAllocator.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisiondispatch\btcollisioncreatefunc.h
+	"LinearMath/btAlignedObjectArray.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btoverlappingpaircache.h
+	"btBroadphaseInterface.h"
+	"btBroadphaseProxy.h"
+	"btOverlappingPairCallback.h"
+	"LinearMath/btAlignedObjectArray.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btbroadphaseinterface.h
+	"btBroadphaseProxy.h"
+	"LinearMath/btVector3.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btoverlappingpaircallback.h
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btboxshape.h
+	"btPolyhedralConvexShape.h"
+	"btCollisionMargin.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+	"LinearMath/btVector3.h"
+	"LinearMath/btMinMax.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btpolyhedralconvexshape.h
+	"LinearMath/btMatrix3x3.h"
+	"btConvexInternalShape.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btconvexinternalshape.h
+	"btConvexShape.h"
+	"LinearMath/btAabbUtil2.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btconvexshape.h
+	"btCollisionShape.h"
+	"LinearMath/btVector3.h"
+	"LinearMath/btTransform.h"
+	"LinearMath/btMatrix3x3.h"
+	"btCollisionMargin.h"
+	"LinearMath/btAlignedAllocator.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btcollisionshape.h
+	"LinearMath/btTransform.h"
+	"LinearMath/btVector3.h"
+	"LinearMath/btMatrix3x3.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btcollisionmargin.h
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btaabbutil2.h
+	"btTransform.h"
+	"btVector3.h"
+	"btMinMax.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btsphereshape.h
+	"btConvexInternalShape.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btcapsuleshape.h
+	"btConvexInternalShape.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btcylindershape.h
+	"btBoxShape.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+	"LinearMath/btVector3.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btconeshape.h
+	"btConvexInternalShape.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btstaticplaneshape.h
+	"btConcaveShape.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btconcaveshape.h
+	"btCollisionShape.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+	"btTriangleCallback.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\bttrianglecallback.h
+	"LinearMath/btVector3.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btconvexhullshape.h
+	"btPolyhedralConvexShape.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+	"LinearMath/btAlignedObjectArray.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\bttrianglemesh.h
+	"btTriangleIndexVertexArray.h"
+	"LinearMath/btVector3.h"
+	"LinearMath/btAlignedObjectArray.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\bttriangleindexvertexarray.h
+	"btStridingMeshInterface.h"
+	"LinearMath/btAlignedObjectArray.h"
+	"LinearMath/btScalar.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btstridingmeshinterface.h
+	"LinearMath/btVector3.h"
+	"btTriangleCallback.h"
+	"btConcaveShape.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btconvextrianglemeshshape.h
+	"btPolyhedralConvexShape.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btbvhtrianglemeshshape.h
+	"btTriangleMeshShape.h"
+	"btOptimizedBvh.h"
+	"LinearMath/btAlignedAllocator.h"
+	"btTriangleInfoMap.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\bttrianglemeshshape.h
+	"btConcaveShape.h"
+	"btStridingMeshInterface.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btoptimizedbvh.h
+	"BulletCollision/BroadphaseCollision/btQuantizedBvh.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btquantizedbvh.h
+	<stdio.h>
+	<stdlib.h>
+	"LinearMath/btVector3.h"
+	"LinearMath/btAlignedAllocator.h"
+	"LinearMath/btAlignedAllocator.h"
+	"LinearMath/btAlignedObjectArray.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\bttriangleinfomap.h
+	"LinearMath/btHashMap.h"
+	"LinearMath/btSerializer.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\bthashmap.h
+	"btAlignedObjectArray.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btserializer.h
+	"btScalar.h"
+	"btHashMap.h"
+	<memory.h>
+	<string.h>
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btscaledbvhtrianglemeshshape.h
+	"BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btcompoundshape.h
+	"btCollisionShape.h"
+	"LinearMath/btVector3.h"
+	"LinearMath/btTransform.h"
+	"LinearMath/btMatrix3x3.h"
+	"btCollisionMargin.h"
+	"LinearMath/btAlignedObjectArray.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\bttetrahedronshape.h
+	"btPolyhedralConvexShape.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btemptyshape.h
+	"btConcaveShape.h"
+	"LinearMath/btVector3.h"
+	"LinearMath/btTransform.h"
+	"LinearMath/btMatrix3x3.h"
+	"btCollisionMargin.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btmultisphereshape.h
+	"btConvexInternalShape.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+	"LinearMath/btAlignedObjectArray.h"
+	"LinearMath/btAabbUtil2.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisionshapes\btuniformscalingshape.h
+	"btConvexShape.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisiondispatch\btspherespherecollisionalgorithm.h
+	"btActivatingCollisionAlgorithm.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+	"BulletCollision/CollisionDispatch/btCollisionCreateFunc.h"
+	"btCollisionDispatcher.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisiondispatch\btactivatingcollisionalgorithm.h
+	"BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btcollisionalgorithm.h
+	"LinearMath/btScalar.h"
+	"LinearMath/btAlignedObjectArray.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisiondispatch\btdefaultcollisionconfiguration.h
+	"btCollisionConfiguration.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisiondispatch\btcollisionconfiguration.h
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btsimplebroadphase.h
+	"btOverlappingPairCache.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btaxissweep3.h
+	"LinearMath/btVector3.h"
+	"btOverlappingPairCache.h"
+	"btBroadphaseInterface.h"
+	"btBroadphaseProxy.h"
+	"btOverlappingPairCallback.h"
+	"btDbvtBroadphase.h"
+	<stdio.h>
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btdbvtbroadphase.h
+	"BulletCollision/BroadphaseCollision/btDbvt.h"
+	"BulletCollision/BroadphaseCollision/btOverlappingPairCache.h"
+	"LinearMath/btQuickprof.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btdbvt.h
+	"LinearMath/btAlignedObjectArray.h"
+	"LinearMath/btVector3.h"
+	"LinearMath/btTransform.h"
+	"LinearMath/btAabbUtil2.h"
+	<emmintrin.h>
+	<memory.h>
+	<string.h>
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btquickprof.h
+	"btScalar.h"
+	<stdio.h>
+	"btAlignedAllocator.h"
+	<new>
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btmultisapbroadphase.h
+	"btBroadphaseInterface.h"
+	"LinearMath/btAlignedObjectArray.h"
+	"btOverlappingPairCache.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btdefaultmotionstate.h
+	"btMotionState.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btidebugdraw.h
+	"btVector3.h"
+	"btTransform.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\dynamics\btdiscretedynamicsworld.h
+	"btDynamicsWorld.h"
+	"LinearMath/btAlignedObjectArray.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\dynamics\btdynamicsworld.h
+	"BulletCollision/CollisionDispatch/btCollisionWorld.h"
+	"BulletDynamics/ConstraintSolver/btContactSolverInfo.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btcontactsolverinfo.h
+	"LinearMath/btScalar.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\dynamics\btsimpledynamicsworld.h
+	"btDynamicsWorld.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\dynamics\btrigidbody.h
+	"LinearMath/btAlignedObjectArray.h"
+	"LinearMath/btTransform.h"
+	"BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+	"BulletCollision/CollisionDispatch/btCollisionObject.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btpoint2pointconstraint.h
+	"LinearMath/btVector3.h"
+	"btJacobianEntry.h"
+	"btTypedConstraint.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btjacobianentry.h
+	"LinearMath/btMatrix3x3.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\bttypedconstraint.h
+	"LinearMath/btScalar.h"
+	"btSolverConstraint.h"
+	"BulletDynamics/Dynamics/btRigidBody.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btsolverconstraint.h
+	"LinearMath/btVector3.h"
+	"LinearMath/btMatrix3x3.h"
+	"btJacobianEntry.h"
+	"LinearMath/btAlignedObjectArray.h"
+	"btSolverBody.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btsolverbody.h
+	"LinearMath/btVector3.h"
+	"LinearMath/btMatrix3x3.h"
+	"LinearMath/btAlignedAllocator.h"
+	"LinearMath/btTransformUtil.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\bthingeconstraint.h
+	"LinearMath/btVector3.h"
+	"btJacobianEntry.h"
+	"btTypedConstraint.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btconetwistconstraint.h
+	"LinearMath/btVector3.h"
+	"btJacobianEntry.h"
+	"btTypedConstraint.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btgeneric6dofconstraint.h
+	"LinearMath/btVector3.h"
+	"btJacobianEntry.h"
+	"btTypedConstraint.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btsliderconstraint.h
+	"LinearMath/btScalar.h"
+	"LinearMath/btVector3.h"
+	"btJacobianEntry.h"
+	"btTypedConstraint.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btgeneric6dofspringconstraint.h
+	"LinearMath/btVector3.h"
+	"btTypedConstraint.h"
+	"btGeneric6DofConstraint.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btuniversalconstraint.h
+	"LinearMath/btVector3.h"
+	"btTypedConstraint.h"
+	"btGeneric6DofConstraint.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\bthinge2constraint.h
+	"LinearMath/btVector3.h"
+	"btTypedConstraint.h"
+	"btGeneric6DofSpring2Constraint.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btgeneric6dofspring2constraint.h
+	"LinearMath/btVector3.h"
+	"btJacobianEntry.h"
+	"btTypedConstraint.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btgearconstraint.h
+	"BulletDynamics/ConstraintSolver/btTypedConstraint.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btfixedconstraint.h
+	"btGeneric6DofSpring2Constraint.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btsequentialimpulseconstraintsolver.h
+	"BulletDynamics/ConstraintSolver/btTypedConstraint.h"
+	"BulletDynamics/ConstraintSolver/btContactSolverInfo.h"
+	"BulletDynamics/ConstraintSolver/btSolverBody.h"
+	"BulletDynamics/ConstraintSolver/btSolverConstraint.h"
+	"BulletCollision/NarrowPhaseCollision/btManifoldPoint.h"
+	"BulletDynamics/ConstraintSolver/btConstraintSolver.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\constraintsolver\btconstraintsolver.h
+	"LinearMath/btScalar.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\vehicle\btraycastvehicle.h
+	"BulletDynamics/Dynamics/btRigidBody.h"
+	"BulletDynamics/ConstraintSolver/btTypedConstraint.h"
+	"btVehicleRaycaster.h"
+	"LinearMath/btAlignedObjectArray.h"
+	"btWheelInfo.h"
+	"BulletDynamics/Dynamics/btActionInterface.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\vehicle\btvehicleraycaster.h
+	"LinearMath/btVector3.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\vehicle\btwheelinfo.h
+	"LinearMath/btVector3.h"
+	"LinearMath/btTransform.h"
+
+1487192407 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletdynamics\dynamics\btactioninterface.h
+	"LinearMath/btScalar.h"
+	"btRigidBody.h"
+
+1584788428 c:\users\paul\desktop\game-engine3\physics\physicsmaster.h
+	"bullet/btBulletDynamicsCommon.h"
+	"Entity.h"
+	"PhysicsComponent.h"
+	<iostream>
+
+1596364542 source:c:\users\paul\desktop\game-engine3\core\enginecore.cpp
+	"EngineCore.h"
+	<glm/gtx/rotate_vector.hpp>
+	"ParticleRenderer.h"
+	"ParticleFactory.h"
+	"SpotLight.h"
+	"DirectionalLight.h"
+	"PointLight.h"
+	<chrono>
+	<thread>
+
+1596363936 c:\users\paul\desktop\game-engine3\core\enginecore.h
+	"Display.h"
+	"Input.h"
+	"Entity.h"
+	"RenderingMaster.h"
+	"PhysicsMaster.h"
+	"FileUtils.h"
+	"rapidjson/error/en.h"
+	"ComponentFactory.h"
+	"Texture.h"
+	"ProfilingTimer.h"
+	"Player.h"
+	"BarGUI.h"
+	<vector>
+	<chrono>
+
+1596364029 c:\users\paul\desktop\game-engine3\core\utils\profilingtimer.h
+	<chrono>
+	<string>
+	<iostream>
+	<unordered_map>
+	<glm/glm.hpp>
+	<memory>
+	<GL/glew.h>
+
+1596364029 c:\users\paul\desktop\game-engine3\core\player.h
+	"Entity.h"
+	"Camera.h"
+	"PhysicsComponent.h"
+
+1596364029 c:\users\paul\desktop\game-engine3\rendering\bargui.h
+	"GUI.h"
+	"Text.h"
+
+1584788428 c:\users\paul\desktop\game-engine3\rendering\gui.h
+	<glm/glm.hpp>
+	"Transform.h"
+
+1584788428 c:\users\paul\desktop\game-engine3\rendering\text.h
+	"Font.h"
+	"Mesh.h"
+	<string>
+	<glm/glm.hpp>
+	<glm/gtc/matrix_transform.hpp>
+	"Shader.h"
+
+1584788428 c:\users\paul\desktop\game-engine3\rendering\font.h
+	<string>
+	<vector>
+	<fstream>
+	<iostream>
+	<string.h>
+	<sstream>
+	<glm/glm.hpp>
+	<GL/glew.h>
+	<SDL2/SDL.h>
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtx\rotate_vector.hpp
+	"../glm.hpp"
+	"../gtx/transform.hpp"
+	"rotate_vector.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtx\transform.hpp
+	"../glm.hpp"
+	"../gtc/matrix_transform.hpp"
+	"transform.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtx\transform.inl
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtx\rotate_vector.inl
+
+1584788428 c:\users\paul\desktop\game-engine3\core\particlerenderer.h
+	<vector>
+	<GL/glew.h>
+	<glm/glm.hpp>
+	"Shader.h"
+	<glm/gtc/matrix_transform.hpp>
+	<algorithm>
+	"Camera.h"
+
+1584788428 c:\users\paul\desktop\game-engine3\core\particlefactory.h
+	"ParticleRenderer.h"
+
+1596364029 c:\users\paul\desktop\game-engine3\rendering\spotlight.h
+	"Light.h"
+
+1596364029 c:\users\paul\desktop\game-engine3\rendering\directionallight.h
+	"Light.h"
+
+1596364029 c:\users\paul\desktop\game-engine3\rendering\pointlight.h
+	"Light.h"
+
+1584788430 source:c:\users\paul\desktop\game-engine3\core\entity.cpp
+	"Entity.h"
+
+1596364029 source:c:\users\paul\desktop\game-engine3\core\input.cpp
+	"Input.h"
+	"imgui_impl_sdl.h"
+
+1594572354 source:c:\users\paul\desktop\game-engine3\core\iparticle.cpp
+	"IParticle.h"
+	<GL/glew.h>
+	"Camera.h"
+	"Shader.h"
+	"Texture.h"
+
+1584788428 source:c:\users\paul\desktop\game-engine3\core\particlefactory.cpp
+	"ParticleFactory.h"
+	"RenderingMaster.h"
+
+1584788430 source:c:\users\paul\desktop\game-engine3\core\particlerenderer.cpp
+	"ParticleRenderer.h"
+
+1596364043 source:c:\users\paul\desktop\game-engine3\core\player.cpp
+	"Player.h"
+	"RenderingMaster.h"
+	"PhysicsMaster.h"
+
+1596363936 source:c:\users\paul\desktop\game-engine3\core\smokeparticle.cpp
+	"SmokeParticle.h"
+	"Texture.h"
+	"Camera.h"
+	<glm/gtx/norm.hpp>
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtx\norm.hpp
+	"../detail/func_geometric.hpp"
+	"../gtx/quaternion.hpp"
+	"norm.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtx\quaternion.hpp
+	"../glm.hpp"
+	"../gtc/constants.hpp"
+	"../gtc/quaternion.hpp"
+	"../gtx/norm.hpp"
+	"quaternion.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtx\quaternion.inl
+	<limits>
+	"../gtc/constants.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtx\norm.inl
+	"../detail/precision.hpp"
+
+1584788428 source:c:\users\paul\desktop\game-engine3\core\utils\errorutils.cpp
+	"ErrorUtils.h"
+	<cstdio>
+	<stdarg.h>
+
+1584788428 source:c:\users\paul\desktop\game-engine3\core\utils\fileutils.cpp
+	"FileUtils.h"
+
+1584788428 source:c:\users\paul\desktop\game-engine3\core\utils\mathutils.cpp
+	"MathUtils.h"
+	"Camera.h"
+	"Mesh.h"
+	<vector>
+	<limits>
+
+1584788428 c:\users\paul\desktop\game-engine3\core\utils\mathutils.h
+	<glm/glm.hpp>
+	<glm/gtx/vector_angle.hpp>
+	<cmath>
+	<iostream>
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtx\vector_angle.hpp
+	"../glm.hpp"
+	"../gtc/epsilon.hpp"
+	"../gtx/quaternion.hpp"
+	"../gtx/rotate_vector.hpp"
+	"vector_angle.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtc\epsilon.hpp
+	"../detail/setup.hpp"
+	"../detail/precision.hpp"
+	"epsilon.inl"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtc\epsilon.inl
+	"quaternion.hpp"
+	"../vector_relational.hpp"
+	"../common.hpp"
+	"../vec2.hpp"
+	"../vec3.hpp"
+	"../vec4.hpp"
+
+1487192408 c:\users\paul\desktop\game-engine3\res\libraries\glm\glm\gtx\vector_angle.inl
+
+1584788428 source:c:\users\paul\desktop\game-engine3\core\utils\memorypool.cpp
+	"MemoryPool.h"
+
+1584788428 source:c:\users\paul\desktop\game-engine3\core\utils\memorypoolinterface.cpp
+	"MemoryPoolInterface.h"
+
+1596364029 source:c:\users\paul\desktop\game-engine3\core\utils\profilingtimer.cpp
+	"ProfilingTimer.h"
+	"BarGUI.h"
+	<memory>
+
+1584788428 source:c:\users\paul\desktop\game-engine3\game\game.cpp
+	"Game.h"
+
+1584788428 c:\users\paul\desktop\game-engine3\game\game.h
+	"EngineCore.h"
+
+1596364043 source:c:\users\paul\desktop\game-engine3\main.cpp
+	<iostream>
+	"Game.h"
+
+1596364029 source:c:\users\paul\desktop\game-engine3\physics\physicscomponent.cpp
+	"PhysicsComponent.h"
+
+1596365652 source:c:\users\paul\desktop\game-engine3\physics\physicsmaster.cpp
+	"PhysicsMaster.h"
+
+1584788428 source:c:\users\paul\desktop\game-engine3\rendering\bargui.cpp
+	"BarGUI.h"
+	"Shader.h"
+	"Mesh.h"
+	"Font.h"
+	"RenderingMaster.h"
+
+1596364029 source:c:\users\paul\desktop\game-engine3\rendering\camera.cpp
+	"Camera.h"
+
+1596364577 source:c:\users\paul\desktop\game-engine3\rendering\directionallight.cpp
+	"DirectionalLight.h"
+	"MathUtils.h"
+	"RenderingMaster.h"
+	"Shader.h"
+
+1596364029 source:c:\users\paul\desktop\game-engine3\rendering\display.cpp
+	"Display.h"
+	"imgui.h"
+	"imgui_impl_sdl.h"
+	"imgui_impl_opengl3.h"
+
+1596364029 source:c:\users\paul\desktop\game-engine3\rendering\font.cpp
+	"Font.h"
+
+1596364029 source:c:\users\paul\desktop\game-engine3\rendering\framebuffer.cpp
+	"FrameBuffer.h"
+
+1596364029 source:c:\users\paul\desktop\game-engine3\rendering\gbuffer.cpp
+	"GBuffer.h"
+
+1594570960 source:c:\users\paul\desktop\game-engine3\rendering\gui.cpp
+	"GUI.h"
+	"BarGUI.h"
+	"Shader.h"
+
+1596364043 source:c:\users\paul\desktop\game-engine3\rendering\light.cpp
+	"Light.h"
+	"Common.h"
+
+1584788428 source:c:\users\paul\desktop\game-engine3\rendering\material.cpp
+	"Material.h"
+
+1596364029 source:c:\users\paul\desktop\game-engine3\rendering\mesh.cpp
+	"Mesh.h"
+	<iostream>
+
+1596364312 source:c:\users\paul\desktop\game-engine3\rendering\pointlight.cpp
+	"PointLight.h"
+	"Shader.h"
+
+1584788428 source:c:\users\paul\desktop\game-engine3\rendering\postprocess.cpp
+	"PostProcess.h"
+	<utility>
+
+1596364043 source:c:\users\paul\desktop\game-engine3\rendering\rendercomponent.cpp
+	"RenderComponent.h"
+
+1596364627 source:c:\users\paul\desktop\game-engine3\rendering\renderingmaster.cpp
+	"RenderingMaster.h"
+	"ParticleRenderer.h"
+	"ParticleFactory.h"
+	"GUI.h"
+	"MathUtils.h"
+	"SpotLight.h"
+	"DirectionalLight.h"
+	"PointLight.h"
+	"Common.h"
+	<typeinfo>
+	"imgui.h"
+	"imgui_impl_sdl.h"
+	"imgui_impl_opengl3.h"
+	<typeinfo>
+	"imgui.h"
+	"imgui_impl_sdl.h"
+	"imgui_impl_opengl3.h"
+
+1596364029 source:c:\users\paul\desktop\game-engine3\rendering\shader.cpp
+	"Shader.h"
+
+1584788428 source:c:\users\paul\desktop\game-engine3\rendering\shaderuniform.cpp
+	"ShaderUniform.h"
+
+1596364376 source:c:\users\paul\desktop\game-engine3\rendering\spotlight.cpp
+	"SpotLight.h"
+	"Shader.h"
+
+1584788428 source:c:\users\paul\desktop\game-engine3\rendering\tempanimationcomponent.cpp
+	"TempAnimationComponent.h"
+
+1596364029 source:c:\users\paul\desktop\game-engine3\rendering\text.cpp
+	"Text.h"
+	<math.h>
+
+1596364029 source:c:\users\paul\desktop\game-engine3\rendering\texture.cpp
+	"Texture.h"
+	"ErrorUtils.h"
+	"stb_image.h"
+	"stb_image_write.h"
+
+1522595406 c:\users\paul\desktop\game-engine3\res\libraries\stb\stb_image.h
+	"stb_image.h"
+	<stdio.h>
+	<stdarg.h>
+	<stddef.h>
+	<stdlib.h>
+	<string.h>
+	<math.h>
+	<stdio.h>
+	<assert.h>
+	<stdint.h>
+	<emmintrin.h>
+	<intrin.h>
+	<arm_neon.h>
+
+1522595406 c:\users\paul\desktop\game-engine3\res\libraries\stb\stb_image_write.h
+	<stdio.h>
+	<stdarg.h>
+	<stdlib.h>
+	<string.h>
+	<math.h>
+	<assert.h>
+
+1596364029 source:c:\users\paul\desktop\game-engine3\rendering\transform.cpp
+	"Transform.h"
+	<iostream>
+
+1595272532 c:\users\paul\desktop\game-engine3\core\common.h
+	"Entity.h"
+	"Light.h"
+
+1594573820 c:\users\paul\desktop\game-engine3\res\libraries\imgui\imgui.h
+	"imconfig.h"
+	<float.h>
+	<stdarg.h>
+	<stddef.h>
+	<string.h>
+	<assert.h>
+	<stdint.h>
+	"imgui_user.h"
+
+1594573982 c:\users\paul\desktop\game-engine3\res\libraries\imgui\imconfig.h
+
+1594573804 c:\users\paul\desktop\game-engine3\res\libraries\imgui\imgui_impl_sdl.h
+	"imgui.h"
+
+1594573794 c:\users\paul\desktop\game-engine3\res\libraries\imgui\imgui_impl_opengl3.h
+	"imgui.h"
+	"TargetConditionals.h"
+
+1595869228 source:c:\users\paul\desktop\game-engine3\components\grabcomponent.cpp
+	"GrabComponent.h"
+	"RenderingMaster.h"
+	"imgui.h"
+	"imgui_impl_sdl.h"
+	"imgui_impl_opengl3.h"
+	"Common.h"
+
+1595869240 c:\users\paul\desktop\game-engine3\components\grabcomponent.h
+	"Component.h"
+	"glm/glm.hpp"
+	"bullet/btBulletDynamicsCommon.h"
+	"glm/gtc/type_ptr.hpp"
+	"PhysicsMaster.h"
+	"btGhostObject.h"
+
+1594573820 source:c:\users\paul\desktop\game-engine3\res\libraries\imgui\imgui.cpp
+	"imgui.h"
+	"imgui_internal.h"
+	<ctype.h>
+	<stdio.h>
+	<stddef.h>
+	<stdint.h>
+	<Windows.h>
+	<windows.h>
+	<TargetConditionals.h>
+	"stb_sprintf.h"
+	<Carbon/Carbon.h>
+	<imm.h>
+	"imgui_user.inl"
+
+1594573820 c:\users\paul\desktop\game-engine3\res\libraries\imgui\imgui_internal.h
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<limits.h>
+	"imstb_textedit.h"
+
+1594574018 c:\users\paul\desktop\game-engine3\res\libraries\imgui\imstb_textedit.h
+	<string.h>
+
+1594573820 source:c:\users\paul\desktop\game-engine3\res\libraries\imgui\imgui_demo.cpp
+	"imgui.h"
+	<ctype.h>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<stddef.h>
+	<stdint.h>
+
+1594573820 source:c:\users\paul\desktop\game-engine3\res\libraries\imgui\imgui_draw.cpp
+	"imgui.h"
+	"imgui_internal.h"
+	<stdio.h>
+	<alloca.h>
+	<malloc.h>
+	<stdlib.h>
+	"imstb_rectpack.h"
+	"imstb_truetype.h"
+
+1594574018 c:\users\paul\desktop\game-engine3\res\libraries\imgui\imstb_rectpack.h
+	<stdlib.h>
+	<assert.h>
+
+1594574018 c:\users\paul\desktop\game-engine3\res\libraries\imgui\imstb_truetype.h
+	"stb_truetype.h"
+	<stdio.h>
+	"stb_truetype.h"
+	<math.h>
+	<math.h>
+	<math.h>
+	<math.h>
+	<math.h>
+	<stdlib.h>
+	<assert.h>
+	<string.h>
+	<string.h>
+
+1594573794 source:c:\users\paul\desktop\game-engine3\res\libraries\imgui\imgui_impl_opengl3.cpp
+	"imgui.h"
+	"imgui_impl_opengl3.h"
+	<stdio.h>
+	<stddef.h>
+	<stdint.h>
+	<GLES2/gl2.h>
+	<OpenGLES/ES3/gl.h>
+	<GLES3/gl3.h>
+	<GL/gl3w.h>
+	<GL/glew.h>
+	<glad/glad.h>
+	<glad/gl.h>
+	<glbinding/Binding.h>
+	<glbinding/gl/gl.h>
+	<glbinding/glbinding.h>
+	<glbinding/gl/gl.h>
+
+1594573804 source:c:\users\paul\desktop\game-engine3\res\libraries\imgui\imgui_impl_sdl.cpp
+	"imgui.h"
+	"imgui_impl_sdl.h"
+	<SDL.h>
+	<SDL_syswm.h>
+	"TargetConditionals.h"
+
+1487192405 c:\users\paul\desktop\game-engine3\res\libraries\sdl2\include\sdl2\sdl_syswm.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"SDL_video.h"
+	"SDL_version.h"
+	"begin_code.h"
+	<windows.h>
+	<Inspectable.h>
+	<X11/Xlib.h>
+	<X11/Xatom.h>
+	<directfb.h>
+	<UIKit/UIKit.h>
+	"close_code.h"
+
+1594573820 source:c:\users\paul\desktop\game-engine3\res\libraries\imgui\imgui_widgets.cpp
+	"imgui.h"
+	"imgui_internal.h"
+	<ctype.h>
+	<stddef.h>
+	<stdint.h>
+	"imstb_textedit.h"
+
+1487192406 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\collisiondispatch\btghostobject.h
+	"btCollisionObject.h"
+	"BulletCollision/BroadphaseCollision/btOverlappingPairCallback.h"
+	"LinearMath/btAlignedAllocator.h"
+	"BulletCollision/BroadphaseCollision/btOverlappingPairCache.h"
+	"btCollisionWorld.h"
+
+1596366012 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btaxissweep3internal.h
+	"LinearMath/btVector3.h"
+	"btOverlappingPairCache.h"
+	"btBroadphaseInterface.h"
+	"btBroadphaseProxy.h"
+	"btOverlappingPairCallback.h"
+	"btDbvtBroadphase.h"
+	<stdio.h>
+
+1596366012 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btthreads.h
+	"btScalar.h"
 

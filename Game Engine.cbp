@@ -26,6 +26,10 @@
 					<Add directory="Game" />
 					<Add directory="Physics" />
 					<Add directory="res/libraries/stb" />
+					<Add directory="Components" />
+					<Add directory="res/libraries/imgui" />
+					<Add directory="res/libraries/SDL2/include/SDL2" />
+					<Add directory="res/libraries/bullet/bullet/BulletCollision/CollisionDispatch" />
 				</Compiler>
 				<Linker>
 					<Add option="-lmingw32" />
@@ -52,15 +56,43 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-O3" />
+					<Add option="-std=c++11" />
 					<Add directory="Rendering" />
 					<Add directory="Core" />
 					<Add directory="Core/Utils" />
 					<Add directory="Game" />
 					<Add directory="Physics" />
+					<Add directory="res/libraries/glm" />
+					<Add directory="res/libraries/SDL2/include" />
+					<Add directory="res/libraries/glew/include" />
+					<Add directory="res/libraries/bullet" />
+					<Add directory="res/libraries/bullet/bullet" />
+					<Add directory="res/libraries/rapidjson/include" />
+					<Add directory="res/libraries/stb" />
+					<Add directory="Components" />
+					<Add directory="res/libraries/imgui" />
+					<Add directory="res/libraries/SDL2/include/SDL2" />
+					<Add directory="res/libraries/bullet/bullet/BulletCollision/CollisionDispatch" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-lmingw32" />
+					<Add library="OpenGL32" />
+					<Add library="res/libraries/glew/bin/Release/x64/glew32.dll" />
+					<Add library="res/libraries/SDL2/lib/libSDL2main.a" />
+					<Add library="res/libraries/SDL2/bin/SDL2.dll" />
+					<Add library="res/libraries/bullet/lib/libBullet2FileLoader.dll" />
+					<Add library="res/libraries/bullet/lib/libBullet3Collision.dll" />
+					<Add library="res/libraries/bullet/lib/libBullet3Common.dll" />
+					<Add library="res/libraries/bullet/lib/libBullet3Dynamics.dll" />
+					<Add library="res/libraries/bullet/lib/libBullet3Geometry.dll" />
+					<Add library="res/libraries/bullet/lib/libBullet3OpenCL_clew.dll" />
+					<Add library="res/libraries/bullet/lib/libBulletCollision.dll" />
+					<Add library="res/libraries/bullet/lib/libBulletDynamics.dll" />
+					<Add library="res/libraries/bullet/lib/libBulletInverseDynamics.dll" />
+					<Add library="res/libraries/bullet/lib/libBulletSoftBody.dll" />
+					<Add library="res/libraries/bullet/lib/libLinearMath.dll" />
 				</Linker>
 			</Target>
 		</Build>
@@ -68,6 +100,9 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="Components/GrabComponent.cpp" />
+		<Unit filename="Components/GrabComponent.h" />
+		<Unit filename="Core/Common.h" />
 		<Unit filename="Core/Component.cpp" />
 		<Unit filename="Core/Component.h" />
 		<Unit filename="Core/ComponentFactory.cpp" />
@@ -103,6 +138,7 @@
 		<Unit filename="Game/Game.cpp" />
 		<Unit filename="Game/Game.h" />
 		<Unit filename="Game/game.json" />
+		<Unit filename="Game/game2.json" />
 		<Unit filename="Physics/PhysicsComponent.cpp" />
 		<Unit filename="Physics/PhysicsComponent.h" />
 		<Unit filename="Physics/PhysicsMaster.cpp" />
@@ -153,6 +189,20 @@
 		<Unit filename="Rendering/Transform.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="res/configs/config.json" />
+		<Unit filename="res/libraries/imgui/imconfig.h" />
+		<Unit filename="res/libraries/imgui/imgui.cpp" />
+		<Unit filename="res/libraries/imgui/imgui.h" />
+		<Unit filename="res/libraries/imgui/imgui_demo.cpp" />
+		<Unit filename="res/libraries/imgui/imgui_draw.cpp" />
+		<Unit filename="res/libraries/imgui/imgui_impl_opengl3.cpp" />
+		<Unit filename="res/libraries/imgui/imgui_impl_opengl3.h" />
+		<Unit filename="res/libraries/imgui/imgui_impl_sdl.cpp" />
+		<Unit filename="res/libraries/imgui/imgui_impl_sdl.h" />
+		<Unit filename="res/libraries/imgui/imgui_internal.h" />
+		<Unit filename="res/libraries/imgui/imgui_widgets.cpp" />
+		<Unit filename="res/libraries/imgui/imstb_rectpack.h" />
+		<Unit filename="res/libraries/imgui/imstb_textedit.h" />
+		<Unit filename="res/libraries/imgui/imstb_truetype.h" />
 		<Unit filename="res/particleVolumes/smokeCone.json" />
 		<Unit filename="res/particleVolumes/smokeCone2.json" />
 		<Unit filename="res/shaders/barGUIShader.fs" />
@@ -198,6 +248,9 @@
 		<Unit filename="res/shaders/stencilBufferCreator.fs" />
 		<Unit filename="res/shaders/stencilBufferCreator.json" />
 		<Unit filename="res/shaders/stencilBufferCreator.vs" />
+		<Unit filename="res/shaders/volumetricLight.fs" />
+		<Unit filename="res/shaders/volumetricLight.json" />
+		<Unit filename="res/shaders/volumetricLight.vs" />
 		<Unit filename="res/shaders/wBlurPostProcess.fs" />
 		<Unit filename="res/shaders/wBlurPostProcess.json" />
 		<Unit filename="res/shaders/wBlurPostProcess.vs" />

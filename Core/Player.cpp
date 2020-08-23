@@ -4,7 +4,7 @@
 #include "PhysicsMaster.h"
 
 #define NECK_HEIGHT 10.0f
-#define PLAYER_SPEED 200.0f
+#define PLAYER_SPEED 150.0f
 #define DOWN_LENGTH 1000.0f
 #define JUMP_SPEED 5000.0f
 #define EPS 0.003

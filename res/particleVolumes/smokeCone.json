@@ -1,15 +1,15 @@
 {
-    "maxParticles" : 500,
-    "center" : [0, 0, 0],
-    "orientation" : [0, 0, 0],
+    "maxParticles" : 1000,
+    "center" : [0, 100, -220],
+    "orientation" : [-45, 0, 0],
     "R" : 1.5,
     "r" : 0.5,
-    "H" : 1.5,
-    "initialScale" : 5.0,
-    "velocityMag" : 50.0,
+    "H" : 3.5,
+    "initialScale" : 15.0,
+    "velocityMag" : -100.0,
     "diffusionFactor" : 50.0,
     "buoyancyFactor" : 60.0,
     "delayMs" : 10,
-    "liveForInMs" : 2000,
+    "liveForInMs" : 2500,
     "blendType" : "alpha"
 }

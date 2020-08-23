@@ -36,7 +36,7 @@ void main(){
 
     if (!hasNormalMap) {
         outEyeSpaceNormal = (normalize(eyeSpaceNormal * frontCond) + vec3(1)) * 0.5;
-    } else {
+	} else {
         vec2 tran_tc = textureCoords;
         tran_tc.y = 1.0 - tran_tc.y;
         vec3 normalMapNormal = texture (normalMapSampler, tran_tc).xyz;
