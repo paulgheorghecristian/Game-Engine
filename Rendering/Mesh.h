@@ -51,6 +51,7 @@ class Mesh
         static Mesh *loadObject(const std::string &filePath);
         static Mesh *getSurface(int, int);
         static Mesh *getCircle(float, float, float, int);
+        static Mesh *getStar(float, float, float, int);
         static Mesh *getRectangleYUp();
         static Mesh *getArrowMesh();
         static Mesh *getDome(int widthPoints, int heightPoints);

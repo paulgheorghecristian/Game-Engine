@@ -135,7 +135,7 @@ bool spotLightIntersection(vec3 rayDir, inout float tmin, inout float tmax)
 }
 
 void main() {
-    vec2 texCoord = gl_FragCoord.xy / (vec2(screenWidth, screenHeight)/2);
+    vec2 texCoord = gl_FragCoord.xy / (vec2(screenWidth, screenHeight)/4);
     vec3 view = vec3(viewRay.xy/viewRay.z, 1.0);
     float depth = texture(depthSampler, texCoord).x;
 

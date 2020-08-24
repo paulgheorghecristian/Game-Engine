@@ -15,6 +15,7 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+
 #include "b3ContactCache.h"
 #include "Bullet3Common/b3Transform.h"
 
@@ -68,7 +69,7 @@ int b3ContactCache::sortCachedPoints(const b3Vector3& pt)
 				maxPenetration = m_pointCache[i].getDistance();
 			}
 		}
-#endif  //KEEP_DEEPEST_POINT
+#endif //KEEP_DEEPEST_POINT
 		
 		b3Scalar res0(b3Scalar(0.)),res1(b3Scalar(0.)),res2(b3Scalar(0.)),res3(b3Scalar(0.));
 
@@ -249,5 +250,9 @@ void b3ContactCache::refreshContactPoints(const b3Transform& trA,const b3Transfo
 	
 
 }
+
+
+
+
 
 #endif

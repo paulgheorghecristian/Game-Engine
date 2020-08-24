@@ -4,6 +4,7 @@
 #include "Entity.h"
 #include "Light.h"
 
+// For mouse grab mostly
 enum class PointerType {
     ENTITY = 0,
     LIGHT

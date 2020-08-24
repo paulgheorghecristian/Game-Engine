@@ -13,7 +13,7 @@ void PostProcess::init (int width, int height, std::string &&shaderJsonFile) {
     float pixelWidth = 1.0f / width;
     float pixelHeight = 1.0f / height;
 
-    postProcessShader.construct (std::forward<std::string> (shaderJsonFile));
+    postProcessShader.construct (std::forward<std::string>(shaderJsonFile));
     result &= postProcessShader.updateUniform ("pixelWidth", (void *) &pixelWidth);
     result &= postProcessShader.updateUniform ("pixelHeight", (void *) &pixelHeight);
     result &= postProcessShader.updateUniform ("textureSampler", (void *) &textureSamplerUniform);
@@ -28,13 +28,13 @@ void PostProcess::init (int width, int height, std::string &&shaderJsonFile) {
 PostProcess::PostProcess (int width, int height, std::string &&shaderJsonFile) :  frameBuffer (width, height, 2),
                                                                                   inputTexture (frameBuffer.getRenderTargets()[0], 0),
                                                                                   resultingTexture (frameBuffer.getRenderTargets()[frameBuffer.getNumOfRenderTargets() - 1],
-                                                                                                    5){
+                                                                                                    5){ //todo wtf 5?
     init (width, height, std::forward<std::string> (shaderJsonFile));
 }
 PostProcess::PostProcess(int width, int height, GLuint inputTextureId, std::string &&shaderJsonFile) : frameBuffer (width, height, 1),
                                                                                                        inputTexture (inputTextureId, 0),
                                                                                                        resultingTexture (frameBuffer.getRenderTargets()[frameBuffer.getNumOfRenderTargets() - 1],
-                                                                                                                        5) {
+                                                                                                                        5) {//todo wtf 5?
     init (width, height, std::forward<std::string> (shaderJsonFile));
 }
 
@@ -46,7 +46,7 @@ void PostProcess::bind() {
     }
 }
 
-void PostProcess::process() {
+void PostProcess::process(std::initializer_list<Texture *> txtList) {
     /* call this after calling rendering functs */
 
     if (frameBuffer.getNumOfRenderTargets() > 1) {
@@ -57,6 +57,9 @@ void PostProcess::process() {
 
     postProcessShader.bind();
     inputTexture.use();
+    for(auto txt : txtList) {
+        txt->use();
+    }
     renderingQuad->draw();
 
     frameBuffer.unbind();
@@ -77,4 +80,8 @@ GLuint PostProcess::getInputTextureId() {
 
 GLuint PostProcess::getFrameBufferObject() {
     return frameBuffer.getFrameBufferObject();
+}
+
+Shader &PostProcess::getShader() {
+    return postProcessShader;
 }

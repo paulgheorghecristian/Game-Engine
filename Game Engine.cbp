@@ -48,6 +48,9 @@
 					<Add library="res/libraries/bullet/lib/libBulletInverseDynamics.dll" />
 					<Add library="res/libraries/bullet/lib/libBulletSoftBody.dll" />
 					<Add library="res/libraries/bullet/lib/libLinearMath.dll" />
+					<Add directory="res/libraries/bullet/lib" />
+					<Add directory="res/libraries/SDL2/bin" />
+					<Add directory="res/libraries/glew/bin/Release/x64" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -93,6 +96,9 @@
 					<Add library="res/libraries/bullet/lib/libBulletInverseDynamics.dll" />
 					<Add library="res/libraries/bullet/lib/libBulletSoftBody.dll" />
 					<Add library="res/libraries/bullet/lib/libLinearMath.dll" />
+					<Add directory="res/libraries/bullet/lib" />
+					<Add directory="res/libraries/SDL2/bin" />
+					<Add directory="res/libraries/glew/bin/Release/x64" />
 				</Linker>
 			</Target>
 		</Build>
@@ -100,6 +106,8 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="Components/BillboardComponent.cpp" />
+		<Unit filename="Components/BillboardComponent.h" />
 		<Unit filename="Components/GrabComponent.cpp" />
 		<Unit filename="Components/GrabComponent.h" />
 		<Unit filename="Core/Common.h" />
@@ -205,6 +213,12 @@
 		<Unit filename="res/libraries/imgui/imstb_truetype.h" />
 		<Unit filename="res/particleVolumes/smokeCone.json" />
 		<Unit filename="res/particleVolumes/smokeCone2.json" />
+		<Unit filename="res/shaders/FlarePostProcess.fs" />
+		<Unit filename="res/shaders/FlarePostProcess.json" />
+		<Unit filename="res/shaders/FlarePostProcess.vs" />
+		<Unit filename="res/shaders/FlareShader.fs" />
+		<Unit filename="res/shaders/FlareShader.json" />
+		<Unit filename="res/shaders/FlareShader.vs" />
 		<Unit filename="res/shaders/barGUIShader.fs" />
 		<Unit filename="res/shaders/barGUIShader.json" />
 		<Unit filename="res/shaders/barGUIShader.vs" />

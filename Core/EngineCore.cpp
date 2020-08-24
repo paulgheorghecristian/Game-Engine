@@ -106,6 +106,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                             (new Shader())->construct("res/shaders/example.json"),
                                             NULL,
                                             NULL,
+                                            NULL,
                                             Material(glm::vec3(0.5f),
                                                      glm::vec3(1.0f),
                                                      glm::vec3(1.0f),
@@ -129,6 +130,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     RenderingMaster::getInstance()->skyShader = new Shader("res/shaders/skyShader.json");
     RenderingMaster::getInstance()->skyDomeEntity.addComponent(new RenderComponent(Mesh::getDome(10, 10),
                                                    RenderingMaster::getInstance()->skyShader,
+                                                   NULL,
                                                    NULL,
                                                    NULL,
                                                    Material(glm::vec3(0), glm::vec3(0), glm::vec3(0), 0)));
@@ -179,6 +181,7 @@ void EngineCore::start() {
             PT_Reset("computeDepthTextureForLight");
             PT_Reset("swapBuffers");
             PT_Reset("particleDraw");
+            PT_Reset("FlaresDraw");
             PT_Reset("buffersDraw");
             #if 0
             std::cout << "----------------------" << std::endl;
@@ -261,6 +264,7 @@ void EngineCore::input() {
                                                                                         (new Shader())->construct("res/shaders/example.json"),
                                                                                         new Texture ("res/textures/158.JPG",0),
                                                                                         new Texture ("res/textures/158_norm.JPG",1),
+                                                                                        NULL,
                                                                                         Material (glm::vec3(1, 1, 1),
                                                                                                     glm::vec3(0),
                                                                                                     glm::vec3(0),
@@ -304,6 +308,9 @@ void EngineCore::input() {
     if (inputManager.getKeyDown(SDLK_9)) {
         outputType = 9;
     }
+    if (inputManager.getKeyDown(SDLK_0)) {
+        outputType = 10;
+    }
 
     if (inputManager.getKeyDown (SDLK_q)) {
         glm::vec3 cameraPosition = RenderingMaster::getInstance()->getCamera()->getPosition();
@@ -312,6 +319,21 @@ void EngineCore::input() {
                                                                   glm::degrees(cameraRotation),
                                                                   glm::vec3(300.0f, 300.0f, 300.0f)),
                                                         glm::vec3(0.98f, 0.85f, 0.85f)));
+        Transform transform2(cameraPosition,
+                                glm::vec3(0),
+                                glm::vec3(0));
+            Entity *newEntity2 = new Entity();
+            newEntity2->setTransform(transform2);
+            entities.push_back(newEntity2->addComponent(new RenderComponent(Mesh::getCircle(0, 0, 10.5f, 30),
+                                                                            NULL,
+                                                                            NULL,
+                                                                            NULL,
+                                                                            NULL,
+                                                                            Material (glm::vec3(0.98f, 0.85f, 0.85f),
+                                                                                        glm::vec3(0),
+                                                                                        glm::vec3(0),
+                                                                                        0.0f)))
+                                                        ->addComponent(new BillboardComponent()));
     }
 
     if (inputManager.getKeyDown (SDLK_z)) {
@@ -326,8 +348,9 @@ void EngineCore::input() {
     if (inputManager.getKeyDown(SDLK_r)) {
         RenderingMaster::getInstance()->volumetricLightShader.reload();
         SpotLight::getLightAccumulationShader().reload();
+        PointLight::getLightAccumulationShader().reload();
 
-        RenderingMaster::getInstance()->resetLights();
+        //RenderingMaster::getInstance()->resetLights();
         RenderingMaster::getInstance()->smokeRenderer->getRenderingShader().reload();
 
         delete RenderingMaster::getInstance()->smokeRenderer;
@@ -356,7 +379,11 @@ void EngineCore::render() {
     RenderingMaster::getInstance()->drawSky();
 
     for (auto entity : entities) {
-        RenderComponent *renderComponent;
+        RenderComponent *renderComponent = NULL;
+
+        // hack, needs improvements
+        if (entity->getComponent(Entity::Flags::BILL) != NULL)
+            continue;
         if ((renderComponent =
              (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
             renderComponent->render(&RenderingMaster::getInstance()->deferredShading_SceneShader);
@@ -374,7 +401,11 @@ void EngineCore::render() {
         if (light->isCastingShadow()) {
             RenderingMaster::getInstance()->beginCreateDepthTextureForLight(light);
             for (auto entity : entities) {
-                RenderComponent *renderComponent;
+                RenderComponent *renderComponent = NULL;
+
+                // hack, needs improvements
+                if (entity->getComponent(Entity::Flags::BILL) != NULL)
+                    continue;
                 if ((renderComponent =
                      (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
                     renderComponent->render(&RenderingMaster::getInstance()->depthMapCreator);
@@ -398,6 +429,18 @@ void EngineCore::render() {
     RenderingMaster::getInstance()->smokeRenderer->draw();
     RenderingMaster::getInstance()->particleForwardRenderFramebuffer.unbind();
     PT_ToHere("particleDraw");
+
+    PT_FromHere("FlaresDraw");
+    RenderingMaster::getInstance()->spotLightFlares.bindAllRenderTargets();
+    RenderingMaster::getInstance()->depthTexture->use(0);
+    for (auto entity : entities) {
+        if (entity->getComponent(Entity::Flags::BILL) != NULL) {
+            RenderComponent *renderComponent = (RenderComponent *) (entity->getComponent(Entity::Flags::RENDERABLE));
+            renderComponent->render(&RenderingMaster::getInstance()->flareShader);
+        }
+    }
+    RenderingMaster::getInstance()->spotLightFlares.unbind();
+    PT_ToHere("FlaresDraw");
 
     PT_FromHere_GPU("volumetric");
     RenderingMaster::getInstance()->renderVolumetricLight();
@@ -428,10 +471,10 @@ void EngineCore::render() {
 }
 
 void EngineCore::update() {
-    const std::vector <Light *> &lights = RenderingMaster::getInstance ()->getLights ();
+    const std::vector<Light *> &lights = RenderingMaster::getInstance()->getLights();
 
     for (auto entity : entities) {
-        entity->update ();
+        entity->update();
     }
 
     PhysicsMaster::getInstance()->update();

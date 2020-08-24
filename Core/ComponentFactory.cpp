@@ -23,6 +23,7 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
         Shader *shader;
         Texture *texture = NULL;
         Texture *normalMapTexture = NULL;
+        Texture *roughness = NULL;
         if (!itr->value.HasMember("Mesh") ||
             !itr->value.HasMember("Shader") ||
             !itr->value.HasMember("Material")) {
@@ -38,6 +39,9 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
         if (itr->value.HasMember("NormalMapTexture")) {
             normalMapTexture = new Texture (itr->value["NormalMapTexture"].GetString(), 1);
         }
+        if (itr->value.HasMember("RoughnessTexture")) {
+            roughness = new Texture(itr->value["RoughnessTexture"].GetString(), 2);
+        }
         Material material(glm::vec3(itr->value["Material"]["ambient"].GetArray()[0].GetFloat(),
                                       itr->value["Material"]["ambient"].GetArray()[1].GetFloat(),
                                       itr->value["Material"]["ambient"].GetArray()[2].GetFloat()),
@@ -48,7 +52,7 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                                       itr->value["Material"]["specular"].GetArray()[1].GetFloat(),
                                       itr->value["Material"]["specular"].GetArray()[2].GetFloat()),
                             itr->value["Material"]["shininess"].GetFloat());
-        return new RenderComponent (mesh, shader, texture, normalMapTexture, material);
+        return new RenderComponent (mesh, shader, texture, normalMapTexture, roughness, material);
     } else if (strcmp (itr->name.GetString(), "TempAnimationComponent") == 0) {
         glm::vec3 addPosition(0), addRotation(0), addScale(0);
         if (itr->value.HasMember("addPosition")) {

@@ -13,6 +13,7 @@ class GBuffer
         GLuint getColorTexture();
         GLuint getPositionTexture();
         GLuint getNormalTexture();
+        GLuint getRoughnessTexture();
         GLuint getLightAccumulationTexture();
         GLuint getDepthTexture();
         GLuint getFrameBufferObject();
@@ -31,6 +32,7 @@ class GBuffer
 		GLuint textureColor;
 		GLuint textureLightAccumulation;
 		GLuint textureDepth;
+		GLuint textureRoughness;
 };
 
 #endif // GBUFFER_H

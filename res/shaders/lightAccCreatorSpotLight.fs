@@ -5,6 +5,7 @@ layout(location = 0) out vec3 outLight;
 uniform sampler2D eyeSpaceNormalSampler;
 uniform sampler2D depthSampler;
 uniform sampler2D spotLightDepthSampler;
+uniform sampler2D roughnessSampler;
 
 uniform mat4 spotLightProjectionMatrix;
 uniform mat4 spotLightViewMatrix;
@@ -31,7 +32,6 @@ uniform vec3 lightPosition;
 uniform mat4 modelMatrix;
 
 const float lightRadius = 300;
-const float fact = 0.5;
 
 void main() {
     bool getLight;
@@ -79,19 +79,26 @@ void main() {
     vec3 H = normalize (dirNormalized + (-cameraForwardVectorEyeSpace));
     getLight = (dotProduct > 0);
 
-    float diffuseStrength = max (0.0, dotProduct);
-    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 1000.0);
+    vec3 roughness = texture(roughnessSampler, texCoord).rgb;
+    float rough = ((roughness.r+roughness.g+roughness.b) / 3.0f);
 
-    float a = 0.0, b = 0.0001, c = 0.000001;
+    float diffuseStrength = max (0.0, dotProduct);
+    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), rough);
+
+    float a = rough, b = 0.0001, c = 0.00019;
     float att = 1.0 / (a + b*l + c * l * l);
-    float lenAtt = 1.0f;//max(1.0 - (l / lightRadius), 0);
+
+    float a2 = (1.0f-rough), b2 = 0.0001, c2 = 0.0001;
+    float att2 = 1.0 / (a2 + b2*l + c2 * l * l);
+
+    float lenAtt = max(1.0 - (l / lightRadius), 0);
 
     vec3 diffuseLight = (0.3 - acos(spotLightAttCoef)) * att * lenAtt * diffuseStrength * lightColor;
-    vec3 specularLight = (0.3 - acos(spotLightAttCoef)) * att * lenAtt * specularStrength * lightColor;
+    vec3 specularLight = (0.3 - acos(spotLightAttCoef)) * att2 * lenAtt * specularStrength * lightColor;
 
-    outLight = diffuseLight*fact;
+    outLight = diffuseLight;
     if (getLight) {
-        outLight += specularLight*(1.0-fact);
+        outLight += specularLight;
     }
 
     outLight *= lightStrength;

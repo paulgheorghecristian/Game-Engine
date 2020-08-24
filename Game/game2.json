@@ -13,7 +13,8 @@
                     "Mesh" : "res/models/room1_try3.obj",
                     "Shader" : "res/shaders/example.json",
                     "Texture" : "res/textures/atlas.jpg",
-                    "NormalMapTexture" : "res/textures/atlas_norm.jpg",
+                    "NormalMapTexture" : "res/textures/atlas_norm2.jpg",
+                    "RoughnessTexture" : "res/textures/atlas_rough2.jpg",
                     "Material" : {
                         "ambient" : [1, 1, 1],
                         "diffuse" : [0, 0, 0],

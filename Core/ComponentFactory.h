@@ -8,6 +8,7 @@
 #include "TempAnimationComponent.h"
 #include "PhysicsComponent.h"
 #include "GrabComponent.h"
+#include "BillboardComponent.h"
 #include "ActionComponent.h"
 
 class ComponentFactory

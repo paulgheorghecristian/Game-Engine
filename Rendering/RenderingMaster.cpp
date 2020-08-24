@@ -30,8 +30,10 @@ RenderingMaster::RenderingMaster(Display *display,
                                  Camera *camera,
                                  glm::mat4 projectionMatrix) :  particleForwardRenderFramebuffer (display->getWidth()/2, display->getHeight()/2, 1),
                                                                 particlesRTTexture (particleForwardRenderFramebuffer.getRenderTargets ()[0], 6),
-                                                                volumetricLightFB (display->getWidth()/2, display->getHeight()/2, 1),
-                                                                volumetricLightTxt (volumetricLightFB.getRenderTargets()[0], 9)
+                                                                volumetricLightFB (display->getWidth()/4, display->getHeight()/4, 1),
+                                                                volumetricLightTxt (volumetricLightFB.getRenderTargets()[0], 9),
+                                                                spotLightFlares(display->getWidth(), display->getHeight(), 1),
+                                                                spotLightFlaresTxt(spotLightFlares.getRenderTargets()[0], 10)
 {
     int albedoTextureUnit = 0, normalTextureUnit = 1, lightAccumulationTextureUnit = 2;
     int depthTextureUnit = 3, outputType = 1, blurredLightAccUnit = 4, spotLightDepthMapUnit = 5;
@@ -60,6 +62,9 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= deferredShading_BufferCombinationShader.updateUniform("particlesSampler", 6);
     result &= deferredShading_BufferCombinationShader.updateUniform("dirLightDepthSampler", 8);
     result &= deferredShading_BufferCombinationShader.updateUniform("volumetricLightSampler", 9);
+    result &= deferredShading_BufferCombinationShader.updateUniform("flareSampler", 10);
+    result &= deferredShading_BufferCombinationShader.updateUniform("flareBlurSampler", 11);
+    result &= deferredShading_BufferCombinationShader.updateUniform("roughnessSampler", 12);
     assert (result);
 
     result &= SpotLight::getLightAccumulationShader().updateUniform("spotLightDepthSampler", 0);
@@ -68,6 +73,7 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= SpotLight::getLightAccumulationShader().updateUniform("screenWidth", display->getWidth());
     result &= SpotLight::getLightAccumulationShader().updateUniform("screenHeight", display->getHeight());
     result &= SpotLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    result &= SpotLight::getLightAccumulationShader().updateUniform("roughnessSampler", 3);
     assert (result);
 
     RenderingMaster::sunLightColor = glm::vec3(0.7, 0.3, 0.2)*0.3f;
@@ -80,6 +86,7 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("screenWidth", display->getWidth());
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("screenHeight", display->getHeight());
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    result &= DirectionalLight::getLightAccumulationShader().updateUniform("roughnessSampler", 3);
     assert(result);
 
     result &= PointLight::getLightAccumulationShader().updateUniform("eyeSpaceNormalSampler", 1);
@@ -87,6 +94,7 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= PointLight::getLightAccumulationShader().updateUniform("screenWidth", display->getWidth());
     result &= PointLight::getLightAccumulationShader().updateUniform("screenHeight", display->getHeight());
     result &= PointLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    result &= PointLight::getLightAccumulationShader().updateUniform("roughnessSampler", 3);
     assert(result);
 
     deferredShading_StencilBufferCreator.construct ("res/shaders/stencilBufferCreator.json");
@@ -104,25 +112,34 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= volumetricLightShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     assert(result);
 
+    flareShader.construct("res/shaders/FlareShader.json");
+    result &= flareShader.updateUniform("depthSampler", 0);
+    result &= flareShader.updateUniform("screenWidth", display->getWidth());
+    result &= flareShader.updateUniform("screenHeight", display->getHeight());
+    result &= flareShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    assert(result);
+
     albedoTexture = new Texture (gBuffer.getColorTexture(), albedoTextureUnit);
     normalTexture = new Texture (gBuffer.getNormalTexture(), normalTextureUnit);
     lightAccumulationTexture = new Texture (gBuffer.getLightAccumulationTexture(), lightAccumulationTextureUnit);
     depthTexture = new Texture (gBuffer.getDepthTexture(), depthTextureUnit);
+    roughnessTexture = new Texture(gBuffer.getRoughnessTexture(), 12);
 
-#if 0
-    brightnessControlPostProcess = new PostProcess (display->getWidth()/4, display->getHeight()/4,
-                                                    gBuffer.getLightAccumulationTexture(),
-                                                    "res/shaders/brightnessControlPostProcess.json");
+    flarePostProcess = new PostProcess(display->getWidth()/2, display->getHeight()/2,
+                                        spotLightFlaresTxt.getTextureId(),
+                                        "res/shaders/FlarePostProcess.json");
+    flarePostProcess->getShader().updateUniform("lensFlareColorSampler", 1);
+    lensFlareColorTxt = new Texture("res/textures/lenscolor.bmp", 1);
+
 
     hBlurPostProcess = new PostProcess (display->getWidth()/4, display->getHeight()/4,
-                                        brightnessControlPostProcess->getResultingTextureId(),
+                                        flarePostProcess->getResultingTextureId(),
                                         "res/shaders/hBlurPostProcess.json");
 
     wBlurPostProcess = new PostProcess (display->getWidth()/4, display->getHeight()/4,
                                         hBlurPostProcess->getResultingTextureId(),
                                         "res/shaders/wBlurPostProcess.json");
-    blurredLightAccTexture = new Texture (wBlurPostProcess->getResultingTextureId(), blurredLightAccUnit);
-#endif
+
     screenSizeRectangle = Mesh::getRectangle();
 
     GUI::init (1920, 1080);
@@ -153,15 +170,13 @@ RenderingMaster::~RenderingMaster()
     delete normalTexture;
     delete lightAccumulationTexture;
     delete depthTexture;
+    delete roughnessTexture;
 
     delete screenSizeRectangle;
 
-#if 0
-    delete blurredLightAccTexture;
     delete hBlurPostProcess;
     delete wBlurPostProcess;
-    delete brightnessControlPostProcess;
-#endif
+    delete flarePostProcess;
     delete smokeRenderer;
 
     display->close();
@@ -246,22 +261,22 @@ void RenderingMaster::drawDeferredShadingBuffers()
     gBuffer.unbind();
     clearScreen(1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-#if 0
-    brightnessControlPostProcess->bind();
-    brightnessControlPostProcess->process();
-
     hBlurPostProcess->bind();
     hBlurPostProcess->process();
 
     wBlurPostProcess->bind();
     wBlurPostProcess->process();
-#endif
+
+    flarePostProcess->bind();
+    flarePostProcess->process({lensFlareColorTxt});
+
     deferredShading_BufferCombinationShader.bind();
 
     albedoTexture->use();
     normalTexture->use();
     lightAccumulationTexture->use();
     depthTexture->use();
+    roughnessTexture->use(12);
 #if 0
     blurredLightAccTexture->use();
 #endif
@@ -271,6 +286,8 @@ void RenderingMaster::drawDeferredShadingBuffers()
         break;
     }
     volumetricLightTxt.use(9);
+    flarePostProcess->getResultingTexture().use(10);
+    wBlurPostProcess->getResultingTexture().use(11);
 
     screenSizeRectangle->draw();
 
@@ -301,6 +318,7 @@ void RenderingMaster::update() {
     deferredShading_SceneShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     skyShader->updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     volumetricLightShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
+    flareShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
 
     smokeRenderer->update(*camera, updateDt);
 
@@ -339,6 +357,13 @@ void RenderingMaster::update() {
 
     }
 
+    flarePostProcess->getShader().updateUniform("uGhostDispersal", data_f[0]);
+    flarePostProcess->getShader().updateUniform("density", data_f[1]);
+    flarePostProcess->getShader().updateUniform("exposure", data_f[2]);
+    flarePostProcess->getShader().updateUniform("weight", data_f[3]);
+    flarePostProcess->getShader().updateUniform("decay", data_f[4]);
+    flarePostProcess->getShader().updateUniform("illuminationDecay", data_f[5]);
+
     //updateLastSpotLight();
 }
 
@@ -360,6 +385,7 @@ void RenderingMaster::computeLightAccumulationBufferForLight(Light *light)
 
     normalTexture->use(1);
     depthTexture->use(2);
+    roughnessTexture->use(3);
 
     light->render();
 }
@@ -509,7 +535,9 @@ void RenderingMaster::imguiDrawCalls() {
 
         //ImGui::Text("This is some useful text.");
         for (int i = 0; i < GUIVarsEnum_f::NUM_VARS_f; i++) {
-            ImGui::SliderFloat("float", &data_f[i], 0.0f, 100.0f);
+            std::string name("float ");
+            name += i+'0';
+            ImGui::SliderFloat(name.c_str(), &data_f[i], 0.0f, 10.0f);
         }
 
         for (int i = 0; i < GUIVarsEnum_vec3::NUM_VARS_v3; i++) {

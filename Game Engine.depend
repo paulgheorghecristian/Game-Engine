@@ -3137,7 +3137,7 @@
 	"Entity.h"
 	"Input.h"
 
-1596364029 c:\users\paul\desktop\game-engine3\core\entity.h
+1596369883 c:\users\paul\desktop\game-engine3\core\entity.h
 	"Transform.h"
 	"Component.h"
 	<vector>
@@ -3145,7 +3145,7 @@
 	"Input.h"
 	"MemoryPoolInterface.h"
 
-1596364029 c:\users\paul\desktop\game-engine3\rendering\transform.h
+1596370753 c:\users\paul\desktop\game-engine3\rendering\transform.h
 	<glm/glm.hpp>
 	<glm/gtc/quaternion.hpp>
 	<glm/gtc/matrix_transform.hpp>
@@ -3976,15 +3976,16 @@
 	<stdlib.h>
 	<iostream>
 
-1596364029 source:c:\users\paul\desktop\game-engine3\core\componentfactory.cpp
+1596921356 source:c:\users\paul\desktop\game-engine3\core\componentfactory.cpp
 	"ComponentFactory.h"
 
-1596364029 c:\users\paul\desktop\game-engine3\core\componentfactory.h
+1596371588 c:\users\paul\desktop\game-engine3\core\componentfactory.h
 	"rapidjson/document.h"
 	"RenderComponent.h"
 	"TempAnimationComponent.h"
 	"PhysicsComponent.h"
 	"GrabComponent.h"
+	"BillboardComponent.h"
 
 1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\document.h
 	"reader.h"
@@ -4091,7 +4092,7 @@
 	"../stream.h"
 	<cwchar>
 
-1595274232 c:\users\paul\desktop\game-engine3\rendering\rendercomponent.h
+1596920605 c:\users\paul\desktop\game-engine3\rendering\rendercomponent.h
 	"Mesh.h"
 	"Shader.h"
 	"Material.h"
@@ -4099,7 +4100,7 @@
 	"RenderingMaster.h"
 	"Texture.h"
 
-1584788428 c:\users\paul\desktop\game-engine3\rendering\mesh.h
+1596916312 c:\users\paul\desktop\game-engine3\rendering\mesh.h
 	<GL/glew.h>
 	<glm/glm.hpp>
 	<vector>
@@ -4163,7 +4164,7 @@
 1584788428 c:\users\paul\desktop\game-engine3\rendering\material.h
 	"glm/glm.hpp"
 
-1596364364 c:\users\paul\desktop\game-engine3\rendering\renderingmaster.h
+1596922966 c:\users\paul\desktop\game-engine3\rendering\renderingmaster.h
 	"rapidjson/document.h"
 	"Display.h"
 	"Camera.h"
@@ -4186,7 +4187,7 @@
 	<glm/gtc/matrix_transform.hpp>
 	<glm/gtc/quaternion.hpp>
 
-1584788428 c:\users\paul\desktop\game-engine3\rendering\gbuffer.h
+1596919570 c:\users\paul\desktop\game-engine3\rendering\gbuffer.h
 	<GL/glew.h>
 	<iostream>
 
@@ -4214,7 +4215,7 @@
 	<cassert>
 	"ErrorUtils.h"
 
-1584788428 c:\users\paul\desktop\game-engine3\rendering\postprocess.h
+1596386387 c:\users\paul\desktop\game-engine3\rendering\postprocess.h
 	"FrameBuffer.h"
 	"Shader.h"
 	"Mesh.h"
@@ -4769,7 +4770,7 @@
 	"PhysicsComponent.h"
 	<iostream>
 
-1596364542 source:c:\users\paul\desktop\game-engine3\core\enginecore.cpp
+1596978836 source:c:\users\paul\desktop\game-engine3\core\enginecore.cpp
 	"EngineCore.h"
 	<glm/gtx/rotate_vector.hpp>
 	"ParticleRenderer.h"
@@ -4990,7 +4991,7 @@
 1596364029 source:c:\users\paul\desktop\game-engine3\physics\physicscomponent.cpp
 	"PhysicsComponent.h"
 
-1596365652 source:c:\users\paul\desktop\game-engine3\physics\physicsmaster.cpp
+1596366593 source:c:\users\paul\desktop\game-engine3\physics\physicsmaster.cpp
 	"PhysicsMaster.h"
 
 1584788428 source:c:\users\paul\desktop\game-engine3\rendering\bargui.cpp
@@ -5009,7 +5010,7 @@
 	"RenderingMaster.h"
 	"Shader.h"
 
-1596364029 source:c:\users\paul\desktop\game-engine3\rendering\display.cpp
+1596372531 source:c:\users\paul\desktop\game-engine3\rendering\display.cpp
 	"Display.h"
 	"imgui.h"
 	"imgui_impl_sdl.h"
@@ -5021,7 +5022,7 @@
 1596364029 source:c:\users\paul\desktop\game-engine3\rendering\framebuffer.cpp
 	"FrameBuffer.h"
 
-1596364029 source:c:\users\paul\desktop\game-engine3\rendering\gbuffer.cpp
+1596956490 source:c:\users\paul\desktop\game-engine3\rendering\gbuffer.cpp
 	"GBuffer.h"
 
 1594570960 source:c:\users\paul\desktop\game-engine3\rendering\gui.cpp
@@ -5036,22 +5037,22 @@
 1584788428 source:c:\users\paul\desktop\game-engine3\rendering\material.cpp
 	"Material.h"
 
-1596364029 source:c:\users\paul\desktop\game-engine3\rendering\mesh.cpp
+1596916281 source:c:\users\paul\desktop\game-engine3\rendering\mesh.cpp
 	"Mesh.h"
 	<iostream>
 
-1596364312 source:c:\users\paul\desktop\game-engine3\rendering\pointlight.cpp
+1596978794 source:c:\users\paul\desktop\game-engine3\rendering\pointlight.cpp
 	"PointLight.h"
 	"Shader.h"
 
-1584788428 source:c:\users\paul\desktop\game-engine3\rendering\postprocess.cpp
+1596386416 source:c:\users\paul\desktop\game-engine3\rendering\postprocess.cpp
 	"PostProcess.h"
 	<utility>
 
-1596364043 source:c:\users\paul\desktop\game-engine3\rendering\rendercomponent.cpp
+1596956547 source:c:\users\paul\desktop\game-engine3\rendering\rendercomponent.cpp
 	"RenderComponent.h"
 
-1596364627 source:c:\users\paul\desktop\game-engine3\rendering\renderingmaster.cpp
+1596962726 source:c:\users\paul\desktop\game-engine3\rendering\renderingmaster.cpp
 	"RenderingMaster.h"
 	"ParticleRenderer.h"
 	"ParticleFactory.h"
@@ -5087,7 +5088,7 @@
 	"Text.h"
 	<math.h>
 
-1596364029 source:c:\users\paul\desktop\game-engine3\rendering\texture.cpp
+1596382935 source:c:\users\paul\desktop\game-engine3\rendering\texture.cpp
 	"Texture.h"
 	"ErrorUtils.h"
 	"stb_image.h"
@@ -5120,7 +5121,7 @@
 	"Transform.h"
 	<iostream>
 
-1595272532 c:\users\paul\desktop\game-engine3\core\common.h
+1596370073 c:\users\paul\desktop\game-engine3\core\common.h
 	"Entity.h"
 	"Light.h"
 
@@ -5276,7 +5277,7 @@
 	"BulletCollision/BroadphaseCollision/btOverlappingPairCache.h"
 	"btCollisionWorld.h"
 
-1596366012 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btaxissweep3internal.h
+1596366752 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\bulletcollision\broadphasecollision\btaxissweep3internal.h
 	"LinearMath/btVector3.h"
 	"btOverlappingPairCache.h"
 	"btBroadphaseInterface.h"
@@ -5285,6 +5286,17 @@
 	"btDbvtBroadphase.h"
 	<stdio.h>
 
-1596366012 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btthreads.h
+1596366753 c:\users\paul\desktop\game-engine3\res\libraries\bullet\bullet\linearmath\btthreads.h
 	"btScalar.h"
+
+1596372752 source:c:\users\paul\desktop\game-engine3\components\billboardcomponent.cpp
+	"BillboardComponent.h"
+	"RenderingMaster.h"
+	"Common.h"
+
+1596371485 c:\users\paul\desktop\game-engine3\components\billboardcomponent.h
+	"Component.h"
+	"glm/glm.hpp"
+	"glm/gtc/type_ptr.hpp"
+	"Camera.h"
 

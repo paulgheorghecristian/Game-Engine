@@ -146,9 +146,9 @@ void Texture::use()
     Texture::use(textureUnit);
 }
 
-void Texture::use(int textureUnit)
+void Texture::use(int etextureUnit)
 {
-    glActiveTexture(GL_TEXTURE0 + textureUnit);
+    glActiveTexture(GL_TEXTURE0 + etextureUnit);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textureId);
 }
