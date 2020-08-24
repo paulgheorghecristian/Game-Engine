@@ -331,6 +331,7 @@ void RenderingMaster::update() {
 
     {
         // perform ray intersection with object
+        //TODO this should be done only in editor mode
         const glm::vec3 &currWorldPos = camera->getPosition();
         const glm::vec3 &dir = getCurrWorldPosRay();
 
@@ -494,6 +495,8 @@ void RenderingMaster::renderVolumetricLight()
     volumetricLightFB.bindAllRenderTargets();
     for (int i = lights.size()-1; i >= 0; i--) {
         if (typeid(*lights[i]) == typeid(SpotLight)) {
+            if (i != 1)
+                continue;
             lights[i]->getShadowMapTexture().use(0);
             depthTexture->use(1);
             glEnable(GL_CULL_FACE);

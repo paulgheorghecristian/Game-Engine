@@ -102,7 +102,7 @@ void Transform::addRotation(float x, float y, float z) {
         return;
     }
 
-    rotation = glm::normalize(rotation * glm::quat(glm::vec3(x, y, z)));
+    rotation = glm::normalize(rotation * glm::quat(glm::radians(glm::vec3(x, y, z))));
 
     modelMatrixNeedsRefresh = true;
 }

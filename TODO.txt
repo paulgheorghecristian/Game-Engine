@@ -19,3 +19,12 @@ IN PROGRESS:
 -sun + directional light + directional light shadows + day-night cycle
 -difference between rendering and display size
 -free roam camera
+-linux and windows compilation (libraries)
+
+
+2020 game:
+
+- component ptr rotatii la 90 grade cand se apasa pe E in vecinatate
+- spot light improvement (bake depth maps, dynamic height/width, dynamic light size)
+- instace rendering ability
+- load/save game json

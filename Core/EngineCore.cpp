@@ -336,7 +336,7 @@ void EngineCore::input() {
                                                         ->addComponent(new BillboardComponent()));
     }
 
-    if (inputManager.getKeyDown (SDLK_e)) {
+    if (inputManager.getKeyDown (SDLK_z)) {
         glm::vec3 cameraPosition = RenderingMaster::getInstance()->getCamera()->getPosition();
         RenderingMaster::getInstance()->addLightToScene(new PointLight(Transform(cameraPosition,
                                                                                   glm::vec3(0),
@@ -345,7 +345,7 @@ void EngineCore::input() {
 
     }
 
-    if (inputManager.getKeyDown (SDLK_r)) {
+    if (inputManager.getKeyDown(SDLK_r)) {
         RenderingMaster::getInstance()->volumetricLightShader.reload();
         SpotLight::getLightAccumulationShader().reload();
         PointLight::getLightAccumulationShader().reload();
@@ -356,6 +356,11 @@ void EngineCore::input() {
         delete RenderingMaster::getInstance()->smokeRenderer;
 
         RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
+    }
+
+    if (inputManager.getKeyUp(SDLK_e)) {
+        PhysicsMaster::getInstance()->performRayTestWithCamForward(RenderingMaster::getInstance()->getCamera()->getPosition(),
+                                    RenderingMaster::getInstance()->getCamera()->getForward());
     }
 
     RenderingMaster::getInstance()->deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);

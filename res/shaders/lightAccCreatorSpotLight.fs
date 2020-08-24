@@ -22,11 +22,11 @@ flat in vec3 lightPositionEyeSpace;
 uniform vec3 cameraForwardVector;
 uniform vec3 cameraForwardVectorEyeSpace;
 
-const int PCFStrength = 3;
+const int PCFStrength = 2;
 const int PCFKernelSideSize = PCFStrength * 2 + 1;
 const int PCFStartingIndex = PCFKernelSideSize / 2;
 const int PCFKernelSize = PCFKernelSideSize * PCFKernelSideSize;
-const float depthMapTexelSize = 1.0f/1024.0f; /* TODO remove hardcode */
+const float depthMapTexelSize = 1.0f/2048.0f; /* TODO remove hardcode */
 
 uniform vec3 lightPosition;
 uniform mat4 modelMatrix;

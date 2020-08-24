@@ -34,7 +34,8 @@ class Entity : public MemoryPoolInterface<Entity>
             THIRD_PERSON_CAMERA, /* only for the player, maybe I should hide this? */
             PLAYER_CONTROLLER,
             GRAB,
-            BILL
+            BILL,
+            ACTION,
         };
     protected:
         Transform transform;

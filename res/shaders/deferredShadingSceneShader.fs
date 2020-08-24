@@ -33,7 +33,7 @@ void main(){
         outColor = vec4 (color * material.ambient, 1.0);
     } else {
         outColor = vec4 (material.ambient, 1.0);
-	}
+    }
 
     int frontCond = -(1 - int(gl_FrontFacing)*2);
 
