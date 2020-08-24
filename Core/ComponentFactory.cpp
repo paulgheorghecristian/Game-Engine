@@ -1,5 +1,18 @@
 #include "ComponentFactory.h"
 
+std::function<void(bool start, Entity *entity)> ComponentFactory::y_90_rotation =
+[rot=float(0.0f)](bool start, Entity *entity) mutable {
+    static float speed = 1.5f;
+
+    if (start == true && rot <= 0.0f)
+        rot = 90.0f;
+
+    if (rot > 0.0f) {
+        entity->getTransform().addRotation(0, speed, 0);
+        rot -= speed;
+    }
+};
+
 ComponentFactory::ComponentFactory() {}
 
 Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMemberIterator& itr) {
@@ -86,7 +99,16 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
 
         return new PhysicsComponent(type, scale, mass);
     } else if (strcmp (itr->name.GetString(), "GrabComponent") == 0) {
+
         return new GrabComponent(itr->value["radius"].GetFloat());
+    } else if (strcmp(itr->name.GetString(), "ActionComponent") == 0) {
+
+        if (strcmp(itr->value["action"].GetString(), "y90rotation") == 0) {
+
+            return new ActionComponent( itr->value["radius"].GetFloat(), ComponentFactory::y_90_rotation);
+        } else {
+            return NULL;
+        }
     } else {
         return NULL;
     }

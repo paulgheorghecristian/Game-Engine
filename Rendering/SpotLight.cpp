@@ -2,8 +2,8 @@
 
 #include "Shader.h"
 
-#define SHADOW_MAP_WIDTH 1024
-#define SHADOW_MAP_HEIGHT 1024
+#define SHADOW_MAP_WIDTH 2048
+#define SHADOW_MAP_HEIGHT 2048
 
 SpotLight::SpotLight(const Transform &transform,
                      const glm::vec3 &color,

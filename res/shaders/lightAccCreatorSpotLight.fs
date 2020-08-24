@@ -21,11 +21,11 @@ flat in vec3 lightPositionEyeSpace;
 uniform vec3 cameraForwardVector;
 uniform vec3 cameraForwardVectorEyeSpace;
 
-const int PCFStrength = 3;
+const int PCFStrength = 2;
 const int PCFKernelSideSize = PCFStrength * 2 + 1;
 const int PCFStartingIndex = PCFKernelSideSize / 2;
 const int PCFKernelSize = PCFKernelSideSize * PCFKernelSideSize;
-const float depthMapTexelSize = 1.0f/1024.0f; /* TODO remove hardcode */
+const float depthMapTexelSize = 1.0f/2048.0f; /* TODO remove hardcode */
 
 uniform vec3 lightPosition;
 uniform mat4 modelMatrix;
@@ -82,9 +82,9 @@ void main() {
     float diffuseStrength = max (0.0, dotProduct);
     float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 1000.0);
 
-    float a = 0.0, b = 0.0001, c = 0.0005;
+    float a = 0.0, b = 0.0001, c = 0.000001;
     float att = 1.0 / (a + b*l + c * l * l);
-    float lenAtt = max(1.0 - (l / lightRadius), 0);
+    float lenAtt = 1.0f;//max(1.0 - (l / lightRadius), 0);
 
     vec3 diffuseLight = (0.3 - acos(spotLightAttCoef)) * att * lenAtt * diffuseStrength * lightColor;
     vec3 specularLight = (0.3 - acos(spotLightAttCoef)) * att * lenAtt * specularStrength * lightColor;

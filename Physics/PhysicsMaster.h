@@ -2,9 +2,12 @@
 #define PHYSICSMASTER_H
 
 #include "bullet/btBulletDynamicsCommon.h"
-#include "Entity.h"
 #include "PhysicsComponent.h"
 #include <iostream>
+
+#include <set>
+
+class Entity;
 
 class PhysicsMaster
 {
@@ -16,6 +19,9 @@ class PhysicsMaster
         void update();
         btDynamicsWorld *getWorld();
         float getGravityAcceleration();
+
+        void performRayTestWithCamForward(const glm::vec3 &position, const glm::vec3 &forward);
+        const std::set<Entity *> &getForwardIntersectRes() {return forwardIntersectEntities;}
 
     protected:
 
@@ -33,6 +39,8 @@ class PhysicsMaster
 
         btRigidBody *planeRigidBody;
         float gravityAcc;
+
+        std::set<Entity *> forwardIntersectEntities;
 };
 
 #endif // PHYSICSMASTER_H
