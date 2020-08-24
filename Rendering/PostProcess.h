@@ -14,7 +14,7 @@ class PostProcess
         PostProcess(int width, int height, GLuint inputTextureId, std::string &&shaderJsonFile);
 
         void bind();
-        void process();
+        void process(std::initializer_list<Texture *> list = {});
         GLuint getResultingTextureId();
         GLuint getFrameBufferObject();
         GLuint getInputTextureId();

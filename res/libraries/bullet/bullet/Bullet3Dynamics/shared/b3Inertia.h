@@ -11,4 +11,5 @@ struct b3Inertia
 	b3Mat3x3 m_initInvInertia;
 };
 
-#endif  //B3_INERTIA_H
+
+#endif //B3_INERTIA_H

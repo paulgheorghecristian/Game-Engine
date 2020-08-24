@@ -1,9 +1,9 @@
 {
   "display" : {
-	      "width" : 1920,
-	      "height" : 1080,
+	      "width" : 1280,
+	      "height" : 720,
 	      "title" : "Game engine",
-	      "isFullScreen" : true,
+	      "isFullScreen" : false,
 	      "maxFps" : 60,
 	      "vSync" : true
 	    },
@@ -14,8 +14,8 @@
 	   },
   "mouse" : {
                 "moveSpeed" : 1.0,
-                "rotationSpeed" : 0.003,
-                "warpMouse" : true,
-                "showMouse" : false
+                "rotationSpeed" : 0.0015,
+                "warpMouse" : false,
+                "showMouse" : true
         }
 }

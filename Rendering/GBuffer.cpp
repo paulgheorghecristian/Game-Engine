@@ -33,6 +33,15 @@ void GBuffer::generate (unsigned int width, unsigned int height){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16, width, height, 0, GL_RGB, GL_FLOAT, 0);
 
+    //material roughness
+    glGenTextures(1, &textureRoughness);
+    glBindTexture(GL_TEXTURE_2D, textureRoughness);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
     //light accumulation texture
     glGenTextures(1, &textureLightAccumulation);
     glBindTexture(GL_TEXTURE_2D, textureLightAccumulation);
@@ -54,7 +63,8 @@ void GBuffer::generate (unsigned int width, unsigned int height){
     //leaga texturi la framebuffer , 0 de la sfarsit se refera la ce nivel din mipmap, 0 fiind cel mai de sus/mare.
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+0, textureColor, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+1, textureNormal, 0);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+2, textureLightAccumulation, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+2, textureRoughness, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+3, textureLightAccumulation, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, textureDepth, 0);
 
     //verifica stare
@@ -74,6 +84,7 @@ void GBuffer::destroy(){
     glDeleteTextures(1, &textureColor);
     glDeleteTextures(1, &textureLightAccumulation);
     glDeleteTextures(1, &textureDepth);
+    glDeleteTextures(1, &textureRoughness);
 }
 
 GLuint GBuffer::getColorTexture(){
@@ -92,16 +103,21 @@ GLuint GBuffer::getDepthTexture(){
     return textureDepth;
 }
 
+GLuint GBuffer::getRoughnessTexture() {
+    return textureRoughness;
+}
+
 void GBuffer::bindForScene(){
     GLenum buffersGeometry[] = {GL_COLOR_ATTACHMENT0,
-                                GL_COLOR_ATTACHMENT1};
+                                GL_COLOR_ATTACHMENT1,
+                                GL_COLOR_ATTACHMENT2};
 
     glBindFramebuffer (GL_FRAMEBUFFER, frameBufferObject);
-    glDrawBuffers(2, buffersGeometry);
+    glDrawBuffers(3, buffersGeometry);
 }
 
 void GBuffer::bindForLights() {
-    GLenum buffersGeometry[] = {GL_COLOR_ATTACHMENT2};
+    GLenum buffersGeometry[] = {GL_COLOR_ATTACHMENT3};
 
     glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
     glDrawBuffers(1, buffersGeometry);

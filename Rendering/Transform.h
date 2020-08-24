@@ -8,6 +8,7 @@
 /* TODO make this a move constructor and assign. op */
 class Transform
 {
+    friend class Entity;
     public:
         Transform ();
         Transform(const glm::vec3 &position,

@@ -13,7 +13,8 @@ class RenderingMaster;
 class RenderComponent : public Component
 {
     public:
-        RenderComponent(Mesh *mesh, Shader *shader, Texture *texture, Texture *normalMapTexture, const Material &material);
+        RenderComponent(Mesh *mesh, Shader *shader, Texture *texture,
+                        Texture *normalMapTexture, Texture *roughness, const Material &material);
         void input(Input &inputManager);
         void update();
         void render();
@@ -27,7 +28,7 @@ class RenderComponent : public Component
     private:
         Mesh *mesh;
         Shader *shader;
-        Texture *texture, *normalMapTexture;
+        Texture *texture, *normalMapTexture, *roughness;
         Material material;
 };
 

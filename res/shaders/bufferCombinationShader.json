@@ -11,6 +11,9 @@
                     "blurredLightAccSampler" : "INT",
                     "spotLightDepthMap" : "INT",
                     "dirLightDepthSampler" : "INT",
-                    "volumetricLightSampler" : "INT"
+                    "volumetricLightSampler" : "INT",
+                    "flareSampler" : "INT",
+                    "flareBlurSampler" : "INT",
+                    "roughnessSampler" : "INT"
                  }
 }

@@ -20,6 +20,11 @@ class ParticleRenderer;
 
 enum GUIVarsEnum_f {
     VAR1_f = 0,
+    VAR2_f,
+    VAR3_f,
+    VAR4_f,
+    VAR5_f,
+    VAR6_f,
     NUM_VARS_f
 };
 
@@ -86,6 +91,9 @@ class RenderingMaster
         ParticleRenderer<SmokeParticle> *smokeRenderer;
         FrameBuffer particleForwardRenderFramebuffer;
         Texture particlesRTTexture;
+        FrameBuffer spotLightFlares;
+        Texture spotLightFlaresTxt;
+        Shader flareShader;
         Texture *depthTexture;
 
         Entity skyDomeEntity;
@@ -105,8 +113,9 @@ class RenderingMaster
         glm::mat4 projectionMatrix;
         GBuffer gBuffer;
 
-        Texture *albedoTexture, *normalTexture, *lightAccumulationTexture;
-        Texture *blurredLightAccTexture;
+        Texture *albedoTexture, *normalTexture, *lightAccumulationTexture;\
+        Texture *roughnessTexture;
+        //Texture *blurredLightAccTexture;
         Mesh *screenSizeRectangle;
 
         void computeStencilBufferForLight(Light *light);
@@ -115,11 +124,11 @@ class RenderingMaster
         void updateLastSpotLight();
         glm::vec3 getWorldSpaceMouseRay(float mouseX, float mouseY);
 
-#if 0
         PostProcess *hBlurPostProcess,
-                    *wBlurPostProcess,
-                    *brightnessControlPostProcess;
-#endif
+                    *wBlurPostProcess;
+        PostProcess *flarePostProcess;
+
+        Texture *lensFlareColorTxt;
         double updateDt;
 
         std::vector <Light *> lights;

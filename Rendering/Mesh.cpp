@@ -158,7 +158,7 @@ Mesh *Mesh::getCircle(float x, float y, float radius, int numOfTriangles){
     std::vector<unsigned int> indices;
 
     vertices.push_back(Vertex(glm::vec3(x, y, 0)));
-    float step = 360.0f/numOfTriangles;
+    float step = 360.0f / numOfTriangles;
 
     int index = 1;
 
@@ -171,9 +171,37 @@ Mesh *Mesh::getCircle(float x, float y, float radius, int numOfTriangles){
         vertices.push_back(Vertex(glm::vec3(_x1, _y1, 0)));
         vertices.push_back(Vertex(glm::vec3(_x2, _y2, 0)));
 
-        indices.push_back(index);
-        indices.push_back(0);
         indices.push_back(index+1);
+        indices.push_back(0);
+        indices.push_back(index);
+        index += 2;
+    }
+
+
+    return new Mesh(vertices, indices);
+}
+
+Mesh *Mesh::getStar(float x, float y, float radius, int numOfTriangles){
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+
+    vertices.push_back(Vertex(glm::vec3(x, y, 0)));
+    float step = 360.0f / numOfTriangles;
+
+    int index = 1;
+
+    for(float theta = 0; theta < 360.0f; theta += 4.0f*step){
+        float _x1 = radius * glm::cos(glm::radians(theta)) + x;
+        float _y1 = radius * glm::sin(glm::radians(theta)) + y;
+
+        float _x2 = radius * glm::cos(glm::radians(theta + step)) + x;
+        float _y2 = radius * glm::sin(glm::radians(theta + step)) + y;
+        vertices.push_back(Vertex(glm::vec3(_x1, _y1, 0)));
+        vertices.push_back(Vertex(glm::vec3(_x2, _y2, 0)));
+
+        indices.push_back(index+1);
+        indices.push_back(0);
+        indices.push_back(index);
         index += 2;
     }
 

@@ -1,5 +1,5 @@
 {
-    "maxParticles" : 1000,
+    "maxParticles" : 250,
     "center" : [0, 100, -220],
     "orientation" : [-45, 0, 0],
     "R" : 1.5,

@@ -11,7 +11,9 @@
                     "projectionMatrix" : "MAT4",
                     "textureSampler" : "INT",
                     "normalMapSampler" : "INT",
+                    "roughnessSampler" : "INT",
                     "hasTexture" : "BOOL",
-                    "hasNormalMap" : "BOOL"
+                    "hasNormalMap" : "BOOL",
+                    "hasRoughness" : "BOOL"
                  }
 }

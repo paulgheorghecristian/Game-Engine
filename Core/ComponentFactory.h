@@ -6,6 +6,7 @@
 #include "TempAnimationComponent.h"
 #include "PhysicsComponent.h"
 #include "GrabComponent.h"
+#include "BillboardComponent.h"
 
 class ComponentFactory
 {

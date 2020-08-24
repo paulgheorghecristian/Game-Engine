@@ -52,6 +52,7 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionDispatch/btCollisionDispatcher.h"
 #include "BulletCollision/BroadphaseCollision/btSimpleBroadphase.h"
 #include "BulletCollision/BroadphaseCollision/btAxisSweep3.h"
+#include "BulletCollision/BroadphaseCollision/btMultiSapBroadphase.h"
 #include "BulletCollision/BroadphaseCollision/btDbvtBroadphase.h"
 
 ///Math library & Utils
@@ -62,4 +63,6 @@ subject to the following restrictions:
 #include "LinearMath/btIDebugDraw.h"
 #include "LinearMath/btSerializer.h"
 
-#endif  //BULLET_COLLISION_COMMON_H
+
+#endif //BULLET_COLLISION_COMMON_H
+

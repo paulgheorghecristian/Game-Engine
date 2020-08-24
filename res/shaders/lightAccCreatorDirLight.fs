@@ -7,6 +7,7 @@ uniform int screenWidth, screenHeight;
 uniform sampler2D dirLightDepthSampler;
 uniform sampler2D eyeSpaceNormalSampler;
 uniform sampler2D depthSampler;
+uniform sampler2D roughnessSampler;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 uniform vec3 cameraForwardVector;
@@ -65,8 +66,12 @@ void main() {
 
     lightStrength = 1.0f - (cutOff*(totalPixelsInShadow / PCFKernelSize));
 
+    vec3 roughness = texture(roughnessSampler, texCoord).rgb;
+    float rough = ((roughness.r+roughness.g+roughness.b) / 3.0f);
+    rough = max(0.0f,250.0f - 50.0f*rough);
+
     vec3 H = normalize(lightDirectionEyeSpace + (-cameraForwardVectorEyeSpace));
-    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 1000.0);
+    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), rough);
     getLight = dotProd > 0;
 
     vec3 diffuseLight = lightIntensity * lightColor;

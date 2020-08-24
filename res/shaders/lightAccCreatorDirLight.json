@@ -9,6 +9,7 @@
                     "screenHeight" : "INT",
                     "eyeSpaceNormalSampler" : "INT",
                     "depthSampler" : "INT",
+                    "roughnessSampler" : "INT",
                     "projectionMatrix" : "MAT4",
                     "viewMatrix" : "MAT4",
                     "dirLightProjMatrix" : "MAT4",
