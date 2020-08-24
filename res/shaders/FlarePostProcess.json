@@ -1,0 +1,16 @@
+{
+    "VSPath" : "res/shaders/FlarePostProcess.vs",
+    "FSPath" : "res/shaders/FlarePostProcess.fs",
+    "Uniforms" : {
+                    "textureSampler" : "INT",
+                    "lensFlareColorSampler" : "INT",
+                    "pixelWidth" : "FLOAT",
+                    "pixelHeight" : "FLOAT",
+                    "uGhostDispersal" : "FLOAT",
+                    "density" : "FLOAT",
+                    "exposure" : "FLOAT",
+                    "weight" : "FLOAT",
+                    "decay" : "FLOAT",
+                    "illuminationDecay" : "FLOAT"
+                 }
+}

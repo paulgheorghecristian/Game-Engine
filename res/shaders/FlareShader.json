@@ -1,0 +1,16 @@
+{
+    "VSPath" : "res/shaders/FlareShader.vs",
+    "FSPath" : "res/shaders/FlareShader.fs",
+    "Uniforms" : {
+            "viewMatrix" : "MAT4",
+		    "projectionMatrix" : "MAT4",
+            "modelMatrix" : "MAT4",
+		    "depthSampler" : "INT",
+		    "screenHeight" : "INT",
+		    "screenWidth" : "INT",
+            "material.ambient" : "VEC3",
+            "material.specular" : "VEC3",
+            "material.diffuse" : "VEC3",
+            "material.shininess" : "FLOAT"
+    }
+}
