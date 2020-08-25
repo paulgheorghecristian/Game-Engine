@@ -43,9 +43,9 @@ LIBS := \
 -lSDL2 \
 -lSDL2_image \
 -lSDL2_ttf \
+-lBulletDynamics \
 -lBulletCollision \
--lLinearMath \
--lBulletDynamics
+-lLinearMath
 
 LDOPTS := \
 -Lres/libraries/bullet/lib \
