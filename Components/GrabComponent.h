@@ -26,6 +26,7 @@ class GrabComponent : public Component
         btGhostObject *m_ghostObj;
         glm::vec3 worldPos;
         glm::vec3 worldRot;
+        glm::vec3 worldScale;
         float m_radius;
         bool performRayTest, showGUI;
 };

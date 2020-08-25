@@ -10,10 +10,11 @@
             },
             "Components" : {
                 "RenderComponent" : {
-                    "Mesh" : "res/models/room1_try2.obj",
+                    "Mesh" : "res/models/room1_try3.obj",
                     "Shader" : "res/shaders/example.json",
-                    "Texture" : "res/textures/atlas.bmp",
-                    "NormalMapTexture" : "res/textures/atlas_norm.bmp",
+                    "Texture" : "res/textures/atlas.jpg",
+                    "NormalMapTexture" : "res/textures/atlas_norm2.jpg",
+                    "RoughnessTexture" : "res/textures/atlas_rough2.jpg",
                     "Material" : {
                         "ambient" : [1, 1, 1],
                         "diffuse" : [0, 0, 0],
@@ -295,6 +296,54 @@
                         "specular" : [0, 0, 0],
                         "shininess" : 50.0
                     }
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [20.95, 45.4, 168.65],
+                "rotation" : [0, 90, 0],
+                "scale" : [17.885, 17.495, 25.88]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/frame.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/bark_albedo.bmp",
+                    "NormalMapTexture" : "res/textures/bark_normal.bmp",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 500.0
+                    }
+                },
+                "GrabComponent" : {
+                    "radius" : 5
+                }
+            }
+        },
+        {
+            "Transform" : {
+                "position" : [20.95, 45.4, 168.65],
+                "rotation" : [0, 90, 0],
+                "scale" : [17.885, 17.495, 25.88]
+            },
+            "Components" : {
+                "RenderComponent" : {
+                    "Mesh" : "res/models/picture.obj",
+                    "Shader" : "res/shaders/example.json",
+                    "Texture" : "res/textures/puzzle_shape.png",
+                    "NormalMapTexture" : "res/textures/173_norm.bmp",
+                    "Material" : {
+                        "ambient" : [1.0, 1.0, 1.0],
+                        "diffuse" : [0.0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 0.0
+                    }
+                },
+                "GrabComponent" : {
+                    "radius" : 5
                 }
             }
         }

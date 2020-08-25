@@ -324,7 +324,7 @@ void EngineCore::input() {
                                 glm::vec3(0));
             Entity *newEntity2 = new Entity();
             newEntity2->setTransform(transform2);
-            entities.push_back(newEntity2->addComponent(new RenderComponent(Mesh::getCircle(0, 0, 10.5f, 30),
+            entities.push_back(newEntity2->addComponent(new RenderComponent(Mesh::getCircle(0, 0, 2.0f, 30),
                                                                             NULL,
                                                                             NULL,
                                                                             NULL,
@@ -333,7 +333,8 @@ void EngineCore::input() {
                                                                                         glm::vec3(0),
                                                                                         glm::vec3(0),
                                                                                         0.0f)))
-                                                        ->addComponent(new BillboardComponent()));
+                                                        ->addComponent(new BillboardComponent())
+                                                        ->addComponent(new GrabComponent(10.0f)));
     }
 
     if (inputManager.getKeyDown (SDLK_z)) {
@@ -450,7 +451,7 @@ void EngineCore::render() {
     RenderingMaster::getInstance()->drawDeferredShadingBuffers();
     PT_ToHere ("buffersDraw");
 
-    ProfilingTimer::renderAllBarGUIs();
+    //ProfilingTimer::renderAllBarGUIs();
     fpsGUI->render();
     RenderingMaster::getInstance()->startIMGUIFrame();
     for (auto entity : entities) {

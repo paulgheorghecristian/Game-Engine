@@ -3137,7 +3137,7 @@
 	"Entity.h"
 	"Input.h"
 
-1596369883 c:\users\paul\desktop\game-engine3\core\entity.h
+1598288113 c:\users\paul\desktop\game-engine3\core\entity.h
 	"Transform.h"
 	"Component.h"
 	<vector>
@@ -3976,16 +3976,18 @@
 	<stdlib.h>
 	<iostream>
 
-1596921356 source:c:\users\paul\desktop\game-engine3\core\componentfactory.cpp
+1598287997 source:c:\users\paul\desktop\game-engine3\core\componentfactory.cpp
 	"ComponentFactory.h"
 
-1596371588 c:\users\paul\desktop\game-engine3\core\componentfactory.h
+1598288126 c:\users\paul\desktop\game-engine3\core\componentfactory.h
+	<functional>
 	"rapidjson/document.h"
 	"RenderComponent.h"
 	"TempAnimationComponent.h"
 	"PhysicsComponent.h"
 	"GrabComponent.h"
 	"BillboardComponent.h"
+	"ActionComponent.h"
 
 1499903876 c:\users\paul\desktop\game-engine3\res\libraries\rapidjson\include\rapidjson\document.h
 	"reader.h"
@@ -4764,13 +4766,13 @@
 	"LinearMath/btScalar.h"
 	"btRigidBody.h"
 
-1584788428 c:\users\paul\desktop\game-engine3\physics\physicsmaster.h
+1598287997 c:\users\paul\desktop\game-engine3\physics\physicsmaster.h
 	"bullet/btBulletDynamicsCommon.h"
-	"Entity.h"
 	"PhysicsComponent.h"
 	<iostream>
+	<set>
 
-1596978836 source:c:\users\paul\desktop\game-engine3\core\enginecore.cpp
+1598291122 source:c:\users\paul\desktop\game-engine3\core\enginecore.cpp
 	"EngineCore.h"
 	<glm/gtx/rotate_vector.hpp>
 	"ParticleRenderer.h"
@@ -4984,15 +4986,17 @@
 1584788428 c:\users\paul\desktop\game-engine3\game\game.h
 	"EngineCore.h"
 
-1596364043 source:c:\users\paul\desktop\game-engine3\main.cpp
+1598287997 source:c:\users\paul\desktop\game-engine3\main.cpp
 	<iostream>
 	"Game.h"
 
 1596364029 source:c:\users\paul\desktop\game-engine3\physics\physicscomponent.cpp
 	"PhysicsComponent.h"
 
-1596366593 source:c:\users\paul\desktop\game-engine3\physics\physicsmaster.cpp
+1598287997 source:c:\users\paul\desktop\game-engine3\physics\physicsmaster.cpp
 	"PhysicsMaster.h"
+	"Entity.h"
+	"Common.h"
 
 1584788428 source:c:\users\paul\desktop\game-engine3\rendering\bargui.cpp
 	"BarGUI.h"
@@ -5052,7 +5056,7 @@
 1596956547 source:c:\users\paul\desktop\game-engine3\rendering\rendercomponent.cpp
 	"RenderComponent.h"
 
-1596962726 source:c:\users\paul\desktop\game-engine3\rendering\renderingmaster.cpp
+1598287997 source:c:\users\paul\desktop\game-engine3\rendering\renderingmaster.cpp
 	"RenderingMaster.h"
 	"ParticleRenderer.h"
 	"ParticleFactory.h"
@@ -5077,7 +5081,7 @@
 1584788428 source:c:\users\paul\desktop\game-engine3\rendering\shaderuniform.cpp
 	"ShaderUniform.h"
 
-1596364376 source:c:\users\paul\desktop\game-engine3\rendering\spotlight.cpp
+1598287997 source:c:\users\paul\desktop\game-engine3\rendering\spotlight.cpp
 	"SpotLight.h"
 	"Shader.h"
 
@@ -5088,7 +5092,7 @@
 	"Text.h"
 	<math.h>
 
-1596382935 source:c:\users\paul\desktop\game-engine3\rendering\texture.cpp
+1598293521 source:c:\users\paul\desktop\game-engine3\rendering\texture.cpp
 	"Texture.h"
 	"ErrorUtils.h"
 	"stb_image.h"
@@ -5117,7 +5121,7 @@
 	<math.h>
 	<assert.h>
 
-1596364029 source:c:\users\paul\desktop\game-engine3\rendering\transform.cpp
+1598295994 source:c:\users\paul\desktop\game-engine3\rendering\transform.cpp
 	"Transform.h"
 	<iostream>
 
@@ -5144,7 +5148,7 @@
 	"imgui.h"
 	"TargetConditionals.h"
 
-1595869228 source:c:\users\paul\desktop\game-engine3\components\grabcomponent.cpp
+1598296047 source:c:\users\paul\desktop\game-engine3\components\grabcomponent.cpp
 	"GrabComponent.h"
 	"RenderingMaster.h"
 	"imgui.h"
@@ -5152,7 +5156,7 @@
 	"imgui_impl_opengl3.h"
 	"Common.h"
 
-1595869240 c:\users\paul\desktop\game-engine3\components\grabcomponent.h
+1598295713 c:\users\paul\desktop\game-engine3\components\grabcomponent.h
 	"Component.h"
 	"glm/glm.hpp"
 	"bullet/btBulletDynamicsCommon.h"
@@ -5299,4 +5303,22 @@
 	"glm/glm.hpp"
 	"glm/gtc/type_ptr.hpp"
 	"Camera.h"
+
+1598289123 source:c:\users\paul\desktop\game-engine3\components\actioncomponent.cpp
+	"ActionComponent.h"
+	"RenderingMaster.h"
+	"PhysicsMaster.h"
+	"imgui.h"
+	"imgui_impl_sdl.h"
+	"imgui_impl_opengl3.h"
+	"Common.h"
+
+1598289123 c:\users\paul\desktop\game-engine3\components\actioncomponent.h
+	<functional>
+	"Component.h"
+	"glm/glm.hpp"
+	"bullet/btBulletDynamicsCommon.h"
+	"glm/gtc/type_ptr.hpp"
+	"PhysicsMaster.h"
+	"btGhostObject.h"
 

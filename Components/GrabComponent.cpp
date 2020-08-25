@@ -56,6 +56,7 @@ void GrabComponent::update() {
                 showGUI = true;
                 worldPos = _entity->getTransform().getPosition();
                 worldRot = _entity->getTransform().getEulerRotation();
+                worldScale = _entity->getTransform().getScale();
 
                 if (physicsComponent != NULL) {
                     physicsComponent->disable();
@@ -67,6 +68,7 @@ void GrabComponent::update() {
     if (showGUI) {
         _entity->getTransform().setPosition(worldPos);
         _entity->getTransform().setRotation(worldRot);
+        _entity->getTransform().setScale(worldScale);
         performRayTest = false;
     }
 
@@ -89,6 +91,11 @@ void GrabComponent::render() {
         ImGui::DragFloat("Rotx", &worldRot.x, 0.0005f);
         ImGui::DragFloat("Roty", &worldRot.y, 0.0005f);
         ImGui::DragFloat("Rotz", &worldRot.z, 0.0005f);
+        ImGui::Separator();
+        ImGui::Text("Scale");
+        ImGui::DragFloat("Scalex", &worldScale.x, 0.005f);
+        ImGui::DragFloat("Scaley", &worldScale.y, 0.005f);
+        ImGui::DragFloat("Scalez", &worldScale.z, 0.005f);
         ImGui::End();
     }
 }
@@ -120,6 +127,7 @@ void GrabComponent::init() {
 
     worldPos = _entity->getTransform().getPosition();
     worldRot = _entity->getTransform().getEulerRotation();
+    worldScale = _entity->getTransform().getScale();
 }
 
 const unsigned int GrabComponent::getFlag() const {

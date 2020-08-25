@@ -85,13 +85,13 @@ void main() {
     float diffuseStrength = max (0.0, dotProduct);
     float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), rough);
 
-    float a = rough, b = 0.0001, c = 0.00019;
+    float a = rough, b = 0.000001, c = 0.00000004;
     float att = 1.0 / (a + b*l + c * l * l);
 
-    float a2 = (1.0f-rough), b2 = 0.0001, c2 = 0.0001;
+    float a2 = (1.0f-rough), b2 = 0.0000001, c2 = 0.0000001;
     float att2 = 1.0 / (a2 + b2*l + c2 * l * l);
 
-    float lenAtt = max(1.0 - (l / lightRadius), 0);
+    float lenAtt = max(1.0 - (l / lightRadius), 0.5);
 
     vec3 diffuseLight = (0.3 - acos(spotLightAttCoef)) * att * lenAtt * diffuseStrength * lightColor;
     vec3 specularLight = (0.3 - acos(spotLightAttCoef)) * att2 * lenAtt * specularStrength * lightColor;
