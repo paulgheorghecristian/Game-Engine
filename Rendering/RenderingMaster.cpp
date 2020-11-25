@@ -125,20 +125,19 @@ RenderingMaster::RenderingMaster(Display *display,
     depthTexture = new Texture (gBuffer.getDepthTexture(), depthTextureUnit);
     roughnessTexture = new Texture(gBuffer.getRoughnessTexture(), 12);
 
-    flarePostProcess = new PostProcess(display->getWidth()/2, display->getHeight()/2,
-                                        spotLightFlaresTxt.getTextureId(),
-                                        "res/shaders/FlarePostProcess.json");
-    flarePostProcess->getShader().updateUniform("lensFlareColorSampler", 1);
-    lensFlareColorTxt = new Texture("res/textures/lenscolor.bmp", 1);
-
-
     hBlurPostProcess = new PostProcess (display->getWidth()/4, display->getHeight()/4,
-                                        flarePostProcess->getResultingTextureId(),
+                                        spotLightFlaresTxt.getTextureId(),
                                         "res/shaders/hBlurPostProcess.json");
 
     wBlurPostProcess = new PostProcess (display->getWidth()/4, display->getHeight()/4,
                                         hBlurPostProcess->getResultingTextureId(),
                                         "res/shaders/wBlurPostProcess.json");
+
+    flarePostProcess = new PostProcess(display->getWidth()/4, display->getHeight()/4,
+                                        wBlurPostProcess->getResultingTextureId(),
+                                        "res/shaders/FlarePostProcess.json");
+    flarePostProcess->getShader().updateUniform("lensFlareColorSampler", 1);
+    lensFlareColorTxt = new Texture("res/textures/lenscolor.bmp", 1);
 
     screenSizeRectangle = Mesh::getRectangle();
 

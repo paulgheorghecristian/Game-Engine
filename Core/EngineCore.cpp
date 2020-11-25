@@ -322,19 +322,19 @@ void EngineCore::input() {
         Transform transform2(cameraPosition,
                                 glm::vec3(0),
                                 glm::vec3(0));
-            Entity *newEntity2 = new Entity();
-            newEntity2->setTransform(transform2);
-            entities.push_back(newEntity2->addComponent(new RenderComponent(Mesh::getCircle(0, 0, 2.0f, 30),
-                                                                            NULL,
-                                                                            NULL,
-                                                                            NULL,
-                                                                            NULL,
-                                                                            Material (glm::vec3(0.98f, 0.85f, 0.85f),
-                                                                                        glm::vec3(0),
-                                                                                        glm::vec3(0),
-                                                                                        0.0f)))
-                                                        ->addComponent(new BillboardComponent())
-                                                        ->addComponent(new GrabComponent(10.0f)));
+        Entity *newEntity2 = new Entity();
+        newEntity2->setTransform(transform2);
+        entities.push_back(newEntity2->addComponent(new RenderComponent(Mesh::getCircle(0, 0, 2.0f, 30),
+                                                                        NULL,
+                                                                        NULL,
+                                                                        NULL,
+                                                                        NULL,
+                                                                        Material (glm::vec3(0.98f, 0.85f, 0.85f),
+                                                                                    glm::vec3(0),
+                                                                                    glm::vec3(0),
+                                                                                    0.0f)))
+                                                    ->addComponent(new BillboardComponent())
+                                                    ->addComponent(new GrabComponent(10.0f)));
     }
 
     if (inputManager.getKeyDown (SDLK_z)) {
@@ -451,7 +451,7 @@ void EngineCore::render() {
     RenderingMaster::getInstance()->drawDeferredShadingBuffers();
     PT_ToHere ("buffersDraw");
 
-    //ProfilingTimer::renderAllBarGUIs();
+    ProfilingTimer::renderAllBarGUIs();
     fpsGUI->render();
     RenderingMaster::getInstance()->startIMGUIFrame();
     for (auto entity : entities) {

@@ -77,7 +77,7 @@ void main() {
         vec4 particlesPixel = particles();
         vec4 volumetricPixel = volumetrics();
         vec3 albedoPixel = color();
-        vec4 flarePixel = flareBlurMap();// + flareBlurMap();
+        vec4 flarePixel = flareMap();// + flareBlurMap();
 
         if (depth().x != 1) {
             vec3 finalColor = albedoPixel * lightAccumulation();
