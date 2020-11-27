@@ -3,6 +3,8 @@
 #include "RenderingMaster.h"
 #include "PhysicsMaster.h"
 
+#include "Common.h"
+
 #define NECK_HEIGHT 10.0f
 #define PLAYER_SPEED 150.0f
 #define DOWN_LENGTH 1000.0f
@@ -112,7 +114,7 @@ void Player::PlayerControllerComponent::update() {
     if (!m_freeRoam) {
         m_body->setGravity(PhysicsMaster::getInstance()->getWorld()->getGravity());
 
-        for(int i = 0; i < 5; i++){
+        for (int i = 0; i < 5; i++){
             float xPlayerPosition = playerPosition.x+radius*values[i][0]*0.5;
             float zPlayerPosition = playerPosition.z+radius*values[i][1]*0.5;
             btVector3 from = btVector3(xPlayerPosition, playerPosition.y, zPlayerPosition);
@@ -120,8 +122,17 @@ void Player::PlayerControllerComponent::update() {
 
             btCollisionWorld::ClosestRayResultCallback rayCallback(from, to);
             PhysicsMaster::getInstance()->getWorld()->rayTest(from, to, rayCallback);
-            if(rayCallback.hasHit()){
-                if(rayCallback.m_closestHitFraction < closestHitFraction){
+
+            if (rayCallback.hasHit()) {
+                UserData *data = (UserData *) rayCallback.m_collisionObject->getUserPointer();
+
+                if (data != NULL &&
+                    (data->type == PointerType::ENTITY ||
+                    data->type == PointerType::LIGHT)) {
+                    continue;
+                }
+
+                if (rayCallback.m_closestHitFraction < closestHitFraction){
                     closestHitFraction = rayCallback.m_closestHitFraction;
                     normal = rayCallback.m_hitNormalWorld;
                     hitPos = rayCallback.m_hitPointWorld;

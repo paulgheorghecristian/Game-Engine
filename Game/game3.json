@@ -11,7 +11,6 @@
             "Components" : {
                 "RenderComponent" : {
                     "Mesh" : "res/models/room1_try3.obj",
-                    "Shader" : "res/shaders/example.json",
                     "Texture" : "res/textures/atlas.jpg",
                     "NormalMapTexture" : "res/textures/atlas_norm2.jpg",
                     "RoughnessTexture" : "res/textures/atlas_rough2.jpg",
@@ -33,7 +32,6 @@
             "Components" : {
                 "RenderComponent" : {
                     "Mesh" : "res/models/fence_room1.obj",
-                    "Shader" : "res/shaders/example.json",
                     "Material" : {
                         "ambient" : [1, 1, 1],
                         "diffuse" : [0, 0, 0],
@@ -52,7 +50,6 @@
             "Components" : {
                 "RenderComponent" : {
                     "Mesh" : "res/models/stairs1.obj",
-                    "Shader" : "res/shaders/example.json",
                     "Material" : {
                         "ambient" : [1, 1, 0],
                         "diffuse" : [0, 0, 0],
@@ -71,54 +68,11 @@
             "Components" : {
                 "RenderComponent" : {
                     "Mesh" : "res/models/stairs2.obj",
-                    "Shader" : "res/shaders/example.json",
                     "Material" : {
                         "ambient" : [1, 1, 0],
                         "diffuse" : [0, 0, 0],
                         "specular" : [0, 0, 0],
                         "shininess" : 100.0
-                    }
-                }
-            }
-        },
-        {
-            "Transform" : {
-                "position" : [300, 0, 100],
-                "rotation" : [0, 0, 0],
-                "scale" : [25, 25, 25]
-            },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/rock.obj",
-                    "Shader" : "res/shaders/example.json",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 100.0
-                    }
-                },
-                "GrabComponent" : {
-                    "radius" : 50
-                }
-            }
-        },
-        {
-            "Transform" : {
-                "position" : [13, 0, -60],
-                "rotation" : [0, -90, 0],
-                "scale" : [17,17,17]
-            },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/stone.obj",
-                    "Shader" : "res/shaders/example.json",
-                    "Texture" : "res/textures/rock2k.jpg",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 50.0
                     }
                 }
             }
@@ -131,8 +85,7 @@
             },
             "Components" : {
                 "RenderComponent" : {
-                    "Mesh" : "res/models/3-7.obj",
-                    "Shader" : "res/shaders/example.json",
+                    "Mesh" : "res/models/3-72.obj",
                     "Texture" : "res/textures/atlas_puzzle1.jpg",
                     "Material" : {
                         "ambient" : [1, 1, 1],
@@ -144,26 +97,6 @@
                 "ActionComponent" : {
                     "radius" : 10,
                     "action" : "y90rotation"
-                }
-            }
-        },
-        {
-            "Transform" : {
-                "position" : [13, 0, -20],
-                "rotation" : [0, -90, 0],
-                "scale" : [17,17,17]
-            },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/stone.obj",
-                    "Shader" : "res/shaders/example.json",
-                    "Texture" : "res/textures/rock2k.jpg",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 50.0
-                    }
                 }
             }
         },
@@ -175,8 +108,7 @@
             },
             "Components" : {
                 "RenderComponent" : {
-                    "Mesh" : "res/models/0-1.obj",
-                    "Shader" : "res/shaders/example.json",
+                    "Mesh" : "res/models/0-12.obj",
                     "Texture" : "res/textures/atlas_puzzle1.jpg",
                     "Material" : {
                         "ambient" : [1, 1, 1],
@@ -188,26 +120,6 @@
                 "ActionComponent" : {
                     "radius" : 10,
                     "action" : "y90rotation"
-                }
-            }
-        },
-        {
-            "Transform" : {
-                "position" : [13, 0, 20],
-                "rotation" : [0, -90, 0],
-                "scale" : [17,17,17]
-            },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/stone.obj",
-                    "Shader" : "res/shaders/example.json",
-                    "Texture" : "res/textures/rock2k.jpg",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 50.0
-                    }
                 }
             }
         },
@@ -219,8 +131,7 @@
             },
             "Components" : {
                 "RenderComponent" : {
-                    "Mesh" : "res/models/2-1.obj",
-                    "Shader" : "res/shaders/example.json",
+                    "Mesh" : "res/models/2-12.obj",
                     "Texture" : "res/textures/atlas_puzzle1.jpg",
                     "Material" : {
                         "ambient" : [1, 1, 1],
@@ -232,26 +143,6 @@
                 "ActionComponent" : {
                     "radius" : 10,
                     "action" : "y90rotation"
-                }
-            }
-        },
-        {
-            "Transform" : {
-                "position" : [13, 0, 60],
-                "rotation" : [0, -90, 0],
-                "scale" : [17,17,17]
-            },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/stone.obj",
-                    "Shader" : "res/shaders/example.json",
-                    "Texture" : "res/textures/rock2k.jpg",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 50.0
-                    }
                 }
             }
         },
@@ -263,8 +154,7 @@
             },
             "Components" : {
                 "RenderComponent" : {
-                    "Mesh" : "res/models/8-1.obj",
-                    "Shader" : "res/shaders/example.json",
+                    "Mesh" : "res/models/8-12.obj",
                     "Texture" : "res/textures/atlas_puzzle1.jpg",
                     "Material" : {
                         "ambient" : [1, 1, 1],
@@ -276,6 +166,44 @@
                 "ActionComponent" : {
                     "radius" : 10,
                     "action" : "y90rotation"
+                }
+            }
+        },
+        {
+            "Components" : {
+                "InstanceRenderComponent" : {
+                    "Mesh" : "res/models/stone2.obj",
+                    "Texture" : "res/textures/rock2k.jpg",
+                    "NormalMapTexture": "res/textures/rock2k_normal.jpg",
+                    "RoughnessTexture": "res/textures/rock2k_rough.jpg",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 100.0
+                    },
+                    "Transforms" : [
+                        {
+                            "position" : [13, 0, -60],
+                            "rotation" : [0, -95, 0],
+                            "scale" : [17,17,17]
+                        },
+                        {
+                            "position" : [13, 0, -20],
+                            "rotation" : [0, -36, 0],
+                            "scale" : [17,17,17]
+                        },
+                        {
+                            "position" : [13, 0, 20],
+                            "rotation" : [0, -73, 0],
+                            "scale" : [17,17,17]
+                        },
+                        {
+                            "position" : [13, 0, 60],
+                            "rotation" : [0, -130, 0],
+                            "scale" : [17,17,17]
+                        }
+                    ]
                 }
             }
         },
@@ -288,7 +216,6 @@
             "Components" : {
                 "RenderComponent" : {
                     "Mesh" : "res/models/spot.obj",
-                    "Shader" : "res/shaders/example.json",
                     "Texture" : "res/textures/spot_atlas.jpg",
                     "Material" : {
                         "ambient" : [1, 1, 1],
@@ -308,7 +235,6 @@
             "Components" : {
                 "RenderComponent" : {
                     "Mesh" : "res/models/frame.obj",
-                    "Shader" : "res/shaders/example.json",
                     "Texture" : "res/textures/bark_albedo.bmp",
                     "NormalMapTexture" : "res/textures/bark_normal.bmp",
                     "Material" : {
@@ -332,9 +258,8 @@
             "Components" : {
                 "RenderComponent" : {
                     "Mesh" : "res/models/picture.obj",
-                    "Shader" : "res/shaders/example.json",
                     "Texture" : "res/textures/puzzle_shape.png",
-                    "NormalMapTexture" : "res/textures/173_norm.bmp",
+                    "NormalMapTexture": "res/textures/rock2k_normal.jpg",
                     "Material" : {
                         "ambient" : [1.0, 1.0, 1.0],
                         "diffuse" : [0.0, 0, 0],
@@ -344,6 +269,41 @@
                 },
                 "GrabComponent" : {
                     "radius" : 5
+                }
+            }
+        },
+        {
+            "Components" : {
+                "InstanceRenderComponent" : {
+                    "Mesh" : "res/models/rock.obj",
+                    "Material" : {
+                        "ambient" : [1, 1, 1],
+                        "diffuse" : [0, 0, 0],
+                        "specular" : [0, 0, 0],
+                        "shininess" : 100.0
+                    },
+                    "Transforms" : [
+                        {
+                            "position" : [300, 0, 100],
+                            "rotation" : [0, 0, 0],
+                            "scale" : [25, 25, 25]
+                        },
+                        {
+                            "position" : [300, 0, 150],
+                            "rotation" : [0, 0, 0],
+                            "scale" : [10, 10, 10]
+                        },
+                        {
+                            "position" : [300, 0, -150],
+                            "rotation" : [0, 0, 0],
+                            "scale" : [20, 20, 20]
+                        },
+                        {
+                            "position" : [300, 0, -100],
+                            "rotation" : [0, 0, 0],
+                            "scale" : [25, 25, 25]
+                        }
+                    ]
                 }
             }
         }

@@ -257,158 +257,165 @@ Mesh* Mesh::loadObject(const std::string &filename){
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
+    loadObjectIntoVectors(filename, vertices, indices);
+
+    return new Mesh(vertices, indices);
+}
+
+void Mesh::loadObjectIntoVectors(const std::string &filePath,
+                            std::vector<Vertex> &vertices, std::vector<unsigned int> &indices) {
+
     float maxValue = std::numeric_limits<float>::max();
     float minValue = -maxValue;
     glm::vec3 _minCoordinates = glm::vec3(maxValue);
     glm::vec3 _maxCoordinates = glm::vec3(minValue);
 
-    std::cout << "Loading " << filename << std::endl;
+    std::cout << "Loading " << filePath << std::endl;
 
-    std::ifstream file(filename.c_str(), std::ios::in | std::ios::binary);
-		if(!file.good()){
-			std::cout<<"Mesh Loader: Nu am gasit fisierul obj "<<filename<<" sau nu am drepturile sa il deschid!"<<std::endl;
-			std::terminate();
-		}
+    std::ifstream file(filePath.c_str(), std::ios::in | std::ios::binary);
+    if(!file.good()){
+        std::cout<<"Mesh Loader: Nu am gasit fisierul obj "<<filePath<<" sau nu am drepturile sa il deschid!"<<std::endl;
+        std::terminate();
+    }
 
-		std::string line;
-		std::vector<std::string> tokens, facetokens;
-		std::vector<glm::vec3> positions;		positions.reserve(1000);
-		std::vector<glm::vec3> normals;		normals.reserve(1000);
-		std::vector<glm::vec2> texcoords;		texcoords.reserve(1000);
-		while(std::getline(file,line)){
-			//tokenizeaza linie citita
-			_stringTokenize(line,tokens);
+    std::string line;
+    std::vector<std::string> tokens, facetokens;
+    std::vector<glm::vec3> positions;   positions.reserve(1000);
+    std::vector<glm::vec3> normals;		normals.reserve(1000);
+    std::vector<glm::vec2> texcoords;	texcoords.reserve(1000);
+    while(std::getline(file,line)){
+        //tokenizeaza linie citita
+        _stringTokenize(line,tokens);
 
-			//daca nu am nimic merg mai departe
-			if(tokens.size()==0) continue;
+        //daca nu am nimic merg mai departe
+        if(tokens.size()==0) continue;
 
-			//daca am un comentariu merg mai departe
-			if(tokens.size()>0 && tokens[0].at(0)=='#') continue;
+        //daca am un comentariu merg mai departe
+        if(tokens.size()>0 && tokens[0].at(0)=='#') continue;
 
-			//daca am un vertex
-			if(tokens.size()>3 && tokens[0]=="v") {
-			    float _x = _stringToFloat(tokens[1]);
-                float _y = _stringToFloat(tokens[2]);
-                float _z = _stringToFloat(tokens[3]);
-                positions.push_back(glm::vec3(_x, _y, _z ));
-                if (_x < _minCoordinates.x) {
-                    _minCoordinates.x = _x;
+        //daca am un vertex
+        if(tokens.size()>3 && tokens[0]=="v") {
+            float _x = _stringToFloat(tokens[1]);
+            float _y = _stringToFloat(tokens[2]);
+            float _z = _stringToFloat(tokens[3]);
+            positions.push_back(glm::vec3(_x, _y, _z ));
+            if (_x < _minCoordinates.x) {
+                _minCoordinates.x = _x;
+            }
+            if (_y < _minCoordinates.y) {
+                _minCoordinates.y = _y;
+            }
+            if (_z < _minCoordinates.z) {
+                _minCoordinates.z =_z;
+            }
+            if (_x > _maxCoordinates.x) {
+                _maxCoordinates.x = _x;
+            }
+            if (_y > _maxCoordinates.y) {
+                _maxCoordinates.y = _y;
+            }
+            if (_z > _maxCoordinates.z) {
+                _maxCoordinates.z =_z;
+            }
+        }
+        //daca am o normala
+        if(tokens.size()>3 && tokens[0]=="vn") normals.push_back(glm::vec3(_stringToFloat(tokens[1]), _stringToFloat(tokens[2]), _stringToFloat(tokens[3]) ));
+
+        //daca am un texcoord
+        if(tokens.size()>2 && tokens[0]=="vt") texcoords.push_back(glm::vec2(_stringToFloat(tokens[1]), _stringToFloat(tokens[2]) ));
+
+        //daca am o fata (f+ minim 3 indecsi)
+        if(tokens.size()>=4 && tokens[0]=="f"){
+
+            //foloseste primul vertex al fetei pentru a determina formatul fetei (v v/t v//n v/t/n) = (1 2 3 4)
+            unsigned int face_format = 0;
+            if(tokens[1].find("//")!=std::string::npos) face_format = 3;
+            _faceTokenize(tokens[1],facetokens);
+            if(facetokens.size()==3) face_format =4; // vertecsi/texcoords/normale
+            else{
+                if(facetokens.size()==2){
+                    if(face_format !=3) face_format=2;	//daca nu am vertecsi/normale am vertecsi/texcoords
+                }else{
+                    face_format =1; //doar vertecsi
                 }
-                if (_y < _minCoordinates.y) {
-                    _minCoordinates.y = _y;
+            }
+
+            //primul index din acest poligon
+            unsigned int index_of_first_vertex_of_face = -1;
+
+
+            for(unsigned int num_token =1; num_token<tokens.size();num_token++){
+                if(tokens[num_token].at(0)=='#') break;					//comment dupa fata
+                _faceTokenize(tokens[num_token],facetokens);
+                if(face_format==1){
+                    //doar pozitie
+                    int p_index = _stringToInt(facetokens[0]);
+                    if(p_index>0) p_index -=1;								//obj has 1...n indices
+                    else p_index = positions.size()+p_index;				//index negativ
+
+                    vertices.push_back(Vertex(glm::vec3(positions[p_index].x, positions[p_index].y, positions[p_index].z)));
+                }else if(face_format==2){
+                    // pozitie si texcoord
+                    int p_index = _stringToInt(facetokens[0]);
+                    if(p_index>0) p_index -=1;								//obj has 1...n indices
+                    else p_index = positions.size()+p_index;				//index negativ
+
+                    int t_index = _stringToInt(facetokens[1]);
+                    if(t_index>0) t_index -=1;								//obj has 1...n indices
+                    else t_index = texcoords.size()+t_index;				//index negativ
+
+                    vertices.push_back(Vertex(glm::vec3(positions[p_index].x, positions[p_index].y, positions[p_index].z),glm::vec2(texcoords[t_index].x, texcoords[t_index].y)));
+                }else if(face_format==3){
+                    //pozitie si normala
+                    int p_index = _stringToInt(facetokens[0]);
+                    if(p_index>0) p_index -=1;								//obj has 1...n indices
+                    else p_index = positions.size()+p_index;				//index negativ
+
+                    int n_index = _stringToInt(facetokens[1]);
+                    if(n_index>0) n_index -=1;								//obj has 1...n indices
+                    else n_index = normals.size()+n_index;					//index negativ
+
+                    vertices.push_back(Vertex(glm::vec3(positions[p_index].x, positions[p_index].y, positions[p_index].z), glm::vec3(normals[n_index].x, normals[n_index].y, normals[n_index].z)));
+                }else{
+                    //pozitie normala si texcoord
+                    int p_index = _stringToInt(facetokens[0]);
+                    if(p_index>0) p_index -=1;								//obj has 1...n indices
+                    else p_index = positions.size()+p_index;				//index negativ
+
+                    int t_index = _stringToInt(facetokens[1]);
+                    if(t_index>0) t_index -=1;								//obj has 1...n indices
+                    else t_index = normals.size()+t_index;					//index negativ
+
+                    int n_index = _stringToInt(facetokens[2]);
+                    if(n_index>0) n_index -=1;								//obj has 1...n indices
+                    else n_index = normals.size()+n_index;					//index negativ
+
+                    vertices.push_back(Vertex(glm::vec3(positions[p_index].x, positions[p_index].y, positions[p_index].z),glm::vec3(normals[n_index].x, normals[n_index].y, normals[n_index].z), glm::vec2(texcoords[t_index].x, texcoords[t_index].y)));
                 }
-                if (_z < _minCoordinates.z) {
-                    _minCoordinates.z =_z;
+
+                //adauga si indecsii
+                if(num_token<4){
+                    if(num_token == 1) index_of_first_vertex_of_face = vertices.size()-1;
+                    //doar triunghiuri f 0 1 2 3 (4 indecsi, primul e ocupat de f)
+                    indices.push_back(vertices.size()-1);
+                }else{
+                    //polygon => triunghi cu ultimul predecesor vertexului nou adaugat si 0 relativ la vertecsi poligon(independent clockwise)
+                    indices.push_back(index_of_first_vertex_of_face);
+                    indices.push_back(vertices.size()-2);
+                    indices.push_back(vertices.size()-1);
                 }
-                if (_x > _maxCoordinates.x) {
-                    _maxCoordinates.x = _x;
-                }
-                if (_y > _maxCoordinates.y) {
-                    _maxCoordinates.y = _y;
-                }
-                if (_z > _maxCoordinates.z) {
-                    _maxCoordinates.z =_z;
-                }
-			}
-			//daca am o normala
-			if(tokens.size()>3 && tokens[0]=="vn") normals.push_back(glm::vec3(_stringToFloat(tokens[1]), _stringToFloat(tokens[2]), _stringToFloat(tokens[3]) ));
+            }//end for
 
-			//daca am un texcoord
-			if(tokens.size()>2 && tokens[0]=="vt") texcoords.push_back(glm::vec2(_stringToFloat(tokens[1]), _stringToFloat(tokens[2]) ));
+            /* try and calculate tangent and bitangent for face vertices */
+            /* TODO this fails on some objects, why? */
+            assert (tokens.size() == 4); /* only triangles */
+            int numOfVertices = vertices.size();
+            computeTangentAndBi (vertices[numOfVertices-3],
+                                    vertices[numOfVertices-2],
+                                    vertices[numOfVertices-1]);
+        }//end face
 
-			//daca am o fata (f+ minim 3 indecsi)
-			if(tokens.size()>=4 && tokens[0]=="f"){
-
-				//foloseste primul vertex al fetei pentru a determina formatul fetei (v v/t v//n v/t/n) = (1 2 3 4)
-				unsigned int face_format = 0;
-				if(tokens[1].find("//")!=std::string::npos) face_format = 3;
-				_faceTokenize(tokens[1],facetokens);
-				if(facetokens.size()==3) face_format =4; // vertecsi/texcoords/normale
-				else{
-					if(facetokens.size()==2){
-						if(face_format !=3) face_format=2;	//daca nu am vertecsi/normale am vertecsi/texcoords
-					}else{
-						face_format =1; //doar vertecsi
-					}
-				}
-
-				//primul index din acest poligon
-				unsigned int index_of_first_vertex_of_face = -1;
-
-
-				for(unsigned int num_token =1; num_token<tokens.size();num_token++){
-					if(tokens[num_token].at(0)=='#') break;					//comment dupa fata
-					_faceTokenize(tokens[num_token],facetokens);
-					if(face_format==1){
-						//doar pozitie
-						int p_index = _stringToInt(facetokens[0]);
-						if(p_index>0) p_index -=1;								//obj has 1...n indices
-						else p_index = positions.size()+p_index;				//index negativ
-
-						vertices.push_back(Vertex(glm::vec3(positions[p_index].x, positions[p_index].y, positions[p_index].z)));
-					}else if(face_format==2){
-						// pozitie si texcoord
-						int p_index = _stringToInt(facetokens[0]);
-						if(p_index>0) p_index -=1;								//obj has 1...n indices
-						else p_index = positions.size()+p_index;				//index negativ
-
-						int t_index = _stringToInt(facetokens[1]);
-						if(t_index>0) t_index -=1;								//obj has 1...n indices
-						else t_index = texcoords.size()+t_index;				//index negativ
-
-						vertices.push_back(Vertex(glm::vec3(positions[p_index].x, positions[p_index].y, positions[p_index].z),glm::vec2(texcoords[t_index].x, texcoords[t_index].y)));
-					}else if(face_format==3){
-						//pozitie si normala
-						int p_index = _stringToInt(facetokens[0]);
-						if(p_index>0) p_index -=1;								//obj has 1...n indices
-						else p_index = positions.size()+p_index;				//index negativ
-
-						int n_index = _stringToInt(facetokens[1]);
-						if(n_index>0) n_index -=1;								//obj has 1...n indices
-						else n_index = normals.size()+n_index;					//index negativ
-
-						vertices.push_back(Vertex(glm::vec3(positions[p_index].x, positions[p_index].y, positions[p_index].z), glm::vec3(normals[n_index].x, normals[n_index].y, normals[n_index].z)));
-					}else{
-						//pozitie normala si texcoord
-						int p_index = _stringToInt(facetokens[0]);
-						if(p_index>0) p_index -=1;								//obj has 1...n indices
-						else p_index = positions.size()+p_index;				//index negativ
-
-						int t_index = _stringToInt(facetokens[1]);
-						if(t_index>0) t_index -=1;								//obj has 1...n indices
-						else t_index = normals.size()+t_index;					//index negativ
-
-						int n_index = _stringToInt(facetokens[2]);
-						if(n_index>0) n_index -=1;								//obj has 1...n indices
-						else n_index = normals.size()+n_index;					//index negativ
-
-						vertices.push_back(Vertex(glm::vec3(positions[p_index].x, positions[p_index].y, positions[p_index].z),glm::vec3(normals[n_index].x, normals[n_index].y, normals[n_index].z), glm::vec2(texcoords[t_index].x, texcoords[t_index].y)));
-					}
-
-					//adauga si indecsii
-					if(num_token<4){
-						if(num_token == 1) index_of_first_vertex_of_face = vertices.size()-1;
-						//doar triunghiuri f 0 1 2 3 (4 indecsi, primul e ocupat de f)
-						indices.push_back(vertices.size()-1);
-					}else{
-						//polygon => triunghi cu ultimul predecesor vertexului nou adaugat si 0 relativ la vertecsi poligon(independent clockwise)
-						indices.push_back(index_of_first_vertex_of_face);
-						indices.push_back(vertices.size()-2);
-						indices.push_back(vertices.size()-1);
-					}
-				}//end for
-
-				/* try and calculate tangent and bitangent for face vertices */
-				/* TODO this fails on some objects, why? */
-                assert (tokens.size() == 4); /* only triangles */
-                int numOfVertices = vertices.size();
-                computeTangentAndBi (vertices[numOfVertices-3],
-                                     vertices[numOfVertices-2],
-                                     vertices[numOfVertices-1]);
-			}//end face
-
-		}//end while
-		return new Mesh(vertices, indices);
+    }//end while
 }
 
 void Mesh::computeTangentAndBi(Vertex &v1, Vertex &v2, Vertex &v3) {

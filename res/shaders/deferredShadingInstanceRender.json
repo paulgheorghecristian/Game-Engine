@@ -1,0 +1,18 @@
+{
+    "VSPath" : "res/shaders/deferredShadingInstanceRender.vs",
+    "FSPath" : "res/shaders/deferredShadingInstanceRender.fs",
+    "Uniforms" : {
+                    "material.ambient" : "VEC3",
+                    "material.specular" : "VEC3",
+                    "material.diffuse" : "VEC3",
+                    "material.shininess" : "FLOAT",
+                    "viewMatrix" : "MAT4",
+                    "projectionMatrix" : "MAT4",
+                    "textureSampler" : "INT",
+                    "normalMapSampler" : "INT",
+                    "roughnessSampler" : "INT",
+                    "hasTexture" : "BOOL",
+                    "hasNormalMap" : "BOOL",
+                    "hasRoughness" : "BOOL"
+                 }
+}

@@ -1,0 +1,8 @@
+{
+    "VSPath" : "res/shaders/depthMapCreatorInstanceRender.vs",
+    "FSPath" : "res/shaders/depthMapCreatorInstanceRender.fs",
+    "Uniforms" : {
+                    "viewMatrix" : "MAT4",
+                    "projectionMatrix" : "MAT4"
+                 }
+}

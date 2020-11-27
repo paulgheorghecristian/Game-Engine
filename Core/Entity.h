@@ -36,6 +36,7 @@ class Entity : public MemoryPoolInterface<Entity>
             GRAB,
             BILL,
             ACTION,
+            INSTANCE_RENDERABLE
         };
     protected:
         Transform transform;

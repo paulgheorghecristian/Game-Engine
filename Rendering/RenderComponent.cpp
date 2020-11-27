@@ -124,4 +124,5 @@ RenderComponent::~RenderComponent()
     delete shader; /*careful this could be shared amongst multiple render components */
     delete texture;
     delete normalMapTexture;
+    delete roughness;
 }

@@ -28,3 +28,5 @@ IN PROGRESS:
 - spot light improvement (bake depth maps, dynamic height/width, dynamic light size)
 - instace rendering ability
 - load/save game json
+- reuse loaded resources
+- global resources?

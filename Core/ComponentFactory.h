@@ -10,6 +10,7 @@
 #include "GrabComponent.h"
 #include "BillboardComponent.h"
 #include "ActionComponent.h"
+#include "InstanceRenderComponent.h"
 
 class ComponentFactory
 {

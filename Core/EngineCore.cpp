@@ -381,6 +381,7 @@ void EngineCore::render() {
 
     for (auto entity : entities) {
         RenderComponent *renderComponent = NULL;
+        InstanceRenderComponent *instanceRenderComponent = NULL;
 
         // hack, needs improvements
         if (entity->getComponent(Entity::Flags::BILL) != NULL)
@@ -388,6 +389,10 @@ void EngineCore::render() {
         if ((renderComponent =
              (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
             renderComponent->render(&RenderingMaster::getInstance()->deferredShading_SceneShader);
+        }
+        if ((instanceRenderComponent =
+             (InstanceRenderComponent *) (entity->getComponent (Entity::Flags::INSTANCE_RENDERABLE))) != NULL) {
+            instanceRenderComponent->render(&RenderingMaster::getInstance()->deferredShading_InstanceRender);
         }
     }
     RenderingMaster::getInstance()->getGBuffer().unbind();
@@ -403,6 +408,7 @@ void EngineCore::render() {
             RenderingMaster::getInstance()->beginCreateDepthTextureForLight(light);
             for (auto entity : entities) {
                 RenderComponent *renderComponent = NULL;
+                InstanceRenderComponent *instanceRenderComponent = NULL;
 
                 // hack, needs improvements
                 if (entity->getComponent(Entity::Flags::BILL) != NULL)
@@ -410,6 +416,10 @@ void EngineCore::render() {
                 if ((renderComponent =
                      (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
                     renderComponent->render(&RenderingMaster::getInstance()->depthMapCreator);
+                }
+                if ((instanceRenderComponent =
+                    (InstanceRenderComponent *) (entity->getComponent (Entity::Flags::INSTANCE_RENDERABLE))) != NULL) {
+                    instanceRenderComponent->render(&RenderingMaster::getInstance()->depthMapCreatorInstanceRender);
                 }
             }
             RenderingMaster::getInstance()->endCreateDepthTextureForLight(light);

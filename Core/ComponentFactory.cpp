@@ -20,19 +20,20 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
 
     if (strcmp (itr->name.GetString(), "RenderComponent") == 0) {
         Mesh *mesh;
-        Shader *shader;
+        Shader *shader = NULL;
         Texture *texture = NULL;
         Texture *normalMapTexture = NULL;
         Texture *roughness = NULL;
         if (!itr->value.HasMember("Mesh") ||
-            !itr->value.HasMember("Shader") ||
             !itr->value.HasMember("Material")) {
             return NULL;
         }
 
         mesh = Mesh::loadObject (itr->value["Mesh"].GetString());
-        shader = new Shader ();
-        shader->construct (itr->value["Shader"].GetString());
+        if (itr->value.HasMember("Shader")) {
+            shader = new Shader ();
+            shader->construct (itr->value["Shader"].GetString());
+        }
         if (itr->value.HasMember("Texture")) {
             texture = new Texture(itr->value["Texture"].GetString(), 0);
         }
@@ -106,13 +107,69 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
 
         return new GrabComponent(itr->value["radius"].GetFloat());
     } else if (strcmp(itr->name.GetString(), "ActionComponent") == 0) {
-
         if (strcmp(itr->value["action"].GetString(), "y90rotation") == 0) {
-
             return new ActionComponent( itr->value["radius"].GetFloat(), ComponentFactory::y_90_rotation);
         } else {
             return NULL;
         }
+    } else if (strcmp(itr->name.GetString(), "InstanceRenderComponent") == 0) {
+        Shader *shader = NULL;
+        Texture *texture = NULL;
+        Texture *normalMapTexture = NULL;
+        Texture *roughness = NULL;
+        std::vector<glm::vec3> positionsRotationsScales = {};
+
+        if (!itr->value.HasMember("Mesh") ||
+            !itr->value.HasMember("Material")) {
+            return NULL;
+        }
+
+        if (itr->value.HasMember("Shader")) {
+            shader = new Shader ();
+            shader->construct (itr->value["Shader"].GetString());
+        }
+        if (itr->value.HasMember("Texture")) {
+            texture = new Texture(itr->value["Texture"].GetString(), 0);
+        }
+        if (itr->value.HasMember("NormalMapTexture")) {
+            normalMapTexture = new Texture (itr->value["NormalMapTexture"].GetString(), 1);
+        }
+        if (itr->value.HasMember("RoughnessTexture")) {
+            roughness = new Texture(itr->value["RoughnessTexture"].GetString(), 2);
+        }
+        Material material(glm::vec3(itr->value["Material"]["ambient"].GetArray()[0].GetFloat(),
+                                      itr->value["Material"]["ambient"].GetArray()[1].GetFloat(),
+                                      itr->value["Material"]["ambient"].GetArray()[2].GetFloat()),
+                            glm::vec3(itr->value["Material"]["diffuse"].GetArray()[0].GetFloat(),
+                                      itr->value["Material"]["diffuse"].GetArray()[1].GetFloat(),
+                                      itr->value["Material"]["diffuse"].GetArray()[2].GetFloat()),
+                            glm::vec3(itr->value["Material"]["specular"].GetArray()[0].GetFloat(),
+                                      itr->value["Material"]["specular"].GetArray()[1].GetFloat(),
+                                      itr->value["Material"]["specular"].GetArray()[2].GetFloat()),
+                            itr->value["Material"]["shininess"].GetFloat());
+        if (itr->value.HasMember("Transforms")) {
+            for (auto const &posRotScale : itr->value["Transforms"].GetArray()) {
+                glm::vec3 position, rotation, scale;
+                position.x = posRotScale["position"].GetArray()[0].GetFloat();
+                position.y = posRotScale["position"].GetArray()[1].GetFloat();
+                position.z = posRotScale["position"].GetArray()[2].GetFloat();
+
+                rotation.x = posRotScale["rotation"].GetArray()[0].GetFloat();
+                rotation.y = posRotScale["rotation"].GetArray()[1].GetFloat();
+                rotation.z = posRotScale["rotation"].GetArray()[2].GetFloat();
+
+                scale.x = posRotScale["scale"].GetArray()[0].GetFloat();
+                scale.y = posRotScale["scale"].GetArray()[1].GetFloat();
+                scale.z = posRotScale["scale"].GetArray()[2].GetFloat();
+
+                positionsRotationsScales.push_back(position);
+                positionsRotationsScales.push_back(rotation);
+                positionsRotationsScales.push_back(scale);
+            }
+        }
+        return new InstanceRenderComponent(itr->value["Mesh"].GetString(), shader, texture,
+                                            normalMapTexture, roughness,
+                                            material, positionsRotationsScales);
     } else {
         return NULL;
     }

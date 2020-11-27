@@ -49,6 +49,8 @@ class Mesh
         GLsizei getNumberOfTriangles();
         static Mesh *getRectangle();
         static Mesh *loadObject(const std::string &filePath);
+        static void loadObjectIntoVectors(const std::string &filePath,
+                            std::vector<Vertex> &vertices, std::vector<unsigned int> &indices);
         static Mesh *getSurface(int, int);
         static Mesh *getCircle(float, float, float, int);
         static Mesh *getStar(float, float, float, int);

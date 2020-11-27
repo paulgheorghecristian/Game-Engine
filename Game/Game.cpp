@@ -8,7 +8,8 @@ Game::Game(const std::string &gameJsonFilePath) {
     jsonBody = FileUtils::loadFileInString (gameJsonFilePath);
     parseResult = gameDocument.Parse (jsonBody.c_str ());
     if (!parseResult) {
-        std::cout << "Config file (" << gameJsonFilePath << ") parse error: " << rapidjson::GetParseError_En (parseResult.Code ()) << " (" << parseResult.Offset() << ")" << std::endl;;
+        std::cout << "Config file (" << gameJsonFilePath << ") parse error: " <<
+        rapidjson::GetParseError_En (parseResult.Code ()) << " (" << parseResult.Offset() << ")" << std::endl;;
         exit (-1);
     }
 

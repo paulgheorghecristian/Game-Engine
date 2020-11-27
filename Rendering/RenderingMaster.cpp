@@ -51,6 +51,10 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= deferredShading_SceneShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     assert (result);
 
+    deferredShading_InstanceRender.construct ("res/shaders/deferredShadingInstanceRender.json");
+    result &= deferredShading_InstanceRender.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    assert (result);
+
     deferredShading_BufferCombinationShader.construct ("res/shaders/bufferCombinationShader.json");
     result &= deferredShading_BufferCombinationShader.updateUniform("normalSampler", (void *) &normalTextureUnit);
     result &= deferredShading_BufferCombinationShader.updateUniform("depthSampler", (void *) &depthTextureUnit);
@@ -102,6 +106,7 @@ RenderingMaster::RenderingMaster(Display *display,
     assert(result);
 
     depthMapCreator.construct("res/shaders/depthMapCreator.json");
+    depthMapCreatorInstanceRender.construct("res/shaders/depthMapCreatorInstanceRender.json");
 
     volumetricLightShader.construct("res/shaders/volumetricLight.json");
     result &= volumetricLightShader.updateUniform("volumetricLightDepthSampler", 0);
@@ -315,6 +320,7 @@ void RenderingMaster::update() {
 
     deferredShading_StencilBufferCreator.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     deferredShading_SceneShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
+    deferredShading_InstanceRender.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     skyShader->updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     volumetricLightShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     flareShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
@@ -419,6 +425,9 @@ void RenderingMaster::beginCreateDepthTextureForLight(Light *light)
 
     depthMapCreator.updateUniform("viewMatrix", (void *) &light->getShadowMapViewMatrix());
     depthMapCreator.updateUniform("projectionMatrix", (void *) &light->getShadowMapProjectionMatrix());
+
+    depthMapCreatorInstanceRender.updateUniform("viewMatrix", (void *) &light->getShadowMapViewMatrix());
+    depthMapCreatorInstanceRender.updateUniform("projectionMatrix", (void *) &light->getShadowMapProjectionMatrix());
 }
 
 void RenderingMaster::endCreateDepthTextureForLight(Light *light) {

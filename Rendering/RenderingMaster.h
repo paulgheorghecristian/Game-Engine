@@ -62,9 +62,11 @@ class RenderingMaster
         GBuffer &getGBuffer();
 
         Shader deferredShading_SceneShader;
+        Shader deferredShading_InstanceRender;
         Shader deferredShading_BufferCombinationShader;
         Shader deferredShading_StencilBufferCreator;
         Shader depthMapCreator;
+        Shader depthMapCreatorInstanceRender;
 
         void drawDeferredShadingBuffers();
         void createLightAccumulationBuffer();
