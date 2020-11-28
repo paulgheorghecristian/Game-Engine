@@ -109,9 +109,9 @@ void MathUtils::calculateFrustumSurroundingCuboid (Camera *camera,
         }
     }
 
-    float halfWidth = (maxX - minX) / 1.5;
-    float halfHeight = (maxY - minY) / 1.5;
-    float halfDepth = (maxZ - minZ) / 1.5;
+    float halfWidth = (maxX - minX) / 1.2;
+    float halfHeight = (maxY - minY) / 1.2;
+    float halfDepth = (maxZ - minZ) / 1.2;
 
     projectionMatrix = glm::ortho (-halfWidth, halfWidth,
                                    -halfHeight, halfHeight,

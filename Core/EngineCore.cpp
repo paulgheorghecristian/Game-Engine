@@ -64,69 +64,14 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                            glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane));
     PhysicsMaster::init (gravity);
 
-    if (gameDocument.HasMember("Entities")) {
-        unsigned int numberOfEntities = gameDocument["Entities"].GetArray().Size();
-        unsigned int step = 0;
-        for (auto const &entity : gameDocument["Entities"].GetArray()) {
-            step++;
-            std::cout << "Loading...%" << (float) step * 100 / numberOfEntities << std::endl;
-            glm::vec3 position (0), rotation (0), scale (1);
+    loadEntities(gameDocument);
+    loadLights(gameDocument);
 
-            if (entity.HasMember("Transform")) {
-                position.x = entity["Transform"]["position"].GetArray()[0].GetFloat();
-                position.y = entity["Transform"]["position"].GetArray()[1].GetFloat();
-                position.z = entity["Transform"]["position"].GetArray()[2].GetFloat();
-
-                rotation.x = entity["Transform"]["rotation"].GetArray()[0].GetFloat();
-                rotation.y = entity["Transform"]["rotation"].GetArray()[1].GetFloat();
-                rotation.z = entity["Transform"]["rotation"].GetArray()[2].GetFloat();
-
-                scale.x = entity["Transform"]["scale"].GetArray()[0].GetFloat();
-                scale.y = entity["Transform"]["scale"].GetArray()[1].GetFloat();
-                scale.z = entity["Transform"]["scale"].GetArray()[2].GetFloat();
-            }
-            Transform trans(position, rotation, scale);
-            Entity *newEntity = new Entity ();
-            newEntity->setTransform (trans);
-            if (entity.HasMember("Components")) {
-                for (rapidjson::Value::ConstMemberIterator itr = entity["Components"].GetObject().MemberBegin();
-                        itr != entity["Components"].GetObject().MemberEnd(); ++itr) {
-                    Component *component = ComponentFactory::createComponent(itr);
-                    newEntity->addComponent(component);
-                }
-            }
-            entities.push_back (newEntity);
-        }
-    }
-
-    Transform floorTransform(glm::vec3(0), glm::vec3(0, 0, 0), glm::vec3(5000.0f));
-    Entity *floor = new Entity();
-    floor->setTransform(floorTransform);
-    floor->addComponent(new RenderComponent(Mesh::getRectangleYUp(),
-                                            (new Shader())->construct("res/shaders/example.json"),
-                                            NULL,
-                                            NULL,
-                                            NULL,
-                                            Material(glm::vec3(0.5f),
-                                                     glm::vec3(1.0f),
-                                                     glm::vec3(1.0f),
-                                                     0.5f)));
-    entities.push_back(floor);
     constructPlayer();
-
-    std::cout << "Number of entities: " << entities.size() << std::endl;
 
     outputType = 5;
 
     RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
-    #if 1
-    RenderingMaster::getInstance()->addLightToScene(new DirectionalLight(Transform(glm::vec3(0),
-                                                                         glm::vec3(0),
-                                                                         glm::vec3(0)),
-                                                                         RenderingMaster::sunLightColor,
-                                                                         RenderingMaster::sunLightDirection));
-    #endif
-
     RenderingMaster::getInstance()->skyShader = new Shader("res/shaders/skyShader.json");
     RenderingMaster::getInstance()->skyDomeEntity.addComponent(new RenderComponent(Mesh::getDome(10, 10),
                                                    RenderingMaster::getInstance()->skyShader,
@@ -367,7 +312,7 @@ void EngineCore::input() {
     RenderingMaster::getInstance()->deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
 
     for (auto const &entity : entities) {
-        entity->input (inputManager);
+        entity->input(inputManager);
     }
 }
 
@@ -512,6 +457,131 @@ void EngineCore::constructPlayer() {
     playerPhysicsComponent->getRigidBody()->setAngularFactor(0.0);
     playerPhysicsComponent->getRigidBody()->setFriction(0.5);
     playerPhysicsComponent->getRigidBody()->setRestitution(0.6);
+}
+
+void EngineCore::loadLights(rapidjson::Document &gameDocument) {
+    if (gameDocument.HasMember("Lights")) {
+        unsigned int numberOfLights = gameDocument["Lights"].GetArray().Size();
+        unsigned int step = 0;
+        for (auto const &light : gameDocument["Lights"].GetArray()) {
+            step++;
+            std::cout << "Loading lights...%" << (float) step * 100 / numberOfLights << std::endl;
+            glm::vec3 position (0), rotation (0), scale (1);
+
+            if (light.HasMember("Transform")) {
+                position.x = light["Transform"]["position"].GetArray()[0].GetFloat();
+                position.y = light["Transform"]["position"].GetArray()[1].GetFloat();
+                position.z = light["Transform"]["position"].GetArray()[2].GetFloat();
+
+                rotation.x = light["Transform"]["rotation"].GetArray()[0].GetFloat();
+                rotation.y = light["Transform"]["rotation"].GetArray()[1].GetFloat();
+                rotation.z = light["Transform"]["rotation"].GetArray()[2].GetFloat();
+
+                if (light["Transform"]["scale"].GetArray().Size() == 1) {
+                    scale.x = light["Transform"]["scale"].GetArray()[0].GetFloat();
+                    scale.y = light["Transform"]["scale"].GetArray()[0].GetFloat();
+                    scale.z = light["Transform"]["scale"].GetArray()[0].GetFloat();
+                } else {
+                    scale.x = light["Transform"]["scale"].GetArray()[0].GetFloat();
+                    scale.y = light["Transform"]["scale"].GetArray()[1].GetFloat();
+                    scale.z = light["Transform"]["scale"].GetArray()[2].GetFloat();
+                }
+            }
+            Light *newLight = NULL;
+            Transform trans(position, rotation, scale);
+            glm::vec3 color(0,0,0);
+            glm::vec3 lightDir(0,0,0);
+            std::string type = "N/A"; //SPOT, POINT or DIR
+            bool cast_shadow = false, volumetric = false;
+
+            if (light.HasMember("Attributes")) {
+                const auto &attribs = light["Attributes"].GetObject();
+
+                if (attribs.HasMember("type")) {
+                    type = std::string(attribs["type"].GetString());
+                }
+                if (attribs.HasMember("color")) {
+                    color.x = attribs["color"].GetArray()[0].GetFloat();
+                    color.y = attribs["color"].GetArray()[1].GetFloat();
+                    color.z = attribs["color"].GetArray()[2].GetFloat();
+                }
+                if (attribs.HasMember("dir")) {
+                    lightDir.x = attribs["dir"].GetArray()[0].GetFloat();
+                    lightDir.y = attribs["dir"].GetArray()[1].GetFloat();
+                    lightDir.z = attribs["dir"].GetArray()[2].GetFloat();
+                }
+                if (attribs.HasMember("cast_shadow")) {
+                    cast_shadow = attribs["cast_shadow"].GetBool();
+                }
+                if (attribs.HasMember("volumetric")) {
+                    volumetric = attribs["volumetric"].GetBool();
+                }
+            }
+
+            if (type.compare("SPOT") == 0) {
+                newLight = new SpotLight(trans, color, cast_shadow, volumetric);
+            } else if (type.compare("POINT") == 0) {
+                newLight = new PointLight(trans, color);
+            } else if (type.compare("DIR") == 0) {
+                newLight = new DirectionalLight(trans, color, lightDir, cast_shadow);
+            }
+
+            RenderingMaster::getInstance()->addLightToScene(newLight);
+        }
+    }
+}
+
+void EngineCore::loadEntities(rapidjson::Document &gameDocument) {
+    if (gameDocument.HasMember("Entities")) {
+        unsigned int numberOfEntities = gameDocument["Entities"].GetArray().Size();
+        unsigned int step = 0;
+        for (auto const &entity : gameDocument["Entities"].GetArray()) {
+            step++;
+            std::cout << "Loading entities...%" << (float) step * 100 / numberOfEntities << std::endl;
+            glm::vec3 position (0), rotation (0), scale (1);
+
+            if (entity.HasMember("Transform")) {
+                position.x = entity["Transform"]["position"].GetArray()[0].GetFloat();
+                position.y = entity["Transform"]["position"].GetArray()[1].GetFloat();
+                position.z = entity["Transform"]["position"].GetArray()[2].GetFloat();
+
+                rotation.x = entity["Transform"]["rotation"].GetArray()[0].GetFloat();
+                rotation.y = entity["Transform"]["rotation"].GetArray()[1].GetFloat();
+                rotation.z = entity["Transform"]["rotation"].GetArray()[2].GetFloat();
+
+                scale.x = entity["Transform"]["scale"].GetArray()[0].GetFloat();
+                scale.y = entity["Transform"]["scale"].GetArray()[1].GetFloat();
+                scale.z = entity["Transform"]["scale"].GetArray()[2].GetFloat();
+            }
+            Transform trans(position, rotation, scale);
+            Entity *newEntity = new Entity ();
+            newEntity->setTransform (trans);
+            if (entity.HasMember("Components")) {
+                for (rapidjson::Value::ConstMemberIterator itr = entity["Components"].GetObject().MemberBegin();
+                        itr != entity["Components"].GetObject().MemberEnd(); ++itr) {
+                    Component *component = ComponentFactory::createComponent(itr);
+                    newEntity->addComponent(component);
+                }
+            }
+            entities.push_back(newEntity);
+        }
+    }
+
+    Transform floorTransform(glm::vec3(0), glm::vec3(0, 0, 0), glm::vec3(5000.0f));
+    Entity *floor = new Entity();
+    floor->setTransform(floorTransform);
+    floor->addComponent(new RenderComponent(Mesh::getRectangleYUp(),
+                                            (new Shader())->construct("res/shaders/example.json"),
+                                            NULL,
+                                            NULL,
+                                            NULL,
+                                            Material(glm::vec3(0.5f),
+                                                     glm::vec3(1.0f),
+                                                     glm::vec3(1.0f),
+                                                     0.5f)));
+    entities.push_back(floor);
+
+    std::cout << "Number of entities: " << entities.size() << std::endl;
 }
 
 EngineCore::~EngineCore() {

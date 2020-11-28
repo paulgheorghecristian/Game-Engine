@@ -1,6 +1,45 @@
 {
     "ConfigFilePath" : "res/configs/config.json",
     "gravity" : -10.0,
+    "Lights": [
+        {
+            "Transform": {
+                "position": [0, 0, 0],
+                "rotation": [0, 0, 0],
+                "scale": [0]
+            },
+            "Attributes": {
+                "type": "DIR",
+                "color": [0.25, 0.15, 0.3],
+                "dir": [1, 0.3, -1],
+                "cast_shadow": true
+            }
+        },
+        {
+            "Transform": {
+                "position": [300, 50, 100],
+                "rotation": [0, 0, 0],
+                "scale": [300]
+            },
+            "Attributes": {
+                "type": "SPOT",
+                "color": [0.8, 0.6, 0.4],
+                "cast_shadow": true,
+                "volumetric": true
+            }
+        },
+        {
+            "Transform": {
+                "position": [200, 50, 100],
+                "rotation": [0, 0, 0],
+                "scale": [300]
+            },
+            "Attributes": {
+                "type": "POINT",
+                "color": [0.8, 0.0, 0.0]
+            }
+        }
+    ],
     "Entities" : [
         {
             "Transform" : {

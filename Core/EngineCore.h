@@ -41,6 +41,8 @@ class EngineCore
         int outputType;
 
         void constructPlayer();
+        void loadLights(rapidjson::Document &gameDocument);
+        void loadEntities(rapidjson::Document &gameDocument);
 
         BarGUI *fpsGUI;
 };

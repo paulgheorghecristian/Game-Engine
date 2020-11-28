@@ -17,14 +17,14 @@ uniform mat4 dirLightProjMatrix, dirLightViewMatrix;
 
 in vec3 viewRay;
 
-const int PCFStrength = 3;
+const int PCFStrength = 2;
 const int PCFKernelSideSize = PCFStrength * 2 + 1;
 const int PCFStartingIndex = PCFKernelSideSize / 2;
 const int PCFKernelSize = PCFKernelSideSize * PCFKernelSideSize;
-const float depthMapTexelSize = 1.0f/3000.0f; /* TODO remove hardcode */
+const float depthMapTexelSize = 1.0f/2048.0f; /* TODO remove hardcode */
 
 /* TODO remove hardcode */
-const float maxDist = 5000.0f;
+const float maxDist = 300.0f;
 
 flat in vec3 lightDirectionEyeSpace;
 
@@ -68,18 +68,18 @@ void main() {
 
     vec3 roughness = texture(roughnessSampler, texCoord).rgb;
     float rough = ((roughness.r+roughness.g+roughness.b) / 3.0f);
-    rough = max(0.0f,250.0f - 50.0f*rough);
+    float specFactor = max(0.0f,250.0f - 50.0f*rough);
 
     vec3 H = normalize(lightDirectionEyeSpace + (-cameraForwardVectorEyeSpace));
-    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), rough);
+    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), specFactor);
     getLight = dotProd > 0;
 
-    vec3 diffuseLight = lightIntensity * lightColor;
-    vec3 specularLight = specularStrength * lightColor;
+    vec3 diffuseLight = lightIntensity * lightColor * (1.0f-rough);
+    vec3 specularLight = specularStrength * lightColor * rough;
 
-    outLight = diffuseLight*fac;
+    outLight = diffuseLight;
     if (getLight)
-        outLight += (1.0-fac)*specularLight;
+        outLight += specularLight;
 
     outLight *= lightStrength;
 }

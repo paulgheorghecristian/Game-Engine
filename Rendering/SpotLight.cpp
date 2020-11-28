@@ -7,11 +7,12 @@
 
 SpotLight::SpotLight(const Transform &transform,
                      const glm::vec3 &color,
-                     bool casts_shadow) : Light(transform,
+                     bool casts_shadow,
+                     bool volumetric) : Light(transform,
                                                 color,
                                                 SHADOW_MAP_WIDTH,
                                                 SHADOW_MAP_HEIGHT,
-                                                casts_shadow, false, true)
+                                                casts_shadow, false, true), m_volumetric(volumetric)
 {
     float near = 1.0f;
     float far = m_transform.getScale().z+near;

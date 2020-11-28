@@ -50,9 +50,8 @@ void main() {
     float dotProduct = dot (dirNormalized, eyeSpaceNormal);
     float spotLightAttCoef;
 
-
     //TODO uniform instead of calculate here
-    mat4 inverseViewMatrix = inverse (viewMatrix);
+    mat4 inverseViewMatrix = inverse(viewMatrix);
 
     // TODO investigate how to move this to VS
     vec4 worldPosition = (inverseViewMatrix * vec4(viewPosition, 1.0));

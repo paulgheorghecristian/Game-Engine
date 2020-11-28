@@ -8,7 +8,8 @@ class SpotLight : public Light
     public:
         SpotLight(const Transform &transform,
                   const glm::vec3 &color,
-                  bool casts_shadow = true);
+                  bool casts_shadow = true,
+                  bool volumetric = false);
         ~SpotLight();
 
         void render(Shader &shader) override;
@@ -19,12 +20,15 @@ class SpotLight : public Light
         void recomputeShadowMapViewMatrix() override;
         void recomputeShadowMapProjectionMatrix() override;
 
+        bool isVolumetric() { return m_volumetric; }
+
         static Shader &getLightAccumulationShader();
         static Mesh &getLightMesh();
 
     protected:
 
     private:
+        bool m_volumetric;
 };
 
 #endif // SPOTLIGHT_H

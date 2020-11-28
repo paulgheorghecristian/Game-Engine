@@ -85,8 +85,6 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("dirLightDepthSampler", 0);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("eyeSpaceNormalSampler", 1);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("depthSampler", 2);
-    result &= DirectionalLight::getLightAccumulationShader().updateUniform("lightColor", (void *) &RenderingMaster::sunLightColor);
-    result &= DirectionalLight::getLightAccumulationShader().updateUniform("lightDirection", (void *) &RenderingMaster::sunLightDirection);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("screenWidth", display->getWidth());
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("screenHeight", display->getHeight());
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
@@ -501,10 +499,9 @@ void RenderingMaster::updateLastSpotLight()
 void RenderingMaster::renderVolumetricLight()
 {
     volumetricLightFB.bindAllRenderTargets();
-    for (int i = lights.size()-1; i >= 0; i--) {
-        if (typeid(*lights[i]) == typeid(SpotLight)) {
-            if (i != 1)
-                continue;
+    for (unsigned int i = 0; i < lights.size(); i++) {
+        SpotLight *spot = NULL;
+        if ((spot = dynamic_cast<SpotLight *>(lights[i])) != NULL && spot->isVolumetric() == true) {
             lights[i]->getShadowMapTexture().use(0);
             depthTexture->use(1);
             glEnable(GL_CULL_FACE);
@@ -573,6 +570,8 @@ void RenderingMaster::imguiDrawCalls() {
 
             currentLight->getTransform().setPosition(pos);
         }
+        static char str0[128] = "Hello, world!";
+        ImGui::InputText("input text", str0, sizeof(str0));
         ImGui::End();
     }
 }
