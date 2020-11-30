@@ -36,18 +36,21 @@ template <typename T>
 MemoryPool<T>::MemoryPool(unsigned int numberOfElements) : numberOfElements (numberOfElements),
                                                            freeElement (NULL),
                                                            currentTail (NULL) {
-    elements = new T[numberOfElements];
+    elements = (T *) malloc(sizeof(T) * numberOfElements);
 
     for (unsigned int i = 0; i < numberOfElements; i++) {
         MemoryPoolElement *newElement = new MemoryPoolElement();
+        newElement->next = NULL;
+        newElement->prev = NULL;
         newElement->element = &elements[i];
 
-        addElementToList (newElement);
+        addElementToList(newElement);
     }
 }
 
+// add to the tail
 template <typename T>
-void MemoryPool<T>::addElementToList (MemoryPoolElement *newElement) {
+void MemoryPool<T>::addElementToList(MemoryPoolElement *newElement) {
     if (currentTail ==  NULL) {
         head.next = newElement;
         newElement->prev = &head;
@@ -60,6 +63,7 @@ void MemoryPool<T>::addElementToList (MemoryPoolElement *newElement) {
     }
 }
 
+// get the free element and shift to the right the cursor
 template <typename T>
 typename MemoryPool<T>::MemoryPoolElement *MemoryPool<T>::getFreeElement() {
     MemoryPoolElement *ret = freeElement;
@@ -71,6 +75,7 @@ typename MemoryPool<T>::MemoryPoolElement *MemoryPool<T>::getFreeElement() {
     }
 }
 
+// free element by putting it at the end
 template <typename T>
 void MemoryPool<T>::freeElementFromPool(MemoryPool<T>::MemoryPoolElement *element) {
     MemoryPoolElement *prev = element->prev;
@@ -110,7 +115,8 @@ MemoryPool<T>::~MemoryPool() {
         delete itr;
         itr = next;
     }
-    delete[] elements;
+
+    free(elements);
 }
 
 

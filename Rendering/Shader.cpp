@@ -1,11 +1,11 @@
 #include "Shader.h"
 
-Shader::Shader()
+Shader::Shader() : program(0)
 {
 
 }
 
-Shader::Shader (const std::string &jsonPath) : shaderPath (jsonPath)
+Shader::Shader (const std::string &jsonPath) : shaderPath (jsonPath), program(0)
 {
     construct(jsonPath);
 }
@@ -150,12 +150,16 @@ void Shader::unbind() {
 }
 
 void Shader::bind() {
-    glUseProgram (program);
+    if (program > 0) {
+        glUseProgram(program);
+    }
 }
 
 void Shader::reload() {
     glUseProgram (0);
-    glDeleteProgram (program);
+    if (program > 0) {
+        glDeleteProgram (program);
+    }
 
     construct (shaderPath);
 }
@@ -203,11 +207,11 @@ GLuint Shader::getUniformLocation(const std::string &name) {
 
 Shader::~Shader()
 {
-    glDeleteProgram (program);
-
     for (auto it : uniforms) {
         delete it.second;
     }
 
-    glDeleteProgram (program);
+    if (program > 0) {
+        glDeleteProgram (program);
+    }
 }

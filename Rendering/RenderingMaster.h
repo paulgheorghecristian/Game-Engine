@@ -85,8 +85,6 @@ class RenderingMaster
         void computeWorldPosRay(float mouseX, float mouseY);
         const glm::vec3 &getCurrWorldPosRay();
 
-        static glm::vec3 sunLightColor, sunLightDirection;
-
         const std::vector <Light *> &getLights();
         const glm::vec3 &getWorldPosRay();
         /* TODO make these private */

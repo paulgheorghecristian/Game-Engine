@@ -24,7 +24,6 @@
 
 RenderingMaster *RenderingMaster::m_instance = NULL;
 Shader RenderingMaster::simpleTextShader;
-glm::vec3 RenderingMaster::sunLightColor, RenderingMaster::sunLightDirection;
 
 RenderingMaster::RenderingMaster(Display *display,
                                  Camera *camera,
@@ -80,8 +79,6 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= SpotLight::getLightAccumulationShader().updateUniform("roughnessSampler", 3);
     assert (result);
 
-    RenderingMaster::sunLightColor = glm::vec3(0.7, 0.3, 0.2)*0.3f;
-    RenderingMaster::sunLightDirection = glm::normalize(glm::vec3(1, 0.4, -1));
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("dirLightDepthSampler", 0);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("eyeSpaceNormalSampler", 1);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("depthSampler", 2);

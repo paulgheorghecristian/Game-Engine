@@ -263,7 +263,7 @@ void EngineCore::input() {
         RenderingMaster::getInstance()->addLightToScene(new SpotLight(Transform(cameraPosition,
                                                                   glm::degrees(cameraRotation),
                                                                   glm::vec3(300.0f, 300.0f, 300.0f)),
-                                                        glm::vec3(0.98f, 0.85f, 0.85f)));
+                                                        glm::vec3(0.98f, 0.85f, 0.85f), true, true));
         Transform transform2(cameraPosition,
                                 glm::vec3(0),
                                 glm::vec3(0));
@@ -588,6 +588,7 @@ EngineCore::~EngineCore() {
     for (auto entity : entities) {
         delete entity;
     }
+
     RenderingMaster::destroy();
     PhysicsMaster::destroy();
 }

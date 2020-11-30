@@ -51,7 +51,7 @@ LDOPTS := \
 -Lres/libraries/bullet/lib \
 -Wl,-rpath=res/libraries/bullet/lib
 
-CXXFLAGS := -O3 -DNDEBUG
+CXXFLAGS := -Wall -O3 -DNDEBUG
 
 OBJDIR := $(MAKEFILE_DIR)/obj/
 

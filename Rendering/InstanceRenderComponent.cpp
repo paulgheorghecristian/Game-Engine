@@ -223,7 +223,7 @@ void InstanceRenderComponent::createVboHandle(const std::vector<Vertex>& vertice
 }
 
 InstanceRenderComponent::~InstanceRenderComponent() {
-    delete shader; /*careful this could be shared amongst multiple render components */
+    delete shader;
     delete texture;
     delete normalMapTexture;
     delete roughness;

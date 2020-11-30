@@ -5,9 +5,6 @@ GBuffer::GBuffer () {
 }
 
 void GBuffer::generate (unsigned int width, unsigned int height){
-    this->~GBuffer();
-    new (this) GBuffer();
-
     this->width = width;
     this->height = height;
 

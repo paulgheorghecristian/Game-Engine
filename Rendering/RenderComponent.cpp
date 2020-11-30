@@ -120,8 +120,8 @@ Shader *RenderComponent::getShader() {
 
 RenderComponent::~RenderComponent()
 {
+    delete shader;
     delete mesh;
-    delete shader; /*careful this could be shared amongst multiple render components */
     delete texture;
     delete normalMapTexture;
     delete roughness;

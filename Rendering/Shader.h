@@ -20,7 +20,7 @@
 
 class ShaderUniform;
 
-class Shader : public MemoryPoolInterface <Shader>
+class Shader : public MemoryPoolInterface<Shader>
 {
     public:
         Shader();
@@ -38,10 +38,10 @@ class Shader : public MemoryPoolInterface <Shader>
     protected:
 
     private:
+        std::string shaderPath;
         GLuint vertexHandle, fragmentHandle, geometryHandle;
         GLuint program;
         std::unordered_map<std::string, ShaderUniform *> uniforms;
-        std::string shaderPath;
 
         const std::string loadShader(const std::string &filename);
 };
