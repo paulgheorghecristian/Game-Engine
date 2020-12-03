@@ -23,6 +23,8 @@ SpotLight::SpotLight(const Transform &transform,
     m_shadowMapProjectionMatrix = glm::perspective(glm::radians(100.0f), 1.0f, near, far);
     m_shadowMapViewMatrix = glm::mat4_cast (glm::inverse (m_transform.getRotation()));
     m_shadowMapViewMatrix = glm::translate (m_shadowMapViewMatrix, -(m_transform.getPosition()));
+
+    worldRot = m_transform.getEulerRotation();
 }
 
 SpotLight::~SpotLight()
@@ -122,8 +124,22 @@ void SpotLight::renderGUI() {
         ImGui::Begin("Lights");
         ImGui::PushID(std::to_string(imguiID).c_str());
         ImGui::Checkbox("Volumetric", &m_volumetric);
+
+        ImGui::Text("Light Rotation");
+        ImGui::DragFloat("rx", &worldRot.x, 0.5f);
+        ImGui::DragFloat("ry", &worldRot.y, 0.5f);
+        ImGui::DragFloat("rz", &worldRot.z, 0.5f);
+
         ImGui::PopID();
         ImGui::End();
     }
     Light::renderGUI();
+}
+
+void SpotLight::update() {
+    Light::update();
+
+    if (showGUI == true) {
+        m_transform.setRotation(glm::radians(worldRot));
+    }
 }

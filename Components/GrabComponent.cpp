@@ -41,7 +41,7 @@ void GrabComponent::input(Input &inputManager) {
 void GrabComponent::update() {
     if (showGUI) {
         _entity->getTransform().setPosition(worldPos);
-        _entity->getTransform().setRotation(worldRot);
+        _entity->getTransform().setRotation(glm::radians(worldRot));
         _entity->getTransform().setScale(worldScale);
     }
 
@@ -61,9 +61,9 @@ void GrabComponent::render() {
         ImGui::DragFloat("y", &worldPos.y, 0.05f);
         ImGui::DragFloat("z", &worldPos.z, 0.05f);
         ImGui::Text("Rotation");
-        ImGui::DragFloat("Rotx", &worldRot.x, 0.0005f);
-        ImGui::DragFloat("Roty", &worldRot.y, 0.0005f);
-        ImGui::DragFloat("Rotz", &worldRot.z, 0.0005f);
+        ImGui::DragFloat("Rotx", &worldRot.x, 0.5f);
+        ImGui::DragFloat("Roty", &worldRot.y, 0.5f);
+        ImGui::DragFloat("Rotz", &worldRot.z, 0.5f);
         ImGui::Text("Scale");
         ImGui::DragFloat("Scalex", &worldScale.x, 0.005f);
         ImGui::DragFloat("Scaley", &worldScale.y, 0.005f);

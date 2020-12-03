@@ -12,6 +12,8 @@ class SpotLight : public Light
                   bool volumetric = false);
         ~SpotLight();
 
+        void update() override;
+
         void render(Shader &shader) override;
         void render() override;
         void renderGUI() override;
@@ -30,6 +32,7 @@ class SpotLight : public Light
 
     private:
         bool m_volumetric;
+        glm::vec3 worldRot;
 };
 
 #endif // SPOTLIGHT_H
