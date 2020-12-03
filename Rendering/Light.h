@@ -11,6 +11,7 @@
 #include "PhysicsMaster.h"
 
 class Shader;
+class InputManager;
 
 class Light
 {
@@ -30,9 +31,10 @@ class Light
         virtual ~Light();
 
         virtual void update();
-
+        virtual void input(Input &inputManager);
         virtual void render(Shader &shader) = 0;
         virtual void render() = 0;
+        virtual void renderGUI();
         virtual void prepareOpenGLForLightPass() = 0;
         virtual void prepareOpenGLForStencilPass() = 0;
 
@@ -63,6 +65,10 @@ class Light
             m_lightColor = light;
         }
 
+        inline bool isToBeRemoved() {
+            return m_to_be_removed;
+        }
+
     protected:
         Transform m_transform;
         glm::vec3 m_lightColor;
@@ -73,10 +79,15 @@ class Light
         Texture m_shadowMapTexture;
 
         bool m_casts_shadow, m_needs_stencil_test;
-        bool m_can_be_grabbed, m_grabbed;
+        bool m_can_be_grabbed;
+        bool m_to_be_removed;
+
+        bool showGUI;
+        unsigned int imguiID;
 
         void initPhysics(const Transform& transform, bool grab);
     private:
+        static unsigned int g_num_of_instances;
 };
 
 #endif // LIGHT_H

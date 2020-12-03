@@ -8,6 +8,7 @@
 #include <set>
 
 class Entity;
+class Light;
 
 class PhysicsMaster
 {
@@ -21,7 +22,13 @@ class PhysicsMaster
         float getGravityAcceleration();
 
         void performRayTestWithCamForward(const glm::vec3 &position, const glm::vec3 &forward);
-        const std::set<Entity *> &getForwardIntersectRes() {return forwardIntersectEntities;}
+        void performMouseRayIntersection(float mouseX, float mouseY,
+                                        int width, int height,
+                                        const glm::vec3 &cameraPosition, const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix);
+
+        const std::set<Entity *> &getForwardIntersectRes() { return forwardIntersectEntities; }
+        const std::set<Entity *> &getMouseRayInteresectEntities() { return mouseRayIntersectEntities; }
+        const std::set<Light *> &getMouseRayInteresectLights() { return mouseRayIntersectLights; }
 
     protected:
 
@@ -41,6 +48,15 @@ class PhysicsMaster
         float gravityAcc;
 
         std::set<Entity *> forwardIntersectEntities;
+        std::set<Entity *> mouseRayIntersectEntities;
+        std::set<Light *> mouseRayIntersectLights;
+
+        glm::vec3 currMouseRayWorldPos;
+
+        glm::vec3 getWorldSpaceMouseRay(float mouseX, float mouseY,
+                                        int width, int height,
+                                        const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix);
+
 };
 
 #endif // PHYSICSMASTER_H

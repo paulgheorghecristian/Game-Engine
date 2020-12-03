@@ -1,28 +1,35 @@
 #include "GrabComponent.h"
 
-#include "RenderingMaster.h"
-
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
 
 #include "Common.h"
 
-GrabComponent::GrabComponent(float radius) : m_radius(radius), performRayTest(false), showGUI(false) {
+unsigned int GrabComponent::g_num_of_instances = 0;
+
+GrabComponent::GrabComponent(float radius) : m_radius(radius), showGUI(false) {
+    imguiID = GrabComponent::g_num_of_instances;
+    GrabComponent::g_num_of_instances++;
 }
 
 void GrabComponent::input(Input &inputManager) {
-    if (inputManager.getMouseDown(1)) {
-        performRayTest = true;
-    }
+    PhysicsComponent *physicsComponent = (PhysicsComponent *) _entity->getComponent (Entity::Flags::DYNAMIC);
 
-    if (inputManager.getMouseUp(1)) {
-        performRayTest = false;
+    if (!inputManager.getWarpMouse() && inputManager.getMouseDown(1) &&
+            PhysicsMaster::getInstance()->getMouseRayInteresectEntities().find(_entity) !=
+            PhysicsMaster::getInstance()->getMouseRayInteresectEntities().end()) {
+        if (physicsComponent != NULL) {
+            physicsComponent->disable();
+        }
+        showGUI = true;
+
+        worldPos = _entity->getTransform().getPosition();
+        worldRot = _entity->getTransform().getEulerRotation();
+        worldScale = _entity->getTransform().getScale();
     }
 
     if (showGUI && inputManager.getMouseDown(3)) {
-        PhysicsComponent *physicsComponent = (PhysicsComponent *) _entity->getComponent (Entity::Flags::DYNAMIC);
-
         if (physicsComponent != NULL) {
             physicsComponent->enable();
         }
@@ -32,48 +39,14 @@ void GrabComponent::input(Input &inputManager) {
 }
 
 void GrabComponent::update() {
-    //todo maybe execute only once in rendering master the intersection
-    const glm::vec3 &currWorldPos = RenderingMaster::getInstance()->getCamera()->getPosition();
-    const glm::vec3 &dir = RenderingMaster::getInstance()->getCurrWorldPosRay();
-    const glm::vec3 &entityPos = _entity->getTransform().getPosition();
-
-    glm::vec3 from_glm = currWorldPos+dir*10.0f;
-    glm::vec3 to_glm = currWorldPos+dir*1000.0f;
-
-    btVector3 from = btVector3(from_glm.x, from_glm.y, from_glm.z);
-    btVector3 to = btVector3(to_glm.x, to_glm.y, to_glm.z);
-
-    if (performRayTest) {
-
-        btCollisionWorld::AllHitsRayResultCallback rayCallback(from, to);
-        PhysicsMaster::getInstance()->getWorld()->rayTest(from, to, rayCallback);
-
-        for (int i = 0; i < rayCallback.m_hitFractions.size(); i++) {
-            UserData *data = (UserData*) rayCallback.m_collisionObjects[i]->getUserPointer();
-            if (data && data->type == PointerType::ENTITY && data->pointer.entity == _entity) {
-                PhysicsComponent *physicsComponent = (PhysicsComponent *) _entity->getComponent (Entity::Flags::DYNAMIC);
-
-                showGUI = true;
-                worldPos = _entity->getTransform().getPosition();
-                worldRot = _entity->getTransform().getEulerRotation();
-                worldScale = _entity->getTransform().getScale();
-
-                if (physicsComponent != NULL) {
-                    physicsComponent->disable();
-                }
-            }
-        }
-    }
-
     if (showGUI) {
         _entity->getTransform().setPosition(worldPos);
         _entity->getTransform().setRotation(worldRot);
         _entity->getTransform().setScale(worldScale);
-        performRayTest = false;
     }
 
     btTransform transform = m_ghostObj->getWorldTransform();
-    btVector3 origin = transform.getOrigin();
+    const glm::vec3 &entityPos = _entity->getTransform().getPosition();
 
     transform.setOrigin(btVector3(entityPos.x, entityPos.y, entityPos.z));
     m_ghostObj->setWorldTransform(transform);
@@ -82,20 +55,24 @@ void GrabComponent::update() {
 void GrabComponent::render() {
     if (showGUI) {
         ImGui::Begin("GUI");
+        ImGui::PushID(std::to_string(imguiID).c_str());
         ImGui::Text("Position");
         ImGui::DragFloat("x", &worldPos.x, 0.05f);
         ImGui::DragFloat("y", &worldPos.y, 0.05f);
         ImGui::DragFloat("z", &worldPos.z, 0.05f);
-        ImGui::Separator();
         ImGui::Text("Rotation");
         ImGui::DragFloat("Rotx", &worldRot.x, 0.0005f);
         ImGui::DragFloat("Roty", &worldRot.y, 0.0005f);
         ImGui::DragFloat("Rotz", &worldRot.z, 0.0005f);
-        ImGui::Separator();
         ImGui::Text("Scale");
         ImGui::DragFloat("Scalex", &worldScale.x, 0.005f);
         ImGui::DragFloat("Scaley", &worldScale.y, 0.005f);
         ImGui::DragFloat("Scalez", &worldScale.z, 0.005f);
+        if (ImGui::Button("Delete")) {
+            _entity->setToBeRemoved(true);
+        }
+        ImGui::Separator();
+        ImGui::PopID();
         ImGui::End();
     }
 }

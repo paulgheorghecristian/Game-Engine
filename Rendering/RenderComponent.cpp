@@ -1,5 +1,8 @@
 #include "RenderComponent.h"
 
+// TODO is it safe to import here?
+#include "RenderingMaster.h"
+
 RenderComponent::RenderComponent(Mesh * mesh,
                                  Shader * shader,
                                  Texture *texture,

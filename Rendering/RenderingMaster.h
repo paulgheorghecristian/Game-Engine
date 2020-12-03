@@ -82,10 +82,8 @@ class RenderingMaster
         void renderIMGUI();
         void startIMGUIFrame();
         void imguiDrawCalls();
-        void computeWorldPosRay(float mouseX, float mouseY);
-        const glm::vec3 &getCurrWorldPosRay();
 
-        const std::vector <Light *> &getLights();
+        std::vector<Light *> &getLights();
         const glm::vec3 &getWorldPosRay();
         /* TODO make these private */
         ParticleRenderer<SmokeParticle> *smokeRenderer;
@@ -122,7 +120,6 @@ class RenderingMaster
         void computeLightAccumulationBufferForLight(Light *light);
 
         void updateLastSpotLight();
-        glm::vec3 getWorldSpaceMouseRay(float mouseX, float mouseY);
 
         PostProcess *hBlurPostProcess,
                     *wBlurPostProcess;
@@ -131,7 +128,7 @@ class RenderingMaster
         Texture *lensFlareColorTxt;
         double updateDt;
 
-        std::vector <Light *> lights;
+        std::vector<Light *> lights;
 
         FrameBuffer volumetricLightFB;
         Texture volumetricLightTxt;
@@ -139,9 +136,6 @@ class RenderingMaster
         float data_f[GUIVarsEnum_f::NUM_VARS_f];
         int data_i[GUIVarsEnum_int::NUM_VARS_i];
         glm::vec3 data_vec3[GUIVarsEnum_vec3::NUM_VARS_v3];
-
-        glm::vec3 currMouseRayWorldPos;
-        Light *currentLight;
 };
 
 #endif // RENDERINGMASTER_H

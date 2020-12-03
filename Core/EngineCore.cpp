@@ -59,10 +59,11 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     inputManager.setWarpMouse (this->warpMouse);
     SDL_ShowCursor(this->showMouse);
 
+    PhysicsMaster::init (gravity);
     RenderingMaster::init (display,
                            new Camera (glm::vec3(-500, 0, 0), 0, 0, 0),
                            glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane));
-    PhysicsMaster::init (gravity);
+
 
     loadEntities(gameDocument);
     loadLights(gameDocument);
@@ -218,12 +219,6 @@ void EngineCore::input() {
                                                                                             glm::vec3 (20),
                                                                                             20.0f)));
         }
-
-    }
-
-    if (!inputManager.getWarpMouse()) {
-        RenderingMaster::getInstance()->computeWorldPosRay(inputManager.getMousePos().x,
-                                                            inputManager.getMousePos().y);
     }
 
     if (inputManager.getKeyDown(SDLK_1)) {
@@ -304,15 +299,31 @@ void EngineCore::input() {
         RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
     }
 
+    // ray intersection
     if (inputManager.getKeyUp(SDLK_e)) {
         PhysicsMaster::getInstance()->performRayTestWithCamForward(RenderingMaster::getInstance()->getCamera()->getPosition(),
                                     RenderingMaster::getInstance()->getCamera()->getForward());
     }
 
+    if (!inputManager.getWarpMouse()) {
+        PhysicsMaster::getInstance()->performMouseRayIntersection(inputManager.getMousePos().x,
+                                                                inputManager.getMousePos().y,
+                                                                RenderingMaster::getInstance()->getDisplay()->getWidth(),
+                                                                RenderingMaster::getInstance()->getDisplay()->getHeight(),
+                                                                RenderingMaster::getInstance()->getCamera()->getPosition(),
+                                                                RenderingMaster::getInstance()->getProjectionMatrix(),
+                                                                RenderingMaster::getInstance()->getCamera()->getViewMatrix());
+    }
+    // end ray intersection
+
     RenderingMaster::getInstance()->deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
 
     for (auto const &entity : entities) {
         entity->input(inputManager);
+    }
+
+    for (auto const &light : RenderingMaster::getInstance()->getLights()) {
+        light->input(inputManager);
     }
 }
 
@@ -416,6 +427,9 @@ void EngineCore::render() {
             grabComponent->render();
         }
     }
+    for (auto const &light : RenderingMaster::getInstance()->getLights()) {
+        light->renderGUI();
+    }
     RenderingMaster::getInstance()->imguiDrawCalls();
     RenderingMaster::getInstance()->renderIMGUI();
 
@@ -427,18 +441,30 @@ void EngineCore::render() {
 }
 
 void EngineCore::update() {
-    const std::vector<Light *> &lights = RenderingMaster::getInstance()->getLights();
+    std::vector<Light *> &lights = RenderingMaster::getInstance()->getLights();
 
-    for (auto entity : entities) {
-        entity->update();
+    auto entity = std::begin(entities);
+    while (entity != std::end(entities)) {
+        (*entity)->update();
+        if ((*entity)->isToBeRemoved() == true) {
+            entity = entities.erase(entity);
+        } else {
+            ++entity;
+        }
+    }
+
+    auto light = std::begin(lights);
+    while (light != std::end(lights)) {
+        (*light)->update();
+        if ((*light)->isToBeRemoved() == true) {
+            light = lights.erase(light);
+        } else {
+            ++light;
+        }
     }
 
     PhysicsMaster::getInstance()->update();
     RenderingMaster::getInstance()->update();
-
-    for (Light *light : lights) {
-        light->update();
-    }
 }
 
 std::vector<Entity *> &EngineCore::getEntities() {

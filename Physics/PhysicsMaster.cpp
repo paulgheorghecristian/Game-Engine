@@ -1,6 +1,7 @@
 #include "PhysicsMaster.h"
 
 #include "Entity.h"
+#include "Light.h"
 #include "Common.h"
 
 PhysicsMaster *PhysicsMaster::m_instance = NULL;
@@ -74,16 +75,66 @@ void PhysicsMaster::performRayTestWithCamForward(const glm::vec3 &position, cons
         btVector3 to = btVector3(to_glm.x, to_glm.y, to_glm.z);
 
         btCollisionWorld::AllHitsRayResultCallback rayCallback(from, to);
-        PhysicsMaster::getInstance()->getWorld()->rayTest(from, to, rayCallback);
+        world->rayTest(from, to, rayCallback);
 
-        for (int i = 0; i < rayCallback.m_hitFractions.size(); i++) {
-            UserData *data = (UserData*) rayCallback.m_collisionObjects[i]->getUserPointer();
+        for (unsigned int i = 0; i < rayCallback.m_hitFractions.size(); i++) {
+            UserData *data = (UserData *) rayCallback.m_collisionObjects[i]->getUserPointer();
 
             if (data && data->type == PointerType::ENTITY) {
                 forwardIntersectEntities.insert(data->pointer.entity);
             }
         }
     }
+}
+
+void PhysicsMaster::performMouseRayIntersection(float mouseX, float mouseY, int width,
+                                                int height, const glm::vec3 &cameraPosition,
+                                                const glm::mat4 &projectionMatrix,
+                                                const glm::mat4 &viewMatrix) {
+    mouseRayIntersectEntities.clear();
+    mouseRayIntersectLights.clear();
+    {
+        // perform ray intersection with object
+        const glm::vec3 &worldSpaceMouseRay = getWorldSpaceMouseRay(mouseX, mouseY,
+                                                                    width, height,
+                                                                    projectionMatrix, viewMatrix);
+
+        glm::vec3 from_glm = cameraPosition+worldSpaceMouseRay*10.0f;
+        glm::vec3 to_glm = cameraPosition+worldSpaceMouseRay*1000.0f;
+
+        btVector3 from = btVector3(from_glm.x, from_glm.y, from_glm.z);
+        btVector3 to = btVector3(to_glm.x, to_glm.y, to_glm.z);
+
+        btCollisionWorld::AllHitsRayResultCallback rayCallback(from, to);
+        world->rayTest(from, to, rayCallback);
+
+        for (unsigned int i = 0; i < rayCallback.m_hitFractions.size(); i++) {
+            UserData *data = (UserData *) rayCallback.m_collisionObjects[i]->getUserPointer();
+            if (data) {
+                if (data->type == PointerType::ENTITY) {
+                    mouseRayIntersectEntities.insert(data->pointer.entity);
+                } else if (data->type == PointerType::LIGHT) {
+                    mouseRayIntersectLights.insert(data->pointer.light);
+                }
+            }
+        }
+    }
+}
+
+glm::vec3 PhysicsMaster::getWorldSpaceMouseRay(float mouseX, float mouseY,
+                                                int width, int height,
+                                                const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) {
+    float ndcX = 2.0f*mouseX / width - 1;
+    float ndcY = 2.0f*(height-mouseY) / height - 1;
+
+    glm::vec4 ndc(ndcX, ndcY, -1.0f, 1.0f);
+
+    glm::vec4 clipSpace = glm::inverse(projectionMatrix) * ndc;
+    glm::vec4 eyeSpace = glm::vec4(clipSpace.x, clipSpace.y, -1.0f, 0.0f);
+
+    glm::vec4 worldSpace = glm::inverse(viewMatrix) * eyeSpace;
+
+    return glm::normalize(glm::vec3(worldSpace.x, worldSpace.y, worldSpace.z));
 }
 
 PhysicsMaster::~PhysicsMaster() {

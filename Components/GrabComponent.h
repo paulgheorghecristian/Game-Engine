@@ -28,7 +28,11 @@ class GrabComponent : public Component
         glm::vec3 worldRot;
         glm::vec3 worldScale;
         float m_radius;
-        bool performRayTest, showGUI;
+        bool showGUI;
+
+        unsigned int imguiID;
+
+        static unsigned int g_num_of_instances;
 };
 
 #endif // GRABCOMPONENT_H

@@ -26,6 +26,9 @@ class Entity : public MemoryPoolInterface<Entity>
         void render();
         virtual ~Entity();
 
+        inline void setToBeRemoved(bool remove) { m_to_be_removed = remove; }
+        inline bool isToBeRemoved() { return m_to_be_removed; }
+
         enum Flags {
             RENDERABLE = 1, /* contains RenderComponent */
             DYNAMIC, /* contains PhysicsComponent */
@@ -43,6 +46,8 @@ class Entity : public MemoryPoolInterface<Entity>
         std::vector<Entity *> children;
         std::unordered_map<unsigned int, Component *> components;
     private:
+
+        bool m_to_be_removed;
 };
 
 #endif // ENTITY_H

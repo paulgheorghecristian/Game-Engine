@@ -1,6 +1,9 @@
 #include "SpotLight.h"
-
 #include "Shader.h"
+
+#include "imgui.h"
+#include "imgui_impl_sdl.h"
+#include "imgui_impl_opengl3.h"
 
 #define SHADOW_MAP_WIDTH 2048
 #define SHADOW_MAP_HEIGHT 2048
@@ -112,4 +115,15 @@ void SpotLight::prepareOpenGLForStencilPass()
     glDepthMask(GL_FALSE);
 
     glDisable(GL_CULL_FACE);
+}
+
+void SpotLight::renderGUI() {
+    if (showGUI == true) {
+        ImGui::Begin("Lights");
+        ImGui::PushID(std::to_string(imguiID).c_str());
+        ImGui::Checkbox("Volumetric", &m_volumetric);
+        ImGui::PopID();
+        ImGui::End();
+    }
+    Light::renderGUI();
 }

@@ -38,22 +38,49 @@ void PhysicsComponent::render() {
 }
 
 void PhysicsComponent::enable() {
+    btCollisionShape *newCollisionShape = NULL;
+
     m_rigidBody->setCollisionFlags(m_rigidBody->getCollisionFlags() &
                               ~btCollisionObject::CF_NO_CONTACT_RESPONSE);
 
     btTransform t = m_rigidBody->getCenterOfMassTransform();
     const glm::vec3 &pos = _entity->getTransform().getPosition();
     const glm::quat &rotation = _entity->getTransform().getRotation();
+    const glm::vec3 &scale = _entity->getTransform().getScale();
+
+    switch (type) {
+        case BoundingBodyType::CUBE:
+            newCollisionShape = new btBoxShape(btVector3(scale.x / 2.0f,
+                                                      scale.y / 2.0f,
+                                                      scale.z / 2.0f));
+            break;
+        case BoundingBodyType::SPHERE:
+            assert (scale.x == scale.y);
+            assert (scale.y == scale.z);
+            newCollisionShape = new btSphereShape(scale.x / 2.0f);
+            break;
+        case BoundingBodyType::CAPSULE:
+            newCollisionShape = new btCapsuleShape(scale.x*2.0f, scale.y*2.0f);
+            break;
+        default:
+            assert (false);
+    }
+
+    m_rigidBody->setCollisionShape(newCollisionShape);
 
     t.setOrigin(btVector3(pos.x, pos.y, pos.z));
     t.setRotation (btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
+
     m_rigidBody->setCenterOfMassTransform(t);
     m_rigidBody->activate(true);
+
+    PhysicsMaster::getInstance()->getWorld()->addRigidBody(m_rigidBody);
 
     Component::enable();
 }
 
 void PhysicsComponent::disable() {
+    PhysicsMaster::getInstance()->getWorld()->removeRigidBody(m_rigidBody);
     m_rigidBody->setCollisionFlags(m_rigidBody->getCollisionFlags() |
                               btCollisionObject::CF_NO_CONTACT_RESPONSE);
 

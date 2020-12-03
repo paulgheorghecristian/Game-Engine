@@ -9,6 +9,7 @@
 #include "DirectionalLight.h"
 #include "PointLight.h"
 #include "Common.h"
+#include "PhysicsMaster.h"
 
 #include <typeinfo>
 
@@ -158,7 +159,6 @@ RenderingMaster::RenderingMaster(Display *display,
     for (int i = 0; i < GUIVarsEnum_int::NUM_VARS_i; i++) {
         data_i[i] = 0;
     }
-    currentLight = NULL;
 }
 
 RenderingMaster::~RenderingMaster()
@@ -329,42 +329,12 @@ void RenderingMaster::update() {
         }
     }
 
-    {
-        // perform ray intersection with object
-        //TODO this should be done only in editor mode
-        const glm::vec3 &currWorldPos = camera->getPosition();
-        const glm::vec3 &dir = getCurrWorldPosRay();
-
-        glm::vec3 from_glm = currWorldPos+dir*10.0f;
-        glm::vec3 to_glm = currWorldPos+dir*1000.0f;
-
-        btVector3 from = btVector3(from_glm.x, from_glm.y, from_glm.z);
-        btVector3 to = btVector3(to_glm.x, to_glm.y, to_glm.z);
-
-        btCollisionWorld::AllHitsRayResultCallback rayCallback(from, to);
-        PhysicsMaster::getInstance()->getWorld()->rayTest(from, to, rayCallback);
-
-        for (int i = 0; i < rayCallback.m_hitFractions.size(); i++) {
-            UserData *data = (UserData*) rayCallback.m_collisionObjects[i]->getUserPointer();
-
-            if (data && data->type == PointerType::LIGHT) {
-                Light *light = data->pointer.light;
-
-                currentLight = light;
-                break;
-            }
-        }
-
-    }
-
     flarePostProcess->getShader().updateUniform("uGhostDispersal", data_f[0]);
     flarePostProcess->getShader().updateUniform("density", data_f[1]);
     flarePostProcess->getShader().updateUniform("exposure", data_f[2]);
     flarePostProcess->getShader().updateUniform("weight", data_f[3]);
     flarePostProcess->getShader().updateUniform("decay", data_f[4]);
     flarePostProcess->getShader().updateUniform("illuminationDecay", data_f[5]);
-
-    //updateLastSpotLight();
 }
 
 void RenderingMaster::computeStencilBufferForLight(Light *light)
@@ -448,7 +418,7 @@ void RenderingMaster::resetLights()
     }
 }
 
-const std::vector<Light *> &RenderingMaster::getLights()
+std::vector<Light *> &RenderingMaster::getLights()
 {
     return lights;
 }
@@ -462,35 +432,6 @@ void RenderingMaster::drawSky()
 
     glDepthMask(GL_TRUE);
     glEnable(GL_CULL_FACE);
-}
-
-void RenderingMaster::updateLastSpotLight()
-{
-    //TODO dead code
-    Light *lastSpotLight = NULL;
-    bool result = true;
-
-    for (int i = lights.size()-1; i >= 0; i--) {
-        if (typeid(*lights[i]) == typeid(SpotLight)) {
-            lastSpotLight = lights[i];
-            break;
-        }
-    }
-
-    if (lastSpotLight == NULL) {
-        return;
-    }
-
-#if 0
-    result &= volumetricLightShader.updateUniform("volumetricLightProjectionMatrix", (void *) &lastSpotLight->getShadowMapProjectionMatrix());
-    result &= volumetricLightShader.updateUniform("volumetricLightViewMatrix", (void *) &lastSpotLight->getShadowMapViewMatrix());
-    result &= volumetricLightShader.updateUniform("lightColor", (void *) &lastSpotLight->getLightColor());
-    result &= volumetricLightShader.updateUniform("lightPosition", (void *) &lastSpotLight->getTransform().getPosition());
-    result &= volumetricLightShader.updateUniform("modelMatrix", (void *) &lastSpotLight->getTransform().getModelMatrix());
-    assert(result);
-#endif
-
-    //lastSpotLight->getTransform().addRotation(0, 0.01, 0.01);
 }
 
 void RenderingMaster::renderVolumetricLight()
@@ -543,7 +484,9 @@ void RenderingMaster::imguiDrawCalls() {
         }
 
         for (int i = 0; i < GUIVarsEnum_vec3::NUM_VARS_v3; i++) {
-            ImGui::ColorEdit3("clear color"+i, (float*)&data_vec3[i]);
+            std::string name("vec3 ");
+            name += i+'0';
+            ImGui::ColorEdit3(name.c_str(), (float *) &data_vec3[i]);
         }
 
         for (int i = 0; i < GUIVarsEnum_int::NUM_VARS_i; i++) {
@@ -555,18 +498,7 @@ void RenderingMaster::imguiDrawCalls() {
         }
 
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        if (currentLight != NULL) {
-            glm::vec3 &lightColor = currentLight->getLightColor();
-            ImGui::ColorEdit3("light color", (float *) &lightColor);
 
-            glm::vec3 pos = currentLight->getTransform().getPosition();
-
-            ImGui::DragFloat("x", &pos.x, 0.05f);
-            ImGui::DragFloat("y", &pos.y, 0.05f);
-            ImGui::DragFloat("z", &pos.z, 0.05f);
-
-            currentLight->getTransform().setPosition(pos);
-        }
         static char str0[128] = "Hello, world!";
         ImGui::InputText("input text", str0, sizeof(str0));
         ImGui::End();
@@ -578,26 +510,4 @@ void RenderingMaster::renderIMGUI() {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
-}
-
-glm::vec3 RenderingMaster::getWorldSpaceMouseRay(float mouseX, float mouseY) {
-    float ndcX = 2.0f*mouseX / display->getWidth() - 1;
-    float ndcY = 2.0f*(display->getHeight()-mouseY) / display->getHeight() - 1;
-
-    glm::vec4 ndc(ndcX, ndcY, -1.0f, 1.0f);
-
-    glm::vec4 clipSpace = glm::inverse(projectionMatrix) * ndc;
-    glm::vec4 eyeSpace = glm::vec4(clipSpace.x, clipSpace.y, -1.0f, 0.0f);
-
-    glm::vec4 worldSpace = glm::inverse(camera->getViewMatrix()) * eyeSpace;
-
-    return glm::normalize(glm::vec3(worldSpace.x, worldSpace.y, worldSpace.z));
-}
-
-void RenderingMaster::computeWorldPosRay(float mouseX, float mouseY) {
-    currMouseRayWorldPos = getWorldSpaceMouseRay(mouseX, mouseY);
-}
-
-const glm::vec3 &RenderingMaster::getCurrWorldPosRay() {
-    return currMouseRayWorldPos;
 }

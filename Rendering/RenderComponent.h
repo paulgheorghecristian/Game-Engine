@@ -5,10 +5,7 @@
 #include "Shader.h"
 #include "Material.h"
 #include "Component.h"
-#include "RenderingMaster.h"
 #include "Texture.h"
-
-class RenderingMaster;
 
 class RenderComponent : public Component
 {
