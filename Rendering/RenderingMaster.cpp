@@ -440,6 +440,9 @@ void RenderingMaster::renderVolumetricLight()
     for (unsigned int i = 0; i < lights.size(); i++) {
         SpotLight *spot = NULL;
         if ((spot = dynamic_cast<SpotLight *>(lights[i])) != NULL && spot->isVolumetric() == true) {
+            float alpha = lights[i]->getTransform().getScale().x / 1000.0f;
+            float virtualSphereDiameter = lights[i]->getTransform().getScale().z * 2.0f;
+
             lights[i]->getShadowMapTexture().use(0);
             depthTexture->use(1);
             glEnable(GL_CULL_FACE);
@@ -455,6 +458,11 @@ void RenderingMaster::renderVolumetricLight()
             volumetricLightShader.updateUniform("lightPosition", (void *) &lights[i]->getTransform().getPosition());
             volumetricLightShader.updateUniform("modelMatrix", (void *) &lights[i]->getTransform().getModelMatrix());
             volumetricLightShader.updateUniform("cameraPosition", (void *) &camera->getPosition());
+            volumetricLightShader.updateUniform("alpha", alpha);
+            volumetricLightShader.updateUniform("virtualSphereDiameter", virtualSphereDiameter);
+            volumetricLightShader.updateUniform("numSamplePoints", spot->getNumSamplePoints());
+            volumetricLightShader.updateUniform("coef1", spot->getCoef1());
+            volumetricLightShader.updateUniform("coef2", spot->getCoef2());
             lights[i]->render(volumetricLightShader);
             glEnable(GL_DEPTH_TEST);
             glDepthMask(GL_TRUE);

@@ -8,7 +8,7 @@ std::function<void(bool start, Entity *entity)> ComponentFactory::y_90_rotation 
         rot = 90.0f;
 
     if (rot > 0.0f) {
-        entity->getTransform().addRotation(0, speed, 0);
+        entity->getTransform().addRotation(0, speed, 0, true);
         rot -= speed;
     }
 };

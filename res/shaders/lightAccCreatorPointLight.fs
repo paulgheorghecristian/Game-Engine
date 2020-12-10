@@ -20,6 +20,9 @@ uniform vec3 cameraForwardVectorEyeSpace;
 
 uniform float cutOff;
 
+uniform vec3 att_diffuse;
+uniform vec3 att_specular;
+
 void main() {
     bool getLight;
     vec2 texCoord = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
@@ -44,13 +47,13 @@ void main() {
     float rough = ((roughness.r+roughness.g+roughness.b) / 3.0f);
 
     float diffuseStrength = max(0.0, dotProduct);
-    float specularStrength = pow(max(dot(H, eyeSpaceNormal), 0.0), 150.0f);
+    float specularStrength = pow(max(dot(H, eyeSpaceNormal), 0.0), 500);
 
-    float a = rough, b = 0.0001, c = 0.00019;
-    float att = 1.0 / (a + b*l + c * l * l);
+    float a = rough, b = att_diffuse.y * 0.0001f, c = att_diffuse.z * 0.0001f;
+    float att = att_diffuse.x / (a + b*l + c * l * l);
 
-    float a2 = (1.0f-rough), b2 = 0.0001, c2 = 0.0001;
-    float att2 = 1.0 / (a2 + b2*l + c2 * l * l);
+    float a2 = (1.0f-rough), b2 = att_specular.y * 0.0001f, c2 = att_specular.z * 0.0001f;
+    float att2 = att_specular.x / (a2 + b2*l + c2 * l * l);
 
     vec3 diffuseLight = att * diffuseStrength * lightColor;
     vec3 specularLight = att2 * specularStrength * lightColor;

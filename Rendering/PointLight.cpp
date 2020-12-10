@@ -2,6 +2,10 @@
 
 #include "Shader.h"
 
+#include "imgui.h"
+#include "imgui_impl_sdl.h"
+#include "imgui_impl_opengl3.h"
+
 #define CUTOFF_OFFSET 50
 
 Shader &PointLight::getLightAccumulationShader()
@@ -22,7 +26,13 @@ PointLight::PointLight(const Transform &transform,
                        const glm::vec3 &color) : Light(transform, color, false, false, true)
                        /* for now it doesn't cast shadow */
 {
+    m_att_diffuse.x = 1.0f;
+    m_att_diffuse.y = 0.01f;
+    m_att_diffuse.z = 0.019f;
 
+    m_att_specular.x = 1.0f;
+    m_att_specular.y = 0.01f;
+    m_att_specular.z = 0.01f;
 }
 
 PointLight::~PointLight()
@@ -41,13 +51,15 @@ void PointLight::render(Shader &shader)
 
 void PointLight::render()
 {
-    float cutOff = m_transform.getScale().x - CUTOFF_OFFSET;
+    float cutOff = m_transform.getScale().x * 0.75f;
     Shader &shader = getLightAccumulationShader();
 
     shader.updateUniform("modelMatrix", (void *) &m_transform.getModelMatrix());
     shader.updateUniform("lightColor", (void *) &m_lightColor);
     shader.updateUniform("lightPosition", (void *) &m_transform.getPosition());
-    shader.updateUniform("cutOff", (void *) &cutOff);
+    shader.updateUniform("cutOff", cutOff);
+    shader.updateUniform("att_diffuse", (void *) &m_att_diffuse);
+    shader.updateUniform("att_specular", (void *) &m_att_specular);
 
     shader.bind();
     getLightMesh().draw();
@@ -85,4 +97,24 @@ void PointLight::prepareOpenGLForStencilPass()
     glDepthMask(GL_FALSE);
 
     glDisable(GL_CULL_FACE);
+}
+
+void PointLight::renderGUI() {
+    if (showGUI == true) {
+        glm::vec3 scale = m_transform.getScale();
+
+        ImGui::Begin("Lights");
+        ImGui::PushID(std::to_string(imguiID).c_str());
+
+        ImGui::Text("Light Scale");
+        ImGui::DragFloat("Radius", &scale.x, 0.1f);
+        scale.y = scale.x;
+        scale.z = scale.x;
+
+        m_transform.setScale(scale);
+
+        ImGui::PopID();
+        ImGui::End();
+    }
+    Light::renderGUI();
 }

@@ -69,6 +69,9 @@ class Light
             return m_to_be_removed;
         }
 
+        inline const glm::vec3 &getAttDiffuse() { return m_att_diffuse; }
+        inline const glm::vec3 &getAttSpecular() { return m_att_specular; }
+
     protected:
         Transform m_transform;
         glm::vec3 m_lightColor;
@@ -84,6 +87,8 @@ class Light
 
         bool showGUI;
         unsigned int imguiID;
+
+        glm::vec3 m_att_diffuse, m_att_specular;
 
         void initPhysics(const Transform& transform, bool grab);
     private:

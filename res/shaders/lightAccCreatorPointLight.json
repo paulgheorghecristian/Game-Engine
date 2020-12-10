@@ -14,6 +14,8 @@
                     "screenHeight" : "INT",
                     "cutOff" : "FLOAT",
                     "cameraForwardVectorEyeSpace" : "VEC3",
-                    "cameraForwardVector" : "VEC3"
+                    "cameraForwardVector" : "VEC3",
+                    "att_diffuse": "VEC3",
+                    "att_specular": "VEC3"
                  }
 }

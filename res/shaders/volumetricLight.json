@@ -14,6 +14,11 @@
                     "volumetricLightDepthSampler" : "INT",
                     "volumetricLightProjectionMatrix" : "MAT4",
                     "volumetricLightViewMatrix" : "MAT4",
-                    "blueNoiseSampler" : "INT"
+                    "blueNoiseSampler" : "INT",
+                    "alpha" : "FLOAT",
+                    "virtualSphereDiameter": "FLOAT",
+                    "numSamplePoints" : "INT",
+                    "coef1" : "FLOAT",
+                    "coef2" : "FLOAT"
                  }
 }

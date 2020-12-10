@@ -22,7 +22,7 @@ flat in vec3 lightPositionEyeSpace;
 uniform vec3 cameraForwardVector;
 uniform vec3 cameraForwardVectorEyeSpace;
 
-const int PCFStrength = 2;
+const int PCFStrength = 1;
 const int PCFKernelSideSize = PCFStrength * 2 + 1;
 const int PCFStartingIndex = PCFKernelSideSize / 2;
 const int PCFKernelSize = PCFKernelSideSize * PCFKernelSideSize;
@@ -31,7 +31,11 @@ const float depthMapTexelSize = 1.0f/2048.0f; /* TODO remove hardcode */
 uniform vec3 lightPosition;
 uniform mat4 modelMatrix;
 
-const float lightRadius = 300;
+uniform float lightLength;
+uniform float alpha;
+
+uniform vec3 att_diffuse;
+uniform vec3 att_specular;
 
 void main() {
     bool getLight;
@@ -82,18 +86,18 @@ void main() {
     float rough = ((roughness.r+roughness.g+roughness.b) / 3.0f);
 
     float diffuseStrength = max (0.0, dotProduct);
-    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), rough);
+    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 500);
 
-    float a = rough, b = 0.000001, c = 0.00000004;
-    float att = 1.0 / (a + b*l + c * l * l);
+    float a = rough, b = att_diffuse.y * 0.0001f, c = att_diffuse.z * 0.0001f;
+    float att = att_diffuse.x / (a + b*l + c * l * l);
 
-    float a2 = (1.0f-rough), b2 = 0.0000001, c2 = 0.0000001;
-    float att2 = 1.0 / (a2 + b2*l + c2 * l * l);
+    float a2 = (1.0f-rough),b2 = att_specular.y * 0.0001f, c2 = att_specular.z * 0.0001f;
+    float att2 = att_specular.x / (a2 + b2*l + c2 * l * l);
 
-    float lenAtt = max(1.0 - (l / lightRadius), 0.5);
+    float lenAtt = max(1.0 - (l / lightLength), 0.0);
 
-    vec3 diffuseLight = (0.3 - acos(spotLightAttCoef)) * att * lenAtt * diffuseStrength * lightColor;
-    vec3 specularLight = (0.3 - acos(spotLightAttCoef)) * att2 * lenAtt * specularStrength * lightColor;
+    vec3 diffuseLight = (alpha - acos(spotLightAttCoef)) * att * lenAtt * diffuseStrength * lightColor;
+    vec3 specularLight = (alpha - acos(spotLightAttCoef)) * att2 * lenAtt * specularStrength * lightColor;
 
     outLight = diffuseLight;
     if (getLight) {

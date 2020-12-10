@@ -97,13 +97,16 @@ void Transform::addPosition(float x, float y, float z) {
     modelMatrixNeedsRefresh = true;
 }
 
-void Transform::addRotation(float x, float y, float z) {
-    if (!x && !y && !z) {
-        return;
+void Transform::addRotation(float x, float y, float z, bool local) {
+    glm::quat xRotQuat = glm::angleAxis(glm::radians(x), glm::vec3(1,0,0));
+    glm::quat yRotQuat = glm::angleAxis(glm::radians(y), glm::vec3(0,1,0));
+    glm::quat zRotQuat = glm::angleAxis(glm::radians(z), glm::vec3(0,0,1));
+
+    if (local == false) {
+        rotation = glm::normalize(xRotQuat * yRotQuat * zRotQuat * rotation);
+    } else {
+        rotation = glm::normalize(rotation * xRotQuat * yRotQuat * zRotQuat);
     }
-
-    rotation = glm::normalize(rotation * glm::quat(glm::radians(glm::vec3(x, y, z))));
-
     modelMatrixNeedsRefresh = true;
 }
 

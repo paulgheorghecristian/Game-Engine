@@ -34,7 +34,7 @@ class Transform
         void setScale(const glm::vec3 &scale);
         void setModelMatrix (const glm::mat4 &modelMatrix);
         void addPosition(float x, float y, float z);
-        void addRotation(float x, float y, float z);
+        void addRotation(float x, float y, float z, bool local);
         void addScale(float x, float y, float z);
 
         virtual ~Transform();

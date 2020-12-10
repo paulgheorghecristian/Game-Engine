@@ -11,8 +11,7 @@ uniform mat4 volumetricLightViewMatrix;
 
 uniform vec3 lightColor;
 uniform vec3 lightPosition;
-//uniform vec3 lightDir;
-//uniform vec3 lightRadius;
+
 uniform int screenWidth, screenHeight;
 uniform vec3 cameraPosition;
 
@@ -23,9 +22,12 @@ uniform mat4 projectionMatrix;
 in vec3 viewRay;
 flat in vec3 lightPositionEyeSpace;
 
-const int numSamplePoints = 100;
-const float lightRadius = 600;
-const float alpha = 0.3;
+uniform float virtualSphereDiameter;
+uniform float alpha;
+
+uniform int numSamplePoints;
+uniform float coef1;
+uniform float coef2;
 
 in vec3 positionModelSpace;
 
@@ -62,7 +64,7 @@ bool sphereIntersection(vec3 rayDir, inout float t1, inout float t2)
     vec3 negateLightPositionEyeSpace = cameraPosition - lightPosition;
     float a = 1;
     float b = 2.0 * dot(rayDir, negateLightPositionEyeSpace);
-    float c = dot(negateLightPositionEyeSpace,negateLightPositionEyeSpace) - lightRadius * lightRadius;
+    float c = dot(negateLightPositionEyeSpace,negateLightPositionEyeSpace) - virtualSphereDiameter * virtualSphereDiameter;
 
     float delta = b*b - 4.0*a*c;
 
@@ -112,10 +114,10 @@ bool spotLightIntersection(vec3 rayDir, inout float tmin, inout float tmax)
 	hits[2] = 0;
 	hits[3] = 0;
 
-	if (dot(coneToC1, lightDir) > 0 && length(coneToC1) < lightRadius) {
+	if (dot(coneToC1, lightDir) > 0 && length(coneToC1) < virtualSphereDiameter) {
 		hits[index++] = tc1;
 	}
-	if (dot(coneToC2, lightDir) > 0 && length(coneToC2) < lightRadius) {
+	if (dot(coneToC2, lightDir) > 0 && length(coneToC2) < virtualSphereDiameter) {
 		hits[index++] = tc2;
 	}
 	if (dot(normalize(coneToS1), lightDir) > coneCosAngle) {
@@ -205,8 +207,8 @@ void main() {
         vec3 dir = worldPosition.xyz - lightPosition;
         float len = length(dir);
 
-        float dist1 = lightRadius*0.5;
-        float dist2 = lightRadius*0.1;
+        float dist1 = virtualSphereDiameter*coef1;
+        float dist2 = virtualSphereDiameter*coef2;
         float alpha1 = cos(alpha);
         float alpha2 = cos(0.1);
 

@@ -16,6 +16,10 @@
                     "cameraForwardVector" : "VEC3",
                     "spotLightDepthSampler" : "INT",
                     "spotLightProjectionMatrix" : "MAT4",
-                    "spotLightViewMatrix" : "MAT4"
+                    "spotLightViewMatrix" : "MAT4",
+                    "alpha" : "FLOAT",
+                    "lightLength": "FLOAT",
+                    "att_diffuse": "VEC3",
+                    "att_specular": "VEC3"
                  }
 }

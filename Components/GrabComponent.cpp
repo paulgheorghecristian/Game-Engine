@@ -8,7 +8,7 @@
 
 unsigned int GrabComponent::g_num_of_instances = 0;
 
-GrabComponent::GrabComponent(float radius) : m_radius(radius), showGUI(false) {
+GrabComponent::GrabComponent(float radius) : m_radius(radius), showGUI(false), localRotate(false) {
     imguiID = GrabComponent::g_num_of_instances;
     GrabComponent::g_num_of_instances++;
 }
@@ -26,6 +26,7 @@ void GrabComponent::input(Input &inputManager) {
 
         worldPos = _entity->getTransform().getPosition();
         worldRot = _entity->getTransform().getEulerRotation();
+        tmpWorldRot = worldRot;
         worldScale = _entity->getTransform().getScale();
     }
 
@@ -40,8 +41,9 @@ void GrabComponent::input(Input &inputManager) {
 
 void GrabComponent::update() {
     if (showGUI) {
+        glm::vec3 res = tmpWorldRot - worldRot;
         _entity->getTransform().setPosition(worldPos);
-        _entity->getTransform().setRotation(glm::radians(worldRot));
+        _entity->getTransform().addRotation(res.x, res.y, res.z, localRotate);
         _entity->getTransform().setScale(worldScale);
     }
 
@@ -54,6 +56,8 @@ void GrabComponent::update() {
 
 void GrabComponent::render() {
     if (showGUI) {
+        tmpWorldRot = worldRot;
+
         ImGui::Begin("GUI");
         ImGui::PushID(std::to_string(imguiID).c_str());
         ImGui::Text("Position");
@@ -61,9 +65,10 @@ void GrabComponent::render() {
         ImGui::DragFloat("y", &worldPos.y, 0.05f);
         ImGui::DragFloat("z", &worldPos.z, 0.05f);
         ImGui::Text("Rotation");
-        ImGui::DragFloat("Rotx", &worldRot.x, 0.5f);
-        ImGui::DragFloat("Roty", &worldRot.y, 0.5f);
-        ImGui::DragFloat("Rotz", &worldRot.z, 0.5f);
+        ImGui::DragFloat("Rotx", &worldRot.x, 0.05f);
+        ImGui::DragFloat("Roty", &worldRot.y, 0.05f);
+        ImGui::DragFloat("Rotz", &worldRot.z, 0.05f);
+        ImGui::Checkbox("Local Rotation", &localRotate);
         ImGui::Text("Scale");
         ImGui::DragFloat("Scalex", &worldScale.x, 0.005f);
         ImGui::DragFloat("Scaley", &worldScale.y, 0.005f);

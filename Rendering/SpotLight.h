@@ -25,6 +25,10 @@ class SpotLight : public Light
 
         bool isVolumetric() { return m_volumetric; }
 
+        int getNumSamplePoints() { return numSamplePoints; }
+        float getCoef1() { return coef1; }
+        float getCoef2() { return coef2; }
+
         static Shader &getLightAccumulationShader();
         static Mesh &getLightMesh();
 
@@ -33,6 +37,10 @@ class SpotLight : public Light
     private:
         bool m_volumetric;
         glm::vec3 worldRot;
+
+        int numSamplePoints;
+        float coef1;
+        float coef2;
 };
 
 #endif // SPOTLIGHT_H

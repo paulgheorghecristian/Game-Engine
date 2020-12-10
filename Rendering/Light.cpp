@@ -133,11 +133,22 @@ void Light::renderGUI() {
         ImGui::DragFloat("y", &pos.y, 0.05f);
         ImGui::DragFloat("z", &pos.z, 0.05f);
 
+        ImGui::Text("Light Diffuse Attenuation");
+        ImGui::DragFloat("att1_diffuse", &m_att_diffuse.x, 0.0001f);
+        ImGui::DragFloat("att2_diffuse", &m_att_diffuse.y, 0.0001f);
+        ImGui::DragFloat("att3_diffuse", &m_att_diffuse.z, 0.0001f);
+
+        ImGui::Text("Light Specular Attenuation");
+        ImGui::DragFloat("att1_spec", &m_att_specular.x, 0.0001f);
+        ImGui::DragFloat("att2_spec", &m_att_specular.y, 0.0001f);
+        ImGui::DragFloat("att3_spec", &m_att_specular.z, 0.0001f);
+
         if (ImGui::Button("Delete")) {
             m_to_be_removed = true;
         }
 
         m_transform.setPosition(pos);
+
         ImGui::Separator();
         ImGui::PopID();
         ImGui::End();
