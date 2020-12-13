@@ -38,12 +38,16 @@ class Texture
         float getSubWidth ();
         float getSubHeight ();
 
+        const std::string &getFilePath() { return filePath; }
+
     protected:
     private:
         GLuint textureId;
         int textureUnit;
         int numOfSubTxtsW, numOfSubTxtsH, totalNumOfSubTxts;
         float subWidth, subHeight;
+
+        std::string filePath;
 };
 
 #endif // TEXTURE_H

@@ -113,3 +113,14 @@ void DirectionalLight::prepareOpenGLForStencilPass()
     assert(false);
     return;
 }
+
+std::string DirectionalLight::jsonifyAttribs() {
+    std::string res("");
+
+    res += Light::jsonifyAttribs();
+    res += ",\"type\": \"DIR\"";
+    res += ",\"dir\":[" + std::to_string(m_lightDirection.x) + ","
+        + std::to_string(m_lightDirection.y) + "," + std::to_string(m_lightDirection.z) + "]";
+
+    return res;
+}

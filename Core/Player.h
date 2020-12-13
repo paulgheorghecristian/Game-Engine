@@ -11,6 +11,8 @@ class Player : public Entity
         Player(Transform &transform);
         virtual ~Player();
 
+        std::string jsonify();
+
     protected:
 
     private:

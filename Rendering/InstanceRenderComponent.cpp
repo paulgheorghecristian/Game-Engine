@@ -12,7 +12,9 @@ InstanceRenderComponent::InstanceRenderComponent(const std::string &objModelPath
                                                 normalMapTexture(normalMapTexture),
                                                 roughness(roughness),
                                                 material(material),
-                                                numOfInstances(positionsRotationsScales.size() / 3) {
+                                                numOfInstances(positionsRotationsScales.size() / 3),
+                                                m_positionsRotationsScales(positionsRotationsScales),
+                                                m_objModelPath(objModelPath) {
 
     bool result = true;
     bool hasTexture = false;
@@ -40,7 +42,7 @@ InstanceRenderComponent::InstanceRenderComponent(const std::string &objModelPath
         result &= shader->updateUniform ("material.ambient", (void *) &this->material.getAmbient());
         result &= shader->updateUniform ("material.diffuse", (void *) &material.getDiffuse());
         result &= shader->updateUniform ("material.specular", (void *) &material.getSpecular());
-        result &= shader->updateUniform ("material.shininess", (void *) &material.getShininess());
+        result &= shader->updateUniform ("material.shininess", material.getShininess());
 
         result &= shader->updateUniform ("hasTexture", (void *) &hasTexture);
         result &= shader->updateUniform ("hasNormalMap", (void *) &hasNormalMap);
@@ -88,7 +90,7 @@ void InstanceRenderComponent::render(Shader *externShader) {
         result &= externShader->updateUniform ("material.ambient", (void *) &material.getAmbient());
         result &= externShader->updateUniform ("material.diffuse", (void *) &material.getDiffuse());
         result &= externShader->updateUniform ("material.specular", (void *) &material.getSpecular());
-        result &= externShader->updateUniform ("material.shininess", (void *) &material.getShininess());
+        result &= externShader->updateUniform ("material.shininess", material.getShininess());
 
         if (texture != NULL) {
             result &= externShader->updateUniform ("textureSampler", texture->getTextureUnit());
@@ -220,6 +222,55 @@ void InstanceRenderComponent::createVboHandle(const std::vector<Vertex>& vertice
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) (2 * sizeof(glm::vec3) + sizeof (glm::vec2)));
     glEnableVertexAttribArray(4);
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) (3 * sizeof(glm::vec3) + sizeof (glm::vec2)));
+}
+
+std::string InstanceRenderComponent::jsonify() {
+    std::string res("");
+
+    if (m_objModelPath.size() == 0) {
+        return res;
+    }
+
+    glm::vec3 ambient = material.getAmbient();
+    glm::vec3 diffuse = material.getDiffuse();
+    glm::vec3 specular = material.getSpecular();
+    float shine = material.getShininess();
+
+    res += "\"InstanceRenderComponent\":{";
+    res += "\"Mesh\":\"" + m_objModelPath + "\",";
+    if (texture != NULL) {
+        res += "\"Texture\":\"" + texture->getFilePath() + "\",";
+    }
+    if (normalMapTexture != NULL) {
+        res += "\"NormalMapTexture\":\"" + normalMapTexture->getFilePath() + "\",";
+    }
+    if (roughness != NULL) {
+        res += "\"RoughnessTexture\":\"" + roughness->getFilePath() + "\",";
+    }
+    res += "\"Material\":{";
+    res += "\"ambient\":[" + std::to_string(ambient.x) + ","
+            + std::to_string(ambient.y) + "," + std::to_string(ambient.z) + "],";
+    res += "\"diffuse\":[" + std::to_string(diffuse.x) + "," 
+            + std::to_string(diffuse.y) + "," + std::to_string(diffuse.z) + "],";
+    res += "\"specular\":[" + std::to_string(specular.x) + "," 
+            + std::to_string(specular.y) + "," + std::to_string(specular.z) + "],";
+    res += "\"shininess\":" + std::to_string(shine) + "},";
+    res += "\"Transforms\":[";
+
+    for (unsigned int i = 0; i < m_positionsRotationsScales.size(); i+=3) {
+        res += "{";
+        res += "\"position\":[" + std::to_string(m_positionsRotationsScales[i].x) + ","
+            + std::to_string(m_positionsRotationsScales[i].y) + "," + std::to_string(m_positionsRotationsScales[i].z) + "],";
+        res += "\"rotation\":[" + std::to_string(m_positionsRotationsScales[i+1].x) + ","
+            + std::to_string(m_positionsRotationsScales[i+1].y) + "," + std::to_string(m_positionsRotationsScales[i+1].z) + "],";
+        res += "\"scale\":[" + std::to_string(m_positionsRotationsScales[i+2].x) + ","
+            + std::to_string(m_positionsRotationsScales[i+2].y) + "," + std::to_string(m_positionsRotationsScales[i+2].z) + "]";
+        res += "},";
+    }
+    res.pop_back();
+    res += "]}";
+
+    return res;
 }
 
 InstanceRenderComponent::~InstanceRenderComponent() {

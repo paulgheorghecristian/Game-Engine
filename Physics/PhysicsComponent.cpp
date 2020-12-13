@@ -144,6 +144,23 @@ const glm::vec3 &PhysicsComponent::getBoundingBodyScale() {
     return boundingBodyScale;
 }
 
+std::string PhysicsComponent::jsonify() {
+    std::string res("");
+
+    res += "\"PhysicsComponent\":{";
+    res += "\"BoundingBodyType\":";
+    if (type == BoundingBodyType::CUBE) {
+        res += "[\"cube\"],";
+    } else if (type == BoundingBodyType::SPHERE) {
+        res += "[\"sphere\"],";
+    }
+    res += "\"scale\":[" + std::to_string(boundingBodyScale.x) + ","
+            + std::to_string(boundingBodyScale.y) + "," + std::to_string(boundingBodyScale.z) + "],";
+    res += "\"mass\":" + std::to_string(bodyMass) + "}";
+
+    return res;
+}
+
 PhysicsComponent::~PhysicsComponent() {
     //delete m_rigidBody->getMotionState();
     //delete m_rigidBody;

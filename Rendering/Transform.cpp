@@ -71,7 +71,7 @@ void Transform::setRotation(const glm::quat &rotation) {
 }
 
 void Transform::setRotation(const glm::vec3 &rotation) {
-    this->rotation = glm::quat(rotation);
+    this->rotation = glm::quat(glm::radians(rotation));
     modelMatrixNeedsRefresh = true;
 }
 

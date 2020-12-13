@@ -46,6 +46,14 @@ const unsigned int BillboardComponent::getFlag() const {
     return Entity::Flags::BILL;
 }
 
+std::string BillboardComponent::jsonify() {
+    std::string res("");
+
+    res += "\"BillboardComponent\":{}";
+
+    return res;
+}
+
 BillboardComponent::~BillboardComponent()
 {
 

@@ -30,7 +30,7 @@ RenderingMaster::RenderingMaster(Display *display,
                                  Camera *camera,
                                  glm::mat4 projectionMatrix) :  particleForwardRenderFramebuffer (display->getWidth()/2, display->getHeight()/2, 1),
                                                                 particlesRTTexture (particleForwardRenderFramebuffer.getRenderTargets ()[0], 6),
-                                                                volumetricLightFB (display->getWidth()/4, display->getHeight()/4, 1),
+                                                                volumetricLightFB (display->getWidth()/2, display->getHeight()/2, 1),
                                                                 volumetricLightTxt (volumetricLightFB.getRenderTargets()[0], 9),
                                                                 spotLightFlares(display->getWidth(), display->getHeight(), 1),
                                                                 spotLightFlaresTxt(spotLightFlares.getRenderTargets()[0], 10)
@@ -139,6 +139,7 @@ RenderingMaster::RenderingMaster(Display *display,
                                         "res/shaders/FlarePostProcess.json");
     flarePostProcess->getShader().updateUniform("lensFlareColorSampler", 1);
     lensFlareColorTxt = new Texture("res/textures/lenscolor.bmp", 1);
+    blueNoiseTexture = new Texture("res/textures/BlueNoise64Tiled.png", 2);
 
     screenSizeRectangle = Mesh::getRectangle();
 
@@ -445,6 +446,7 @@ void RenderingMaster::renderVolumetricLight()
 
             lights[i]->getShadowMapTexture().use(0);
             depthTexture->use(1);
+            blueNoiseTexture->use(2);
             glEnable(GL_CULL_FACE);
             glCullFace(GL_FRONT);
             glDisable(GL_DEPTH_TEST);

@@ -29,6 +29,8 @@ class Entity : public MemoryPoolInterface<Entity>
         inline void setToBeRemoved(bool remove) { m_to_be_removed = remove; }
         inline bool isToBeRemoved() { return m_to_be_removed; }
 
+        virtual std::string jsonify();
+
         enum Flags {
             RENDERABLE = 1, /* contains RenderComponent */
             DYNAMIC, /* contains PhysicsComponent */
@@ -42,7 +44,7 @@ class Entity : public MemoryPoolInterface<Entity>
             INSTANCE_RENDERABLE
         };
     protected:
-        Transform transform;
+        Transform m_transform;
         std::vector<Entity *> children;
         std::unordered_map<unsigned int, Component *> components;
     private:

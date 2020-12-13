@@ -108,10 +108,12 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
         return new GrabComponent(itr->value["radius"].GetFloat());
     } else if (strcmp(itr->name.GetString(), "ActionComponent") == 0) {
         if (strcmp(itr->value["action"].GetString(), "y90rotation") == 0) {
-            return new ActionComponent( itr->value["radius"].GetFloat(), ComponentFactory::y_90_rotation);
+            return new ActionComponent( itr->value["radius"].GetFloat(), ComponentFactory::y_90_rotation, "y90rotation");
         } else {
             return NULL;
         }
+    } else if (strcmp(itr->name.GetString(), "BillboardComponent") == 0) {
+        return new BillboardComponent();
     } else if (strcmp(itr->name.GetString(), "InstanceRenderComponent") == 0) {
         Shader *shader = NULL;
         Texture *texture = NULL;

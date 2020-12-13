@@ -72,6 +72,9 @@ class Light
         inline const glm::vec3 &getAttDiffuse() { return m_att_diffuse; }
         inline const glm::vec3 &getAttSpecular() { return m_att_specular; }
 
+        std::string jsonify();
+        virtual std::string jsonifyAttribs();
+
     protected:
         Transform m_transform;
         glm::vec3 m_lightColor;

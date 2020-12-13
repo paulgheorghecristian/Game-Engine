@@ -12,9 +12,13 @@
 #define EPS 0.003
 
 Player::Player (Transform &transform) {
-    this->transform = transform;
+    this->m_transform = transform;
     addComponent (new FirstPersonComponent ());
     addComponent (new PlayerControllerComponent ());
+}
+
+std::string Player::jsonify() {
+    return std::string("");
 }
 
 Player::FirstPersonComponent::FirstPersonComponent() {

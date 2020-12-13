@@ -116,6 +116,15 @@ const unsigned int GrabComponent::getFlag() const {
     return Entity::Flags::GRAB;
 }
 
+std::string GrabComponent::jsonify() {
+    std::string res("");
+
+    res += "\"GrabComponent\":{";
+    res += "\"radius\":" + std::to_string(m_radius) + "}";
+
+    return res;
+}
+
 GrabComponent::~GrabComponent()
 {
 

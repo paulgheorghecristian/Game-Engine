@@ -29,6 +29,8 @@ class EngineCore
         std::vector<Entity *> &getEntities();
         virtual ~EngineCore();
 
+        std::string dumpJson();
+
     protected:
 
     private:
@@ -45,6 +47,9 @@ class EngineCore
         void loadEntities(rapidjson::Document &gameDocument);
 
         BarGUI *fpsGUI;
+
+        std::string m_configFilePath;
+        float m_gravity;
 };
 
 #endif // ENGINECORE_H

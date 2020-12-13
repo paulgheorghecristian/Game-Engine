@@ -18,6 +18,8 @@ class RenderComponent : public Component
         void render (Shader *externShader);
         const unsigned int getFlag() const;
         Shader *getShader();
+        std::string jsonify() override;
+
         virtual ~RenderComponent();
 
     protected:

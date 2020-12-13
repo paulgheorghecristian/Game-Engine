@@ -26,6 +26,9 @@ class InstanceRenderComponent : public Component
         void render (Shader *externShader);
         const unsigned int getFlag() const;
         Shader *getShader();
+
+        std::string jsonify() override;
+
         virtual ~InstanceRenderComponent();
 
     protected:
@@ -50,6 +53,9 @@ class InstanceRenderComponent : public Component
         void createVboHandle(const std::vector<Vertex>& vertices,
                         const std::vector<unsigned int>& indices);
     	GLuint createModelMatricesVbo();
+
+        std::vector<glm::vec3> m_positionsRotationsScales;
+        std::string m_objModelPath;
 };
 
 #endif // INSTANCERENDERCOMPONENT_H

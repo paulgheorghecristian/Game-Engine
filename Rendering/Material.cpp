@@ -44,7 +44,7 @@ void Material::setShininess (float s) {
     this->shininess = s;
 }
 
-const float &Material::getShininess () const {
+float Material::getShininess () const {
     return shininess;
 }
 

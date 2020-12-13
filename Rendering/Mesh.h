@@ -42,6 +42,7 @@ class Mesh
     public:
         Mesh (const std::vector<Vertex> &vertices,
               const std::vector<unsigned int> &indices,
+              const std::string &filePath = "",
               bool willBeUpdated = false);
         Mesh (bool willBeUpdated = false);
         GLuint getVao();
@@ -60,6 +61,8 @@ class Mesh
         void update (const std::vector<Vertex> &vertices,
                      const std::vector<unsigned int> &indices);
         virtual ~Mesh();
+
+        inline const std::string &getFilePath() { return filePath; }
     protected:
     private:
         enum VBOs{
@@ -71,6 +74,7 @@ class Mesh
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
         bool willBeUpdated;
+        std::string filePath;
 
         static float _stringToFloat(const std::string &source);
         static unsigned int _stringToUint(const std::string &source);

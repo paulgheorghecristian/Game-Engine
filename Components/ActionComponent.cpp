@@ -9,7 +9,8 @@
 
 #include "Common.h"
 
-ActionComponent::ActionComponent(float radius, std::function<void(bool start, Entity *entity)> action) : m_radius(radius), m_action(action){
+ActionComponent::ActionComponent(float radius, std::function<void(bool start, Entity *entity)> action,
+                            const std::string &actionName) : m_radius(radius), m_action(action), m_actionName(actionName) {
 }
 
 void ActionComponent::input(Input &inputManager) {
@@ -61,6 +62,16 @@ void ActionComponent::init() {
 
 const unsigned int ActionComponent::getFlag() const {
     return Entity::Flags::ACTION;
+}
+
+std::string ActionComponent::jsonify() {
+    std::string res("");
+
+    res += "\"ActionComponent\":{";
+    res += "\"radius\":" + std::to_string(m_radius) + ",";
+    res += "\"action\":\"" + m_actionName + "\"}";
+
+    return res;
 }
 
 ActionComponent::~ActionComponent()

@@ -14,12 +14,16 @@
 class ActionComponent : public Component
 {
     public:
-        ActionComponent(float radius, std::function<void(bool start, Entity *entity)> action);
+        ActionComponent(float radius, std::function<void(bool start, Entity *entity)> action,
+                        const std::string &actionName);
         void input(Input &inputManager);
         void update();
         void render() {};
         void init();
         const unsigned int getFlag() const;
+
+        std::string jsonify() override;
+
         virtual ~ActionComponent();
 
     protected:
@@ -28,6 +32,7 @@ class ActionComponent : public Component
         btGhostObject *m_ghostObj;
         float m_radius;
         std::function<void(bool start, Entity *entity)> m_action;
+        std::string m_actionName;
 };
 
 #endif // ACTIONCOMPONENT_H

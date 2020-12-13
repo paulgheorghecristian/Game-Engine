@@ -29,6 +29,9 @@ class PhysicsComponent : public Component
         const unsigned int getFlag() const;
         btRigidBody *getRigidBody();
         const glm::vec3 &getBoundingBodyScale();
+
+        std::string jsonify() override;
+
         virtual ~PhysicsComponent();
 
     protected:

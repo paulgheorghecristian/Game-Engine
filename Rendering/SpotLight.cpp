@@ -26,7 +26,7 @@ SpotLight::SpotLight(const Transform &transform,
 
     worldRot = m_transform.getEulerRotation();
 
-    numSamplePoints = 100;
+    numSamplePoints = 26;
     coef1 = 0.5;
     coef2 = 0.1;
 
@@ -174,6 +174,20 @@ void SpotLight::update() {
     Light::update();
 
     if (showGUI == true) {
-        m_transform.setRotation(glm::radians(worldRot));
+        m_transform.setRotation(worldRot);
     }
+}
+
+std::string SpotLight::jsonifyAttribs() {
+    std::string res("");
+
+    res += Light::jsonifyAttribs();
+    res += ",\"type\": \"SPOT\"";
+    if (m_volumetric == true) {
+        res += ",\"volumetric\": true";
+    } else if (m_volumetric == false) {
+        res += ",\"volumetric\": false";
+    }
+
+    return res;
 }

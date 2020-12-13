@@ -3,7 +3,9 @@
 
 Mesh::Mesh(const std::vector<Vertex> &vertices,
            const std::vector<unsigned int> &indices,
-           bool willBeUpdated) : vertices(vertices), indices(indices), willBeUpdated (willBeUpdated)
+           const std::string &filePath,
+           bool willBeUpdated) : vertices(vertices), indices(indices), willBeUpdated (willBeUpdated),
+                                    filePath(filePath)
 {
     //vao care retine starea meshei
     glGenVertexArrays(1, &vaoHandle);
@@ -178,7 +180,7 @@ Mesh *Mesh::getCircle(float x, float y, float radius, int numOfTriangles){
     }
 
 
-    return new Mesh(vertices, indices);
+    return new Mesh(vertices, indices, "__circle__");
 }
 
 Mesh *Mesh::getStar(float x, float y, float radius, int numOfTriangles){
@@ -257,9 +259,13 @@ Mesh* Mesh::loadObject(const std::string &filename){
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
+    if (filename.compare("__circle__") == 0) {
+        return Mesh::getCircle(0, 0, 2.0f, 30);
+    }
+
     loadObjectIntoVectors(filename, vertices, indices);
 
-    return new Mesh(vertices, indices);
+    return new Mesh(vertices, indices, filename);
 }
 
 void Mesh::loadObjectIntoVectors(const std::string &filePath,

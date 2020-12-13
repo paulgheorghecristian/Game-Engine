@@ -21,19 +21,19 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     float nearPlane, farPlane, fov, aspectRatio;
     unsigned int maxFps;
     Display * display = NULL;
-    std::string configFile (gameDocument["ConfigFilePath"].GetString());
-    float gravity = gameDocument.HasMember("gravity") ? gameDocument["gravity"].GetFloat() : 9.8f;
+    m_configFilePath = std::string(gameDocument["ConfigFilePath"].GetString());
+    m_gravity = gameDocument.HasMember("gravity") ? gameDocument["gravity"].GetFloat() : 9.8f;
 
-    jsonBody = FileUtils::loadFileInString (configFile);
+    jsonBody = FileUtils::loadFileInString (m_configFilePath);
     parseResult = configDocument.Parse (jsonBody.c_str ());
     if (!parseResult) {
-        std::cout << "Config file (" << configFile << ") parse error: " << rapidjson::GetParseError_En (parseResult.Code ()) << " (" << parseResult.Offset() << ")" << std::endl;;
+        std::cout << "Config file (" << m_configFilePath << ") parse error: " << rapidjson::GetParseError_En (parseResult.Code ()) << " (" << parseResult.Offset() << ")" << std::endl;
         exit (-1);
     }
 
     if (!configDocument.HasMember ("display") ||
         !configDocument.HasMember ("camera")) {
-        std::cout << "Incomplete config file: " << configFile << std::endl;
+        std::cout << "Incomplete config file: " << m_configFilePath << std::endl;
         exit (-1);
     }
 
@@ -59,7 +59,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     inputManager.setWarpMouse (this->warpMouse);
     SDL_ShowCursor(this->showMouse);
 
-    PhysicsMaster::init (gravity);
+    PhysicsMaster::init (m_gravity);
     RenderingMaster::init (display,
                            new Camera (glm::vec3(-500, 0, 0), 0, 0, 0),
                            glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane));
@@ -187,6 +187,7 @@ void EngineCore::input() {
     inputManager.update (RenderingMaster::getInstance()->getDisplay());
 
     if (inputManager.getKeyDown(SDLK_ESCAPE)) {
+        std::cout << dumpJson() << std::endl;;
         stop ();
     }
 
@@ -492,16 +493,31 @@ void EngineCore::loadLights(rapidjson::Document &gameDocument) {
         for (auto const &light : gameDocument["Lights"].GetArray()) {
             step++;
             std::cout << "Loading lights...%" << (float) step * 100 / numberOfLights << std::endl;
-            glm::vec3 position (0), rotation (0), scale (1);
+            glm::vec3 position(0), rotation(0), scale(1);
+            glm::quat rotation_quat(0,0,0,1);
+            Transform trans;
 
             if (light.HasMember("Transform")) {
                 position.x = light["Transform"]["position"].GetArray()[0].GetFloat();
                 position.y = light["Transform"]["position"].GetArray()[1].GetFloat();
                 position.z = light["Transform"]["position"].GetArray()[2].GetFloat();
 
-                rotation.x = light["Transform"]["rotation"].GetArray()[0].GetFloat();
-                rotation.y = light["Transform"]["rotation"].GetArray()[1].GetFloat();
-                rotation.z = light["Transform"]["rotation"].GetArray()[2].GetFloat();
+                trans.setPosition(position);
+
+                if (light["Transform"]["rotation"].GetArray().Size() == 3) {
+                    rotation.x = light["Transform"]["rotation"].GetArray()[0].GetFloat();
+                    rotation.y = light["Transform"]["rotation"].GetArray()[1].GetFloat();
+                    rotation.z = light["Transform"]["rotation"].GetArray()[2].GetFloat();
+
+                    trans.setRotation(rotation);
+                } else if (light["Transform"]["rotation"].GetArray().Size() == 4) {
+                    rotation_quat.x = light["Transform"]["rotation"].GetArray()[0].GetFloat();
+                    rotation_quat.y = light["Transform"]["rotation"].GetArray()[1].GetFloat();
+                    rotation_quat.z = light["Transform"]["rotation"].GetArray()[2].GetFloat();
+                    rotation_quat.w = light["Transform"]["rotation"].GetArray()[3].GetFloat();
+
+                    trans.setRotation(rotation_quat);
+                }
 
                 if (light["Transform"]["scale"].GetArray().Size() == 1) {
                     scale.x = light["Transform"]["scale"].GetArray()[0].GetFloat();
@@ -512,9 +528,10 @@ void EngineCore::loadLights(rapidjson::Document &gameDocument) {
                     scale.y = light["Transform"]["scale"].GetArray()[1].GetFloat();
                     scale.z = light["Transform"]["scale"].GetArray()[2].GetFloat();
                 }
+
+                trans.setScale(scale);
             }
             Light *newLight = NULL;
-            Transform trans(position, rotation, scale);
             glm::vec3 color(0,0,0);
             glm::vec3 lightDir(0,0,0);
             std::string type = "N/A"; //SPOT, POINT or DIR
@@ -564,22 +581,44 @@ void EngineCore::loadEntities(rapidjson::Document &gameDocument) {
         for (auto const &entity : gameDocument["Entities"].GetArray()) {
             step++;
             std::cout << "Loading entities...%" << (float) step * 100 / numberOfEntities << std::endl;
-            glm::vec3 position (0), rotation (0), scale (1);
+            glm::vec3 position(0), rotation(0), scale(1);
+            glm::quat rotation_quat(0,0,0,1);
+            Transform trans;
 
             if (entity.HasMember("Transform")) {
                 position.x = entity["Transform"]["position"].GetArray()[0].GetFloat();
                 position.y = entity["Transform"]["position"].GetArray()[1].GetFloat();
                 position.z = entity["Transform"]["position"].GetArray()[2].GetFloat();
 
-                rotation.x = entity["Transform"]["rotation"].GetArray()[0].GetFloat();
-                rotation.y = entity["Transform"]["rotation"].GetArray()[1].GetFloat();
-                rotation.z = entity["Transform"]["rotation"].GetArray()[2].GetFloat();
+                trans.setPosition(position);
 
-                scale.x = entity["Transform"]["scale"].GetArray()[0].GetFloat();
-                scale.y = entity["Transform"]["scale"].GetArray()[1].GetFloat();
-                scale.z = entity["Transform"]["scale"].GetArray()[2].GetFloat();
+                if (entity["Transform"]["rotation"].GetArray().Size() == 3) {
+                    rotation.x = entity["Transform"]["rotation"].GetArray()[0].GetFloat();
+                    rotation.y = entity["Transform"]["rotation"].GetArray()[1].GetFloat();
+                    rotation.z = entity["Transform"]["rotation"].GetArray()[2].GetFloat();
+
+                    trans.setRotation(rotation);
+                } else if (entity["Transform"]["rotation"].GetArray().Size() == 4) {
+                    rotation_quat.x = entity["Transform"]["rotation"].GetArray()[0].GetFloat();
+                    rotation_quat.y = entity["Transform"]["rotation"].GetArray()[1].GetFloat();
+                    rotation_quat.z = entity["Transform"]["rotation"].GetArray()[2].GetFloat();
+                    rotation_quat.w = entity["Transform"]["rotation"].GetArray()[3].GetFloat();
+
+                    trans.setRotation(rotation_quat);
+                }
+
+                if (entity["Transform"]["scale"].GetArray().Size() == 1) {
+                    scale.x = entity["Transform"]["scale"].GetArray()[0].GetFloat();
+                    scale.y = entity["Transform"]["scale"].GetArray()[0].GetFloat();
+                    scale.z = entity["Transform"]["scale"].GetArray()[0].GetFloat();
+                } else {
+                    scale.x = entity["Transform"]["scale"].GetArray()[0].GetFloat();
+                    scale.y = entity["Transform"]["scale"].GetArray()[1].GetFloat();
+                    scale.z = entity["Transform"]["scale"].GetArray()[2].GetFloat();
+                }
+
+                trans.setScale(scale);
             }
-            Transform trans(position, rotation, scale);
             Entity *newEntity = new Entity ();
             newEntity->setTransform (trans);
             if (entity.HasMember("Components")) {
@@ -609,6 +648,36 @@ void EngineCore::loadEntities(rapidjson::Document &gameDocument) {
 
     std::cout << "Number of entities: " << entities.size() << std::endl;
 }
+
+std::string EngineCore::dumpJson() {
+    std::vector<Light *> &lights = RenderingMaster::getInstance()->getLights();
+    std::string res("");
+
+    res += "{";
+    res += "\"ConfigFilePath\":\"" + m_configFilePath;
+    res += "\",\"gravity\":" + std::to_string(m_gravity);
+
+    res += ",\"Entities\":[";
+    for (auto& it: entities) {
+        res += "{";
+        res += it->jsonify();
+        res += "},";
+    }
+    res.pop_back();
+    res += "],";
+
+    res += "\"Lights\":[";
+    for (auto& it: lights) {
+        res += "{";
+        res += it->jsonify();
+        res += "},";
+    }
+    res.pop_back();
+    res += "]}";
+
+    return res;
+}
+
 
 EngineCore::~EngineCore() {
     for (auto entity : entities) {

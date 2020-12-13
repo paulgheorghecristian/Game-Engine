@@ -41,7 +41,7 @@ RenderComponent::RenderComponent(Mesh * mesh,
         result &= shader->updateUniform ("material.ambient", (void *) &this->material.getAmbient());
         result &= shader->updateUniform ("material.diffuse", (void *) &material.getDiffuse());
         result &= shader->updateUniform ("material.specular", (void *) &material.getSpecular());
-        result &= shader->updateUniform ("material.shininess", (void *) &material.getShininess());
+        result &= shader->updateUniform ("material.shininess", material.getShininess());
 
         result &= shader->updateUniform ("hasTexture", (void *) &hasTexture);
         result &= shader->updateUniform ("hasNormalMap", (void *) &hasNormalMap);
@@ -69,7 +69,7 @@ void RenderComponent::render (Shader *externShader) {
         result &= externShader->updateUniform ("material.ambient", (void *) &material.getAmbient());
         result &= externShader->updateUniform ("material.diffuse", (void *) &material.getDiffuse());
         result &= externShader->updateUniform ("material.specular", (void *) &material.getSpecular());
-        result &= externShader->updateUniform ("material.shininess", (void *) &material.getShininess());
+        result &= externShader->updateUniform ("material.shininess", material.getShininess());
 
         if (texture != NULL) {
             result &= externShader->updateUniform ("textureSampler", texture->getTextureUnit());
@@ -120,6 +120,42 @@ const unsigned int RenderComponent::getFlag() const {
 Shader *RenderComponent::getShader() {
     return shader;
 }
+
+std::string RenderComponent::jsonify() {
+    std::string res("");
+
+    if (mesh->getFilePath().size() == 0) {
+        return res;
+    }
+
+    glm::vec3 ambient = material.getAmbient();
+    glm::vec3 diffuse = material.getDiffuse();
+    glm::vec3 specular = material.getSpecular();
+    float shine = material.getShininess();
+
+    res += "\"RenderComponent\":{";
+    res += "\"Mesh\":\"" + mesh->getFilePath() + "\",";
+    if (texture != NULL) {
+        res += "\"Texture\":\"" + texture->getFilePath() + "\",";
+    }
+    if (normalMapTexture != NULL) {
+        res += "\"NormalMapTexture\":\"" + normalMapTexture->getFilePath() + "\",";
+    }
+    if (roughness != NULL) {
+        res += "\"RoughnessTexture\":\"" + roughness->getFilePath() + "\",";
+    }
+    res += "\"Material\":{";
+    res += "\"ambient\":[" + std::to_string(ambient.x) + ","
+            + std::to_string(ambient.y) + "," + std::to_string(ambient.z) + "],";
+    res += "\"diffuse\":[" + std::to_string(diffuse.x) + "," 
+            + std::to_string(diffuse.y) + "," + std::to_string(diffuse.z) + "],";
+    res += "\"specular\":[" + std::to_string(specular.x) + "," 
+            + std::to_string(specular.y) + "," + std::to_string(specular.z) + "],";
+    res += "\"shininess\":" + std::to_string(shine) + "}}";
+
+    return res;
+}
+
 
 RenderComponent::~RenderComponent()
 {

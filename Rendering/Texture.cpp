@@ -22,7 +22,7 @@ const static GLint internalFormat[][5] = {
 Texture::Texture(const std::string &textureFilename,
                  int textureUnit,
                  int numOfSubTxtsW,
-                 int numOfSubTxtsH)
+                 int numOfSubTxtsH) : filePath(textureFilename)
 {
     ErrorCode ec;
 
@@ -32,7 +32,7 @@ Texture::Texture(const std::string &textureFilename,
 
 Texture::Texture(GLuint textureId, int textureUnit,
                  int numOfSubTxtsW,
-                 int numOfSubTxtsH)
+                 int numOfSubTxtsH) : filePath("")
 {
     (void) init(textureId, textureUnit);
 }

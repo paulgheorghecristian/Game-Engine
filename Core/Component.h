@@ -17,6 +17,7 @@ class Component
         virtual void init();
         virtual void enable();
         virtual void disable();
+        virtual std::string jsonify();
         void setEntity (Entity *entity);
         Entity *getEntity ();
         virtual ~Component();

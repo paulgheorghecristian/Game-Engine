@@ -19,7 +19,7 @@ class Material
         void setSpecular (const glm::vec3 &specular);
         const glm::vec3 &getSpecular () const;
         void setShininess (float s);
-        const float &getShininess () const;
+        float getShininess () const;
 
         virtual ~Material();
 

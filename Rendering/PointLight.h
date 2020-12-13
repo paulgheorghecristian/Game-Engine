@@ -18,6 +18,8 @@ class PointLight : public Light
 
         static Shader &getLightAccumulationShader();
         static Mesh &getLightMesh();
+
+        virtual std::string jsonifyAttribs();
     protected:
 
     private:

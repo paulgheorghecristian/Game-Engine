@@ -167,6 +167,47 @@ void Light::input(Input &inputManager) {
     }
 }
 
+std::string Light::jsonify() {
+    glm::vec3 pos, scale;
+    glm::quat rot;
+    std::string res("");
+
+    pos = m_transform.getPosition();
+    rot = m_transform.getRotation();
+    scale = m_transform.getScale();
+
+    res += "\"Transform\":{";
+
+    res += "\"position\":[" + std::to_string(pos.x) + ","
+        + std::to_string(pos.y) + "," + std::to_string(pos.z) + "],";
+    res += "\"rotation\":[" + std::to_string(rot.x) + ","
+        + std::to_string(rot.y) + "," + std::to_string(rot.z) + "," + std::to_string(rot.w) + "],";
+    res += "\"scale\":[" + std::to_string(scale.x) + ","
+        + std::to_string(scale.y) + "," + std::to_string(scale.z) + "]";
+
+    res += "},";
+
+    res += "\"Attributes\":{";
+    res += jsonifyAttribs();
+    res += "}";
+
+    return res;
+}
+
+std::string Light::jsonifyAttribs() {
+    std::string res;
+
+    res += "\"color\":[" + std::to_string(m_lightColor.x) + ","
+        + std::to_string(m_lightColor.y) + "," + std::to_string(m_lightColor.z) + "]";
+    if (m_casts_shadow == true) {
+        res += ",\"cast_shadow\": true";
+    } else if (m_casts_shadow == false) {
+        res += ",\"cast_shadow\": false";
+    }
+
+    return res;
+}
+
 Light::~Light()
 {
 

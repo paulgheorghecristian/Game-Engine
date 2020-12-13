@@ -118,3 +118,12 @@ void PointLight::renderGUI() {
     }
     Light::renderGUI();
 }
+
+std::string PointLight::jsonifyAttribs() {
+    std::string res("");
+
+    res += Light::jsonifyAttribs();
+    res += ",\"type\": \"POINT\"";
+
+    return res;
+}

@@ -26,3 +26,7 @@ void Component::enable() {
 void Component::disable() {
     m_disabled = true;
 }
+
+std::string Component::jsonify() {
+    return std::string("");
+}

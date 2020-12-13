@@ -113,7 +113,7 @@ class RenderingMaster
 
         Texture *albedoTexture, *normalTexture, *lightAccumulationTexture;\
         Texture *roughnessTexture;
-        //Texture *blurredLightAccTexture;
+        Texture *blueNoiseTexture;
         Mesh *screenSizeRectangle;
 
         void computeStencilBufferForLight(Light *light);

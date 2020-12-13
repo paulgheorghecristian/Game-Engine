@@ -18,6 +18,9 @@ class GrabComponent : public Component
         void render();
         void init();
         const unsigned int getFlag() const;
+
+        std::string jsonify() override;
+
         virtual ~GrabComponent();
 
     protected:
