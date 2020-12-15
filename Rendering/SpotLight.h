@@ -29,6 +29,10 @@ class SpotLight : public Light
         float getCoef1() { return coef1; }
         float getCoef2() { return coef2; }
 
+        void setNumSamplePoints(int num) { numSamplePoints = num; }
+        void setCoef1(float coef) { coef1 = coef; }
+        void setCoef2(float coef) { coef2 = coef; }
+
         static Shader &getLightAccumulationShader();
         static Mesh &getLightMesh();
 

@@ -569,6 +569,38 @@ void EngineCore::loadLights(rapidjson::Document &gameDocument) {
                 newLight = new DirectionalLight(trans, color, lightDir, cast_shadow);
             }
 
+            if (light.HasMember("Attributes")) {
+                const auto &attribs = light["Attributes"].GetObject();
+
+                if (attribs.HasMember("diffuse_attenuation")) {
+                    newLight->setAttDiffuse(attribs["diffuse_attenuation"].GetArray()[0].GetFloat(),
+                                            attribs["diffuse_attenuation"].GetArray()[1].GetFloat(),
+                                            attribs["diffuse_attenuation"].GetArray()[2].GetFloat());
+                }
+
+                if (attribs.HasMember("specular_attenuation")) {
+                    newLight->setAttSpecular(attribs["specular_attenuation"].GetArray()[0].GetFloat(),
+                                            attribs["specular_attenuation"].GetArray()[1].GetFloat(),
+                                            attribs["specular_attenuation"].GetArray()[2].GetFloat());
+                }
+
+                if (type.compare("SPOT") == 0) {
+                    SpotLight *spot = dynamic_cast<SpotLight *>(newLight);
+
+                    if (spot != NULL) {
+                        if (attribs.HasMember("numSamplePoints")) {
+                            spot->setNumSamplePoints(attribs["numSamplePoints"].GetInt());
+                        }
+                        if (attribs.HasMember("coef1")) {
+                            spot->setCoef1(attribs["coef1"].GetFloat());
+                        }
+                        if (attribs.HasMember("coef2")) {
+                            spot->setCoef2(attribs["coef2"].GetFloat());
+                        }
+                    }
+                }
+            }
+
             RenderingMaster::getInstance()->addLightToScene(newLight);
         }
     }

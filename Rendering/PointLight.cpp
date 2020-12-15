@@ -28,7 +28,7 @@ PointLight::PointLight(const Transform &transform,
 {
     m_att_diffuse.x = 1.0f;
     m_att_diffuse.y = 0.01f;
-    m_att_diffuse.z = 0.019f;
+    m_att_diffuse.z = 0.01f;
 
     m_att_specular.x = 1.0f;
     m_att_specular.y = 0.01f;

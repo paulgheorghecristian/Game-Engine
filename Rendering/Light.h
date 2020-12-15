@@ -72,6 +72,9 @@ class Light
         inline const glm::vec3 &getAttDiffuse() { return m_att_diffuse; }
         inline const glm::vec3 &getAttSpecular() { return m_att_specular; }
 
+        inline void setAttDiffuse(float x, float y, float z) { m_att_diffuse.x = x; m_att_diffuse.y = y; m_att_diffuse.z = z;}
+        inline void setAttSpecular(float x, float y, float z) { m_att_specular.x = x; m_att_specular.y = y; m_att_specular.z = z;}
+
         std::string jsonify();
         virtual std::string jsonifyAttribs();
 

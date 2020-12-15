@@ -204,6 +204,10 @@ std::string Light::jsonifyAttribs() {
     } else if (m_casts_shadow == false) {
         res += ",\"cast_shadow\": false";
     }
+    res += ",\"diffuse_attenuation\":[" + std::to_string(m_att_diffuse.x) + ","
+        + std::to_string(m_att_diffuse.y) + "," + std::to_string(m_att_diffuse.z) + "]";
+    res += ",\"specular_attenuation\":[" + std::to_string(m_att_specular.x) + ","
+        + std::to_string(m_att_specular.y) + "," + std::to_string(m_att_specular.z) + "]";
 
     return res;
 }

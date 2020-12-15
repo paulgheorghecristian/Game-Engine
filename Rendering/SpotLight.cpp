@@ -30,11 +30,11 @@ SpotLight::SpotLight(const Transform &transform,
     coef1 = 0.5;
     coef2 = 0.1;
 
-    m_att_diffuse.x = 5.0f;
+    m_att_diffuse.x = 1.0f;
     m_att_diffuse.y = 0.01f;
-    m_att_diffuse.z = 0.04f;
+    m_att_diffuse.z = 0.01f;
 
-    m_att_specular.x = 5.0f;
+    m_att_specular.x = 1.0f;
     m_att_specular.y = 0.01f;
     m_att_specular.z = 0.01f;
 }
@@ -188,6 +188,9 @@ std::string SpotLight::jsonifyAttribs() {
     } else if (m_volumetric == false) {
         res += ",\"volumetric\": false";
     }
+    res += ",\"numSamplePoints\":" + std::to_string(numSamplePoints);
+    res += ",\"coef1\":" + std::to_string(coef1);
+    res += ",\"coef2\":" + std::to_string(coef2);
 
     return res;
 }
