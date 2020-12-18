@@ -42,6 +42,8 @@ ErrorCode Texture::init(const std::string &filename,
                        int numOfSubTxtsW,
                        int numOfSubTxtsH)
 {
+    stbi_set_flip_vertically_on_load(true);
+
     int width, height, chn;
 	unsigned char *data = stbi_load (filename.c_str(), &width, &height, &chn, 0);
 

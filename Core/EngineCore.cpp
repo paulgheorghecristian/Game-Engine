@@ -59,10 +59,10 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     inputManager.setWarpMouse (this->warpMouse);
     SDL_ShowCursor(this->showMouse);
 
-    PhysicsMaster::init (m_gravity);
-    RenderingMaster::init (display,
-                           new Camera (glm::vec3(-500, 0, 0), 0, 0, 0),
-                           glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane));
+    PhysicsMaster::init(m_gravity);
+    RenderingMaster::init(display,
+                            new Camera (glm::vec3(-500, 0, 0), 0, 0, 0),
+                            glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane));
 
 
     loadEntities(gameDocument);
@@ -73,13 +73,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     outputType = 5;
 
     RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
-    RenderingMaster::getInstance()->skyShader = new Shader("res/shaders/skyShader.json");
-    RenderingMaster::getInstance()->skyDomeEntity.addComponent(new RenderComponent(Mesh::getDome(10, 10),
-                                                   RenderingMaster::getInstance()->skyShader,
-                                                   NULL,
-                                                   NULL,
-                                                   NULL,
-                                                   Material(glm::vec3(0), glm::vec3(0), glm::vec3(0), 0)));
+    RenderingMaster::getInstance()->skyDomeEntity.addComponent(new RenderComponent(RenderingObject::loadObject("__dome__")));
     RenderingMaster::getInstance()->skyDomeEntity.setTransform(Transform(glm::vec3(0, -10, 0), glm::vec3(0), glm::vec3(100.0f)));
 
     fpsGUI = new BarGUI (glm::vec3(100, 100, 0),
@@ -202,22 +196,14 @@ void EngineCore::input() {
         RenderingMaster::getInstance()->rotateCameraY(inputManager.getMouseDelta().x * this->mouseRotationSpeed);
 
         if (inputManager.getMouse(1)) {
-            Transform transform (RenderingMaster::getInstance()->getCamera()->getPosition(),
-                                glm::vec3 (0),
-                                glm::vec3 (20));
+            Transform transform(RenderingMaster::getInstance()->getCamera()->getPosition(),
+                                glm::vec3(0),
+                                glm::vec3(20));
             Entity *newEntity = new Entity();
-            newEntity->setTransform (transform);
-            entities.push_back (newEntity->addComponent (new RenderComponent(Mesh::loadObject("res/models/cube4.obj"),
-                                                                                        (new Shader())->construct("res/shaders/example.json"),
-                                                                                        new Texture ("res/textures/158.JPG",0),
-                                                                                        new Texture ("res/textures/158_norm.JPG",1),
-                                                                                        NULL,
-                                                                                        Material (glm::vec3(1, 1, 1),
-                                                                                                    glm::vec3(0),
-                                                                                                    glm::vec3(0),
-                                                                                                    0.0f)))
-                                                        ->addComponent (new PhysicsComponent(PhysicsComponent::BoundingBodyType::CUBE,
-                                                                                            glm::vec3 (20),
+            newEntity->setTransform(transform);
+            entities.push_back(newEntity->addComponent(new RenderComponent(RenderingObject::loadObject("res/models/cube4.obj")))
+                                                        ->addComponent(new PhysicsComponent(PhysicsComponent::BoundingBodyType::CUBE,
+                                                                                            glm::vec3(20),
                                                                                             20.0f)));
         }
     }
@@ -265,15 +251,7 @@ void EngineCore::input() {
                                 glm::vec3(0));
         Entity *newEntity2 = new Entity();
         newEntity2->setTransform(transform2);
-        entities.push_back(newEntity2->addComponent(new RenderComponent(Mesh::getCircle(0, 0, 2.0f, 30),
-                                                                        NULL,
-                                                                        NULL,
-                                                                        NULL,
-                                                                        NULL,
-                                                                        Material (glm::vec3(0.98f, 0.85f, 0.85f),
-                                                                                    glm::vec3(0),
-                                                                                    glm::vec3(0),
-                                                                                    0.0f)))
+        entities.push_back(newEntity2->addComponent(new RenderComponent(RenderingObject::loadObject("__circle__")))
                                                     ->addComponent(new BillboardComponent())
                                                     ->addComponent(new GrabComponent(10.0f)));
     }
@@ -567,6 +545,8 @@ void EngineCore::loadLights(rapidjson::Document &gameDocument) {
                 newLight = new PointLight(trans, color);
             } else if (type.compare("DIR") == 0) {
                 newLight = new DirectionalLight(trans, color, lightDir, cast_shadow);
+            } else {
+                continue;
             }
 
             if (light.HasMember("Attributes")) {
@@ -664,20 +644,6 @@ void EngineCore::loadEntities(rapidjson::Document &gameDocument) {
         }
     }
 
-    Transform floorTransform(glm::vec3(0), glm::vec3(0, 0, 0), glm::vec3(5000.0f));
-    Entity *floor = new Entity();
-    floor->setTransform(floorTransform);
-    floor->addComponent(new RenderComponent(Mesh::getRectangleYUp(),
-                                            (new Shader())->construct("res/shaders/example.json"),
-                                            NULL,
-                                            NULL,
-                                            NULL,
-                                            Material(glm::vec3(0.5f),
-                                                     glm::vec3(1.0f),
-                                                     glm::vec3(1.0f),
-                                                     0.5f)));
-    entities.push_back(floor);
-
     std::cout << "Number of entities: " << entities.size() << std::endl;
 }
 
@@ -691,8 +657,13 @@ std::string EngineCore::dumpJson() {
 
     res += ",\"Entities\":[";
     for (auto& it: entities) {
+        std::string jsonRes = it->jsonify();
+
+        if (jsonRes.size() == 0) {
+            continue;
+        }
         res += "{";
-        res += it->jsonify();
+        res += jsonRes;
         res += "},";
     }
     res.pop_back();

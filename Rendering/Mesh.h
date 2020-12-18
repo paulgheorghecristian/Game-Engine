@@ -37,52 +37,54 @@ struct Vertex{
     Vertex(glm::vec3 positionCoords, glm::vec2 textureCoords) : Vertex(positionCoords, glm::vec3(0.0f, 1.0f, 0.0f), textureCoords){}
 };
 
+class RenderingObject;
+
 class Mesh
 {
     public:
-        Mesh (const std::vector<Vertex> &vertices,
+        Mesh(const std::vector<Vertex> &vertices,
               const std::vector<unsigned int> &indices,
-              const std::string &filePath = "",
+              bool prepare = true,
               bool willBeUpdated = false);
-        Mesh (bool willBeUpdated = false);
+        Mesh(bool prepare = true, bool willBeUpdated = true);
         GLuint getVao();
         void draw();
         GLsizei getNumberOfTriangles();
+
+        const std::vector<Vertex> &getVertices() { return m_vertices; }
+        const std::vector<unsigned int> &getIndices() { return m_indices; }
+
+        void prepareGPU();
+
         static Mesh *getRectangle();
-        static Mesh *loadObject(const std::string &filePath);
-        static void loadObjectIntoVectors(const std::string &filePath,
-                            std::vector<Vertex> &vertices, std::vector<unsigned int> &indices);
         static Mesh *getSurface(int, int);
         static Mesh *getCircle(float, float, float, int);
         static Mesh *getStar(float, float, float, int);
         static Mesh *getRectangleYUp();
         static Mesh *getArrowMesh();
         static Mesh *getDome(int widthPoints, int heightPoints);
-        void update (const std::vector<Vertex> &vertices,
-                     const std::vector<unsigned int> &indices);
+
         virtual ~Mesh();
 
-        inline const std::string &getFilePath() { return filePath; }
+        inline bool getIsGPUPrepared() { return m_isGPUPrepared; }
+
+        void update(const std::vector<Vertex> &vertices,
+                    const std::vector<unsigned int> &indices,
+                    bool willBeUpdated = false);
+
     protected:
     private:
         enum VBOs{
-            VERTEX, INDEX, NUM_VBOS
+            VERTEX = 0, INDEX, NUM_VBOS
         };
         GLuint vaoHandle;
         GLuint vboHandles[NUM_VBOS];
-        GLsizei numberOfTriangles;
-        std::vector<Vertex> vertices;
-        std::vector<unsigned int> indices;
-        bool willBeUpdated;
-        std::string filePath;
-
-        static float _stringToFloat(const std::string &source);
-        static unsigned int _stringToUint(const std::string &source);
-        static int _stringToInt(const std::string &source);
-        static void _stringTokenize(const std::string &source, std::vector<std::string> &tokens);
-        static void _faceTokenize(const std::string &source, std::vector<std::string> &tokens);
-
-        static void computeTangentAndBi(Vertex &v1, Vertex &v2, Vertex &v3);
+        
+        GLsizei m_numberOfTriangles;
+        std::vector<Vertex> m_vertices;
+        std::vector<unsigned int> m_indices;
+        bool m_willBeUpdated;
+        bool m_isGPUPrepared;
 };
 
 #endif // MESH_H

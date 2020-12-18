@@ -7,11 +7,12 @@
 #include "Component.h"
 #include "Texture.h"
 
+#include "RenderingObject.hpp"
+
 class RenderComponent : public Component
 {
     public:
-        RenderComponent(Mesh *mesh, Shader *shader, Texture *texture,
-                        Texture *normalMapTexture, Texture *roughness, const Material &material);
+        RenderComponent(RenderingObject &&renderingObject);
         void input(Input &inputManager);
         void update();
         void render();
@@ -25,10 +26,7 @@ class RenderComponent : public Component
     protected:
 
     private:
-        Mesh *mesh;
-        Shader *shader;
-        Texture *texture, *normalMapTexture, *roughness;
-        Material material;
+        RenderingObject renderingObject;
 };
 
 #endif // RENDERCOMPONENT_H

@@ -10,6 +10,7 @@
 #include "PointLight.h"
 #include "Common.h"
 #include "PhysicsMaster.h"
+#include "RenderingObject.hpp"
 
 #include <typeinfo>
 
@@ -17,11 +18,6 @@
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
 
-#include <typeinfo>
-
-#include "imgui.h"
-#include "imgui_impl_sdl.h"
-#include "imgui_impl_opengl3.h"
 
 RenderingMaster *RenderingMaster::m_instance = NULL;
 Shader RenderingMaster::simpleTextShader;
@@ -160,6 +156,12 @@ RenderingMaster::RenderingMaster(Display *display,
     for (int i = 0; i < GUIVarsEnum_int::NUM_VARS_i; i++) {
         data_i[i] = 0;
     }
+
+    SpotLight::setLightMesh(RenderingObject::loadObject("res/models/SpotLightMesh5.obj"));
+    PointLight::setLightMesh(RenderingObject::loadObject("res/models/lightsphere.obj"));
+
+    skyShader = new Shader("res/shaders/skyShader.json");
+    skyShader->updateUniform("projectionMatrix", (void *) &projectionMatrix);
 }
 
 RenderingMaster::~RenderingMaster()
@@ -429,7 +431,7 @@ void RenderingMaster::drawSky()
     glDepthMask(GL_FALSE);
     glDisable(GL_CULL_FACE);
 
-    skyDomeEntity.getComponent(Entity::Flags::RENDERABLE)->render();
+    dynamic_cast<RenderComponent *>(skyDomeEntity.getComponent(Entity::Flags::RENDERABLE))->render(skyShader);
 
     glDepthMask(GL_TRUE);
     glEnable(GL_CULL_FACE);

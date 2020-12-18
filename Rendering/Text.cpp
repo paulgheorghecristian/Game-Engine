@@ -8,16 +8,16 @@ Text::Text(Font &font,
            const glm::vec3 &color,
            const std::string &text,
            float size,
-           const glm::vec3 &rotation) : mesh (true),
-                                        currentString (text),
-                                        m_font (font),
-                                        position (position),
-                                        rotation (rotation),
-                                        color (color),
-                                        size (size),
-                                        modelMatrix (1.0)
+           const glm::vec3 &rotation) : mesh(true, true), // prepare and will be modified
+                                        currentString(text),
+                                        m_font(font),
+                                        position(position),
+                                        rotation(rotation),
+                                        color(color),
+                                        size(size),
+                                        modelMatrix(1.0)
 {
-    updateMesh (0);
+    updateMesh(0);
     computeModelMatrix ();
 }
 
@@ -65,7 +65,7 @@ void Text::updateMesh(bool dir){
     }
 
     if (vertices.size () != 0 && indices.size () != 0) {
-        mesh.update (vertices, indices);
+        mesh.update(vertices, indices);
     }
 }
 

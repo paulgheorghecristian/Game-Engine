@@ -88,11 +88,11 @@ void main() {
     float diffuseStrength = max (0.0, dotProduct);
     float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 250);
 
-    float a = rough, b = att_diffuse.y * 0.0001f, c = att_diffuse.z * 0.0001f;
-    float att = att_diffuse.x / (a + b*l + c * l * l);
+    float a = att_diffuse.x*0.001f, b = att_diffuse.y * 0.000001f, c = att_diffuse.z * 0.000001f;
+    float att = 1.0 / (a + b*l + c * l * l);
 
-    float a2 = (1.0f-rough),b2 = att_specular.y * 0.0001f, c2 = att_specular.z * 0.0001f;
-    float att2 = att_specular.x / (a2 + b2*l + c2 * l * l);
+    float a2 = att_specular.x*0.001f, b2 = att_specular.y * 0.000001f, c2 = att_specular.z * 0.000001f;
+    float att2 = 1.0 / (a2 + b2*l + c2 * l * l);
 
     float lenAtt = max(1.0 - (l / lightLength), 0.0);
 
@@ -101,7 +101,7 @@ void main() {
 
     outLight = diffuseLight;
     if (getLight) {
-        outLight += specularLight;
+        outLight += specularLight * rough;
     }
 
     outLight *= lightStrength;

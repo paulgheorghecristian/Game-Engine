@@ -1,5 +1,7 @@
 #include "ComponentFactory.h"
 
+#include "RenderingObject.hpp"
+
 std::function<void(bool start, Entity *entity)> ComponentFactory::y_90_rotation =
 [rot=float(0.0f)](bool start, Entity *entity) mutable {
     static float speed = 1.5f;
@@ -19,41 +21,57 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
     assert (itr->value.IsObject());
 
     if (strcmp (itr->name.GetString(), "RenderComponent") == 0) {
-        Mesh *mesh;
-        Shader *shader = NULL;
+        RenderingObject renderingObject;
         Texture *texture = NULL;
         Texture *normalMapTexture = NULL;
         Texture *roughness = NULL;
-        if (!itr->value.HasMember("Mesh") ||
-            !itr->value.HasMember("Material")) {
+
+        Material *material = NULL;
+
+        bool addMaterialsFromObj = true;
+
+        if (!itr->value.HasMember("Mesh")) {
             return NULL;
         }
 
-        mesh = Mesh::loadObject (itr->value["Mesh"].GetString());
-        if (itr->value.HasMember("Shader")) {
-            shader = new Shader ();
-            shader->construct (itr->value["Shader"].GetString());
+        if (itr->value.HasMember("Material")) {
+            addMaterialsFromObj = false;
+            material = new Material();
+
+            material->setAmbient(glm::vec3(itr->value["Material"]["ambient"].GetArray()[0].GetFloat(),
+                                        itr->value["Material"]["ambient"].GetArray()[1].GetFloat(),
+                                        itr->value["Material"]["ambient"].GetArray()[2].GetFloat()));
+
+            material->setDiffuse(glm::vec3(itr->value["Material"]["diffuse"].GetArray()[0].GetFloat(),
+                                        itr->value["Material"]["diffuse"].GetArray()[1].GetFloat(),
+                                        itr->value["Material"]["diffuse"].GetArray()[2].GetFloat()));
+
+            material->setSpecular(glm::vec3(itr->value["Material"]["specular"].GetArray()[0].GetFloat(),
+                                        itr->value["Material"]["specular"].GetArray()[1].GetFloat(),
+                                        itr->value["Material"]["specular"].GetArray()[2].GetFloat()));
+
+            material->setShininess(itr->value["Material"]["shininess"].GetFloat());
+
+            if (itr->value["Material"].HasMember("Texture")) {
+                texture = new Texture(itr->value["Material"]["Texture"].GetString(), 0);
+                material->setDiffuseTexture(texture);
+
+            }
+            if (itr->value["Material"].HasMember("NormalMapTexture")) {
+                normalMapTexture = new Texture (itr->value["Material"]["NormalMapTexture"].GetString(), 1);
+                material->setNormalTexture(normalMapTexture);
+            }
+            if (itr->value["Material"].HasMember("RoughnessTexture")) {
+                roughness = new Texture(itr->value["Material"]["RoughnessTexture"].GetString(), 2);
+                material->setRoughnessTexture(roughness);
+            }
         }
-        if (itr->value.HasMember("Texture")) {
-            texture = new Texture(itr->value["Texture"].GetString(), 0);
+
+        renderingObject = RenderingObject::loadObject(itr->value["Mesh"].GetString(), true, addMaterialsFromObj);
+        if (material != NULL) {
+            renderingObject.addMaterial(material);
         }
-        if (itr->value.HasMember("NormalMapTexture")) {
-            normalMapTexture = new Texture (itr->value["NormalMapTexture"].GetString(), 1);
-        }
-        if (itr->value.HasMember("RoughnessTexture")) {
-            roughness = new Texture(itr->value["RoughnessTexture"].GetString(), 2);
-        }
-        Material material(glm::vec3(itr->value["Material"]["ambient"].GetArray()[0].GetFloat(),
-                                      itr->value["Material"]["ambient"].GetArray()[1].GetFloat(),
-                                      itr->value["Material"]["ambient"].GetArray()[2].GetFloat()),
-                            glm::vec3(itr->value["Material"]["diffuse"].GetArray()[0].GetFloat(),
-                                      itr->value["Material"]["diffuse"].GetArray()[1].GetFloat(),
-                                      itr->value["Material"]["diffuse"].GetArray()[2].GetFloat()),
-                            glm::vec3(itr->value["Material"]["specular"].GetArray()[0].GetFloat(),
-                                      itr->value["Material"]["specular"].GetArray()[1].GetFloat(),
-                                      itr->value["Material"]["specular"].GetArray()[2].GetFloat()),
-                            itr->value["Material"]["shininess"].GetFloat());
-        return new RenderComponent (mesh, shader, texture, normalMapTexture, roughness, material);
+        return new RenderComponent(std::move(renderingObject));
     } else if (strcmp (itr->name.GetString(), "TempAnimationComponent") == 0) {
         glm::vec3 addPosition(0), addRotation(0), addScale(0);
         if (itr->value.HasMember("addPosition")) {
@@ -115,7 +133,7 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
     } else if (strcmp(itr->name.GetString(), "BillboardComponent") == 0) {
         return new BillboardComponent();
     } else if (strcmp(itr->name.GetString(), "InstanceRenderComponent") == 0) {
-        Shader *shader = NULL;
+        RenderingObject renderingObject;
         Texture *texture = NULL;
         Texture *normalMapTexture = NULL;
         Texture *roughness = NULL;
@@ -126,10 +144,7 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             return NULL;
         }
 
-        if (itr->value.HasMember("Shader")) {
-            shader = new Shader ();
-            shader->construct (itr->value["Shader"].GetString());
-        }
+        renderingObject = RenderingObject::loadObject(itr->value["Mesh"].GetString(), false);
         if (itr->value.HasMember("Texture")) {
             texture = new Texture(itr->value["Texture"].GetString(), 0);
         }
@@ -139,7 +154,7 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
         if (itr->value.HasMember("RoughnessTexture")) {
             roughness = new Texture(itr->value["RoughnessTexture"].GetString(), 2);
         }
-        Material material(glm::vec3(itr->value["Material"]["ambient"].GetArray()[0].GetFloat(),
+        Material material();/*glm::vec3(itr->value["Material"]["ambient"].GetArray()[0].GetFloat(),
                                       itr->value["Material"]["ambient"].GetArray()[1].GetFloat(),
                                       itr->value["Material"]["ambient"].GetArray()[2].GetFloat()),
                             glm::vec3(itr->value["Material"]["diffuse"].GetArray()[0].GetFloat(),
@@ -148,7 +163,7 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                             glm::vec3(itr->value["Material"]["specular"].GetArray()[0].GetFloat(),
                                       itr->value["Material"]["specular"].GetArray()[1].GetFloat(),
                                       itr->value["Material"]["specular"].GetArray()[2].GetFloat()),
-                            itr->value["Material"]["shininess"].GetFloat());
+                            itr->value["Material"]["shininess"].GetFloat());*/
         if (itr->value.HasMember("Transforms")) {
             for (auto const &posRotScale : itr->value["Transforms"].GetArray()) {
                 glm::vec3 position, rotation, scale;
@@ -169,9 +184,9 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                 positionsRotationsScales.push_back(scale);
             }
         }
-        return new InstanceRenderComponent(itr->value["Mesh"].GetString(), shader, texture,
+        return NULL; /*new InstanceRenderComponent(std::move(renderingObject), texture,
                                             normalMapTexture, roughness,
-                                            material, positionsRotationsScales);
+                                            material, positionsRotationsScales);*/
     } else {
         return NULL;
     }

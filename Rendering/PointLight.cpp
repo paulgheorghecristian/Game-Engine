@@ -8,6 +8,8 @@
 
 #define CUTOFF_OFFSET 50
 
+RenderingObject PointLight::g_lightMesh;
+
 Shader &PointLight::getLightAccumulationShader()
 {
     static Shader shader("res/shaders/lightAccCreatorPointLight.json");
@@ -15,24 +17,21 @@ Shader &PointLight::getLightAccumulationShader()
     return shader;
 }
 
-Mesh &PointLight::getLightMesh()
-{
-    static Mesh *mesh = Mesh::loadObject("res/models/lightsphere.obj");
-
-    return *mesh;
+void PointLight::setLightMesh(RenderingObject &&lightMesh) {
+    g_lightMesh = std::move(lightMesh);
 }
 
 PointLight::PointLight(const Transform &transform,
                        const glm::vec3 &color) : Light(transform, color, false, false, true)
                        /* for now it doesn't cast shadow */
 {
-    m_att_diffuse.x = 1.0f;
-    m_att_diffuse.y = 0.01f;
-    m_att_diffuse.z = 0.01f;
+    m_att_diffuse.x = 500.0f;
+    m_att_diffuse.y = 10.0f;
+    m_att_diffuse.z = 10.0f;
 
-    m_att_specular.x = 1.0f;
-    m_att_specular.y = 0.01f;
-    m_att_specular.z = 0.01f;
+    m_att_specular.x = 500.0f;
+    m_att_specular.y = 10.0f;
+    m_att_specular.z = 10.0f;
 }
 
 PointLight::~PointLight()
@@ -45,7 +44,7 @@ void PointLight::render(Shader &shader)
     shader.updateUniform("modelMatrix", (void *) &m_transform.getModelMatrix());
 
     shader.bind();
-    getLightMesh().draw();
+    g_lightMesh.getMeshes()[0]->draw();
     shader.unbind();
 }
 
@@ -62,7 +61,7 @@ void PointLight::render()
     shader.updateUniform("att_specular", (void *) &m_att_specular);
 
     shader.bind();
-    getLightMesh().draw();
+    g_lightMesh.getMeshes()[0]->draw();
     shader.unbind();
 }
 

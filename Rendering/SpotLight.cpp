@@ -8,6 +8,8 @@
 #define SHADOW_MAP_WIDTH 2048
 #define SHADOW_MAP_HEIGHT 2048
 
+RenderingObject SpotLight::g_lightMesh;
+
 SpotLight::SpotLight(const Transform &transform,
                      const glm::vec3 &color,
                      bool casts_shadow,
@@ -30,13 +32,13 @@ SpotLight::SpotLight(const Transform &transform,
     coef1 = 0.5;
     coef2 = 0.1;
 
-    m_att_diffuse.x = 1.0f;
-    m_att_diffuse.y = 0.01f;
-    m_att_diffuse.z = 0.01f;
+    m_att_diffuse.x = 500.0f;
+    m_att_diffuse.y = 10.0f;
+    m_att_diffuse.z = 10.0f;
 
-    m_att_specular.x = 1.0f;
-    m_att_specular.y = 0.01f;
-    m_att_specular.z = 0.01f;
+    m_att_specular.x = 500.0f;
+    m_att_specular.y = 10.0f;
+    m_att_specular.z = 10.0f;
 }
 
 SpotLight::~SpotLight()
@@ -49,7 +51,7 @@ void SpotLight::render(Shader &shader)
     shader.updateUniform("modelMatrix", (void *) &m_transform.getModelMatrix());
 
     shader.bind();
-    getLightMesh().draw();
+    g_lightMesh.getMeshes()[0]->draw();
     shader.unbind();
 }
 
@@ -74,7 +76,7 @@ void SpotLight::render()
     m_shadowMapTexture.use(0);
 
     shader.bind();
-    getLightMesh().draw();
+    g_lightMesh.getMeshes()[0]->draw();
     shader.unbind();
 }
 
@@ -85,11 +87,8 @@ Shader &SpotLight::getLightAccumulationShader()
     return shader;
 }
 
-Mesh &SpotLight::getLightMesh()
-{
-    static Mesh *mesh = Mesh::loadObject("res/models/SpotLightMesh5.obj");
-
-    return *mesh;
+void SpotLight::setLightMesh(RenderingObject &&lightMesh) {
+    g_lightMesh = std::move(lightMesh);
 }
 
 void SpotLight::recomputeShadowMapViewMatrix()

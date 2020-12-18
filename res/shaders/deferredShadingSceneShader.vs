@@ -10,7 +10,7 @@ uniform mat4 modelMatrix, viewMatrix, projectionMatrix;
 
 out vec3 eyeSpaceNormal;
 out vec2 textureCoords;
-flat out mat3 fromTangentToModelSpace;
+out mat3 fromTangentToModelSpace;
 
 void main(){
 	eyeSpaceNormal = (mat3(viewMatrix) * mat3(modelMatrix) * inNormal).xyz;
@@ -19,6 +19,11 @@ void main(){
 	vec3 normalizedNormal = inNormal;
 	vec3 normalizedTangent = inTangent;
 	vec3 normalizedBiTangent = inBiTangent;
+
+	// re-orthogonalize T with respect to N
+	vec3 T = normalize(inTangent - dot(inTangent, inNormal) * inNormal);
+	// then retrieve perpendicular vector B with the cross product of T and N
+	normalizedBiTangent = cross(normalizedNormal, T);
 
 	fromTangentToModelSpace = mat3 (normalizedTangent.x, normalizedTangent.y, normalizedTangent.z,
                                     normalizedBiTangent.x, normalizedBiTangent.y, normalizedBiTangent.z,

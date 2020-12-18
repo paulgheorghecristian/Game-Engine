@@ -2,6 +2,7 @@
 #define SPOTLIGHT_H
 
 #include "Light.h"
+#include "RenderingObject.hpp"
 
 class SpotLight : public Light
 {
@@ -34,7 +35,7 @@ class SpotLight : public Light
         void setCoef2(float coef) { coef2 = coef; }
 
         static Shader &getLightAccumulationShader();
-        static Mesh &getLightMesh();
+        static void setLightMesh(RenderingObject &&lightMesh);
 
         virtual std::string jsonifyAttribs();
 
@@ -47,6 +48,8 @@ class SpotLight : public Light
         int numSamplePoints;
         float coef1;
         float coef2;
+
+        static RenderingObject g_lightMesh;
 };
 
 #endif // SPOTLIGHT_H

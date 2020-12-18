@@ -2,6 +2,7 @@
 #define POINTLIGHT_H
 
 #include "Light.h"
+#include "RenderingObject.hpp"
 
 class PointLight : public Light
 {
@@ -17,12 +18,13 @@ class PointLight : public Light
         void prepareOpenGLForStencilPass() override;
 
         static Shader &getLightAccumulationShader();
-        static Mesh &getLightMesh();
+        static void setLightMesh(RenderingObject &&lightMesh);
 
         virtual std::string jsonifyAttribs();
     protected:
 
     private:
+        static RenderingObject g_lightMesh;
 };
 
 #endif // POINTLIGHT_H

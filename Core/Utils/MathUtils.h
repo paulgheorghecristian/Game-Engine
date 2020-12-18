@@ -30,8 +30,6 @@ class MathUtils
                                                        Frustum &outputCuboid,
                                                        glm::mat4 &projectionMatrix,
                                                        glm::mat4 &viewMatrix);
-        static void updateMeshFromCuboid (Mesh *mesh, const Frustum &cuboid);
-
     protected:
 
     private:

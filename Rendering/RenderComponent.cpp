@@ -1,53 +1,9 @@
 #include "RenderComponent.h"
 
-// TODO is it safe to import here?
-#include "RenderingMaster.h"
-
-RenderComponent::RenderComponent(Mesh * mesh,
-                                 Shader * shader,
-                                 Texture *texture,
-                                 Texture *normalMapTexture,
-                                 Texture *roughness,
-                                 const Material &material) : mesh (mesh),
-                                                             shader (shader),
-                                                             texture (texture),
-                                                             normalMapTexture (normalMapTexture),
-                                                             roughness(roughness),
-                                                             material (material) {
-
-    bool result = true;
+RenderComponent::RenderComponent(RenderingObject &&renderingObject) : renderingObject(std::move(renderingObject)) {
     bool hasTexture = false;
     bool hasNormalMap = false;
     bool hasRoughness = false;
-
-    if (shader != NULL) {
-        if (texture != NULL) {
-            result &= shader->updateUniform ("textureSampler", texture->getTextureUnit());
-            hasTexture = true;
-        }
-
-        if (normalMapTexture != NULL) {
-            result &= shader->updateUniform ("normalMapSampler", normalMapTexture->getTextureUnit());
-            hasNormalMap = true;
-        }
-
-        if (roughness != NULL) {
-            result &= shader->updateUniform ("roughnessSampler", roughness->getTextureUnit());
-            hasRoughness = true;
-        }
-
-        result &= shader->updateUniform ("projectionMatrix", (void *) &RenderingMaster::getInstance()->getProjectionMatrix());
-        result &= shader->updateUniform ("viewMatrix", (void *) &RenderingMaster::getInstance()->getCamera()->getViewMatrix());
-        result &= shader->updateUniform ("material.ambient", (void *) &this->material.getAmbient());
-        result &= shader->updateUniform ("material.diffuse", (void *) &material.getDiffuse());
-        result &= shader->updateUniform ("material.specular", (void *) &material.getSpecular());
-        result &= shader->updateUniform ("material.shininess", material.getShininess());
-
-        result &= shader->updateUniform ("hasTexture", (void *) &hasTexture);
-        result &= shader->updateUniform ("hasNormalMap", (void *) &hasNormalMap);
-        result &= shader->updateUniform ("hasRoughness", (void *) &hasRoughness);
-    }
-    //assert (result);
 }
 
 void RenderComponent::input(Input &inputManager) {
@@ -58,59 +14,66 @@ void RenderComponent::update() {
 
 }
 
-void RenderComponent::render (Shader *externShader) {
+void RenderComponent::render(Shader *externShader) {
     bool result = true;
 
-    if (externShader != this->shader) {
+    const std::vector<Mesh *> &m_meshes = renderingObject.getMeshes();
+    const std::vector<Material *> &m_materials = renderingObject.getMaterials();
+
+    result &= externShader->updateUniform ("modelMatrix", (void *) &_entity->getTransform().getModelMatrix());
+
+    for (unsigned int i = 0; i < m_meshes.size(); i++) {
         bool hasTexture = false;
         bool hasNormalMap = false;
         bool hasRoughness = false;
 
-        result &= externShader->updateUniform ("material.ambient", (void *) &material.getAmbient());
-        result &= externShader->updateUniform ("material.diffuse", (void *) &material.getDiffuse());
-        result &= externShader->updateUniform ("material.specular", (void *) &material.getSpecular());
-        result &= externShader->updateUniform ("material.shininess", material.getShininess());
+        result &= externShader->updateUniform ("material.ambient", (void *) &m_materials[i]->getAmbient());
+        result &= externShader->updateUniform ("material.diffuse", (void *) &m_materials[i]->getDiffuse());
+        result &= externShader->updateUniform ("material.specular", (void *) &m_materials[i]->getSpecular());
+        result &= externShader->updateUniform ("material.shininess", m_materials[i]->getShininess());
 
-        if (texture != NULL) {
-            result &= externShader->updateUniform ("textureSampler", texture->getTextureUnit());
+        if (m_materials[i]->getDiffuseTexture() != NULL) {
+            result &= externShader->updateUniform ("textureSampler", m_materials[i]->getDiffuseTexture()->getTextureUnit());
             hasTexture = true;
         }
 
-        if (normalMapTexture != NULL) {
-            result &= externShader->updateUniform ("normalMapSampler", normalMapTexture->getTextureUnit());
+        if (m_materials[i]->getNormalTexture() != NULL) {
+            result &= externShader->updateUniform ("normalMapSampler", m_materials[i]->getNormalTexture()->getTextureUnit());
             hasNormalMap = true;
         }
 
-        if (roughness != NULL) {
-            result &= externShader->updateUniform ("roughnessSampler", roughness->getTextureUnit());
+        if (m_materials[i]->getRoughnessTexture() != NULL) {
+            result &= externShader->updateUniform ("roughnessSampler", m_materials[i]->getRoughnessTexture()->getTextureUnit());
             hasRoughness = true;
         }
 
         result &= externShader->updateUniform ("hasTexture", (void *) &hasTexture);
         result &= externShader->updateUniform ("hasNormalMap", (void *) &hasNormalMap);
         result &= externShader->updateUniform ("hasRoughness", (void *) &hasRoughness);
-    }
 
-    result &= externShader->updateUniform ("modelMatrix", (void *) &_entity->getTransform().getModelMatrix());
+        if (m_materials[i]->getDiffuseTexture() != NULL) {
+            m_materials[i]->getDiffuseTexture()->use();
+        }
+        if (m_materials[i]->getNormalTexture() != NULL) {
+            m_materials[i]->getNormalTexture()->use();
+        }
+        if (m_materials[i]->getRoughnessTexture() != NULL) {
+            m_materials[i]->getRoughnessTexture()->use();
+        }
+        externShader->bind();
+        m_meshes[i]->draw();
 
-    externShader->bind ();
-    if (texture != NULL) {
-        texture->use();
+        bool addMat = renderingObject.getAddMaterials();
+        if (addMat == false) {
+            /* only 1 mesh is supported when not adding from mtl */
+            break;
+        }
     }
-    if (normalMapTexture != NULL) {
-        normalMapTexture->use();
-    }
-    if (roughness != NULL) {
-        roughness->use();
-    }
-    mesh->draw ();
-    externShader->unbind ();
+    externShader->unbind();
 
-    //assert (result);
 }
 
 void RenderComponent::render() {
-    render (this->shader);
 }
 
 const unsigned int RenderComponent::getFlag() const {
@@ -118,50 +81,51 @@ const unsigned int RenderComponent::getFlag() const {
 }
 
 Shader *RenderComponent::getShader() {
-    return shader;
+    return NULL;
 }
 
 std::string RenderComponent::jsonify() {
     std::string res("");
 
-    if (mesh->getFilePath().size() == 0) {
+    if (renderingObject.getFilePath().size() == 0) {
         return res;
     }
 
-    glm::vec3 ambient = material.getAmbient();
-    glm::vec3 diffuse = material.getDiffuse();
-    glm::vec3 specular = material.getSpecular();
-    float shine = material.getShininess();
-
     res += "\"RenderComponent\":{";
-    res += "\"Mesh\":\"" + mesh->getFilePath() + "\",";
-    if (texture != NULL) {
-        res += "\"Texture\":\"" + texture->getFilePath() + "\",";
+    res += "\"Mesh\":\"" + renderingObject.getFilePath() + "\"";
+
+    bool addMat = renderingObject.getAddMaterials();
+
+    if (addMat == false && renderingObject.getMaterials().size() > 0) {
+        res += ",\"Material\":{";
+        if ((renderingObject.getMaterials()[0])->getDiffuseTexture() != NULL) {
+          res += "\"Texture\":\"" + (renderingObject.getMaterials()[0])->getDiffuseTexture()->getFilePath() + "\",";
+        }
+        if ((renderingObject.getMaterials()[0])->getNormalTexture() != NULL) {
+            res += "\"NormalMapTexture\":\"" + (renderingObject.getMaterials()[0])->getNormalTexture()->getFilePath() + "\",";
+        }
+        if ((renderingObject.getMaterials()[0])->getRoughnessTexture() != NULL) {
+            res += "\"RoughnessTexture\":\"" + (renderingObject.getMaterials()[0])->getRoughnessTexture()->getFilePath() + "\",";
+        }
+        glm::vec3 ambient = (renderingObject.getMaterials()[0])->getAmbient();
+        glm::vec3 diffuse = (renderingObject.getMaterials()[0])->getDiffuse();
+        glm::vec3 specular = (renderingObject.getMaterials()[0])->getSpecular();
+        float shine = (renderingObject.getMaterials()[0])->getShininess();
+
+        res += "\"ambient\":[" + std::to_string(ambient.x) + ","
+                + std::to_string(ambient.y) + "," + std::to_string(ambient.z) + "],";
+        res += "\"diffuse\":[" + std::to_string(diffuse.x) + "," 
+                + std::to_string(diffuse.y) + "," + std::to_string(diffuse.z) + "],";
+        res += "\"specular\":[" + std::to_string(specular.x) + "," 
+                + std::to_string(specular.y) + "," + std::to_string(specular.z) + "],";
+        res += "\"shininess\":" + std::to_string(shine) + "}";
     }
-    if (normalMapTexture != NULL) {
-        res += "\"NormalMapTexture\":\"" + normalMapTexture->getFilePath() + "\",";
-    }
-    if (roughness != NULL) {
-        res += "\"RoughnessTexture\":\"" + roughness->getFilePath() + "\",";
-    }
-    res += "\"Material\":{";
-    res += "\"ambient\":[" + std::to_string(ambient.x) + ","
-            + std::to_string(ambient.y) + "," + std::to_string(ambient.z) + "],";
-    res += "\"diffuse\":[" + std::to_string(diffuse.x) + "," 
-            + std::to_string(diffuse.y) + "," + std::to_string(diffuse.z) + "],";
-    res += "\"specular\":[" + std::to_string(specular.x) + "," 
-            + std::to_string(specular.y) + "," + std::to_string(specular.z) + "],";
-    res += "\"shininess\":" + std::to_string(shine) + "}}";
+
+    res += "}";
 
     return res;
 }
 
-
 RenderComponent::~RenderComponent()
 {
-    delete shader;
-    delete mesh;
-    delete texture;
-    delete normalMapTexture;
-    delete roughness;
 }

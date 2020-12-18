@@ -1,52 +1,89 @@
 #include "Material.h"
 
-Material::Material(const glm::vec3 &ambient,
-                   const glm::vec3 &diffuse,
-                   const glm::vec3 &specular,
-                   float shininess) : ambient (ambient),
-                                            diffuse (diffuse),
-                                            specular (specular),
-                                            shininess (shininess) {
+Material::Material() {
+    m_ambient = glm::vec3(1.0f);
+    m_diffuse = glm::vec3(1.0f);
+    m_specular = glm::vec3(1.0f);
+    m_shininess = 1.0f;
 
+    m_diffuseTexture = NULL;
+    m_normalTexture  = NULL;
+    m_roughnessTexture = NULL;
 }
 
-Material::Material (const Material &material) {
-    ambient = material.getAmbient();
-    diffuse = material.getDiffuse();
-    specular = material.getSpecular();
-    shininess = material.getShininess();
+void Material::setAmbient(const glm::vec3 &ambient) {
+    this->m_ambient = ambient;
 }
 
-void Material::setAmbient (const glm::vec3 &ambient) {
-    this->ambient = ambient;
+const glm::vec3 &Material::getAmbient() const {
+    return m_ambient;
+}
+void Material::setDiffuse(const glm::vec3 &diffuse) {
+    this->m_diffuse = diffuse;
 }
 
-const glm::vec3 &Material::getAmbient () const {
-    return ambient;
-}
-void Material::setDiffuse (const glm::vec3 &diffuse) {
-    this->diffuse = diffuse;
+const glm::vec3 &Material::getDiffuse() const {
+    return m_diffuse;
 }
 
-const glm::vec3 &Material::getDiffuse () const {
-    return diffuse;
+void Material::setSpecular(const glm::vec3 &specular) {
+    this->m_specular = specular;
 }
 
-void Material::setSpecular (const glm::vec3 &specular) {
-    this->specular = specular;
+const glm::vec3 &Material::getSpecular() const {
+    return m_specular;
 }
 
-const glm::vec3 &Material::getSpecular () const {
-    return specular;
+void Material::setShininess(float s) {
+    this->m_shininess = s;
 }
 
-void Material::setShininess (float s) {
-    this->shininess = s;
+float Material::getShininess() const {
+    return m_shininess;
 }
 
-float Material::getShininess () const {
-    return shininess;
+Material &Material::operator=(Material &&otherMaterial) {
+    if (this != &otherMaterial) {
+        m_ambient = otherMaterial.m_ambient;
+        m_diffuse = otherMaterial.m_diffuse;
+        m_specular = otherMaterial.m_specular;
+        m_shininess = otherMaterial.m_shininess;
+
+        delete m_diffuseTexture;
+        delete m_normalTexture;
+        delete m_roughnessTexture;
+
+        m_diffuseTexture = otherMaterial.m_diffuseTexture;
+        m_normalTexture = otherMaterial.m_normalTexture;
+        m_roughnessTexture = otherMaterial.m_roughnessTexture;
+
+        otherMaterial.m_diffuseTexture = NULL;
+        otherMaterial.m_normalTexture = NULL;
+        otherMaterial.m_roughnessTexture = NULL;
+    }
+
+    return *this;
+}
+
+Material::Material(Material &&otherMaterial) {
+    m_ambient = otherMaterial.m_ambient;
+    m_diffuse = otherMaterial.m_diffuse;
+    m_specular = otherMaterial.m_specular;
+    m_shininess = otherMaterial.m_shininess;
+
+    delete m_diffuseTexture;
+    delete m_normalTexture;
+    delete m_roughnessTexture;
+
+    m_diffuseTexture = otherMaterial.m_diffuseTexture;
+    m_normalTexture = otherMaterial.m_normalTexture;
+    m_roughnessTexture = otherMaterial.m_roughnessTexture;
+
+    otherMaterial.m_diffuseTexture = NULL;
+    otherMaterial.m_normalTexture = NULL;
+    otherMaterial.m_roughnessTexture = NULL;
 }
 
 Material::~Material() {
+    //TODO delete textures
 }
