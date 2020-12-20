@@ -17,7 +17,7 @@ in vec2 textureCoordinates;
 
 void main(){
     if (!hasTexture) {
-        outColor = material.ambient;
+        outColor = material.diffuse;
     } else {
         outColor = texture (textureSampler, textureCoordinates).rgb;
     }

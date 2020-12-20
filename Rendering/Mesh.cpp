@@ -108,7 +108,7 @@ void Mesh::update(const std::vector<Vertex> &vertices,
 }
 
 // STATIC FUNCS FOR MESH CREATION
-Mesh* Mesh::getRectangle(){
+Mesh* Mesh::getRectangle() {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 

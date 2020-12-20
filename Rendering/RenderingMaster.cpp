@@ -83,6 +83,7 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("screenHeight", display->getHeight());
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("roughnessSampler", 3);
+    result &= DirectionalLight::getLightAccumulationShader().updateUniform("blueNoiseSampler", 4);
     assert(result);
 
     result &= PointLight::getLightAccumulationShader().updateUniform("eyeSpaceNormalSampler", 1);
@@ -359,6 +360,7 @@ void RenderingMaster::computeLightAccumulationBufferForLight(Light *light)
     normalTexture->use(1);
     depthTexture->use(2);
     roughnessTexture->use(3);
+    blueNoiseTexture->use(4);
 
     light->render();
 }

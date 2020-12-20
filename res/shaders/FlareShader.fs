@@ -32,5 +32,5 @@ void main(){
     }
 
     outColor.a = 0.4;
-    outColor.xyz = material.ambient;
+    outColor.xyz = material.diffuse;
 }

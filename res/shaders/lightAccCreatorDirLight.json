@@ -15,6 +15,7 @@
                     "dirLightProjMatrix" : "MAT4",
                     "dirLightViewMatrix" : "MAT4",
                     "cameraForwardVectorEyeSpace" : "VEC3",
-                    "cameraForwardVector" : "VEC3"
+                    "cameraForwardVector" : "VEC3",
+                    "blueNoiseSampler": "INT"
                  }
 }

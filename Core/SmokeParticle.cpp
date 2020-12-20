@@ -36,7 +36,8 @@ void SmokeParticle::update (double delta, Camera &camera) {
 
         instaScale.x += diffusionFactor * deltaF;
 
-        instaPosition = instaPosition + instaVelocity*deltaF + (glm::vec3(0, acceleration.y+instaScale.x*buoyancyFactor, 0))*(deltaF*deltaF/2.0f);
+        instaPosition = instaPosition + instaVelocity*deltaF +
+                        (glm::vec3(0, acceleration.y+instaScale.x*buoyancyFactor, 0))*(deltaF*deltaF/2.0f);
         instaVelocity = instaVelocity + acceleration*deltaF;
     } else {
         reset ();

@@ -8,6 +8,7 @@ uniform sampler2D dirLightDepthSampler;
 uniform sampler2D eyeSpaceNormalSampler;
 uniform sampler2D depthSampler;
 uniform sampler2D roughnessSampler;
+uniform sampler2D blueNoiseSampler;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 uniform vec3 cameraForwardVector;
@@ -21,14 +22,12 @@ const int PCFStrength = 2;
 const int PCFKernelSideSize = PCFStrength * 2 + 1;
 const int PCFStartingIndex = PCFKernelSideSize / 2;
 const int PCFKernelSize = PCFKernelSideSize * PCFKernelSideSize;
-const float depthMapTexelSize = 1.0f/2048.0f; /* TODO remove hardcode */
+const float depthMapTexelSize = 1.0f/4092.0f; /* TODO remove hardcode */
 
 /* TODO remove hardcode */
-const float maxDist = 300.0f;
+const float maxDist = 500.0f;
 
 flat in vec3 lightDirectionEyeSpace;
-
-const float fac = 0.5;
 
 void main() {
     vec3 view = vec3(viewRay.xy/-viewRay.z, -1.0);
@@ -55,7 +54,11 @@ void main() {
 
     for (int i = -PCFStartingIndex; i <= PCFStartingIndex; i++) {
         for (int j = -PCFStartingIndex; j <= PCFStartingIndex; j++) {
-            float currentDepth = texture (dirLightDepthSampler, dirLightNDCNormalized.xy + vec2(depthMapTexelSize*i, depthMapTexelSize*j)).x;
+            vec3 blueNoise = texture(blueNoiseSampler, texCoord).rgb;
+            vec2 offset = vec2(blueNoise.r, blueNoise.g);
+
+            float currentDepth = texture(dirLightDepthSampler, dirLightNDCNormalized.xy + vec2(depthMapTexelSize*i, depthMapTexelSize*j)-
+                                offset*0.0005f).x;
             float eyeZODepthMap = currentDepth;
 
             if (eyeZODepthMap < eyeZObjectDepth) {
@@ -68,18 +71,17 @@ void main() {
 
     vec3 roughness = texture(roughnessSampler, texCoord).rgb;
     float rough = ((roughness.r+roughness.g+roughness.b) / 3.0f);
-    float specFactor = max(0.0f,250.0f - 50.0f*rough);
 
     vec3 H = normalize(lightDirectionEyeSpace + (-cameraForwardVectorEyeSpace));
-    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), specFactor);
+    float specularStrength = pow (max (dot(H, eyeSpaceNormal), 0.0), 250.0f);
     getLight = dotProd > 0;
 
-    vec3 diffuseLight = lightIntensity * lightColor * (1.0f-rough);
-    vec3 specularLight = specularStrength * lightColor * rough;
+    vec3 diffuseLight = lightIntensity * lightColor;
+    vec3 specularLight = specularStrength * lightColor;
 
     outLight = diffuseLight;
     if (getLight)
-        outLight += specularLight;
+        outLight += specularLight * rough;
 
     outLight *= lightStrength;
 }

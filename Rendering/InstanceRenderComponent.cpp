@@ -1,74 +1,42 @@
 #include "InstanceRenderComponent.h"
 
-InstanceRenderComponent::InstanceRenderComponent(const std::string &objModelPath,
-                                                Shader *shader,
-                                                Texture *texture,
-                                                Texture *normalMapTexture,
-                                                Texture *roughness,
-                                                const Material &material,
+#include "Shader.h"
+
+InstanceRenderComponent::InstanceRenderComponent(RenderingObject &&renderingObject,
                                                 const std::vector<glm::vec3>& positionsRotationsScales) :
-                                                shader(shader),
-                                                texture(texture),
-                                                normalMapTexture(normalMapTexture),
-                                                roughness(roughness),
-                                                material(material),
-                                                numOfInstances(positionsRotationsScales.size() / 3),
-                                                m_positionsRotationsScales(positionsRotationsScales),
-                                                m_objModelPath(objModelPath) {
+                                                m_renderingObject(std::move(renderingObject)),
+                                                m_numOfInstances(positionsRotationsScales.size() / 3),
+                                                m_positionsRotationsScales(positionsRotationsScales) {
 
-    bool result = true;
-    bool hasTexture = false;
-    bool hasNormalMap = false;
-    bool hasRoughness = false;
+    const std::size_t numMeshes = m_renderingObject.getMeshes().size();
 
-    if (shader != NULL) {
-        if (texture != NULL) {
-            result &= shader->updateUniform ("textureSampler", texture->getTextureUnit());
-            hasTexture = true;
-        }
+    m_numberOfTriangles = new unsigned int[numMeshes];
+    vaoHandles = new GLuint[numMeshes];
 
-        if (normalMapTexture != NULL) {
-            result &= shader->updateUniform ("normalMapSampler", normalMapTexture->getTextureUnit());
-            hasNormalMap = true;
-        }
-
-        if (roughness != NULL) {
-            result &= shader->updateUniform ("roughnessSampler", roughness->getTextureUnit());
-            hasRoughness = true;
-        }
-
-        result &= shader->updateUniform ("projectionMatrix", (void *) &RenderingMaster::getInstance()->getProjectionMatrix());
-        result &= shader->updateUniform ("viewMatrix", (void *) &RenderingMaster::getInstance()->getCamera()->getViewMatrix());
-        result &= shader->updateUniform ("material.ambient", (void *) &this->material.getAmbient());
-        result &= shader->updateUniform ("material.diffuse", (void *) &material.getDiffuse());
-        result &= shader->updateUniform ("material.specular", (void *) &material.getSpecular());
-        result &= shader->updateUniform ("material.shininess", material.getShininess());
-
-        result &= shader->updateUniform ("hasTexture", (void *) &hasTexture);
-        result &= shader->updateUniform ("hasNormalMap", (void *) &hasNormalMap);
-        result &= shader->updateUniform ("hasRoughness", (void *) &hasRoughness);
+    vboHandles = new GLuint *[numMeshes];
+    for (std::size_t i = 0; i < numMeshes; i++) {
+        vboHandles[i] = new GLuint[NUM_VBOS];
     }
 
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
-
-    Mesh::loadObjectIntoVectors(objModelPath, vertices, indices);
-
-    numberOfTriangles = indices.size();
-
-    matricesBuffer = new float[numOfInstances * NUM_OF_BYTES_PER_INSTANCE / sizeof(float)];
+    matricesBuffer = new float[m_numOfInstances * NUM_OF_BYTES_PER_INSTANCE / sizeof(float)];
     fillBufferWithModelMatrices(positionsRotationsScales);
-
-    glGenVertexArrays(1, &vaoHandle);
-    glBindVertexArray(vaoHandle);
-
-    createVboHandle(vertices, indices);
     GLuint modelMatricesVbo = createModelMatricesVbo();
 
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    //assert (result);
+    glGenVertexArrays(numMeshes, vaoHandles);
+
+    for (std::size_t i = 0; i < numMeshes; i++) {
+        glBindVertexArray(vaoHandles[i]);
+
+        m_numberOfTriangles[i] = (m_renderingObject.getMeshes()[i])->getIndices().size();
+        createVboHandle(i,
+                        (m_renderingObject.getMeshes()[i])->getVertices(),
+                        (m_renderingObject.getMeshes()[i])->getIndices());
+
+        setAttribsForMatricesVbo(modelMatricesVbo);
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
 }
 
 void InstanceRenderComponent::input(Input &inputManager) {
@@ -82,64 +50,68 @@ void InstanceRenderComponent::update() {
 void InstanceRenderComponent::render(Shader *externShader) {
     bool result = true;
 
-    if (externShader != this->shader) {
+    const std::vector<Mesh *> &m_meshes = m_renderingObject.getMeshes();
+    const std::vector<Material *> &m_materials = m_renderingObject.getMaterials();
+
+    for (unsigned int i = 0; i < m_meshes.size(); i++) {
         bool hasTexture = false;
         bool hasNormalMap = false;
         bool hasRoughness = false;
 
-        result &= externShader->updateUniform ("material.ambient", (void *) &material.getAmbient());
-        result &= externShader->updateUniform ("material.diffuse", (void *) &material.getDiffuse());
-        result &= externShader->updateUniform ("material.specular", (void *) &material.getSpecular());
-        result &= externShader->updateUniform ("material.shininess", material.getShininess());
+        result &= externShader->updateUniform ("material.ambient", (void *) &m_materials[i]->getAmbient());
+        result &= externShader->updateUniform ("material.diffuse", (void *) &m_materials[i]->getDiffuse());
+        result &= externShader->updateUniform ("material.specular", (void *) &m_materials[i]->getSpecular());
+        result &= externShader->updateUniform ("material.shininess", m_materials[i]->getShininess());
 
-        if (texture != NULL) {
-            result &= externShader->updateUniform ("textureSampler", texture->getTextureUnit());
+        if (m_materials[i]->getDiffuseTexture() != NULL) {
+            result &= externShader->updateUniform ("textureSampler", m_materials[i]->getDiffuseTexture()->getTextureUnit());
             hasTexture = true;
         }
 
-        if (normalMapTexture != NULL) {
-            result &= externShader->updateUniform ("normalMapSampler", normalMapTexture->getTextureUnit());
+        if (m_materials[i]->getNormalTexture() != NULL) {
+            result &= externShader->updateUniform ("normalMapSampler", m_materials[i]->getNormalTexture()->getTextureUnit());
             hasNormalMap = true;
         }
 
-        if (roughness != NULL) {
-            result &= externShader->updateUniform ("roughnessSampler", roughness->getTextureUnit());
+        if (m_materials[i]->getRoughnessTexture() != NULL) {
+            result &= externShader->updateUniform ("roughnessSampler", m_materials[i]->getRoughnessTexture()->getTextureUnit());
             hasRoughness = true;
         }
 
         result &= externShader->updateUniform ("hasTexture", (void *) &hasTexture);
         result &= externShader->updateUniform ("hasNormalMap", (void *) &hasNormalMap);
         result &= externShader->updateUniform ("hasRoughness", (void *) &hasRoughness);
-    }
 
-    externShader->bind ();
-    if (texture != NULL) {
-        texture->use();
-    }
-    if (normalMapTexture != NULL) {
-        normalMapTexture->use();
-    }
-    if (roughness != NULL) {
-        roughness->use();
-    }
-    glBindVertexArray(vaoHandle);
-    glDrawElementsInstanced(GL_TRIANGLES, numberOfTriangles, GL_UNSIGNED_INT, 0, numOfInstances);
-    glBindVertexArray(0);
+        if (m_materials[i]->getDiffuseTexture() != NULL) {
+            m_materials[i]->getDiffuseTexture()->use();
+        }
+        if (m_materials[i]->getNormalTexture() != NULL) {
+            m_materials[i]->getNormalTexture()->use();
+        }
+        if (m_materials[i]->getRoughnessTexture() != NULL) {
+            m_materials[i]->getRoughnessTexture()->use();
+        }
+        externShader->bind();
+        glBindVertexArray(vaoHandles[i]);
+        glDrawElementsInstanced(GL_TRIANGLES, m_numberOfTriangles[i], GL_UNSIGNED_INT, 0, m_numOfInstances);
+        glBindVertexArray(0);
+
+        bool addMat = m_renderingObject.getAddMaterials();
+        if (addMat == false) {
+            /* only 1 mesh is supported when not adding from mtl */
+            break;
+        }
+    }    
     externShader->unbind();
 
     //assert (result);
 }
 
 void InstanceRenderComponent::render() {
-    render(this->shader);
 }
 
 const unsigned int InstanceRenderComponent::getFlag() const {
     return Entity::Flags::INSTANCE_RENDERABLE;
-}
-
-Shader *InstanceRenderComponent::getShader() {
-    return shader;
 }
 
 void InstanceRenderComponent::fillBufferWithModelMatrices(const std::vector<glm::vec3>&
@@ -179,7 +151,17 @@ GLuint InstanceRenderComponent::createModelMatricesVbo() {
 
     glGenBuffers(1, &vboHandle);
     glBindBuffer(GL_ARRAY_BUFFER, vboHandle);
-    glBufferData(GL_ARRAY_BUFFER, NUM_OF_BYTES_PER_INSTANCE * numOfInstances, (void *) matricesBuffer, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, NUM_OF_BYTES_PER_INSTANCE * m_numOfInstances, (void *) matricesBuffer, GL_STATIC_DRAW);
+
+    setAttribsForMatricesVbo(vboHandle);
+
+    delete matricesBuffer;
+    matricesBuffer = NULL;
+    return vboHandle;
+}
+
+void InstanceRenderComponent::setAttribsForMatricesVbo(GLuint vboHandle) {
+    glBindBuffer(GL_ARRAY_BUFFER, vboHandle);
 
     glEnableVertexAttribArray(5);
     glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, NUM_OF_BYTES_PER_INSTANCE, (void *) 0);
@@ -196,21 +178,18 @@ GLuint InstanceRenderComponent::createModelMatricesVbo() {
     glEnableVertexAttribArray(8);
     glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, NUM_OF_BYTES_PER_INSTANCE, (void *) (12*4));
     glVertexAttribDivisor(8, 1);
-
-    delete matricesBuffer;
-    matricesBuffer = NULL;
-    return vboHandle;
 }
 
-void InstanceRenderComponent::createVboHandle(const std::vector<Vertex>& vertices,
+void InstanceRenderComponent::createVboHandle(std::size_t idx,
+                                            const std::vector<Vertex>& vertices,
                                             const std::vector<unsigned int>& indices) {
-    glGenBuffers(NUM_VBOS, vboHandles);
+    glGenBuffers(NUM_VBOS, vboHandles[idx]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vboHandles[VERTEX]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*vertices.size(), &vertices[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, vboHandles[idx][VERTEX]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboHandles[INDEX]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*indices.size(), &indices[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboHandles[idx][INDEX]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) 0);
@@ -227,35 +206,41 @@ void InstanceRenderComponent::createVboHandle(const std::vector<Vertex>& vertice
 std::string InstanceRenderComponent::jsonify() {
     std::string res("");
 
-    if (m_objModelPath.size() == 0) {
+    if (m_renderingObject.getFilePath().size() == 0) {
         return res;
     }
 
-    glm::vec3 ambient = material.getAmbient();
-    glm::vec3 diffuse = material.getDiffuse();
-    glm::vec3 specular = material.getSpecular();
-    float shine = material.getShininess();
+    bool addMat = m_renderingObject.getAddMaterials();
 
     res += "\"InstanceRenderComponent\":{";
-    res += "\"Mesh\":\"" + m_objModelPath + "\",";
-    if (texture != NULL) {
-        res += "\"Texture\":\"" + texture->getFilePath() + "\",";
+    res += "\"Mesh\":\"" + m_renderingObject.getFilePath() + "\"";   
+
+    if (addMat == false && m_renderingObject.getMaterials().size() > 0) {
+        res += ",\"Material\":{";
+        if ((m_renderingObject.getMaterials()[0])->getDiffuseTexture() != NULL) {
+          res += "\"Texture\":\"" + (m_renderingObject.getMaterials()[0])->getDiffuseTexture()->getFilePath() + "\",";
+        }
+        if ((m_renderingObject.getMaterials()[0])->getNormalTexture() != NULL) {
+            res += "\"NormalMapTexture\":\"" + (m_renderingObject.getMaterials()[0])->getNormalTexture()->getFilePath() + "\",";
+        }
+        if ((m_renderingObject.getMaterials()[0])->getRoughnessTexture() != NULL) {
+            res += "\"RoughnessTexture\":\"" + (m_renderingObject.getMaterials()[0])->getRoughnessTexture()->getFilePath() + "\",";
+        }
+        glm::vec3 ambient = (m_renderingObject.getMaterials()[0])->getAmbient();
+        glm::vec3 diffuse = (m_renderingObject.getMaterials()[0])->getDiffuse();
+        glm::vec3 specular = (m_renderingObject.getMaterials()[0])->getSpecular();
+        float shine = (m_renderingObject.getMaterials()[0])->getShininess();
+
+        res += "\"ambient\":[" + std::to_string(ambient.x) + ","
+                + std::to_string(ambient.y) + "," + std::to_string(ambient.z) + "],";
+        res += "\"diffuse\":[" + std::to_string(diffuse.x) + "," 
+                + std::to_string(diffuse.y) + "," + std::to_string(diffuse.z) + "],";
+        res += "\"specular\":[" + std::to_string(specular.x) + "," 
+                + std::to_string(specular.y) + "," + std::to_string(specular.z) + "],";
+        res += "\"shininess\":" + std::to_string(shine) + "}";
     }
-    if (normalMapTexture != NULL) {
-        res += "\"NormalMapTexture\":\"" + normalMapTexture->getFilePath() + "\",";
-    }
-    if (roughness != NULL) {
-        res += "\"RoughnessTexture\":\"" + roughness->getFilePath() + "\",";
-    }
-    res += "\"Material\":{";
-    res += "\"ambient\":[" + std::to_string(ambient.x) + ","
-            + std::to_string(ambient.y) + "," + std::to_string(ambient.z) + "],";
-    res += "\"diffuse\":[" + std::to_string(diffuse.x) + "," 
-            + std::to_string(diffuse.y) + "," + std::to_string(diffuse.z) + "],";
-    res += "\"specular\":[" + std::to_string(specular.x) + "," 
-            + std::to_string(specular.y) + "," + std::to_string(specular.z) + "],";
-    res += "\"shininess\":" + std::to_string(shine) + "},";
-    res += "\"Transforms\":[";
+
+    res += ",\"Transforms\":[";
 
     for (unsigned int i = 0; i < m_positionsRotationsScales.size(); i+=3) {
         res += "{";
@@ -274,8 +259,13 @@ std::string InstanceRenderComponent::jsonify() {
 }
 
 InstanceRenderComponent::~InstanceRenderComponent() {
-    delete shader;
-    delete texture;
-    delete normalMapTexture;
-    delete roughness;
+        delete[] m_numberOfTriangles;
+
+        glDeleteVertexArrays(m_renderingObject.getMeshes().size(), vaoHandles);
+        delete[] vaoHandles;
+        for (std::size_t i = 0; i < m_renderingObject.getMeshes().size(); i++) {
+            glDeleteBuffers(NUM_VBOS, vboHandles[i]);
+            delete[] vboHandles[i];
+        }
+        delete[] vboHandles;
 }

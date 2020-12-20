@@ -27,7 +27,8 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     jsonBody = FileUtils::loadFileInString (m_configFilePath);
     parseResult = configDocument.Parse (jsonBody.c_str ());
     if (!parseResult) {
-        std::cout << "Config file (" << m_configFilePath << ") parse error: " << rapidjson::GetParseError_En (parseResult.Code ()) << " (" << parseResult.Offset() << ")" << std::endl;
+        std::cout << "Config file (" << m_configFilePath << ") parse error: " <<
+        rapidjson::GetParseError_En (parseResult.Code ()) << " (" << parseResult.Offset() << ")" << std::endl;
         exit (-1);
     }
 
@@ -207,7 +208,7 @@ void EngineCore::input() {
                                                                                             20.0f)));
         }
     }
-    /*
+
     if (inputManager.getKeyDown(SDLK_1)) {
         outputType = 1;
     }
@@ -237,7 +238,7 @@ void EngineCore::input() {
     }
     if (inputManager.getKeyDown(SDLK_0)) {
         outputType = 10;
-    }*/
+    }
 
     if (inputManager.getKeyDown (SDLK_q)) {
         glm::vec3 cameraPosition = RenderingMaster::getInstance()->getCamera()->getPosition();
@@ -269,6 +270,7 @@ void EngineCore::input() {
         RenderingMaster::getInstance()->volumetricLightShader.reload();
         SpotLight::getLightAccumulationShader().reload();
         PointLight::getLightAccumulationShader().reload();
+        DirectionalLight::getLightAccumulationShader().reload();
 
         //RenderingMaster::getInstance()->resetLights();
         RenderingMaster::getInstance()->smokeRenderer->getRenderingShader().reload();

@@ -22,18 +22,15 @@ uniform mat4 viewMatrix;
 
 in vec3 eyeSpaceNormal;
 in vec2 textureCoords;
-flat in mat3 fromTangentToModelSpace;
-flat in mat4 frag_modelMatrix;
+in mat3 fromTangentToModelSpace;
+in mat4 frag_modelMatrix;
 
 void main(){
-
     if (hasTexture){
-        vec2 tran_tc = textureCoords;
-        tran_tc.y = 1.0 - tran_tc.y;
-        vec3 color = texture (textureSampler, tran_tc).rgb;
-        outColor = vec4 (color * material.ambient, 1.0);
+        vec3 color = texture (textureSampler, textureCoords).rgb;
+        outColor = vec4 (color * material.diffuse, 1.0);
     } else {
-        outColor = vec4 (material.ambient, 1.0);
+        outColor = vec4 (material.diffuse, 1.0);
     }
 
     int frontCond = -(1 - int(gl_FrontFacing)*2);
@@ -41,9 +38,7 @@ void main(){
     if (!hasNormalMap) {
         outEyeSpaceNormal = (normalize(eyeSpaceNormal * frontCond) + vec3(1)) * 0.5;
 	} else {
-        vec2 tran_tc = textureCoords;
-        tran_tc.y = 1.0 - tran_tc.y;
-        vec3 normalMapNormal = texture (normalMapSampler, tran_tc).xyz;
+        vec3 normalMapNormal = texture (normalMapSampler, textureCoords).xyz;
         normalMapNormal = normalMapNormal * 2.0 - 1.0;
 
         outEyeSpaceNormal = (normalize(mat3(viewMatrix) * mat3(frag_modelMatrix) * fromTangentToModelSpace * normalMapNormal * frontCond) + vec3(1.0)) * 0.5;
@@ -52,8 +47,6 @@ void main(){
 	if (!hasRoughness) {
         outRoughness = vec3(0.5);
 	} else {
-        vec2 tran_tc = textureCoords;
-        tran_tc.y = 1.0 - tran_tc.y;
-        outRoughness = texture(roughnessSampler, tran_tc).xyz;
+        outRoughness = texture(roughnessSampler, textureCoords).xyz;
 	}
 }
