@@ -6,6 +6,8 @@
                     "material.specular" : "VEC3",
                     "material.diffuse" : "VEC3",
                     "material.shininess" : "FLOAT",
+                    "material.normalMapStrength": "FLOAT",
+                    "material.isBlackAlpha" : "BOOL",
                     "modelMatrix" : "MAT4",
                     "viewMatrix" : "MAT4",
                     "projectionMatrix" : "MAT4",

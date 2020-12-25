@@ -9,6 +9,8 @@ struct Material {
     vec3 diffuse;
     vec3 specular;
     float shininess;
+    float normalMapStrength;
+    bool isBlackAlpha;
 };
 
 uniform sampler2D textureSampler;
@@ -27,6 +29,8 @@ in mat3 fromTangentToModelSpace;
 void main(){
     if (hasTexture){
         vec3 color = texture (textureSampler, textureCoords).rgb;
+        if (material.isBlackAlpha == true && (color.r+color.g+color.b)/3.0f <= 0.1f)
+            discard;
         outColor = vec4 (color * material.diffuse, 1.0);
     } else {
         outColor = vec4 (material.diffuse, 1.0);
@@ -39,6 +43,7 @@ void main(){
 	} else {
         vec3 normalMapNormal = texture (normalMapSampler, textureCoords).xyz;
         normalMapNormal = normalMapNormal * 2.0 - 1.0;
+        normalMapNormal.xy *= material.normalMapStrength;
 
         outEyeSpaceNormal = (normalize(mat3(viewMatrix) * mat3(modelMatrix) * fromTangentToModelSpace * normalMapNormal * frontCond) + vec3(1.0)) * 0.5;
 	}
