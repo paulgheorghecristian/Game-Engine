@@ -75,6 +75,7 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= SpotLight::getLightAccumulationShader().updateUniform("screenHeight", display->getHeight());
     result &= SpotLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= SpotLight::getLightAccumulationShader().updateUniform("roughnessSampler", 3);
+    result &= SpotLight::getLightAccumulationShader().updateUniform("blueNoiseSampler", 4);
     assert (result);
 
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("dirLightDepthSampler", 0);
