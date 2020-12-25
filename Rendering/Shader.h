@@ -33,6 +33,7 @@ class Shader : public MemoryPoolInterface<Shader>
         bool updateUniform(const std::string &name, void * data);
         bool updateUniform(const std::string &name, int data);
         bool updateUniform(const std::string &name, float data);
+        bool updateUniform(const std::string &name, bool data);
 
         inline const std::string &getShaderPath() { return shaderPath; }
 

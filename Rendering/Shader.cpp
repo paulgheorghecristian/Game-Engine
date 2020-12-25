@@ -201,6 +201,19 @@ bool Shader::updateUniform (const std::string &name, float data) {
     }
 }
 
+bool Shader::updateUniform (const std::string &name, bool data) {
+    ShaderUniform *uniform = uniforms[name];
+
+    if (uniform != NULL) {
+        assert (uniform->getUniformType() == UNIFORM_BOOLEAN);
+        uniform->updateUniform(&data);
+        return true;
+    } else {
+        //assert(false);
+        return false;
+    }
+}
+
 GLuint Shader::getUniformLocation(const std::string &name) {
     return glGetUniformLocation (program, name.c_str ());
 }

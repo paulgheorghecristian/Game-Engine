@@ -390,6 +390,7 @@ void RenderingMaster::createLightAccumulationBuffer()
 
 void RenderingMaster::beginCreateDepthTextureForLight(Light *light)
 {
+    glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
     light->getShadowMapFrameBuffer().bindAllRenderTargets();
 

@@ -48,7 +48,9 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                                         itr->value["Material"]["specular"].GetArray()[2].GetFloat()));
 
             material->setShininess(itr->value["Material"]["shininess"].GetFloat());
-
+            if (itr->value["Material"].HasMember("normalMapStrength")) {
+                material->setNormalMapStrength(itr->value["Material"]["normalMapStrength"].GetFloat());
+            }
             if (itr->value["Material"].HasMember("Texture")) {
                 texture = new Texture(itr->value["Material"]["Texture"].GetString(), 0);
                 material->setDiffuseTexture(texture);
@@ -157,6 +159,9 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                                         itr->value["Material"]["specular"].GetArray()[2].GetFloat()));
 
             material->setShininess(itr->value["Material"]["shininess"].GetFloat());
+            if (itr->value["Material"].HasMember("normalMapStrength")) {
+                material->setNormalMapStrength(itr->value["Material"]["normalMapStrength"].GetFloat());
+            }
 
             if (itr->value["Material"].HasMember("Texture")) {
                 texture = new Texture(itr->value["Material"]["Texture"].GetString(), 0);

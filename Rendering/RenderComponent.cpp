@@ -31,6 +31,8 @@ void RenderComponent::render(Shader *externShader) {
         result &= externShader->updateUniform ("material.diffuse", (void *) &m_materials[i]->getDiffuse());
         result &= externShader->updateUniform ("material.specular", (void *) &m_materials[i]->getSpecular());
         result &= externShader->updateUniform ("material.shininess", m_materials[i]->getShininess());
+        result &= externShader->updateUniform ("material.normalMapStrength", m_materials[i]->getNormalMapStrength());
+        result &= externShader->updateUniform ("material.isBlackAlpha", m_materials[i]->getIsBlackAlpha());
 
         if (m_materials[i]->getDiffuseTexture() != NULL) {
             result &= externShader->updateUniform ("textureSampler", m_materials[i]->getDiffuseTexture()->getTextureUnit());
@@ -61,7 +63,13 @@ void RenderComponent::render(Shader *externShader) {
             m_materials[i]->getRoughnessTexture()->use();
         }
         externShader->bind();
+        if (m_materials[i]->getDisableCulling() == true) {
+            glDisable(GL_CULL_FACE);
+        }
         m_meshes[i]->draw();
+        if (m_materials[i]->getDisableCulling() == true) {
+            glEnable(GL_CULL_FACE);
+        }
 
         bool addMat = renderingObject.getAddMaterials();
         if (addMat == false) {
@@ -111,6 +119,9 @@ std::string RenderComponent::jsonify() {
         glm::vec3 diffuse = (renderingObject.getMaterials()[0])->getDiffuse();
         glm::vec3 specular = (renderingObject.getMaterials()[0])->getSpecular();
         float shine = (renderingObject.getMaterials()[0])->getShininess();
+        float normalMapStrength = (renderingObject.getMaterials()[0])->getNormalMapStrength();
+        bool isBlackAlpha = (renderingObject.getMaterials()[0])->getIsBlackAlpha();
+        bool disableCulling = (renderingObject.getMaterials()[0])->getDisableCulling();
 
         res += "\"ambient\":[" + std::to_string(ambient.x) + ","
                 + std::to_string(ambient.y) + "," + std::to_string(ambient.z) + "],";
@@ -118,6 +129,13 @@ std::string RenderComponent::jsonify() {
                 + std::to_string(diffuse.y) + "," + std::to_string(diffuse.z) + "],";
         res += "\"specular\":[" + std::to_string(specular.x) + "," 
                 + std::to_string(specular.y) + "," + std::to_string(specular.z) + "],";
+        if ((renderingObject.getMaterials()[0])->getNormalTexture() != NULL) {
+            res += "\"normalMapStrength\":" + std::to_string(normalMapStrength) + ",";
+        }
+        if ((renderingObject.getMaterials()[0])->getDiffuseTexture() != NULL) {
+            res += "\"isBlackAlpha\":" + isBlackAlpha ? "true,":"false,";
+            res += "\"disableCulling\":" + disableCulling ? "true":"false";
+        }
         res += "\"shininess\":" + std::to_string(shine) + "}";
     }
 

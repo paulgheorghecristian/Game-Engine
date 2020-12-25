@@ -26,6 +26,13 @@ class Material
         const glm::vec3 &getSpecular () const;
         void setShininess(float s);
         float getShininess() const;
+        void setNormalMapStrength(float s);
+        float getNormalMapStrength() const;
+
+        void setIsBlackAlpha(bool s);
+        bool getIsBlackAlpha() const;
+        void setDisableCulling(bool s);
+        bool getDisableCulling() const;
 
         void setDiffuseTexture(Texture *texture) { m_diffuseTexture = texture; }
         void setNormalTexture(Texture *texture) { m_normalTexture = texture; }
@@ -41,7 +48,9 @@ class Material
 
     private:
         glm::vec3 m_ambient, m_diffuse, m_specular;
-        float m_shininess;
+        float m_shininess, m_normalMapStrength;
+
+        bool m_isBlackAlpha, m_disableCulling;
 
         Texture *m_diffuseTexture;
         Texture *m_normalTexture;

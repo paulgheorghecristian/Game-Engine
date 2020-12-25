@@ -20,7 +20,7 @@ DirectionalLight::DirectionalLight(const Transform &transform,
     Frustum frustum;
 
     /* TODO remove hardcode */
-    MathUtils::calculateFrustum(RenderingMaster::getInstance()->getCamera(), 0.1f, 500.0f, 75.0f, 1.0f, frustum);
+    MathUtils::calculateFrustum(RenderingMaster::getInstance()->getCamera(), 5.0f, 500.0f, 75.0f, 1.0f, frustum);
     MathUtils::calculateFrustumSurroundingCuboid(RenderingMaster::getInstance()->getCamera(),
                                                  frustum,
                                                  m_lightDirection,
@@ -83,7 +83,7 @@ void DirectionalLight::recomputeShadowMapViewMatrix()
     Frustum frustum;
 
     /* TODO remove hardcode */
-    MathUtils::calculateFrustum(RenderingMaster::getInstance()->getCamera(), 0.1f, 500.0f, 75.0f, 1.0f, frustum);
+    MathUtils::calculateFrustum(RenderingMaster::getInstance()->getCamera(), 5.0f, 500.0f, 75.0f, 1.0f, frustum);
     MathUtils::calculateFrustumSurroundingCuboid(RenderingMaster::getInstance()->getCamera(),
                                                  frustum,
                                                  m_lightDirection,

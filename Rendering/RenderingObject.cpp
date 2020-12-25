@@ -179,6 +179,16 @@ Mesh *RenderingObject::processAssimpMesh(aiMesh *mesh, const aiScene *scene,
             material->GetTexture(aiTextureType_DIFFUSE, 0, &str);
             _material->setDiffuseTexture(new Texture(str.C_Str(), 0));
 
+            bool isBlackAlpha = false;
+            if (aiReturn_SUCCESS == material->Get(AI_MATKEY_ISBLACKALPHA, isBlackAlpha)) {
+                _material->setIsBlackAlpha(isBlackAlpha);
+            }
+
+            bool disableCulling = false;
+            if (aiReturn_SUCCESS == material->Get(AI_MATKEY_DISABLECULLING, disableCulling)) {
+                _material->setDisableCulling(disableCulling);
+            }
+
             break; // one diffuse texture for now
         }
 
@@ -188,12 +198,17 @@ Mesh *RenderingObject::processAssimpMesh(aiMesh *mesh, const aiScene *scene,
             material->GetTexture(aiTextureType_HEIGHT , 0, &str);
             _material->setNormalTexture(new Texture(str.C_Str(), 1));
 
+            float bumpScaling = 1.0f;
+            if (aiReturn_SUCCESS == material->Get(AI_MATKEY_NORMALMAPSTRENGTH, bumpScaling)) {
+                _material->setNormalMapStrength(bumpScaling);
+            }
+
             break; // one normal texture for now
         }
 
-        for (unsigned int i = 0; i < material->GetTextureCount(aiTextureType_SHININESS); i++) {
+        for (unsigned int i = 0; i < material->GetTextureCount(aiTextureType_SPECULAR); i++) {
             aiString str;
-            material->GetTexture(aiTextureType_SHININESS, 0, &str);
+            material->GetTexture(aiTextureType_SPECULAR, 0, &str);
             _material->setRoughnessTexture(new Texture(str.C_Str(), 2));
 
             break; // one roughness texture for now

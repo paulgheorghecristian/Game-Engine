@@ -1,14 +1,20 @@
 #include "Material.h"
 
+#include "Texture.h"
+
 Material::Material() {
     m_ambient = glm::vec3(1.0f);
     m_diffuse = glm::vec3(1.0f);
     m_specular = glm::vec3(1.0f);
     m_shininess = 1.0f;
+    m_normalMapStrength = 1.0f;
 
     m_diffuseTexture = NULL;
     m_normalTexture  = NULL;
     m_roughnessTexture = NULL;
+
+    m_isBlackAlpha = false;
+    m_disableCulling = false;
 }
 
 void Material::setAmbient(const glm::vec3 &ambient) {
@@ -40,6 +46,30 @@ void Material::setShininess(float s) {
 
 float Material::getShininess() const {
     return m_shininess;
+}
+
+void Material::setNormalMapStrength(float s) {
+    m_normalMapStrength = s;
+}
+
+float Material::getNormalMapStrength() const {
+    return m_normalMapStrength;
+}
+
+void Material::setIsBlackAlpha(bool s) {
+    m_isBlackAlpha = s;
+}
+
+bool Material::getIsBlackAlpha() const {
+    return m_isBlackAlpha;
+}
+
+void Material::setDisableCulling(bool s) {
+    m_disableCulling = s;
+}
+
+bool Material::getDisableCulling() const {
+    return m_disableCulling;
 }
 
 Material &Material::operator=(Material &&otherMaterial) {

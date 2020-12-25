@@ -62,6 +62,8 @@ void InstanceRenderComponent::render(Shader *externShader) {
         result &= externShader->updateUniform ("material.diffuse", (void *) &m_materials[i]->getDiffuse());
         result &= externShader->updateUniform ("material.specular", (void *) &m_materials[i]->getSpecular());
         result &= externShader->updateUniform ("material.shininess", m_materials[i]->getShininess());
+        result &= externShader->updateUniform ("material.normalMapStrength", m_materials[i]->getNormalMapStrength());
+        result &= externShader->updateUniform ("material.isBlackAlpha", m_materials[i]->getIsBlackAlpha());
 
         if (m_materials[i]->getDiffuseTexture() != NULL) {
             result &= externShader->updateUniform ("textureSampler", m_materials[i]->getDiffuseTexture()->getTextureUnit());
@@ -92,10 +94,15 @@ void InstanceRenderComponent::render(Shader *externShader) {
             m_materials[i]->getRoughnessTexture()->use();
         }
         externShader->bind();
+        if (m_materials[i]->getDisableCulling() == true) {
+            glDisable(GL_CULL_FACE);
+        }
         glBindVertexArray(vaoHandles[i]);
         glDrawElementsInstanced(GL_TRIANGLES, m_numberOfTriangles[i], GL_UNSIGNED_INT, 0, m_numOfInstances);
         glBindVertexArray(0);
-
+        if (m_materials[i]->getDisableCulling() == true) {
+            glEnable(GL_CULL_FACE);
+        }
         bool addMat = m_renderingObject.getAddMaterials();
         if (addMat == false) {
             /* only 1 mesh is supported when not adding from mtl */
@@ -230,6 +237,9 @@ std::string InstanceRenderComponent::jsonify() {
         glm::vec3 diffuse = (m_renderingObject.getMaterials()[0])->getDiffuse();
         glm::vec3 specular = (m_renderingObject.getMaterials()[0])->getSpecular();
         float shine = (m_renderingObject.getMaterials()[0])->getShininess();
+        float normalMapStrength = (m_renderingObject.getMaterials()[0])->getNormalMapStrength();
+        bool isBlackAlpha = (m_renderingObject.getMaterials()[0])->getIsBlackAlpha();
+        bool disableCulling = (m_renderingObject.getMaterials()[0])->getDisableCulling();
 
         res += "\"ambient\":[" + std::to_string(ambient.x) + ","
                 + std::to_string(ambient.y) + "," + std::to_string(ambient.z) + "],";
@@ -237,6 +247,13 @@ std::string InstanceRenderComponent::jsonify() {
                 + std::to_string(diffuse.y) + "," + std::to_string(diffuse.z) + "],";
         res += "\"specular\":[" + std::to_string(specular.x) + "," 
                 + std::to_string(specular.y) + "," + std::to_string(specular.z) + "],";
+        if ((m_renderingObject.getMaterials()[0])->getNormalTexture() != NULL) {
+            res += "\"normalMapStrength\":" + std::to_string(normalMapStrength) + ",";
+        }
+        if ((m_renderingObject.getMaterials()[0])->getDiffuseTexture() != NULL) {
+            res += "\"isBlackAlpha\":" + isBlackAlpha ? "true,":"false,";
+            res += "\"disableCulling\":" + disableCulling ? "true":"false";
+        }
         res += "\"shininess\":" + std::to_string(shine) + "}";
     }
 
