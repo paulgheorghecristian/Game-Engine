@@ -14,9 +14,9 @@ void PostProcess::init (int width, int height, std::string &&shaderJsonFile) {
     float pixelHeight = 1.0f / height;
 
     postProcessShader.construct (std::forward<std::string>(shaderJsonFile));
-    result &= postProcessShader.updateUniform ("pixelWidth", (void *) &pixelWidth);
-    result &= postProcessShader.updateUniform ("pixelHeight", (void *) &pixelHeight);
-    result &= postProcessShader.updateUniform ("textureSampler", (void *) &textureSamplerUniform);
+    result &= postProcessShader.updateUniform ("pixelWidth", pixelWidth);
+    result &= postProcessShader.updateUniform ("pixelHeight", pixelHeight);
+    result &= postProcessShader.updateUniform ("textureSampler", textureSamplerUniform);
 
     if (renderingQuad == NULL) {
         renderingQuad = Mesh::getRectangle();

@@ -26,10 +26,11 @@ RenderingMaster::RenderingMaster(Display *display,
                                  Camera *camera,
                                  glm::mat4 projectionMatrix) :  particleForwardRenderFramebuffer (display->getWidth()/2, display->getHeight()/2, 1),
                                                                 particlesRTTexture (particleForwardRenderFramebuffer.getRenderTargets ()[0], 6),
-                                                                volumetricLightFB (display->getWidth()/2, display->getHeight()/2, 1),
+                                                                volumetricLightFB (display->getWidth()/4, display->getHeight()/4, 1),
                                                                 volumetricLightTxt (volumetricLightFB.getRenderTargets()[0], 9),
                                                                 spotLightFlares(display->getWidth(), display->getHeight(), 1),
-                                                                spotLightFlaresTxt(spotLightFlares.getRenderTargets()[0], 10)
+                                                                spotLightFlaresTxt(spotLightFlares.getRenderTargets()[0], 10),
+                                                                fxaaFrameBuffer(display->getWidth(), display->getHeight(), 1)
 {
     int albedoTextureUnit = 0, normalTextureUnit = 1, lightAccumulationTextureUnit = 2;
     int depthTextureUnit = 3, outputType = 1, blurredLightAccUnit = 4, spotLightDepthMapUnit = 5;
@@ -117,6 +118,10 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= flareShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     assert(result);
 
+    lastStageShader.construct("res/shaders/finalStage.json");
+    result &= deferredShading_BufferCombinationShader.updateUniform("colorSampler", 0);
+    assert(result);
+
     albedoTexture = new Texture (gBuffer.getColorTexture(), albedoTextureUnit);
     normalTexture = new Texture (gBuffer.getNormalTexture(), normalTextureUnit);
     lightAccumulationTexture = new Texture (gBuffer.getLightAccumulationTexture(), lightAccumulationTextureUnit);
@@ -137,6 +142,10 @@ RenderingMaster::RenderingMaster(Display *display,
     flarePostProcess->getShader().updateUniform("lensFlareColorSampler", 1);
     lensFlareColorTxt = new Texture("res/textures/lenscolor.bmp", 1);
     blueNoiseTexture = new Texture("res/textures/BlueNoise64Tiled.png", 2);
+
+    fxaaPostProcess = new PostProcess(display->getWidth(), display->getHeight(),
+                                        fxaaFrameBuffer.getRenderTargets()[0],
+                                        "res/shaders/fxaa.json");
 
     screenSizeRectangle = Mesh::getRectangle();
 
@@ -273,6 +282,8 @@ void RenderingMaster::drawDeferredShadingBuffers()
     flarePostProcess->bind();
     flarePostProcess->process({lensFlareColorTxt});
 
+    //START FXAA
+    fxaaFrameBuffer.bindSingleRenderTarget(0);
     deferredShading_BufferCombinationShader.bind();
 
     albedoTexture->use();
@@ -280,9 +291,6 @@ void RenderingMaster::drawDeferredShadingBuffers()
     lightAccumulationTexture->use();
     depthTexture->use();
     roughnessTexture->use(12);
-#if 0
-    blurredLightAccTexture->use();
-#endif
     particlesRTTexture.use ();
     for (Light *light : lights) {
         light->getShadowMapTexture().use(8);
@@ -295,6 +303,16 @@ void RenderingMaster::drawDeferredShadingBuffers()
     screenSizeRectangle->draw();
 
     deferredShading_BufferCombinationShader.unbind();
+    fxaaFrameBuffer.unbind();
+    //END FXAA
+
+    fxaaPostProcess->bind();
+    fxaaPostProcess->process();
+
+    lastStageShader.bind();
+    fxaaPostProcess->getResultingTexture().use(0);
+    screenSizeRectangle->draw();
+    lastStageShader.unbind();
 }
 
 void RenderingMaster::update() {

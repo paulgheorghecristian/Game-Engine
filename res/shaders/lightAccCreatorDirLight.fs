@@ -18,11 +18,11 @@ uniform mat4 dirLightProjMatrix, dirLightViewMatrix;
 
 in vec3 viewRay;
 
-const int PCFStrength = 2;
+const int PCFStrength = 1;
 const int PCFKernelSideSize = PCFStrength * 2 + 1;
 const int PCFStartingIndex = PCFKernelSideSize / 2;
 const int PCFKernelSize = PCFKernelSideSize * PCFKernelSideSize;
-const float depthMapTexelSize = 1.0f/4092.0f; /* TODO remove hardcode */
+const float depthMapTexelSize = 1.0f/4096.0f; /* TODO remove hardcode */
 
 /* TODO remove hardcode */
 const float maxDist = 500.0f;

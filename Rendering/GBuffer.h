@@ -28,11 +28,12 @@ class GBuffer
     private:
         unsigned int width, height;
         GLuint frameBufferObject;
-		GLuint textureNormal;
-		GLuint textureColor;
-		GLuint textureLightAccumulation;
-		GLuint textureDepth;
-		GLuint textureRoughness;
+        GLuint textureNormal;
+        GLuint textureColor;
+        GLuint textureLightAccumulation;
+        GLuint textureDepth;
+        GLuint textureRoughness;
+        GLuint textureStencil;
 };
 
 #endif // GBUFFER_H

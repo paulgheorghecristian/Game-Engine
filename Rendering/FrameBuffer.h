@@ -10,11 +10,11 @@
 class FrameBuffer
 {
     public:
-        FrameBuffer(int width, int height, unsigned int numOfRenderTargets);
+        FrameBuffer(int width, int height, unsigned int numOfRenderTargets, bool depthForVariance = false);
         FrameBuffer();
         ~FrameBuffer();
 
-        ErrorCode init(int width, int height, unsigned int numOfRenderTargets);
+        ErrorCode init(int width, int height, unsigned int numOfRenderTargets, bool depthForVariance = false);
 
         void bindAllRenderTargets();
         void bindSingleRenderTarget (unsigned int index);
@@ -28,10 +28,12 @@ class FrameBuffer
     protected:
     private:
         int width, height;
-        GLuint frameBufferId, depthBufferId, colorBufferId;
+        GLuint frameBufferId, depthBufferId, colorBufferId, stencilBufferId;
         GLint previousViewport[4];
         std::vector<GLuint> renderTargets;
         unsigned int numOfRenderTargets;
+
+        bool m_depthForVariance;
 };
 
 #endif // FRAMEBUFFER_H

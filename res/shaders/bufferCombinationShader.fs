@@ -1,7 +1,8 @@
 #version 330
 
 in vec2 textureCoords;
-out vec4 outColor;
+
+layout(location = 0) out vec3 outColor;
 
 uniform sampler2D normalSampler;
 uniform sampler2D depthSampler;
@@ -47,13 +48,6 @@ vec3 lightAccumulation() {
     return lightAcc + vec3(0.2);	//diffuse + specular + ambiental
 }
 
-vec3 blurredLightAcc() {
-#if 1
-    return texture(blurredLightAccSampler, textureCoords).xyz;
-#endif
-    return vec3(0);
-}
-
 vec3 dirLightDepthMap() {
     float t2 = pow(texture(dirLightDepthSampler, textureCoords).x , 256);
     return vec3(t2, t2, t2);
@@ -69,10 +63,10 @@ vec3 roughnessMap() {
 }
 
 void main() {
-    if (outputType == 1) outColor = vec4(color(), 1);
-	if (outputType == 2) outColor = vec4(worldNormal(), 1);
-    if (outputType == 3) outColor = vec4(depth(), 1);
-	if (outputType == 4) outColor = vec4(lightAccumulation(), 1);
+    if (outputType == 1) outColor = color();
+	if (outputType == 2) outColor = worldNormal();
+    if (outputType == 3) outColor = depth();
+	if (outputType == 4) outColor = lightAccumulation();
 	if (outputType == 5) {
         vec4 particlesPixel = particles();
         vec4 volumetricPixel = volumetrics();
@@ -81,22 +75,29 @@ void main() {
 
         vec3 depthVal = depth();
 
+        vec3 lightAcc = lightAccumulation();
+        float exposure = 0.5f;
+        // exposure tone mapping
+        vec3 mapped = vec3(1.0) - exp(-lightAcc * exposure);
+
         if (depthVal.x != 1) {
             vec3 finalColor = albedoPixel * lightAccumulation();
             finalColor = particlesPixel.xyz + finalColor * (1.0 - particlesPixel.a);
             finalColor = volumetricPixel.xyz + finalColor * (1.0 - volumetricPixel.a);
             finalColor = flarePixel.xyz * flarePixel.a + finalColor;
-            outColor = vec4(finalColor, 1);
+            outColor = finalColor;
         } else {
             vec3 finalColor = particlesPixel.xyz + albedoPixel * (1.0 - particlesPixel.a);
             finalColor = volumetricPixel.xyz + finalColor * (1.0 - volumetricPixel.a);
             finalColor = flarePixel.xyz * flarePixel.a + finalColor;
-            outColor = vec4(finalColor, 1);
+            outColor = finalColor;
         }
+
+        //float gamma = 1.0f / 2.2f;
+        //outColor.rgb = pow(outColor.rgb, vec3(gamma));
     }
-    if (outputType == 6) outColor = vec4(blurredLightAcc(), 1);
-    if (outputType == 7) outColor = vec4(spotLightDepth(), 1);
-    if (outputType == 8) outColor = vec4(dirLightDepthMap(), 1);
-    if (outputType == 9) outColor = volumetrics();
-    if (outputType == 10) outColor = vec4(roughnessMap(), 1);
+    if (outputType == 7) outColor = spotLightDepth();
+    if (outputType == 8) outColor = dirLightDepthMap();
+    //if (outputType == 9) outColor = volumetrics();
+    if (outputType == 10) outColor = roughnessMap();
 }

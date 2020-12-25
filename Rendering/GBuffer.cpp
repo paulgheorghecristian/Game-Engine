@@ -55,14 +55,26 @@ void GBuffer::generate (unsigned int width, unsigned int height){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
+    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0,  GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+
+    glGenTextures(1, &textureStencil);
+    glBindTexture(GL_TEXTURE_2D, textureStencil);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_STENCIL_INDEX8, width, height, 0, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, 0);
 
     //leaga texturi la framebuffer , 0 de la sfarsit se refera la ce nivel din mipmap, 0 fiind cel mai de sus/mare.
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+0, textureColor, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+1, textureNormal, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+2, textureRoughness, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+3, textureLightAccumulation, 0);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, textureDepth, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureDepth, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, textureStencil, 0);
 
     //verifica stare
     if (glCheckFramebufferStatus (GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -76,12 +88,13 @@ void GBuffer::generate (unsigned int width, unsigned int height){
 }
 
 void GBuffer::destroy(){
-    glDeleteFramebuffers(1, &frameBufferObject);
     glDeleteTextures(1, &textureNormal);
     glDeleteTextures(1, &textureColor);
     glDeleteTextures(1, &textureLightAccumulation);
     glDeleteTextures(1, &textureDepth);
     glDeleteTextures(1, &textureRoughness);
+    glDeleteTextures(1, &textureStencil);
+    glDeleteFramebuffers(1, &frameBufferObject);
 }
 
 GLuint GBuffer::getColorTexture(){

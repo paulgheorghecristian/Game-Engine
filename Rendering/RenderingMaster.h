@@ -67,6 +67,7 @@ class RenderingMaster
         Shader deferredShading_StencilBufferCreator;
         Shader depthMapCreator;
         Shader depthMapCreatorInstanceRender;
+        Shader lastStageShader;
 
         void drawDeferredShadingBuffers();
         void createLightAccumulationBuffer();
@@ -93,6 +94,8 @@ class RenderingMaster
         Texture spotLightFlaresTxt;
         Shader flareShader;
         Texture *depthTexture;
+
+        FrameBuffer fxaaFrameBuffer;
 
         Entity skyDomeEntity;
         Shader *skyShader;
@@ -124,6 +127,7 @@ class RenderingMaster
         PostProcess *hBlurPostProcess,
                     *wBlurPostProcess;
         PostProcess *flarePostProcess;
+        PostProcess *fxaaPostProcess;
 
         Texture *lensFlareColorTxt;
         double updateDt;

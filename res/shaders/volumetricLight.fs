@@ -137,7 +137,7 @@ bool spotLightIntersection(vec3 rayDir, inout float tmin, inout float tmax)
 }
 
 void main() {
-    vec2 texCoord = gl_FragCoord.xy / (vec2(screenWidth, screenHeight)/2);
+    vec2 texCoord = gl_FragCoord.xy / (vec2(screenWidth, screenHeight)/4);
     vec3 view = vec3(viewRay.xy/viewRay.z, 1.0);
     float depth = texture(depthSampler, texCoord).x;
 
@@ -190,7 +190,7 @@ void main() {
         vec3 blueNoise = texture(blueNoiseSampler, texCoord).rgb;
         float offset = blueNoise.r;
 
-        float currentT = tmin + sampleLength * (t - offset*3.00f);
+        float currentT = tmin + sampleLength * (t - offset*2.50f);
         vec3 viewPositionLocal = view * currentT;
 
         vec4 worldPosition = vec4(cameraPosition + ray*currentT, 1.0);//inverseViewMatrix * vec4(viewPositionLocal, 1.0));
@@ -224,6 +224,9 @@ void main() {
     }
 
     outLight.xyz = lightColor;
+    //float gamma = 1.0f / 2.2f;
+    //outLight.rgb = pow(outLight.rgb, vec3(gamma));
+
     outLight.a = min(pointsNotInShadow / numSamplePoints, 0.8);
     outLight.xyz *= outLight.a;
 }

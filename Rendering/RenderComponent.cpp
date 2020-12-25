@@ -133,8 +133,8 @@ std::string RenderComponent::jsonify() {
             res += "\"normalMapStrength\":" + std::to_string(normalMapStrength) + ",";
         }
         if ((renderingObject.getMaterials()[0])->getDiffuseTexture() != NULL) {
-            res += "\"isBlackAlpha\":" + isBlackAlpha ? "true,":"false,";
-            res += "\"disableCulling\":" + disableCulling ? "true":"false";
+            res += "\"isBlackAlpha\":" + std::string(isBlackAlpha == true ? "true,":"false,");
+            res += "\"disableCulling\":" + std::string(disableCulling == true ? "true,":"false,");
         }
         res += "\"shininess\":" + std::to_string(shine) + "}";
     }
