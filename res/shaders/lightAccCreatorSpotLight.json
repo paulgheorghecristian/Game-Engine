@@ -9,6 +9,7 @@
                     "eyeSpaceNormalSampler" : "INT",
                     "depthSampler" : "INT",
                     "roughnessSampler" : "INT",
+                    "blueNoiseSampler": "INT",
                     "lightColor" : "VEC3",
                     "screenWidth" : "INT",
                     "screenHeight" : "INT",

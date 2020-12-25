@@ -54,16 +54,14 @@ void main() {
 
     for (int i = -PCFStartingIndex; i <= PCFStartingIndex; i++) {
         for (int j = -PCFStartingIndex; j <= PCFStartingIndex; j++) {
-            vec3 blueNoise = texture(blueNoiseSampler, texCoord).rgb;
+            vec3 blueNoise = texture(blueNoiseSampler, texCoord + vec2(0.1*i, 0.1*j)).rgb;
             vec2 offset = vec2(blueNoise.r, blueNoise.g);
 
             float currentDepth = texture(dirLightDepthSampler, dirLightNDCNormalized.xy + vec2(depthMapTexelSize*i, depthMapTexelSize*j)-
                                 offset*0.0005f).x;
             float eyeZODepthMap = currentDepth;
 
-            if (eyeZODepthMap < eyeZObjectDepth) {
-                totalPixelsInShadow++;
-            }
+            totalPixelsInShadow += step(eyeZODepthMap, eyeZObjectDepth+0.0005);
         }
     }
 

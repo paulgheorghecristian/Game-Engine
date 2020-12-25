@@ -4,6 +4,7 @@ layout(location = 0) out vec3 outLight;
 
 uniform sampler2D eyeSpaceNormalSampler;
 uniform sampler2D depthSampler;
+uniform sampler2D blueNoiseSampler;
 uniform sampler2D spotLightDepthSampler;
 uniform sampler2D roughnessSampler;
 
@@ -67,12 +68,14 @@ void main() {
 
     for (int i = -PCFStartingIndex; i <= PCFStartingIndex; i++) {
         for (int j = -PCFStartingIndex; j <= PCFStartingIndex; j++) {
-            float currentDepth = texture (spotLightDepthSampler, spotLightNDCNormalized.xy + vec2(depthMapTexelSize*i, depthMapTexelSize*j)).x;
+            vec3 blueNoise = texture(blueNoiseSampler, texCoord + vec2(0.1*i, 0.1*j)).rgb;
+            vec2 offset = vec2(blueNoise.r, blueNoise.g);
+
+            float currentDepth = texture(spotLightDepthSampler, spotLightNDCNormalized.xy + vec2(depthMapTexelSize*i, depthMapTexelSize*j)-
+                                offset*0.0005f).x;
             float eyeZODepthMap = spotLightProjectionMatrix[3][2]/(currentDepth + spotLightProjectionMatrix[2][2]);
 
-            if (eyeZODepthMap < eyeZObjectDepth + 0.9) {
-                totalPixelsInShadow++;
-            }
+            totalPixelsInShadow += step(eyeZODepthMap, eyeZObjectDepth+0.09);
         }
     }
 
