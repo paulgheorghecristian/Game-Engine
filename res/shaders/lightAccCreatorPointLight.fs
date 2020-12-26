@@ -47,7 +47,7 @@ void main() {
     float rough = ((roughness.r+roughness.g+roughness.b) / 3.0f);
 
     float diffuseStrength = max(0.0, dotProduct);
-    float specularStrength = pow(max(dot(H, eyeSpaceNormal), 0.0), 500);
+    float specularStrength = pow(max(dot(H, eyeSpaceNormal), 0.0), 250);
 
     float a = att_diffuse.x*0.001f, b = att_diffuse.y * 0.000001f, c = att_diffuse.z * 0.000001f;
     float att = 1.0 / (a + b*l + c * l * l);
