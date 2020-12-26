@@ -4,8 +4,8 @@
 #include "RenderingMaster.h"
 #include "Shader.h"
 
-#define SHADOW_MAP_WIDTH 4096
-#define SHADOW_MAP_HEIGHT 4096
+#define SHADOW_MAP_WIDTH 2048
+#define SHADOW_MAP_HEIGHT 2048
 
 DirectionalLight::DirectionalLight(const Transform &transform,
                                    const glm::vec3 &color,
