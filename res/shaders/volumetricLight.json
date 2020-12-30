@@ -19,6 +19,7 @@
                     "virtualSphereDiameter": "FLOAT",
                     "numSamplePoints" : "INT",
                     "coef1" : "FLOAT",
-                    "coef2" : "FLOAT"
+                    "coef2" : "FLOAT",
+                    "secondFraction": "FLOAT"
                  }
 }

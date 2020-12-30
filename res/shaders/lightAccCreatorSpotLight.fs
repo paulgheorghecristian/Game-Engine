@@ -27,7 +27,6 @@ const int PCFStrength = 1;
 const int PCFKernelSideSize = PCFStrength * 2 + 1;
 const int PCFStartingIndex = PCFKernelSideSize / 2;
 const int PCFKernelSize = PCFKernelSideSize * PCFKernelSideSize;
-const float depthMapTexelSize = 1.0f/2048.0f; /* TODO remove hardcode */
 
 uniform vec3 lightPosition;
 uniform mat4 modelMatrix;
@@ -66,12 +65,14 @@ void main() {
 
     float eyeZObjectDepth = spotLightProjectionMatrix[3][2]/(spotLightNDCNormalized.z + spotLightProjectionMatrix[2][2]);
 
+    vec2 depthMapTexelSize = 1.0f / textureSize(spotLightDepthSampler, 0);
+
     for (int i = -PCFStartingIndex; i <= PCFStartingIndex; i++) {
         for (int j = -PCFStartingIndex; j <= PCFStartingIndex; j++) {
             vec3 blueNoise = texture(blueNoiseSampler, texCoord + vec2(0.1*i, 0.1*j)).rgb;
             vec2 offset = vec2(blueNoise.r, blueNoise.g);
 
-            float currentDepth = texture(spotLightDepthSampler, spotLightNDCNormalized.xy + vec2(depthMapTexelSize*i, depthMapTexelSize*j)-
+            float currentDepth = texture(spotLightDepthSampler, spotLightNDCNormalized.xy + depthMapTexelSize*vec2(i, j)-
                                 offset*0.0005f).x;
             float eyeZODepthMap = spotLightProjectionMatrix[3][2]/(currentDepth + spotLightProjectionMatrix[2][2]);
 

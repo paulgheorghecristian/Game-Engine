@@ -50,6 +50,8 @@ class EngineCore
 
         std::string m_configFilePath;
         float m_gravity;
+
+        float secondFraction;
 };
 
 #endif // ENGINECORE_H

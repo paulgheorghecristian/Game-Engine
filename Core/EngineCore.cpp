@@ -23,6 +23,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     Display * display = NULL;
     m_configFilePath = std::string(gameDocument["ConfigFilePath"].GetString());
     m_gravity = gameDocument.HasMember("gravity") ? gameDocument["gravity"].GetFloat() : 9.8f;
+    secondFraction = 0;
 
     jsonBody = FileUtils::loadFileInString (m_configFilePath);
     parseResult = configDocument.Parse (jsonBody.c_str ());
@@ -89,7 +90,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
 void EngineCore::start() {
     isRunning = true;
     auto start_time = HighResolutionClock::now();
-    const double frame_time = RenderingMaster::getInstance()->getDisplay()->getFrameTimeInMs() * 1000;
+    const double frame_time = RenderingMaster::getInstance()->getDisplay()->getFrameTimeInMs();
     unsigned int unprocessed_time = 0;
     unsigned int frame_counter = 0;
     unsigned int FPS = 0;
@@ -104,7 +105,7 @@ void EngineCore::start() {
 
     while (isRunning) {
 
-        if (frame_counter >= 1000000) {
+        if (frame_counter >= 1000) {
             #if 0
             std::cout << "----------------------" << std::endl;
             std::cout << "FPS: " << FPS << std::endl;
@@ -127,15 +128,18 @@ void EngineCore::start() {
             #if 0
             std::cout << "----------------------" << std::endl;
             #endif
+
+            secondFraction = 0;
         }
         auto last_time = HighResolutionClock::now();
-        unsigned int passed_time = std::chrono::duration_cast<std::chrono::microseconds>(last_time - start_time).count();
+        unsigned int passed_time = std::chrono::duration_cast<std::chrono::milliseconds>(last_time - start_time).count();
 
         needToRender = false;
         start_time = last_time;
 
         unprocessed_time += passed_time;
         frame_counter += passed_time;
+        secondFraction += (float) passed_time / 1000;
 
         while (unprocessed_time >= frame_time) {
             /*for (unsigned int i = 0; i < entities.size(); i++) {
@@ -209,35 +213,23 @@ void EngineCore::input() {
         }
     }
 
+    if (inputManager.getKeyDown(SDLK_0)) {
+        outputType = 10;
+    }
     if (inputManager.getKeyDown(SDLK_1)) {
         outputType = 1;
     }
     if (inputManager.getKeyDown(SDLK_2)) {
         outputType = 2;
     }
-    if (inputManager.getKeyDown(SDLK_3)) {
-        outputType = 3;
-    }
-    if (inputManager.getKeyDown(SDLK_4)) {
-        outputType = 4;
-    }
-    if (inputManager.getKeyDown(SDLK_5)) {
+    if (inputManager.getKeyDown (SDLK_5)) {
         outputType = 5;
-    }
-    if (inputManager.getKeyDown (SDLK_6)) {
-        outputType = 6;
-    }
-    if (inputManager.getKeyDown (SDLK_7)) {
-        outputType = 7;
     }
     if (inputManager.getKeyDown(SDLK_8)) {
         outputType = 8;
     }
-    if (inputManager.getKeyDown(SDLK_9)) {
-        outputType = 9;
-    }
-    if (inputManager.getKeyDown(SDLK_0)) {
-        outputType = 10;
+    if (inputManager.getKeyDown (SDLK_6)) {
+        outputType = 6;
     }
 
     if (inputManager.getKeyDown (SDLK_q)) {
@@ -446,6 +438,8 @@ void EngineCore::update() {
 
     PhysicsMaster::getInstance()->update();
     RenderingMaster::getInstance()->update();
+
+    RenderingMaster::getInstance()->secondFraction = secondFraction;
 }
 
 std::vector<Entity *> &EngineCore::getEntities() {

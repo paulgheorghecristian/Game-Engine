@@ -102,6 +102,8 @@ class RenderingMaster
 
         Shader volumetricLightShader;
 
+        float secondFraction;
+
     private:
         RenderingMaster(Display *display,
                          Camera *camera,

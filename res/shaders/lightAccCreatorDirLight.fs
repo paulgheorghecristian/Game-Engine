@@ -52,12 +52,14 @@ void main() {
     float totalPixelsInShadow = 0;
     float lightStrength;
 
+    vec2 depthMapTexelSize = 1.0f / textureSize(dirLightDepthSampler, 0);
+
     for (int i = -PCFStartingIndex; i <= PCFStartingIndex; i++) {
         for (int j = -PCFStartingIndex; j <= PCFStartingIndex; j++) {
             vec3 blueNoise = texture(blueNoiseSampler, texCoord + vec2(0.1*i, 0.1*j)).rgb;
             vec2 offset = vec2(blueNoise.r, blueNoise.g);
 
-            float currentDepth = texture(dirLightDepthSampler, dirLightNDCNormalized.xy + vec2(depthMapTexelSize*i, depthMapTexelSize*j)-
+            float currentDepth = texture(dirLightDepthSampler, dirLightNDCNormalized.xy + depthMapTexelSize*vec2(i, j)-
                                 offset*0.0005f).x;
             float eyeZODepthMap = currentDepth;
 

@@ -28,6 +28,7 @@ uniform float alpha;
 uniform int numSamplePoints;
 uniform float coef1;
 uniform float coef2;
+uniform float secondFraction;
 
 in vec3 positionModelSpace;
 
@@ -187,7 +188,7 @@ void main() {
     float begin = (rayLength == 0 ? numSamplePoints : 0);
 
     for (float t = begin; t <= numSamplePoints; t++) {
-        vec3 blueNoise = texture(blueNoiseSampler, texCoord).rgb;
+        vec3 blueNoise = texture(blueNoiseSampler, texCoord + vec2(secondFraction*0.005f)).rgb;
         float offset = blueNoise.r;
 
         float currentT = tmin + sampleLength * (t - offset*2.50f);

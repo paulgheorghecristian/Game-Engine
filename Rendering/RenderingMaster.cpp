@@ -489,6 +489,7 @@ void RenderingMaster::renderVolumetricLight()
             volumetricLightShader.updateUniform("numSamplePoints", spot->getNumSamplePoints());
             volumetricLightShader.updateUniform("coef1", spot->getCoef1());
             volumetricLightShader.updateUniform("coef2", spot->getCoef2());
+            volumetricLightShader.updateUniform("secondFraction", secondFraction);
             lights[i]->render(volumetricLightShader);
             glEnable(GL_DEPTH_TEST);
             glDepthMask(GL_TRUE);
