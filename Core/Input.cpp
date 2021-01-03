@@ -30,37 +30,41 @@ void Input::update(Display * display){
         downKeys[i] = false;
         upKeys[i] = false;
     }
+    for(unsigned int i = 0; i < NUM_SPECIAL_KEYS; i++){
+        specialDownKeys[i] = false;
+        specialUpKeys[i] = false;
+    }
     for(unsigned int i = 0; i < NUM_MOUSE; i++){
         downMouse[i] = false;
         upMouse[i] = false;
     }
 
-    while(SDL_PollEvent(&event)){
-        switch(event.type){
+    while (SDL_PollEvent(&event)){
+        switch (event.type){
             case SDL_QUIT:{
                 Display::isWindowClosed = true;
                 break;
             }
             case SDL_KEYDOWN:{
-                if(event.key.keysym.sym < 1024 && event.key.keysym.sym >= 0){
+                if (event.key.keysym.sym <= 127 && event.key.keysym.sym >= 0) {
                     downKeys[event.key.keysym.sym] = true;
                     inputs[event.key.keysym.sym] = true;
-                }else if(event.key.keysym.sym >= 1073741903){
-                    int key = event.key.keysym.sym - 1073741903;
-                    downKeys[key] = true;
-                    inputs[key] = true;
+                } else if (event.key.keysym.sym >= 1073741881) {
+                    int key = event.key.keysym.sym - 1073741881;
+                    specialDownKeys[key] = true;
+                    specialInputs[key] = true;
                 }
 
                 break;
             }
             case SDL_KEYUP:{
-                if(event.key.keysym.sym < 1024 && event.key.keysym.sym >= 0){
+                if (event.key.keysym.sym <= 127 && event.key.keysym.sym >= 0) {
                     upKeys[event.key.keysym.sym] = true;
                     inputs[event.key.keysym.sym] = false;
-                }else if(event.key.keysym.sym >= 1073741903){
-                    int key = event.key.keysym.sym - 1073741903;
-                    upKeys[key] = true;
-                    inputs[key] = false;
+                } else if(event.key.keysym.sym >= 1073741881) {
+                    int key = event.key.keysym.sym - 1073741881;
+                    specialUpKeys[key] = true;
+                    specialInputs[key] = false;
                 }
                 break;
             }
@@ -99,13 +103,22 @@ bool Input::getWarpMouse() {
 }
 
 bool Input::getKeyDown(int key){
-    return downKeys[key];
+    if (key <= 127)
+        return downKeys[key];
+    else
+        return specialDownKeys[key-1073741881];
 }
 bool Input::getKeyUp(int key){
-    return upKeys[key];
+    if (key <= 127)
+        return upKeys[key];
+    else
+        return specialUpKeys[key-1073741881];
 }
 bool Input::getKey(int key){
-    return inputs[key];
+    if (key <= 127)
+        return inputs[key];
+    else
+        return specialInputs[key-1073741881];
 }
 bool Input::getMouseDown(int key){
     return downMouse[key];

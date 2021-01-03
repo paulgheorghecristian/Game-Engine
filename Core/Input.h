@@ -23,11 +23,15 @@ class Input
         virtual ~Input();
     protected:
     private:
-        static const int NUM_KEYS = 150;
+        static const int NUM_KEYS = 127 + 1;
+        static const int NUM_SPECIAL_KEYS = 1073742106-1073741881 + 1;
         static const int NUM_MOUSE = 10;
         bool inputs[NUM_KEYS];
         bool downKeys[NUM_KEYS];
         bool upKeys[NUM_KEYS];
+        bool specialInputs[NUM_SPECIAL_KEYS];
+        bool specialDownKeys[NUM_SPECIAL_KEYS];
+        bool specialUpKeys[NUM_SPECIAL_KEYS];
         bool inputMouse[NUM_MOUSE];
         bool downMouse[NUM_MOUSE];
         bool upMouse[NUM_MOUSE];

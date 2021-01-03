@@ -546,3 +546,21 @@ void RenderingMaster::renderIMGUI() {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 }
+
+void RenderingMaster::setFOV(float fov) {
+    bool result = true;
+    float aspectRatio = (float) display->getWidth() / (float) display->getHeight();
+    projectionMatrix = glm::perspective(glm::radians(fov), aspectRatio, 1.0f, 5000.0f);
+
+    result &= deferredShading_SceneShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    result &= deferredShading_InstanceRender.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    result &= SpotLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    result &= DirectionalLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    result &= PointLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    result &= deferredShading_StencilBufferCreator.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    result &= volumetricLightShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    result &= flareShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    result &= skyShader->updateUniform("projectionMatrix", (void *) &projectionMatrix);
+
+    assert(result);
+}

@@ -6,15 +6,16 @@
 #include "Common.h"
 
 #define NECK_HEIGHT 10.0f
-#define PLAYER_SPEED 100.0f
+#define PLAYER_WALK_SPEED 100.0f
+#define PLAYER_RUN_SPEED 200.0f
 #define DOWN_LENGTH 1000.0f
 #define JUMP_SPEED 5000.0f
 #define EPS 0.003
 
-#define STEP_FRQ 0.21
-#define STEP_AMP 0.31
-#define STEP_ROT_FRQ 0.4
-#define STEP_ROT_AMP 0.003
+#define STEP_FRQ 0.16
+#define STEP_AMP 0.35
+#define STEP_ROT_FRQ 0.5
+#define STEP_ROT_AMP 0.005
 
 Player::Player (Transform &transform) {
     this->m_transform = transform;
@@ -30,6 +31,8 @@ Player::FirstPersonComponent::FirstPersonComponent() {
     m_camera = RenderingMaster::getInstance()->getCamera();
     sineStep = -glm::half_pi<float>();
     dir = true;
+    animFOV = false;
+    currFOV = 75.0f;
 }
 
 const unsigned int Player::FirstPersonComponent::getFlag() const {
@@ -37,13 +40,40 @@ const unsigned int Player::FirstPersonComponent::getFlag() const {
 }
 
 void Player::FirstPersonComponent::input(Input &inputManager) {
+    Player::PlayerControllerComponent *playerController = 
+                dynamic_cast<Player::PlayerControllerComponent *> (_entity->getComponent (Entity::Flags::PLAYER_CONTROLLER));
+
+    if (playerController == NULL)
+        return;
+
+    float walked = glm::length(glm::vec3(lastPosDiff.x, 0.0f, lastPosDiff.z));
+
+    if (inputManager.getKey(SDLK_LSHIFT) && walked >= 0.6f) {
+        RenderingMaster::getInstance()->setFOV(85.0f);
+        currFOV = 85.0f;
+        playerController->speed = PLAYER_RUN_SPEED;
+        animFOV = false;
+    } else if (inputManager.getKeyUp(SDLK_LSHIFT)) {
+        animFOV = true;
+    }
+
+    if (animFOV == true) {
+        currFOV -= 0.5f;
+        if (currFOV <= 75.0f) {
+            currFOV = 75.0f;
+            animFOV = false;
+            playerController->speed = PLAYER_WALK_SPEED;
+        }
+        RenderingMaster::getInstance()->setFOV(currFOV);
+
+    }
 }
 
 void Player::FirstPersonComponent::update() {
     glm::vec3 pos = _entity->getTransform().getPosition();
 
-    glm::vec3 diff = lastPos - pos;
-    float step = (glm::length(glm::vec3(diff.x, 0.0f, diff.z)))*STEP_FRQ;
+    lastPosDiff = lastPos - pos;
+    float step = (glm::length(glm::vec3(lastPosDiff.x, 0.0f, lastPosDiff.z)))*STEP_FRQ;
 
     sineStep += (dir == true) ? step : -step;
     if (sineStep > glm::half_pi<float>() && dir) {
@@ -72,6 +102,7 @@ void Player::FirstPersonComponent::init() {
 
 Player::PlayerControllerComponent::PlayerControllerComponent () : m_isJumping(false), m_wasSpaceReleased(true), m_freeRoam(false) {
     m_camera = RenderingMaster::getInstance()->getCamera();
+    speed = PLAYER_WALK_SPEED;
 }
 
 void Player::PlayerControllerComponent::input(Input &inputManager) {
@@ -115,7 +146,7 @@ void Player::PlayerControllerComponent::input(Input &inputManager) {
     }
 
     if (glm::length(force) != 0) {
-        force = glm::normalize(force) * PLAYER_SPEED * (m_isJumping ? 0.8f : 1.0f);
+        force = glm::normalize(force) * speed * (m_isJumping ? 0.8f : 1.0f);
         physicsComponent->getRigidBody()->applyCentralForce(btVector3(force.x, m_freeRoam ? force.y : 0, force.z));
     }
 }

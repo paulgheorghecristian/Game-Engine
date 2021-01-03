@@ -61,6 +61,8 @@ class RenderingMaster
         const glm::mat4 &getProjectionMatrix();
         GBuffer &getGBuffer();
 
+        void setFOV(float fov);
+
         Shader deferredShading_SceneShader;
         Shader deferredShading_InstanceRender;
         Shader deferredShading_BufferCombinationShader;

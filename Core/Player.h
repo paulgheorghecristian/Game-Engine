@@ -28,13 +28,16 @@ class Player : public Entity
                 void init();
             private:
                 Camera *m_camera;
-                glm::vec3 lastPos;
+                glm::vec3 lastPos, lastPosDiff;
                 float sineStep;
                 bool dir;
+                bool animFOV;
+                float currFOV;
         };
 
         class PlayerControllerComponent : public Component
         {
+            friend class FirstPersonComponent;
             public:
                 PlayerControllerComponent ();
 
@@ -48,6 +51,7 @@ class Player : public Entity
                 bool m_isJumping, m_wasSpaceReleased;
                 Camera *m_camera;
                 bool m_freeRoam;
+                float speed;
         };
 };
 
