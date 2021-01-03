@@ -17,8 +17,10 @@ class Camera
         void moveUp(float);
         void moveSideways(float);
         void moveForward(float);
-        void rotateY(float);
-        void rotateX(float);
+        void rotateY(float dy);
+        void rotateX(float dx);
+        void rotateZ(float dz);
+        void setZRot(float dz);
         void invertForward();
         virtual ~Camera();
         void setPosition(const glm::vec3& position);
@@ -37,6 +39,7 @@ class Camera
         void computeViewMatrix ();
 
         glm::mat4 viewMatrix;
+        glm::quat m_localZRot;
 };
 
 #endif // CAMERA_H

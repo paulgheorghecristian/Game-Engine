@@ -28,6 +28,9 @@ class Player : public Entity
                 void init();
             private:
                 Camera *m_camera;
+                glm::vec3 lastPos;
+                float sineStep;
+                bool dir;
         };
 
         class PlayerControllerComponent : public Component

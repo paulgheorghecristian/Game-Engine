@@ -6,10 +6,15 @@
 #include "Common.h"
 
 #define NECK_HEIGHT 10.0f
-#define PLAYER_SPEED 150.0f
+#define PLAYER_SPEED 100.0f
 #define DOWN_LENGTH 1000.0f
 #define JUMP_SPEED 5000.0f
 #define EPS 0.003
+
+#define STEP_FRQ 0.21
+#define STEP_AMP 0.31
+#define STEP_ROT_FRQ 0.4
+#define STEP_ROT_AMP 0.003
 
 Player::Player (Transform &transform) {
     this->m_transform = transform;
@@ -23,6 +28,8 @@ std::string Player::jsonify() {
 
 Player::FirstPersonComponent::FirstPersonComponent() {
     m_camera = RenderingMaster::getInstance()->getCamera();
+    sineStep = -glm::half_pi<float>();
+    dir = true;
 }
 
 const unsigned int Player::FirstPersonComponent::getFlag() const {
@@ -34,8 +41,25 @@ void Player::FirstPersonComponent::input(Input &inputManager) {
 
 void Player::FirstPersonComponent::update() {
     glm::vec3 pos = _entity->getTransform().getPosition();
-    pos.y += NECK_HEIGHT;
-    m_camera->setPosition (pos);
+
+    glm::vec3 diff = lastPos - pos;
+    float step = (glm::length(glm::vec3(diff.x, 0.0f, diff.z)))*STEP_FRQ;
+
+    sineStep += (dir == true) ? step : -step;
+    if (sineStep > glm::half_pi<float>() && dir) {
+        dir = false;
+        sineStep = glm::half_pi<float>();
+    } else if (sineStep < -glm::half_pi<float>()) {
+        dir = true;
+        sineStep = -glm::half_pi<float>();
+    }
+
+    pos.y += NECK_HEIGHT + glm::sin(sineStep)*STEP_AMP;
+
+    m_camera->setPosition(pos);
+    m_camera->setZRot(glm::sin(sineStep*STEP_ROT_FRQ)*STEP_ROT_AMP);
+
+    lastPos = pos;
 }
 
 void Player::FirstPersonComponent::render() {
