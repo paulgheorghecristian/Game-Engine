@@ -9,7 +9,7 @@
 #define PLAYER_WALK_SPEED 100.0f
 #define PLAYER_RUN_SPEED 200.0f
 #define DOWN_LENGTH 1000.0f
-#define JUMP_SPEED 5000.0f
+#define JUMP_SPEED 5600.0f
 #define EPS 0.003
 
 #define STEP_FRQ 0.16
@@ -47,14 +47,17 @@ void Player::FirstPersonComponent::input(Input &inputManager) {
         return;
 
     float walked = glm::length(glm::vec3(lastPosDiff.x, 0.0f, lastPosDiff.z));
+    std::cout << walked << std::endl;
 
-    if (inputManager.getKey(SDLK_LSHIFT) && walked >= 0.6f) {
-        RenderingMaster::getInstance()->setFOV(85.0f);
+    if (inputManager.getKey(SDLK_LSHIFT) && walked >= 0.45f) {
         currFOV = 85.0f;
+        RenderingMaster::getInstance()->setFOV(currFOV);
         playerController->speed = PLAYER_RUN_SPEED;
         animFOV = false;
-    } else if (inputManager.getKeyUp(SDLK_LSHIFT)) {
+    }
+    if (inputManager.getKeyUp(SDLK_LSHIFT) || (currFOV > 75.0f && walked < 0.45f)) {
         animFOV = true;
+        playerController->speed = PLAYER_WALK_SPEED;
     }
 
     if (animFOV == true) {
@@ -62,7 +65,6 @@ void Player::FirstPersonComponent::input(Input &inputManager) {
         if (currFOV <= 75.0f) {
             currFOV = 75.0f;
             animFOV = false;
-            playerController->speed = PLAYER_WALK_SPEED;
         }
         RenderingMaster::getInstance()->setFOV(currFOV);
 

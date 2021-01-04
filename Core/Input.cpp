@@ -9,6 +9,11 @@ Input::Input() : mousePosition(0.0)
         upKeys[i] = false;
         inputs[i] = false;
     }
+    for (unsigned int i = 0; i < NUM_SPECIAL_KEYS; i++) {
+        specialDownKeys[i] = false;
+        specialUpKeys[i] = false;
+        specialInputs[i] = false;
+    }
     for(unsigned int i = 0; i < NUM_MOUSE; i++){
         downMouse[i] = false;
         upMouse[i] = false;
