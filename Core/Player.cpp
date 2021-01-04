@@ -47,7 +47,6 @@ void Player::FirstPersonComponent::input(Input &inputManager) {
         return;
 
     float walked = glm::length(glm::vec3(lastPosDiff.x, 0.0f, lastPosDiff.z));
-    std::cout << walked << std::endl;
 
     if (inputManager.getKey(SDLK_LSHIFT) && walked >= 0.45f) {
         currFOV = 85.0f;
