@@ -1,0 +1,9 @@
+{
+    "VSPath" : "res/shaders/fxaa.vs",
+    "FSPath" : "res/shaders/fxaa.fs",
+    "Uniforms" : {
+                    "textureSampler" : "INT",
+                    "pixelWidth" : "FLOAT",
+                    "pixelHeight" : "FLOAT"
+                 }
+}

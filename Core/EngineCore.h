@@ -52,6 +52,12 @@ class EngineCore
         float m_gravity;
 
         float secondFraction;
+
+        Player *player;
+        std::unordered_map<std::size_t, Entity *> quadTreeEntities;
+        std::vector<std::size_t> lastFoundPathToPlayer;
+
+        void findPathToPlayer(std::size_t source);
 };
 
 #endif // ENGINECORE_H

@@ -1,0 +1,7 @@
+{
+    "VSPath" : "res/shaders/finalStage.vs",
+    "FSPath" : "res/shaders/finalStage.fs",
+    "Uniforms" : {
+                    "colorSampler" : "INT"
+                 }
+}

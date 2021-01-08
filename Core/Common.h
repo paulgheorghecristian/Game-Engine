@@ -3,16 +3,18 @@
 
 #include "Entity.h"
 #include "Light.h"
+#include "QuadTree.hpp"
 
-// For mouse grab mostly
 enum class PointerType {
     ENTITY = 0,
-    LIGHT
+    LIGHT,
+    QUADT_NODE
 };
 
 union Pointer {
     Entity *entity;
     Light *light;
+    QuadTree::Node *node;
 };
 
 struct UserData {

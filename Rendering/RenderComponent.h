@@ -21,6 +21,8 @@ class RenderComponent : public Component
         Shader *getShader();
         std::string jsonify() override;
 
+        inline RenderingObject& getRenderingObject() { return renderingObject; }
+
         virtual ~RenderComponent();
 
     protected:

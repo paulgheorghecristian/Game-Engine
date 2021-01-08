@@ -9,6 +9,7 @@
 #include <chrono>
 #include <thread>
 
+#include "Common.h"
 
 EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     //create renderingmaster, physicsmaster and entities
@@ -66,8 +67,43 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                             new Camera (glm::vec3(-500, 0, 0), 0, 0, 0),
                             glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane));
 
-
     loadEntities(gameDocument);
+    PhysicsMaster::getInstance()->startGraphCreation();
+    PhysicsMaster::getInstance()->endGraphCreation();
+    // DEBUG
+    // temporary debugging code
+    PhysicsMaster::getInstance()->getQuadTree().getGraph().printGraph();
+    std::unordered_map<std::size_t, btGhostObject *> quadTreeBodies = PhysicsMaster::getInstance()->getQuadTreeBodies();
+    for (auto it: quadTreeBodies) {
+        btGhostObject *body = it.second;
+
+        UserData *uData = (UserData *) body->getUserPointer();
+        QuadTree::Node *node = (QuadTree::Node *) uData->pointer.node;
+        btVector3 bScale = dynamic_cast<const btBoxShape* >(body->getCollisionShape())->getImplicitShapeDimensions();
+        btVector3 bOrigin = body->getWorldTransform().getOrigin();
+
+        Transform transform(glm::vec3(bOrigin.x(), bOrigin.y(), bOrigin.z()),
+                                glm::vec3(0),
+                                glm::vec3(bScale.x()*2.0f, bScale.y()*2.0f, bScale.z()*2.0f));
+        Entity *newEntity = new Entity();
+        newEntity->setTransform(transform);
+        RenderingObject obj = RenderingObject::loadObject("res/models/cube4.obj", true, false);
+        Material *mat = new Material();
+        if (node->m_data.isBlocked == false) {
+            mat->setDiffuse(glm::vec3(1.0, 0.0, 1.0));
+        } else {
+            mat->setDiffuse(glm::vec3(1.0, 1.0, 0.0));
+        }
+
+        assert(node->m_idx == it.first);
+
+        obj.addMaterial(mat);
+
+        newEntity = newEntity->addComponent(new RenderComponent(std::move(obj)));
+        entities.push_back(newEntity);
+        quadTreeEntities[node->m_idx] = newEntity;
+    }
+    // END DEBUG
     loadLights(gameDocument);
 
     constructPlayer();
@@ -440,6 +476,7 @@ void EngineCore::update() {
     RenderingMaster::getInstance()->update();
 
     RenderingMaster::getInstance()->secondFraction = secondFraction;
+    findPathToPlayer(20);
 }
 
 std::vector<Entity *> &EngineCore::getEntities() {
@@ -449,10 +486,11 @@ std::vector<Entity *> &EngineCore::getEntities() {
 void EngineCore::constructPlayer() {
     Transform playerTrans (glm::vec3(200, 10, 0), glm::vec3(0), glm::vec3(10));
     PhysicsComponent *playerPhysicsComponent = new PhysicsComponent (PhysicsComponent::BoundingBodyType::CAPSULE,
-                                                                    glm::vec3(10),
+                                                                    glm::vec3(5.0, 10.0f, 10.0f),
                                                                     30.0f);
-    entities.push_back ((new Player (playerTrans))
-                        ->addComponent (playerPhysicsComponent));
+    player = (Player *) (new Player(playerTrans))
+                        ->addComponent(playerPhysicsComponent);
+    entities.push_back(player);
     playerPhysicsComponent->getRigidBody()->setDamping(btScalar(0.5), btScalar(0.0));
     playerPhysicsComponent->getRigidBody()->setSleepingThresholds(0.0, 0.0);
     playerPhysicsComponent->getRigidBody()->setAngularFactor(0.0);
@@ -641,6 +679,53 @@ void EngineCore::loadEntities(rapidjson::Document &gameDocument) {
     }
 
     std::cout << "Number of entities: " << entities.size() << std::endl;
+}
+
+void EngineCore::findPathToPlayer(std::size_t source) {
+    // temporary debugging function
+
+    // find player idx
+    std::size_t playerIdx = 0;
+    const glm::vec3 &playerPosition = player->getTransform().getPosition();
+    bool foundPlayer = false;
+
+    for (std::size_t u: lastFoundPathToPlayer) {
+        RenderComponent *renderComponent = 
+                (RenderComponent *) (quadTreeEntities[u]->getComponent(Entity::Flags::RENDERABLE));
+
+        renderComponent->getRenderingObject().getMaterials()[0]->setDiffuse(glm::vec3(1.0, 0.0, 1.0));
+    }
+
+    for (auto it: quadTreeEntities) {
+        Transform &transform = it.second->getTransform();
+        const glm::vec3 &position = transform.getPosition();
+        const glm::vec3 &scale = transform.getScale();
+
+        glm::vec2 xLimits = glm::vec2(position.x - scale.x * 0.5f, position.x + scale.x * 0.5f);
+        glm::vec2 zLimits = glm::vec2(position.z - scale.z * 0.5f, position.z + scale.z * 0.5f);
+
+        if (playerPosition.x >= xLimits.x &&
+            playerPosition.x <= xLimits.y &&
+            playerPosition.z >= zLimits.x &&
+            playerPosition.z <= zLimits.y) {
+            playerIdx = it.first;
+            foundPlayer = true;
+            break;
+        }
+    }
+
+    if (foundPlayer == true) {
+        lastFoundPathToPlayer.clear();
+
+        PhysicsMaster::getInstance()->findShortestPath(source, playerIdx, lastFoundPathToPlayer);
+
+        for (std::size_t u: lastFoundPathToPlayer) {
+            RenderComponent *renderComponent = 
+                (RenderComponent *) (quadTreeEntities[u]->getComponent(Entity::Flags::RENDERABLE));
+
+            renderComponent->getRenderingObject().getMaterials()[0]->setDiffuse(glm::vec3(0.0f, 1.0f, 0.0f));
+        }
+    }
 }
 
 std::string EngineCore::dumpJson() {
