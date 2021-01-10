@@ -7,7 +7,7 @@
 
 #define NECK_HEIGHT 10.0f
 #define PLAYER_WALK_SPEED 100.0f
-#define PLAYER_RUN_SPEED 500.0f
+#define PLAYER_RUN_SPEED 200.0f
 #define DOWN_LENGTH 1000.0f
 #define JUMP_SPEED 5600.0f
 #define EPS 0.003

@@ -198,7 +198,7 @@ glm::vec3 PhysicsMaster::getWorldSpaceMouseRay(float mouseX, float mouseY,
 bool PhysicsMaster::bulletCollisionCallback(btManifoldPoint& cp, const btCollisionObjectWrapper *obj1, int id1, int index1,
                                             const btCollisionObjectWrapper *obj2, int id2, int index2)
 {
-    const float OFFSET = 1.0f;
+    const float OFFSET = 0.5f;
     const btCollisionObjectWrapper *quadTreeNode = NULL;
     if (obj1->getCollisionObject()->getUserPointer() != NULL &&
         (obj1->getCollisionObject()->getCollisionFlags() &

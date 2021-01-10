@@ -41,7 +41,8 @@ class Entity : public MemoryPoolInterface<Entity>
             GRAB,
             BILL,
             ACTION,
-            INSTANCE_RENDERABLE
+            INSTANCE_RENDERABLE,
+            AIPLAYERFOLLOWER
         };
     protected:
         Transform m_transform;

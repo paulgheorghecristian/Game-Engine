@@ -43,6 +43,7 @@ class EngineCore
         int outputType;
 
         void constructPlayer();
+        void constructEnemy();
         void loadLights(rapidjson::Document &gameDocument);
         void loadEntities(rapidjson::Document &gameDocument);
 
@@ -54,6 +55,7 @@ class EngineCore
         float secondFraction;
 
         Player *player;
+        Entity *enemy;
         std::unordered_map<std::size_t, Entity *> quadTreeEntities;
         std::vector<std::size_t> lastFoundPathToPlayer;
 

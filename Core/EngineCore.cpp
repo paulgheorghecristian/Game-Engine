@@ -6,6 +6,7 @@
 #include "SpotLight.h"
 #include "DirectionalLight.h"
 #include "PointLight.h"
+#include "AIPlayerFollowerComponent.hpp"
 #include <chrono>
 #include <thread>
 
@@ -107,6 +108,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     loadLights(gameDocument);
 
     constructPlayer();
+    constructEnemy();
 
     outputType = 5;
 
@@ -476,7 +478,6 @@ void EngineCore::update() {
     RenderingMaster::getInstance()->update();
 
     RenderingMaster::getInstance()->secondFraction = secondFraction;
-    findPathToPlayer(20);
 }
 
 std::vector<Entity *> &EngineCore::getEntities() {
@@ -496,6 +497,22 @@ void EngineCore::constructPlayer() {
     playerPhysicsComponent->getRigidBody()->setAngularFactor(0.0);
     playerPhysicsComponent->getRigidBody()->setFriction(0.5);
     playerPhysicsComponent->getRigidBody()->setRestitution(0.6);
+}
+
+void EngineCore::constructEnemy() {
+    Transform enemyTrans(glm::vec3(300, 10, 100), glm::vec3(0), glm::vec3(10.0f, 80.0f, 10.0f));
+
+    enemy = new Entity();
+    enemy->setTransform(enemyTrans);
+
+    RenderingObject obj = RenderingObject::loadObject("res/models/cube4.obj", true, false);
+    Material *mat = new Material();
+    mat->setDiffuse(glm::vec3(1.0, 0.0, 0.0));
+    obj.addMaterial(mat);
+
+    enemy = enemy->addComponent(new RenderComponent(std::move(obj)))
+                    ->addComponent(new AIPlayerFollowerComponent(player));
+    entities.push_back(enemy);
 }
 
 void EngineCore::loadLights(rapidjson::Document &gameDocument) {
