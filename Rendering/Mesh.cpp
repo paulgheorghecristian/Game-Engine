@@ -97,14 +97,26 @@ void Mesh::update(const std::vector<Vertex> &vertices,
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec3)));
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2*sizeof(glm::vec3)));
-    glEnableVertexAttribArray (3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2*sizeof(glm::vec3) + sizeof (glm::vec2)));
-    glEnableVertexAttribArray (4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3*sizeof(glm::vec3) + sizeof (glm::vec2)));
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(2*sizeof(glm::vec3) + sizeof(glm::vec2)));
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3*sizeof(glm::vec3) + sizeof(glm::vec2)));
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(4*sizeof(glm::vec3) + sizeof (glm::vec2)));
+    glEnableVertexAttribArray(6);
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec4) + 4*sizeof(glm::vec3) + sizeof (glm::vec2)));
 
     m_numberOfTriangles = indices.size();
 
     glBindVertexArray(0);
+
+    m_willBeUpdated = willBeUpdated;
+
+    m_vertices.clear();
+    m_indices.clear();
+
+    m_vertices = vertices;
+    m_indices = indices;
 }
 
 // STATIC FUNCS FOR MESH CREATION

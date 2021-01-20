@@ -11,25 +11,32 @@ INCLUDES := \
 -Ires/libraries/bullet/bullet \
 -Ires/libraries/bullet/bullet/BulletCollision/CollisionDispatch \
 -IRendering \
+-IRendering/SkeletalAnimation \
 -ICore \
 -Ires/libraries/rapidjson/include \
 -ICore/Utils \
+-ICore/DataStructures \
+-ICore/Loaders \
 -IGame \
 -IPhysics \
 -IComponents \
 -Ires/libraries/stb \
 -Ires/libraries/imgui \
--I/usr/include/SDL2
+-I/usr/include/SDL2 \
+-Ires/libraries/assimp/include
 
 GAME_ENGINE_BINARY := ge
 
 GAME_ENGINE_CC_SRCS := \
 $(wildcard *.cpp) \
+$(wildcard Core/DataStructures/*.cpp) \
 $(wildcard Core/*.cpp) \
 $(wildcard Core/Utils/*.cpp) \
+$(wildcard Core/Loaders/*.cpp) \
 $(wildcard Game/*.cpp) \
 $(wildcard Physics/*.cpp) \
 $(wildcard Rendering/*.cpp) \
+$(wildcard Rendering/SkeletalAnimation/*.cpp) \
 $(wildcard Components/*.cpp) \
 $(wildcard res/libraries/imgui/*.cpp)
 
@@ -45,13 +52,17 @@ LIBS := \
 -lSDL2_ttf \
 -lBulletDynamics \
 -lBulletCollision \
--lLinearMath
+-lLinearMath \
+-lassimp
 
 LDOPTS := \
 -Lres/libraries/bullet/lib \
--Wl,-rpath=res/libraries/bullet/lib
+-Wl,-rpath=res/libraries/bullet/lib \
+-Lres/libraries/assimp/lib \
+-Wl,-rpath=res/libraries/assimp/lib
 
-CXXFLAGS := -Wall -O3 -DNDEBUG
+#CXXFLAGS := -Wall -O3 -DNDEBUG
+CXXFLAGS := -Wall -O0 -g
 
 OBJDIR := $(MAKEFILE_DIR)/obj/
 

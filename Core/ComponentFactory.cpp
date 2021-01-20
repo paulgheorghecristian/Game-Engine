@@ -203,6 +203,57 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             }
         }
         return new InstanceRenderComponent(std::move(renderingObject), positionsRotationsScales);
+    } if (strcmp (itr->name.GetString(), "SkeletalAnimationComponent") == 0) {
+        RenderingObject renderingObject;
+        Texture *texture = NULL;
+        Texture *normalMapTexture = NULL;
+        Texture *roughness = NULL;
+
+        Material *material = NULL;
+
+        if (!itr->value.HasMember("Mesh")) {
+            return NULL;
+        }
+
+        if (itr->value.HasMember("Material")) {
+            material = new Material();
+
+            material->setAmbient(glm::vec3(itr->value["Material"]["ambient"].GetArray()[0].GetFloat(),
+                                        itr->value["Material"]["ambient"].GetArray()[1].GetFloat(),
+                                        itr->value["Material"]["ambient"].GetArray()[2].GetFloat()));
+
+            material->setDiffuse(glm::vec3(itr->value["Material"]["diffuse"].GetArray()[0].GetFloat(),
+                                        itr->value["Material"]["diffuse"].GetArray()[1].GetFloat(),
+                                        itr->value["Material"]["diffuse"].GetArray()[2].GetFloat()));
+
+            material->setSpecular(glm::vec3(itr->value["Material"]["specular"].GetArray()[0].GetFloat(),
+                                        itr->value["Material"]["specular"].GetArray()[1].GetFloat(),
+                                        itr->value["Material"]["specular"].GetArray()[2].GetFloat()));
+
+            material->setShininess(itr->value["Material"]["shininess"].GetFloat());
+            if (itr->value["Material"].HasMember("normalMapStrength")) {
+                material->setNormalMapStrength(itr->value["Material"]["normalMapStrength"].GetFloat());
+            }
+            if (itr->value["Material"].HasMember("Texture")) {
+                texture = new Texture(itr->value["Material"]["Texture"].GetString(), 0);
+                material->setDiffuseTexture(texture);
+
+            }
+            if (itr->value["Material"].HasMember("NormalMapTexture")) {
+                normalMapTexture = new Texture (itr->value["Material"]["NormalMapTexture"].GetString(), 1);
+                material->setNormalTexture(normalMapTexture);
+            }
+            if (itr->value["Material"].HasMember("RoughnessTexture")) {
+                roughness = new Texture(itr->value["Material"]["RoughnessTexture"].GetString(), 2);
+                material->setRoughnessTexture(roughness);
+            }
+        }
+
+        renderingObject = RenderingObject::loadObject(itr->value["Mesh"].GetString(), true, material == NULL);
+        if (material != NULL) {
+            renderingObject.addMaterial(material);
+        }
+        return new SkeletalAnimationComponent(std::move(renderingObject));
     } else {
         return NULL;
     }

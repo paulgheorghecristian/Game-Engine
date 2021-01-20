@@ -36,7 +36,7 @@ void AIPlayerFollowerComponent::update() {
         float length = glm::length(m_dirToCurrTarget);
         m_dirToCurrTarget = glm::normalize(m_dirToCurrTarget);
 
-        if (length < 25.0f || m_currentIdx != playerIdx) {
+        if (length < 30.0f || m_currentIdx != playerIdx) {
             isSameIdx = false;
         }
     }
@@ -61,8 +61,10 @@ void AIPlayerFollowerComponent::update() {
     }
 
     if (isMoving == true || isSameIdx == true) {
-        thisPosition = thisPosition + m_dirToCurrTarget * 0.9f;
+        glm::quat rotQuat = glm::angleAxis(glm::atan(m_dirToCurrTarget.x, m_dirToCurrTarget.z), glm::vec3(0,1,0));
+        thisPosition = thisPosition + m_dirToCurrTarget * 0.5f;
         _entity->getTransform().setPosition(thisPosition);
+        _entity->getTransform().setRotation(rotQuat);
     }
 }
 

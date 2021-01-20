@@ -9,6 +9,7 @@
 #include "AIPlayerFollowerComponent.hpp"
 #include <chrono>
 #include <thread>
+#include "SkeletalAnimationComponent.hpp"
 
 #include "Common.h"
 
@@ -73,37 +74,37 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     PhysicsMaster::getInstance()->endGraphCreation();
     // DEBUG
     // temporary debugging code
-    PhysicsMaster::getInstance()->getQuadTree().getGraph().printGraph();
-    std::unordered_map<std::size_t, btGhostObject *> quadTreeBodies = PhysicsMaster::getInstance()->getQuadTreeBodies();
-    for (auto it: quadTreeBodies) {
-        btGhostObject *body = it.second;
+    // PhysicsMaster::getInstance()->getQuadTree().getGraph().printGraph();
+    // std::unordered_map<std::size_t, btGhostObject *> quadTreeBodies = PhysicsMaster::getInstance()->getQuadTreeBodies();
+    // for (auto it: quadTreeBodies) {
+    //     btGhostObject *body = it.second;
 
-        UserData *uData = (UserData *) body->getUserPointer();
-        QuadTree::Node *node = (QuadTree::Node *) uData->pointer.node;
-        btVector3 bScale = dynamic_cast<const btBoxShape* >(body->getCollisionShape())->getImplicitShapeDimensions();
-        btVector3 bOrigin = body->getWorldTransform().getOrigin();
+    //     UserData *uData = (UserData *) body->getUserPointer();
+    //     QuadTree::Node *node = (QuadTree::Node *) uData->pointer.node;
+    //     btVector3 bScale = dynamic_cast<const btBoxShape* >(body->getCollisionShape())->getImplicitShapeDimensions();
+    //     btVector3 bOrigin = body->getWorldTransform().getOrigin();
 
-        Transform transform(glm::vec3(bOrigin.x(), bOrigin.y(), bOrigin.z()),
-                                glm::vec3(0),
-                                glm::vec3(bScale.x()*2.0f, bScale.y()*2.0f, bScale.z()*2.0f));
-        Entity *newEntity = new Entity();
-        newEntity->setTransform(transform);
-        RenderingObject obj = RenderingObject::loadObject("res/models/cube4.obj", true, false);
-        Material *mat = new Material();
-        if (node->m_data.isBlocked == false) {
-            mat->setDiffuse(glm::vec3(1.0, 0.0, 1.0));
-        } else {
-            mat->setDiffuse(glm::vec3(1.0, 1.0, 0.0));
-        }
+    //     Transform transform(glm::vec3(bOrigin.x(), bOrigin.y(), bOrigin.z()),
+    //                             glm::vec3(0),
+    //                             glm::vec3(bScale.x()*2.0f, bScale.y()*2.0f, bScale.z()*2.0f));
+    //     Entity *newEntity = new Entity();
+    //     newEntity->setTransform(transform);
+    //     RenderingObject obj = RenderingObject::loadObject("res/models/cube4.obj", true, false);
+    //     Material *mat = new Material();
+    //     if (node->m_data.isBlocked == false) {
+    //         mat->setDiffuse(glm::vec3(1.0, 0.0, 1.0));
+    //     } else {
+    //         mat->setDiffuse(glm::vec3(1.0, 1.0, 0.0));
+    //     }
 
-        assert(node->m_idx == it.first);
+    //     assert(node->m_idx == it.first);
 
-        obj.addMaterial(mat);
+    //     obj.addMaterial(mat);
 
-        newEntity = newEntity->addComponent(new RenderComponent(std::move(obj)));
-        entities.push_back(newEntity);
-        quadTreeEntities[node->m_idx] = newEntity;
-    }
+    //     newEntity = newEntity->addComponent(new RenderComponent(std::move(obj)));
+    //     entities.push_back(newEntity);
+    //     quadTreeEntities[node->m_idx] = newEntity;
+    // }
     // END DEBUG
     loadLights(gameDocument);
 
@@ -349,6 +350,7 @@ void EngineCore::render() {
     for (auto entity : entities) {
         RenderComponent *renderComponent = NULL;
         InstanceRenderComponent *instanceRenderComponent = NULL;
+        SkeletalAnimationComponent *skeletalAnimationComponent = NULL;
 
         // hack, needs improvements
         if (entity->getComponent(Entity::Flags::BILL) != NULL)
@@ -360,6 +362,10 @@ void EngineCore::render() {
         if ((instanceRenderComponent =
              (InstanceRenderComponent *) (entity->getComponent (Entity::Flags::INSTANCE_RENDERABLE))) != NULL) {
             instanceRenderComponent->render(&RenderingMaster::getInstance()->deferredShading_InstanceRender);
+        }
+        if ((skeletalAnimationComponent =
+             (SkeletalAnimationComponent *) (entity->getComponent (Entity::Flags::ANIMATED))) != NULL) {
+            skeletalAnimationComponent->render(&RenderingMaster::getInstance()->deferredShading_AnimRender);
         }
     }
     RenderingMaster::getInstance()->getGBuffer().unbind();
@@ -500,17 +506,17 @@ void EngineCore::constructPlayer() {
 }
 
 void EngineCore::constructEnemy() {
-    Transform enemyTrans(glm::vec3(300, 10, 100), glm::vec3(0), glm::vec3(10.0f, 80.0f, 10.0f));
+    Transform enemyTrans(glm::vec3(300, 3, 100), glm::vec3(0), glm::vec3(0.3f));
 
     enemy = new Entity();
     enemy->setTransform(enemyTrans);
 
-    RenderingObject obj = RenderingObject::loadObject("res/models/cube4.obj", true, false);
+    RenderingObject obj = RenderingObject::loadObject("res/models/BaseMesh_Anim.dae", true, false);
     Material *mat = new Material();
-    mat->setDiffuse(glm::vec3(1.0, 0.0, 0.0));
+    mat->setDiffuse(glm::vec3(0.0, 0.0, 0.0));
     obj.addMaterial(mat);
 
-    enemy = enemy->addComponent(new RenderComponent(std::move(obj)))
+    enemy = enemy->addComponent(new SkeletalAnimationComponent(std::move(obj)))
                     ->addComponent(new AIPlayerFollowerComponent(player));
     entities.push_back(enemy);
 }

@@ -1,16 +1,18 @@
 #include "RenderingObject.hpp"
 #include "Mesh.h"
 #include "Texture.h"
+#include "AnimationLoader.hpp"
+#include "Skeleton.hpp"
 
 #include <iostream>
 
 RenderingObject::RenderingObject() {
-
+    m_skeleton = NULL;
 }
 
 RenderingObject::RenderingObject(const std::string &objectFilePath, bool addMaterials): m_objectFilePath(objectFilePath),
                                                                                     m_addMaterials(addMaterials) {
-
+   m_skeleton = NULL;
 }
 
 RenderingObject::~RenderingObject() {
@@ -22,6 +24,11 @@ RenderingObject::~RenderingObject() {
     for (unsigned int i = 0; i < m_materials.size(); i++) {
         delete m_materials[i];
         m_materials[i] = NULL;
+    }
+
+    if (m_skeleton != NULL) {
+        delete m_skeleton;
+        m_skeleton = NULL;
     }
 }
 
@@ -43,11 +50,18 @@ RenderingObject &RenderingObject::operator=(RenderingObject &&otherRenderingObje
             delete m_materials[i];
             m_materials[i] = NULL;
         }
+        if (m_skeleton != NULL) {
+            delete m_skeleton;
+            m_skeleton = NULL;
+        }
+
         m_objectFilePath = std::move(otherRenderingObject.m_objectFilePath);
         m_meshes = std::move(otherRenderingObject.m_meshes);
         m_materials = std::move(otherRenderingObject.m_materials);
 
         m_addMaterials  = otherRenderingObject.m_addMaterials;
+        m_skeleton = otherRenderingObject.m_skeleton;
+        otherRenderingObject.m_skeleton = NULL;
     }
 
     return *this;
@@ -58,6 +72,9 @@ RenderingObject::RenderingObject(RenderingObject &&otherRenderingObject) {
     m_meshes = std::move(otherRenderingObject.m_meshes);
     m_materials = std::move(otherRenderingObject.m_materials);
     m_addMaterials  = otherRenderingObject.m_addMaterials;
+
+    m_skeleton = otherRenderingObject.m_skeleton;
+    otherRenderingObject.m_skeleton = NULL;
 }
 
 RenderingObject RenderingObject::loadObject(const std::string &filename, bool prepare, bool addMaterials) {
@@ -84,9 +101,11 @@ RenderingObject RenderingObject::loadObject(const std::string &filename, bool pr
     }
 
     Assimp::Importer importer;
-    const aiScene *scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
+    aiScene *scene = NULL;
+    (void) importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
                             aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace |
                             aiProcess_GenUVCoords | aiProcess_RemoveRedundantMaterials | aiProcess_OptimizeMeshes |  aiProcess_OptimizeGraph);
+    scene = importer.GetOrphanedScene();
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) 
     {
@@ -94,7 +113,22 @@ RenderingObject RenderingObject::loadObject(const std::string &filename, bool pr
         std::exit(1);
     }
 
+    AnimationLoader::init(scene);
+    AnimationLoader::getInstance()->loadNodesAnim();
+    AnimationLoader::getInstance()->recursiveLoadNodes(scene->mRootNode);
+
+    // load meshes and bones
     processNode(scene->mRootNode, scene, renderingObject, prepare, addMaterials);
+    AnimationLoader::getInstance()->loadBoneParents();
+
+    // create skeleton from bones
+    if (AnimationLoader::getInstance()->getBones().size() > 0) {
+        Skeleton *skeleton = new Skeleton(AnimationLoader::getInstance()->getBones(),
+                                        AnimationLoader::getInstance()->getGlobalInverserTransform());
+        renderingObject.setSkeleton(skeleton);
+    }
+
+    AnimationLoader::destroy();
 
     return renderingObject;
 }
@@ -126,6 +160,14 @@ Mesh *RenderingObject::processAssimpMesh(aiMesh *mesh, const aiScene *scene,
                                         bool prepare, Material *_material) {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
+    const int WEIGHTS_PER_VERTEX = 4;
+
+    int boneArraysSize = mesh->mNumVertices*WEIGHTS_PER_VERTEX;
+    std::vector<unsigned int> boneIDs;
+    std::vector<float> boneWeights;
+
+    boneIDs.resize(boneArraysSize);
+    boneWeights.resize(boneArraysSize);
 
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
         Vertex vertex;
@@ -215,5 +257,48 @@ Mesh *RenderingObject::processAssimpMesh(aiMesh *mesh, const aiScene *scene,
         }
     }
 
-    return new Mesh(vertices, indices, prepare);
+    Mesh *_mesh = new Mesh(prepare, true);
+
+    SkeletalBone *bone = NULL;
+
+    std::size_t offset = AnimationLoader::getInstance()->getBones().size();
+
+    for (unsigned int i = 0; i < mesh->mNumBones; i++) {
+        aiBone *aiBone = mesh->mBones[i];
+
+        const std::string bName = aiBone->mName.data;
+        const glm::mat4 bMat = glm::transpose(AnimationLoader::AiToGLMMat4(aiBone->mOffsetMatrix));
+
+        std::cout<<"Bone "<<i<<" "<<bName<<std::endl;
+
+        bone = new SkeletalBone(_mesh, i, bName, bMat);
+
+        bone->m_node = AnimationLoader::getInstance()->FindAiNode(bName);
+        bone->m_animNode = AnimationLoader::getInstance()->FindAiNodeAnim(bName);
+
+        if (bone->m_animNode == NULL)
+            std::cout<<"No Animations were found for "+bName<<std::endl;
+
+        for (unsigned int j = 0; j < aiBone->mNumWeights; j++) {
+            aiVertexWeight weight = aiBone->mWeights[j];
+            unsigned int vertexStart = weight.mVertexId * WEIGHTS_PER_VERTEX;
+
+            for (unsigned int k = 0; k < WEIGHTS_PER_VERTEX; k++) {
+                if (boneWeights.at(vertexStart+k) == 0) {
+                    boneWeights.at(vertexStart+k) = weight.mWeight;
+                    boneIDs.at(vertexStart+k) = i;
+
+                    vertices.at(weight.mVertexId).bonesIdx[k] = i+offset;
+                    vertices.at(weight.mVertexId).bonesWeights[k] = weight.mWeight;
+
+                    break;
+                }
+            }
+        }
+
+        AnimationLoader::getInstance()->addBone(bone);
+    }
+
+    _mesh->update(vertices, indices, false);
+    return _mesh;
 }

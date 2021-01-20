@@ -65,6 +65,7 @@ class RenderingMaster
 
         Shader deferredShading_SceneShader;
         Shader deferredShading_InstanceRender;
+        Shader deferredShading_AnimRender;
         Shader deferredShading_BufferCombinationShader;
         Shader deferredShading_StencilBufferCreator;
         Shader depthMapCreator;

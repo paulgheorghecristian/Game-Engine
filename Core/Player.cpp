@@ -15,7 +15,7 @@
 #define STEP_FRQ 0.16
 #define STEP_AMP 0.35
 #define STEP_ROT_FRQ 0.5
-#define STEP_ROT_AMP 0.005
+#define STEP_ROT_AMP 0.008
 
 Player::Player (Transform &transform) {
     this->m_transform = transform;

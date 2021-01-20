@@ -8,6 +8,7 @@
 #include <queue>
 #include <functional>
 #include <unordered_set>
+#include <cstdlib>
 
 PhysicsMaster *PhysicsMaster::m_instance = NULL;
 

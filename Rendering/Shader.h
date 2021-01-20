@@ -36,6 +36,7 @@ class Shader : public MemoryPoolInterface<Shader>
         bool updateUniform(const std::string &name, bool data);
 
         inline const std::string &getShaderPath() { return shaderPath; }
+        inline GLuint getShaderId() { return program; }
 
         virtual ~Shader();
 

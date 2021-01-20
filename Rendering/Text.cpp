@@ -65,7 +65,7 @@ void Text::updateMesh(bool dir){
     }
 
     if (vertices.size () != 0 && indices.size () != 0) {
-        mesh.update(vertices, indices);
+        mesh.update(vertices, indices, true);
     }
 }
 
