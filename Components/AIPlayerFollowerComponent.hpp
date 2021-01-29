@@ -29,6 +29,8 @@ class AIPlayerFollowerComponent : public Component
 
         std::size_t findIdx(const glm::vec3 &thisPosition, bool &found);
         glm::vec3 getDirVecToIdx(std::size_t idx);
+        
+        void simplifyLastFoundPath();
 };
 
 #endif /* __AIPLAYERFOLLOWERCOMPONENT_HPP__ */
