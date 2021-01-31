@@ -2,17 +2,33 @@
 
 #include "PhysicsMaster.h"
 #include "Common.h"
+#include "DebugRenderer.hpp"
+
+#include <cmath>
 
 AIPlayerFollowerComponent::AIPlayerFollowerComponent(Player *player): player(player),
                                                                         lastFoundPathToPlayer(0),
+                                                                        lastFoundPosToPlayer(0),
                                                                         m_currentIdx(0),
                                                                         m_currTargetIdx(0),
                                                                         m_dirToCurrTarget(0),
-                                                                        isMoving(false),
-                                                                        isSameIdx(false) {
+                                                                        m_Idx(0),
+                                                                        m_interpolate(false),
+                                                                        isSameIdx(false),
+                                                                        stepInterp(0) {
+    draw = false;
+    stop = false;
 }
 
 void AIPlayerFollowerComponent::input(Input &inputManager) {
+    if (inputManager.getKeyDown(SDLK_k)) {
+        DebugRenderer::getInstance()->clearLinePoints();
+        stop = !stop;
+    }
+
+    if (inputManager.getKeyDown(SDLK_l)) {
+        draw = !draw;
+    }
 }
 
 void AIPlayerFollowerComponent::update() {
@@ -23,50 +39,72 @@ void AIPlayerFollowerComponent::update() {
     glm::vec3 thisPosition = _entity->getTransform().getPosition();
     bool found = false, playerFound = false;
 
-    m_currentIdx = findIdx(thisPosition, found);
-    playerIdx = findIdx(playerPosition, playerFound);
+    m_currentIdx = PhysicsMaster::getInstance()->findIdx(thisPosition, found);
+    playerIdx = PhysicsMaster::getInstance()->findIdx(playerPosition, playerFound);
 
-    if (found == true && m_currTargetIdx == m_currentIdx) {
-        isMoving = false;
-        isSameIdx = true;
+    if (found == false || playerFound == false)
+        return;
+
+    if (m_currentIdx == playerIdx) {
+        lastFoundPosToPlayer.clear();
         lastFoundPathToPlayer.clear();
 
+        isSameIdx = true;
+
         m_dirToCurrTarget = playerPosition - thisPosition;
-        m_dirToCurrTarget = glm::vec3(m_dirToCurrTarget.x, 0, m_dirToCurrTarget.z);
-        float length = glm::length(m_dirToCurrTarget);
-        m_dirToCurrTarget = glm::normalize(m_dirToCurrTarget);
+        m_dirToCurrTarget.y = 0;
+    } else {
+        if (lastFoundPosToPlayer.size() == 0) {
+            lastFoundPathToPlayer.clear();
+            // from m_currentIdx to playerIdx
+            PhysicsMaster::getInstance()->findShortestPath(playerIdx, m_currentIdx, lastFoundPathToPlayer);
+            // PhysicsMaster::getInstance()->simplifyLastFoundPath(lastFoundPathToPlayer);
 
-        if (length < 30.0f || m_currentIdx != playerIdx) {
-            isSameIdx = false;
-        }
-    }
+            // exclude currentIdx
+            if (lastFoundPathToPlayer.size() > 0)
+                lastFoundPathToPlayer.erase(lastFoundPathToPlayer.begin());
+            for (std::size_t i = 0; i < lastFoundPathToPlayer.size(); i++) {
+                glm::vec3 pos = getPositionFromIdx(lastFoundPathToPlayer[i]);
+                lastFoundPosToPlayer.push_back(pos);
+                // if (draw == true)
+                // DebugRenderer::getInstance()->addLinePoint(pos);
+            }
 
-    if (lastFoundPathToPlayer.size() == 0 && found == true) {
-        if (playerFound == true) {
-            PhysicsMaster::getInstance()->findShortestPath(m_currentIdx, playerIdx, lastFoundPathToPlayer);
-            if (lastFoundPathToPlayer.size() == 1) {
-                m_currTargetIdx = lastFoundPathToPlayer[0];
-            } else {
-                simplifyLastFoundPath();
+            m_dirToCurrTarget = lastFoundPosToPlayer[0] - thisPosition;
+            m_dirToCurrTarget.y = 0;
+            m_interpolate = true;
+            stepInterp = 0.0f;
+        } else {
+            if (glm::distance(glm::vec2(lastFoundPosToPlayer[0].x,lastFoundPosToPlayer[0].z),
+                                glm::vec2(thisPosition.x,thisPosition.z)) < getScaleFromIdx(m_currentIdx).x*0.7) {
+                lastFoundPosToPlayer.erase(lastFoundPosToPlayer.begin());
+
+                m_dirToCurrTarget = lastFoundPosToPlayer[0] - thisPosition;
+                m_dirToCurrTarget.y = 0;
+                m_interpolate = true;
+                stepInterp = 0.0f;
             }
         }
     }
 
-    if (lastFoundPathToPlayer.size() > 1 && isMoving == false) {
-        std::size_t currIdx = lastFoundPathToPlayer[lastFoundPathToPlayer.size()-1];
-        m_currTargetIdx = lastFoundPathToPlayer[lastFoundPathToPlayer.size()-2];
+    glm::vec3 m_dirToCurrTargetNorm = glm::normalize(m_dirToCurrTarget);
+    rotQuat = glm::angleAxis(glm::atan(m_dirToCurrTargetNorm.x, m_dirToCurrTargetNorm.z), glm::vec3(0,1,0));
 
-        m_dirToCurrTarget = getDirVecToIdx(m_currTargetIdx);
-        isMoving = true;
+    float yRot = glm::eulerAngles(lastQuat).y;
+    float yRot2 = glm::eulerAngles(rotQuat).y;
 
-        lastFoundPathToPlayer.erase(lastFoundPathToPlayer.begin() + (lastFoundPathToPlayer.size() - 1));
-    }
-
-    if (isMoving == true || isSameIdx == true) {
-        glm::quat rotQuat = glm::angleAxis(glm::atan(m_dirToCurrTarget.x, m_dirToCurrTarget.z), glm::vec3(0,1,0));
-        thisPosition = thisPosition + m_dirToCurrTarget * 0.5f;
+    if (m_interpolate == false || glm::abs(yRot-yRot2) < 0.4) {
+        thisPosition = thisPosition + m_dirToCurrTargetNorm * 0.6f;
         _entity->getTransform().setPosition(thisPosition);
         _entity->getTransform().setRotation(rotQuat);
+        lastQuat = rotQuat;
+        m_interpolate = false;
+    } else {
+        glm::quat slerpQuat = glm::slerp(lastQuat, rotQuat, stepInterp);
+        stepInterp += 0.10;
+        if (stepInterp > 1.0f)
+            m_interpolate = false;
+        _entity->getTransform().setRotation(slerpQuat);
     }
 }
 
@@ -76,7 +114,8 @@ void AIPlayerFollowerComponent::init() {
     bool found;
     const glm::vec3 &thisPosition = _entity->getTransform().getPosition();
 
-    m_currentIdx = findIdx(thisPosition, found);
+    m_currentIdx = PhysicsMaster::getInstance()->findIdx(thisPosition, found);
+    m_Idx = 0;
 }
 
 glm::vec3 AIPlayerFollowerComponent::getDirVecToIdx(std::size_t idx) {
@@ -93,36 +132,26 @@ glm::vec3 AIPlayerFollowerComponent::getDirVecToIdx(std::size_t idx) {
     return glm::vec3(res.x, 0, res.z);
 }
 
-std::size_t AIPlayerFollowerComponent::findIdx(const glm::vec3 &thisPosition, bool &found) {
-    float EPS = 0.3f;
-    std::size_t foundIdx = 0;
+glm::vec3 AIPlayerFollowerComponent::getPositionFromIdx(std::size_t idx) {
     std::unordered_map<std::size_t, btGhostObject *> &quadTreeEntities =
                             PhysicsMaster::getInstance()->getQuadTreeBodies();
-    found = false;
 
-    for (auto it: quadTreeEntities) {
-        btGhostObject *body = it.second;
+    btGhostObject *body = quadTreeEntities[idx];
+    btVector3 bOrigin = body->getWorldTransform().getOrigin();
 
-        btVector3 bScale = dynamic_cast<const btBoxShape* >(body->getCollisionShape())->getImplicitShapeDimensions();
-        btVector3 bOrigin = body->getWorldTransform().getOrigin();
+    glm::vec3 position = glm::vec3(bOrigin.x(), bOrigin.y(), bOrigin.z());
+    return position;
+}
 
-        glm::vec3 position = glm::vec3(bOrigin.x(), bOrigin.y(), bOrigin.z());
-        glm::vec3 scale = glm::vec3(bScale.x() * 2.0f, bScale.y() * 2.0f, bScale.z() * 2.0f);
+glm::vec3 AIPlayerFollowerComponent::getScaleFromIdx(std::size_t idx) {
+    std::unordered_map<std::size_t, btGhostObject *> &quadTreeEntities =
+                            PhysicsMaster::getInstance()->getQuadTreeBodies();
 
-        glm::vec2 xLimits = glm::vec2(position.x - scale.x * 0.5f, position.x + scale.x * 0.5f);
-        glm::vec2 zLimits = glm::vec2(position.z - scale.z * 0.5f, position.z + scale.z * 0.5f);
+    btGhostObject *body = quadTreeEntities[idx];
+    btVector3 bScale = dynamic_cast<const btBoxShape* >(body->getCollisionShape())->getImplicitShapeDimensions();
 
-        if (thisPosition.x >= xLimits.x - EPS &&
-            thisPosition.x <= xLimits.y + EPS &&
-            thisPosition.z >= zLimits.x - EPS &&
-            thisPosition.z <= zLimits.y + EPS) {
-            foundIdx = it.first;
-            found = true;
-            break;
-        }
-    }
-
-    return foundIdx;
+    glm::vec3 scale = glm::vec3(bScale.x(), bScale.y(), bScale.z());
+    return scale;
 }
 
 const unsigned int AIPlayerFollowerComponent::getFlag() const {
@@ -137,72 +166,4 @@ std::string AIPlayerFollowerComponent::jsonify() {
     // res += "\"action\":\"" + m_actionName + "\"}";
 
     return res;
-}
-
-void AIPlayerFollowerComponent::simplifyLastFoundPath() {
-    std::unordered_map<std::size_t, btGhostObject *> &quadTreeEntities =
-                            PhysicsMaster::getInstance()->getQuadTreeBodies();
-    std::vector<std::size_t> toBeRemoved;
-    int offset = 0;
-
-    for (int idx = lastFoundPathToPlayer.size()-1; idx-2-offset >= 0; --idx) {
-        std::size_t toCombine = lastFoundPathToPlayer[idx];
-        std::size_t toCombine2 = lastFoundPathToPlayer[idx-2-offset];
-        std::size_t maybeRemove = lastFoundPathToPlayer[idx-1-offset];
-
-        bool found = true;
-        btVector3 bOrigin = quadTreeEntities[toCombine]->getWorldTransform().getOrigin();
-        btVector3 bScale = dynamic_cast<const btBoxShape* >(quadTreeEntities[toCombine]->getCollisionShape())->getImplicitShapeDimensions();
-        btVector3 bOrigin2 = quadTreeEntities[toCombine2]->getWorldTransform().getOrigin();
-        btVector3 bScale2 = dynamic_cast<const btBoxShape* >(quadTreeEntities[toCombine2]->getCollisionShape())->getImplicitShapeDimensions();
-
-        glm::vec3 position = glm::vec3(bOrigin.x(), bOrigin.y(), bOrigin.z());
-        glm::vec3 position2 = glm::vec3(bOrigin2.x(), bOrigin2.y(), bOrigin2.z());
-
-        glm::vec3 dir = glm::normalize(position2 - position);
-        dir.y = 0;
-        glm::vec3 perpDir = glm::normalize(glm::cross(dir, glm::vec3(0,1,0)));
-        perpDir.y = 0;
-
-        float steps[] = {-bScale.x()*1.2f, 0.0f, bScale.x()*1.2f};
-        float steps2[] = {-bScale2.x()*1.2f, 0.0f, bScale2.x()*1.2f};
-
-        for (std::size_t i = 0; i < sizeof(steps)/sizeof(steps[0]); i++) {
-            position = glm::vec3(bOrigin.x(), bOrigin.y(), bOrigin.z()) + perpDir * steps[i];
-            position2 = glm::vec3(bOrigin2.x(), bOrigin2.y(), bOrigin2.z()) + perpDir * steps2[i];
-
-            btVector3 from = btVector3(position.x, position.y, position.z);
-            btVector3 to = btVector3(position2.x, position2.y, position2.z);
-
-            btCollisionWorld::ClosestRayResultCallback rayCallback(from, to);
-            PhysicsMaster::getInstance()->getWorld()->rayTest(from, to, rayCallback);
-
-            bool localFound = rayCallback.hasHit();
-
-            if (localFound == true) {
-                UserData *data = (UserData *) rayCallback.m_collisionObject->getUserPointer();
-                if (data == NULL ||
-                    (data->type != PointerType::PHYSICS_BODY) ||
-                    (data->pointer.entity == player)) {
-                    continue;
-                }
-            }
-
-            found = (found && !localFound);
-        }
-
-        if (found == true) {
-            // maybeRemove can be removed;
-            toBeRemoved.push_back(idx-1-offset);
-            ++idx;
-            ++offset;
-        } else {
-            idx = idx - offset;
-            offset = 0;
-        }
-    }
-
-    for (std::size_t p: toBeRemoved) {
-        lastFoundPathToPlayer.erase(lastFoundPathToPlayer.begin() + p);
-    }
 }
