@@ -12,7 +12,7 @@
 
 PhysicsMaster *PhysicsMaster::m_instance = NULL;
 
-PhysicsMaster::PhysicsMaster(float gravity) : gravityAcc (gravity), quadTree(glm::vec2(0), 1024, 6) {
+PhysicsMaster::PhysicsMaster(float gravity) : gravityAcc (gravity), quadTree(glm::vec2(0), 512, 6) {
     btTransform t;
 
     collisionConfig = new btDefaultCollisionConfiguration();
@@ -61,10 +61,22 @@ btGhostObject *PhysicsMaster::createBoxRigidBody(glm::vec3 position, glm::vec3 s
 void PhysicsMaster::startGraphCreation() {
     gContactAddedCallback = PhysicsMaster::bulletCollisionCallback;
 
+    // free eventual memory
+    for (auto it: quadTreeBodies) {
+        btGhostObject *body = it.second;
+        UserData *uData = (UserData *) body->getUserPointer();
+
+        delete uData;
+        uData = NULL;
+
+        delete it.second;
+        it.second = NULL;
+    }
     quadTreeBodies.clear();
+    quadTree.clearMem(&quadTree.getRoot());
 
     // create quad tree root node
-    btGhostObject *rootRigidBody = createBoxRigidBody(glm::vec3(-200.0f, 20.0f, 0.0f), glm::vec3(2048.0f, 5.0f, 2048.0f));
+    btGhostObject *rootRigidBody = createBoxRigidBody(glm::vec3(-200.0f, 15.0f, 0.0f), glm::vec3(2048.0f, 50.0f, 2048.0f));
     rootRigidBody->setCollisionFlags(rootRigidBody->getCollisionFlags() |
                               btCollisionObject::CF_NO_CONTACT_RESPONSE |
                               btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK);
@@ -201,23 +213,30 @@ bool PhysicsMaster::bulletCollisionCallback(btManifoldPoint& cp, const btCollisi
 {
     const float OFFSET = 0.5f;
     const btCollisionObjectWrapper *quadTreeNode = NULL;
+    const btCollisionObjectWrapper *obstacleObj = NULL;
     if (obj1->getCollisionObject()->getUserPointer() != NULL &&
         (obj1->getCollisionObject()->getCollisionFlags() &
         btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK)) {
         quadTreeNode = obj1;
+        obstacleObj = obj2;
 	} else if (obj2->getCollisionObject()->getUserPointer() != NULL &&
                 (obj2->getCollisionObject()->getCollisionFlags() &
                 btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK)) {
         quadTreeNode = obj2;
+        obstacleObj = obj1;
 	}
 
     if (quadTreeNode == NULL)
         return false;
 
-    UserData *uData;
+    UserData *uData, *uData2;
     uData = (UserData *) quadTreeNode->getCollisionObject()->getUserPointer();
+    uData2 = (UserData *) obstacleObj->getCollisionObject()->getUserPointer();
 
     if (uData == NULL || uData->type != PointerType::QUADT_NODE)
+        return false;
+
+    if (uData2 == NULL || uData2->type != PointerType::PHYSICS_BODY)
         return false;
 
     QuadTree::Node *node = (QuadTree::Node *) uData->pointer.node;
@@ -380,6 +399,103 @@ void PhysicsMaster::findShortestPath(std::size_t source, std::size_t target, std
     }
 }
 
+void PhysicsMaster::simplifyLastFoundPath(std::vector<std::size_t> &lastFoundPathToPlayer) {
+    std::vector<std::size_t> toBeRemoved;
+    int offset = 0;
+
+    for (int idx = lastFoundPathToPlayer.size()-1; idx-2-offset >= 0; --idx) {
+        std::size_t toCombine = lastFoundPathToPlayer[idx];
+        std::size_t toCombine2 = lastFoundPathToPlayer[idx-2-offset];
+        std::size_t maybeRemove = lastFoundPathToPlayer[idx-1-offset];
+
+        bool found = true;
+        btVector3 bOrigin = quadTreeBodies[toCombine]->getWorldTransform().getOrigin();
+        btVector3 bScale = dynamic_cast<const btBoxShape* >(quadTreeBodies[toCombine]->getCollisionShape())->getImplicitShapeDimensions();
+        btVector3 bOrigin2 = quadTreeBodies[toCombine2]->getWorldTransform().getOrigin();
+        btVector3 bScale2 = dynamic_cast<const btBoxShape* >(quadTreeBodies[toCombine2]->getCollisionShape())->getImplicitShapeDimensions();
+
+        glm::vec3 position = glm::vec3(bOrigin.x(), bOrigin.y(), bOrigin.z());
+        glm::vec3 position2 = glm::vec3(bOrigin2.x(), bOrigin2.y(), bOrigin2.z());
+
+        glm::vec3 dir = glm::normalize(position2 - position);
+        dir.y = 0;
+        glm::vec3 perpDir = glm::normalize(glm::cross(dir, glm::vec3(0,1,0)));
+        perpDir.y = 0;
+
+        float steps[] = {-bScale.x(), -bScale.x()*0.6f, 0.0f, bScale.x()*0.6f, bScale.x()};
+        float steps2[] = {-bScale2.x(), -bScale2.x()*0.6f, 0.0f, bScale2.x()*0.6f, bScale2.x()};
+
+        for (std::size_t i = 0; i < sizeof(steps)/sizeof(steps[0]); i++) {
+            position = glm::vec3(bOrigin.x(), bOrigin.y(), bOrigin.z()) + perpDir * steps[i];
+            position2 = glm::vec3(bOrigin2.x(), bOrigin2.y(), bOrigin2.z()) + perpDir * steps2[i];
+
+            btVector3 from = btVector3(position.x, position.y, position.z);
+            btVector3 to = btVector3(position2.x, position2.y, position2.z);
+
+            btCollisionWorld::ClosestRayResultCallback rayCallback(from, to);
+            world->rayTest(from, to, rayCallback);
+
+            bool localFound = rayCallback.hasHit();
+
+            // if (localFound) {
+            //     UserData *data = (UserData *) rayCallback.m_collisionObject->getUserPointer();
+
+            //     if (data == NULL ||
+            //         (data->type == PointerType::PHYSICS_BODY)) {
+            //         //continue;
+            //     }
+            // }
+
+            found = (found && !localFound);
+        }
+
+        if (found == true) {
+            // maybeRemove can be removed;
+            toBeRemoved.push_back(idx-1-offset);
+            ++idx;
+            ++offset;
+        } else {
+            idx = idx - offset;
+            offset = 0;
+        }
+    }
+
+    for (std::size_t p: toBeRemoved) {
+        lastFoundPathToPlayer.erase(lastFoundPathToPlayer.begin() + p);
+    }
+}
+
+std::size_t PhysicsMaster::findIdx(const glm::vec3 &thisPosition, bool &found) {
+    //debug func
+    float EPS = 0.3f;
+    std::size_t foundIdx = 0;
+    found = false;
+
+    for (auto it: quadTreeBodies) {
+        btGhostObject *body = it.second;
+
+        btVector3 bScale = dynamic_cast<const btBoxShape* >(body->getCollisionShape())->getImplicitShapeDimensions();
+        btVector3 bOrigin = body->getWorldTransform().getOrigin();
+
+        glm::vec3 position = glm::vec3(bOrigin.x(), bOrigin.y(), bOrigin.z());
+        glm::vec3 scale = glm::vec3(bScale.x() * 2.0f, bScale.y() * 2.0f, bScale.z() * 2.0f);
+
+        glm::vec2 xLimits = glm::vec2(position.x - scale.x * 0.5f, position.x + scale.x * 0.5f);
+        glm::vec2 zLimits = glm::vec2(position.z - scale.z * 0.5f, position.z + scale.z * 0.5f);
+
+        if (thisPosition.x >= xLimits.x - EPS &&
+            thisPosition.x <= xLimits.y + EPS &&
+            thisPosition.z >= zLimits.x - EPS &&
+            thisPosition.z <= zLimits.y + EPS) {
+            foundIdx = it.first;
+            found = true;
+            break;
+        }
+    }
+
+    return foundIdx;
+}
+
 PhysicsMaster::~PhysicsMaster() {
     /* TODO i think these are destroyed by world destr */
     //delete planeRigidBody->getMotionState();
@@ -390,5 +506,15 @@ PhysicsMaster::~PhysicsMaster() {
     delete broadsphase;
     delete solver;*/
 
+    for (auto it: quadTreeBodies) {
+        btGhostObject *body = it.second;
+        UserData *uData = (UserData *) body->getUserPointer();
+
+        delete uData;
+        uData = NULL;
+
+        delete it.second;
+        it.second = NULL;
+    }
     delete world;
 }

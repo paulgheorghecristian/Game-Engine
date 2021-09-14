@@ -17,14 +17,19 @@ SkeletalAnimationComponent::SkeletalAnimationComponent(RenderingObject &&renderi
 }
 
 void SkeletalAnimationComponent::input(Input &inputManager) {
-    static SkeletalAnimation Anim_Test_Walk("Walk_loop", SkeletalAnimation::framesToTime(glm::vec2(0, 23)), 2);
+    static SkeletalAnimation Anim_Test_Walk("Walk_loop", SkeletalAnimation::framesToTime(glm::vec2(0, 19)), 2);
     if (inputManager.getKeyDown(SDLK_k)) {
         playAnimation(Anim_Test_Walk, true, false);
     }
 }
 
 void SkeletalAnimationComponent::update() {
+    Skeleton *skeleton = renderingObject.getSkeleton();
 
+    if (skeleton != NULL) {
+        // potential bottlenck, maybe move to update and perform once on separate thread
+        skeleton->update();
+    }
 }
 
 void SkeletalAnimationComponent::render(Shader *externShader) {
@@ -32,17 +37,11 @@ void SkeletalAnimationComponent::render(Shader *externShader) {
 
     const std::vector<Mesh *> &m_meshes = renderingObject.getMeshes();
     const std::vector<Material *> &m_materials = renderingObject.getMaterials();
+
     Skeleton *skeleton = renderingObject.getSkeleton();
 
     if (skeleton != NULL) {
-        // potential bottlenck, maybe move to update and perform once on separate thread
-        skeleton->update();
-        // next update uniforms
-        externShader->bind();
-        glUniformMatrix4fv(glGetUniformLocation(externShader->getShaderId(), "gBones"),
-                            skeleton->m_boneMats.size(),
-                            GL_FALSE,
-                            glm::value_ptr(skeleton->m_boneMats[0]));
+        result &= externShader->updateUniform("gBones", skeleton->m_boneMats);
     }
     result &= externShader->updateUniform ("modelMatrix", (void *) &_entity->getTransform().getModelMatrix());
 

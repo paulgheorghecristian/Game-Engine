@@ -95,6 +95,7 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
         glm::vec3 scale(1.0f);
         float mass;
         const char *bodyType;
+        bool shouldUpdate = true;
 
         if (!itr->value.HasMember ("BoundingBodyType") ||
             !itr->value.HasMember ("scale") ||
@@ -107,6 +108,8 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             type = PhysicsComponent::BoundingBodyType::CUBE;
         } else if (strcmp (bodyType, "sphere") == 0) {
             type = PhysicsComponent::BoundingBodyType::SPHERE;
+        } else if (strcmp (bodyType, "capsule") == 0) {
+            type = PhysicsComponent::BoundingBodyType::CAPSULE;
         } else if (strcmp (bodyType, "simplified mesh") == 0) {
             //TODO NOT YET SUPPORTED
             const char *meshPath = itr->value["BoundingBodyType"].GetArray()[1].GetString();
@@ -119,7 +122,11 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                            itr->value["scale"].GetArray()[2].GetFloat());
         mass = itr->value["mass"].GetFloat();
 
-        return new PhysicsComponent(type, scale, mass);
+        if (itr->value.HasMember ("shouldUpdate")) {
+            shouldUpdate = itr->value["shouldUpdate"].GetBool();
+        }
+
+        return new PhysicsComponent(type, scale, mass, shouldUpdate);
     } else if (strcmp (itr->name.GetString(), "GrabComponent") == 0) {
 
         return new GrabComponent(itr->value["radius"].GetFloat());

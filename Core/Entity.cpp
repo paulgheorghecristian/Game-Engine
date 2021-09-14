@@ -1,6 +1,6 @@
 #include "Entity.h"
 
-Entity::Entity() {
+Entity::Entity(): m_to_be_removed(false) {
 
 }
 

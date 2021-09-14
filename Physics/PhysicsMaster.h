@@ -37,6 +37,8 @@ class PhysicsMaster
 
         void startGraphCreation();
         void endGraphCreation();
+        void simplifyLastFoundPath(std::vector<std::size_t> &lastFoundPathToPlayer);
+        std::size_t findIdx(const glm::vec3 &thisPosition, bool &found);
 
         const std::set<Entity *> &getForwardIntersectRes() { return forwardIntersectEntities; }
         const std::set<Entity *> &getMouseRayInteresectEntities() { return mouseRayIntersectEntities; }

@@ -26,10 +26,8 @@ RenderingObject::~RenderingObject() {
         m_materials[i] = NULL;
     }
 
-    if (m_skeleton != NULL) {
-        delete m_skeleton;
-        m_skeleton = NULL;
-    }
+    delete m_skeleton;
+    m_skeleton = NULL;
 }
 
 void RenderingObject::addMesh(Mesh *mesh) {
@@ -123,7 +121,8 @@ RenderingObject RenderingObject::loadObject(const std::string &filename, bool pr
 
     // create skeleton from bones
     if (AnimationLoader::getInstance()->getBones().size() > 0) {
-        Skeleton *skeleton = new Skeleton(AnimationLoader::getInstance()->getBones(),
+        Skeleton *skeleton = new Skeleton(scene,
+                                        AnimationLoader::getInstance()->getBones(),
                                         AnimationLoader::getInstance()->getGlobalInverserTransform());
         renderingObject.setSkeleton(skeleton);
     }
@@ -234,18 +233,34 @@ Mesh *RenderingObject::processAssimpMesh(aiMesh *mesh, const aiScene *scene,
             break; // one diffuse texture for now
         }
 
-        for (unsigned int i = 0; i < material->GetTextureCount(aiTextureType_HEIGHT ); i++) {
-            // this seems to be map_Bump from mtl from blender normal map
-            aiString str;
-            material->GetTexture(aiTextureType_HEIGHT , 0, &str);
-            _material->setNormalTexture(new Texture(str.C_Str(), 1));
+        if (material->GetTextureCount(aiTextureType_NORMALS) > 0) {
+            for (unsigned int i = 0; i < material->GetTextureCount(aiTextureType_NORMALS); i++) {
+                // this seems to be map_Bump from mtl from blender normal map
+                aiString str;
+                material->GetTexture(aiTextureType_NORMALS , 0, &str);
+                _material->setNormalTexture(new Texture(str.C_Str(), 1));
 
-            float bumpScaling = 1.0f;
-            if (aiReturn_SUCCESS == material->Get(AI_MATKEY_NORMALMAPSTRENGTH, bumpScaling)) {
-                _material->setNormalMapStrength(bumpScaling);
+                float bumpScaling = 1.0f;
+                if (aiReturn_SUCCESS == material->Get(AI_MATKEY_NORMALMAPSTRENGTH, bumpScaling)) {
+                    _material->setNormalMapStrength(bumpScaling);
+                }
+
+                break; // one normal texture for now
             }
+        } else {
+            for (unsigned int i = 0; i < material->GetTextureCount(aiTextureType_HEIGHT ); i++) {
+                // this seems to be map_Bump from mtl from blender normal map
+                aiString str;
+                material->GetTexture(aiTextureType_HEIGHT , 0, &str);
+                _material->setNormalTexture(new Texture(str.C_Str(), 1));
 
-            break; // one normal texture for now
+                float bumpScaling = 1.0f;
+                if (aiReturn_SUCCESS == material->Get(AI_MATKEY_NORMALMAPSTRENGTH, bumpScaling)) {
+                    _material->setNormalMapStrength(bumpScaling);
+                }
+
+                break; // one normal texture for now
+            }
         }
 
         for (unsigned int i = 0; i < material->GetTextureCount(aiTextureType_SPECULAR); i++) {
@@ -271,7 +286,7 @@ Mesh *RenderingObject::processAssimpMesh(aiMesh *mesh, const aiScene *scene,
 
         std::cout<<"Bone "<<i<<" "<<bName<<std::endl;
 
-        bone = new SkeletalBone(_mesh, i, bName, bMat);
+        bone = new SkeletalBone(_mesh, i+offset, bName, bMat);
 
         bone->m_node = AnimationLoader::getInstance()->FindAiNode(bName);
         bone->m_animNode = AnimationLoader::getInstance()->FindAiNodeAnim(bName);

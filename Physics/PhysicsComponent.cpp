@@ -1,8 +1,13 @@
 #include "PhysicsComponent.h"
 
-PhysicsComponent::PhysicsComponent(BoundingBodyType type, glm::vec3 scale, float mass) : type (type),
-                                                                                         boundingBodyScale (scale),
-                                                                                         bodyMass (mass) {
+#include "Common.h"
+
+PhysicsComponent::PhysicsComponent(BoundingBodyType type, glm::vec3 scale,
+                                    float mass, bool shouldUpdate) : type(type),
+                                                                    boundingBodyScale(scale),
+                                                                    bodyMass(mass),
+                                                                    m_rigidBody(NULL),
+                                                                    m_shouldUpdate(shouldUpdate) {
 /* TODO maybe I want to take scale from entity as default?*/
 }
 
@@ -23,7 +28,7 @@ void PhysicsComponent::update() {
     t.getRotation().serializeFloat(quatXYZ);
     origin = t.getOrigin();
 
-    if (!m_disabled) {
+    if (!m_disabled && m_shouldUpdate == true) {
         _entity->getTransform().setPosition(glm::vec3(origin.x(), origin.y(), origin.z()));
         _entity->getTransform().setRotation (glm::quat (quatXYZ.m_floats[0],
                                                         quatXYZ.m_floats[1],
@@ -129,6 +134,12 @@ void PhysicsComponent::init() {
     m_rigidBody = new btRigidBody(info);
     m_rigidBody->setDamping(btScalar(0.1), btScalar(0.1));
 
+    UserData *userData = new UserData();
+
+    userData->type = PointerType::PHYSICS_BODY;
+    userData->pointer.entity = _entity;
+    m_rigidBody->setUserPointer((void *) userData);
+
     PhysicsMaster::getInstance()->getWorld()->addRigidBody(m_rigidBody);
 }
 
@@ -153,15 +164,29 @@ std::string PhysicsComponent::jsonify() {
         res += "[\"cube\"],";
     } else if (type == BoundingBodyType::SPHERE) {
         res += "[\"sphere\"],";
+    } else if (type == BoundingBodyType::CAPSULE) {
+        res += "[\"capsule\"],";
     }
     res += "\"scale\":[" + std::to_string(boundingBodyScale.x) + ","
             + std::to_string(boundingBodyScale.y) + "," + std::to_string(boundingBodyScale.z) + "],";
-    res += "\"mass\":" + std::to_string(bodyMass) + "}";
+    res += "\"mass\":" + std::to_string(bodyMass) + ",";
+    res += "\"shouldUpdate\":" + (m_shouldUpdate ? std::string("true") : std::string("false")) + "}";
 
     return res;
 }
 
 PhysicsComponent::~PhysicsComponent() {
-    //delete m_rigidBody->getMotionState();
-    //delete m_rigidBody;
+    PhysicsMaster::getInstance()->getWorld()->removeRigidBody(m_rigidBody);
+
+    btCollisionShape *collisionShape = m_rigidBody->getCollisionShape();
+    UserData *uData = (UserData *) m_rigidBody->getUserPointer();
+
+    delete collisionShape;
+    collisionShape = NULL;
+ 
+    delete uData;
+    uData = NULL;
+
+    delete m_rigidBody;
+    m_rigidBody = NULL;
 }

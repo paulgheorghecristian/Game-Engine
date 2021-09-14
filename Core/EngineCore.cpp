@@ -10,7 +10,6 @@
 #include <chrono>
 #include <thread>
 #include "SkeletalAnimationComponent.hpp"
-
 #include "Common.h"
 
 EngineCore::EngineCore(rapidjson::Document &gameDocument) {
@@ -64,6 +63,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     inputManager.setWarpMouse (this->warpMouse);
     SDL_ShowCursor(this->showMouse);
 
+    DebugRenderer::init();
     PhysicsMaster::init(m_gravity);
     RenderingMaster::init(display,
                             new Camera (glm::vec3(-500, 0, 0), 0, 0, 0),
@@ -103,7 +103,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
 
     //     newEntity = newEntity->addComponent(new RenderComponent(std::move(obj)));
     //     entities.push_back(newEntity);
-    //     quadTreeEntities[node->m_idx] = newEntity;
+    //     m_quadTreeEntities[node->m_idx] = newEntity;
     // }
     // END DEBUG
     loadLights(gameDocument);
@@ -280,7 +280,7 @@ void EngineCore::input() {
                                                         glm::vec3(0.98f, 0.85f, 0.85f), true, true));
         Transform transform2(cameraPosition,
                                 glm::vec3(0),
-                                glm::vec3(0));
+                                glm::vec3(1.0f));
         Entity *newEntity2 = new Entity();
         newEntity2->setTransform(transform2);
         entities.push_back(newEntity2->addComponent(new RenderComponent(RenderingObject::loadObject("__circle__")))
@@ -368,6 +368,7 @@ void EngineCore::render() {
             skeletalAnimationComponent->render(&RenderingMaster::getInstance()->deferredShading_AnimRender);
         }
     }
+    DebugRenderer::getInstance()->render();
     RenderingMaster::getInstance()->getGBuffer().unbind();
     PT_ToHere("renderScene");
     /*end generate deferred shading buffers*/
@@ -484,6 +485,7 @@ void EngineCore::update() {
     RenderingMaster::getInstance()->update();
 
     RenderingMaster::getInstance()->secondFraction = secondFraction;
+    // findPathToPlayer();
 }
 
 std::vector<Entity *> &EngineCore::getEntities() {
@@ -506,18 +508,27 @@ void EngineCore::constructPlayer() {
 }
 
 void EngineCore::constructEnemy() {
-    Transform enemyTrans(glm::vec3(300, 3, 100), glm::vec3(0), glm::vec3(0.3f));
+    Transform enemyTrans(glm::vec3(300, 2.5, 100), glm::vec3(0), glm::vec3(0.3f));
 
     enemy = new Entity();
     enemy->setTransform(enemyTrans);
 
-    RenderingObject obj = RenderingObject::loadObject("res/models/BaseMesh_Anim.dae", true, false);
-    Material *mat = new Material();
-    mat->setDiffuse(glm::vec3(0.0, 0.0, 0.0));
-    obj.addMaterial(mat);
+    RenderingObject obj = RenderingObject::loadObject("res/models/BaseMesh_Anim.dae", true, true);
 
+    PhysicsComponent *enemyPhysicsComponent = new PhysicsComponent (PhysicsComponent::BoundingBodyType::CAPSULE,
+                                                                    glm::vec3(7.0, 20.0f, 7.0f),
+                                                                    30.0f,
+                                                                    false);
     enemy = enemy->addComponent(new SkeletalAnimationComponent(std::move(obj)))
-                    ->addComponent(new AIPlayerFollowerComponent(player));
+                    ->addComponent(new AIPlayerFollowerComponent(player))
+                    ->addComponent(enemyPhysicsComponent);
+
+    enemyPhysicsComponent->getRigidBody()->setDamping(btScalar(0.5), btScalar(0.0));
+    enemyPhysicsComponent->getRigidBody()->setSleepingThresholds(0.0, 0.0);
+    enemyPhysicsComponent->getRigidBody()->setAngularFactor(0.0);
+    enemyPhysicsComponent->getRigidBody()->setFriction(0.5);
+    enemyPhysicsComponent->getRigidBody()->setRestitution(0.6);
+
     entities.push_back(enemy);
 }
 
@@ -704,53 +715,6 @@ void EngineCore::loadEntities(rapidjson::Document &gameDocument) {
     std::cout << "Number of entities: " << entities.size() << std::endl;
 }
 
-void EngineCore::findPathToPlayer(std::size_t source) {
-    // temporary debugging function
-
-    // find player idx
-    std::size_t playerIdx = 0;
-    const glm::vec3 &playerPosition = player->getTransform().getPosition();
-    bool foundPlayer = false;
-
-    for (std::size_t u: lastFoundPathToPlayer) {
-        RenderComponent *renderComponent = 
-                (RenderComponent *) (quadTreeEntities[u]->getComponent(Entity::Flags::RENDERABLE));
-
-        renderComponent->getRenderingObject().getMaterials()[0]->setDiffuse(glm::vec3(1.0, 0.0, 1.0));
-    }
-
-    for (auto it: quadTreeEntities) {
-        Transform &transform = it.second->getTransform();
-        const glm::vec3 &position = transform.getPosition();
-        const glm::vec3 &scale = transform.getScale();
-
-        glm::vec2 xLimits = glm::vec2(position.x - scale.x * 0.5f, position.x + scale.x * 0.5f);
-        glm::vec2 zLimits = glm::vec2(position.z - scale.z * 0.5f, position.z + scale.z * 0.5f);
-
-        if (playerPosition.x >= xLimits.x &&
-            playerPosition.x <= xLimits.y &&
-            playerPosition.z >= zLimits.x &&
-            playerPosition.z <= zLimits.y) {
-            playerIdx = it.first;
-            foundPlayer = true;
-            break;
-        }
-    }
-
-    if (foundPlayer == true) {
-        lastFoundPathToPlayer.clear();
-
-        PhysicsMaster::getInstance()->findShortestPath(source, playerIdx, lastFoundPathToPlayer);
-
-        for (std::size_t u: lastFoundPathToPlayer) {
-            RenderComponent *renderComponent = 
-                (RenderComponent *) (quadTreeEntities[u]->getComponent(Entity::Flags::RENDERABLE));
-
-            renderComponent->getRenderingObject().getMaterials()[0]->setDiffuse(glm::vec3(0.0f, 1.0f, 0.0f));
-        }
-    }
-}
-
 std::string EngineCore::dumpJson() {
     std::vector<Light *> &lights = RenderingMaster::getInstance()->getLights();
     std::string res("");
@@ -783,6 +747,40 @@ std::string EngineCore::dumpJson() {
     res += "]}";
 
     return res;
+}
+
+void EngineCore::findPathToPlayer() {
+    // temporary debugging function
+
+    // find player idx
+    std::size_t playerIdx = 0, enemyIdx = 0;
+    const glm::vec3 &playerPosition = player->getTransform().getPosition();
+    const glm::vec3 &enemyPosition = enemy->getTransform().getPosition();
+    bool foundPlayer = false, foundEnemy = false;
+
+    for (std::size_t u: lastFoundPathToPlayer) {
+        RenderComponent *renderComponent = 
+                (RenderComponent *) (m_quadTreeEntities[u]->getComponent(Entity::Flags::RENDERABLE));
+
+        renderComponent->getRenderingObject().getMaterials()[0]->setDiffuse(glm::vec3(1.0, 0.0, 1.0));
+    }
+
+    playerIdx = PhysicsMaster::getInstance()->findIdx(playerPosition, foundPlayer);
+    enemyIdx = PhysicsMaster::getInstance()->findIdx(enemyPosition, foundEnemy);
+
+    if (foundPlayer == true) {
+        lastFoundPathToPlayer.clear();
+
+        PhysicsMaster::getInstance()->findShortestPath(enemyIdx, playerIdx, lastFoundPathToPlayer);
+        PhysicsMaster::getInstance()->simplifyLastFoundPath(lastFoundPathToPlayer);
+
+        for (std::size_t u: lastFoundPathToPlayer) {
+            RenderComponent *renderComponent = 
+                (RenderComponent *) (m_quadTreeEntities[u]->getComponent(Entity::Flags::RENDERABLE));
+
+            renderComponent->getRenderingObject().getMaterials()[0]->setDiffuse(glm::vec3(0.0f, 1.0f, 0.0f));
+        }
+    }
 }
 
 

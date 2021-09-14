@@ -12,6 +12,7 @@ INCLUDES := \
 -Ires/libraries/bullet/bullet/BulletCollision/CollisionDispatch \
 -IRendering \
 -IRendering/SkeletalAnimation \
+-IRendering/DebugTools \
 -ICore \
 -Ires/libraries/rapidjson/include \
 -ICore/Utils \
@@ -37,6 +38,7 @@ $(wildcard Game/*.cpp) \
 $(wildcard Physics/*.cpp) \
 $(wildcard Rendering/*.cpp) \
 $(wildcard Rendering/SkeletalAnimation/*.cpp) \
+$(wildcard Rendering/DebugTools/*.cpp) \
 $(wildcard Components/*.cpp) \
 $(wildcard res/libraries/imgui/*.cpp)
 

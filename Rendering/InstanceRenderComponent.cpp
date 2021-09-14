@@ -162,7 +162,7 @@ GLuint InstanceRenderComponent::createModelMatricesVbo() {
 
     setAttribsForMatricesVbo(vboHandle);
 
-    delete matricesBuffer;
+    delete[] matricesBuffer;
     matricesBuffer = NULL;
     return vboHandle;
 }

@@ -18,6 +18,7 @@ std::unordered_map<std::string, ShaderUniformType> ShaderUniform::getUniformType
     typesMap["FLOAT"] = UNIFORM_FLOAT;
     typesMap["INT"] = UNIFORM_INT;
     typesMap["BOOL"] = UNIFORM_BOOLEAN;
+    typesMap["MAT4s"] = UNIFORM_MAT4s;
 
     return typesMap;
 }
@@ -114,6 +115,19 @@ void ShaderUniform::updateBool (bool data) {
     glUniform1i (location, (int) data);
 }
 
+
+void ShaderUniform::updateUniform(const std::vector<glm::mat4> &mats) {
+    assert(type == UNIFORM_MAT4s);
+
+    shader->bind();
+
+    glUniformMatrix4fv(location,
+                        mats.size(),
+                        GL_FALSE,
+                        glm::value_ptr(mats[0]));
+    shader->unbind();
+}
+
 void ShaderUniform::reload () {
     assert (shader != NULL);
 
@@ -158,6 +172,9 @@ void ShaderUniform::reload () {
         break;
     case UNIFORM_BOOLEAN:
         updateBool (value.b);
+        break;
+    case UNIFORM_MAT4s:
+        //assert(false);
         break;
     case NO_TYPE:
     case LAST_TYPE:

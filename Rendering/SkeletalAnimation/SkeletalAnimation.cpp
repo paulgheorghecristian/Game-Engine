@@ -13,11 +13,11 @@ SkeletalAnimation::SkeletalAnimation(const std::string &name,
 }
 
 float SkeletalAnimation::animTimeToFrame(float time) {
-     float frame = 0.033333333f; // 30 FPS
+     float frame = 0.041666667f; // 24 FPS
      return time / frame;
 }
 
 glm::vec2 SkeletalAnimation::framesToTime(const glm::vec2 &frames) {
-     float frame = 0.033333333f; // 30 FPS
+     float frame = 0.041666667f; // 24 FPS
      return frames * frame;
 }

@@ -56,10 +56,10 @@ class EngineCore
 
         Player *player;
         Entity *enemy;
-        std::unordered_map<std::size_t, Entity *> quadTreeEntities;
+        std::unordered_map<std::size_t, Entity *> m_quadTreeEntities;
         std::vector<std::size_t> lastFoundPathToPlayer;
 
-        void findPathToPlayer(std::size_t source);
+        void findPathToPlayer();
 };
 
 #endif // ENGINECORE_H

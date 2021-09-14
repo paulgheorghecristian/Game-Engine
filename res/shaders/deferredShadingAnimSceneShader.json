@@ -16,6 +16,7 @@
                     "roughnessSampler" : "INT",
                     "hasTexture" : "BOOL",
                     "hasNormalMap" : "BOOL",
-                    "hasRoughness" : "BOOL"
+                    "hasRoughness" : "BOOL",
+                    "gBones": "MAT4s"
                  }
 }

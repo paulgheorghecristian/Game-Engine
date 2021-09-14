@@ -19,7 +19,8 @@ class PhysicsComponent : public Component
             SIMPLIFIED_MESH,
         };
 
-        PhysicsComponent(BoundingBodyType type, glm::vec3 scale, float mass);
+        PhysicsComponent(BoundingBodyType type, glm::vec3 scale,
+                        float mass, bool shouldUpdate = true);
         void input(Input &inputManager);
         void update();
         void render();
@@ -40,6 +41,8 @@ class PhysicsComponent : public Component
         BoundingBodyType type;
         glm::vec3 boundingBodyScale;
         float bodyMass;
+
+        bool m_shouldUpdate;
 
         btRigidBody *m_rigidBody;
 };

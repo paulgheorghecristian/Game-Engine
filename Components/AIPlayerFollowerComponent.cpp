@@ -58,7 +58,7 @@ void AIPlayerFollowerComponent::update() {
             lastFoundPathToPlayer.clear();
             // from m_currentIdx to playerIdx
             PhysicsMaster::getInstance()->findShortestPath(playerIdx, m_currentIdx, lastFoundPathToPlayer);
-            // PhysicsMaster::getInstance()->simplifyLastFoundPath(lastFoundPathToPlayer);
+            PhysicsMaster::getInstance()->simplifyLastFoundPath(lastFoundPathToPlayer);
 
             // exclude currentIdx
             if (lastFoundPathToPlayer.size() > 0)
@@ -76,7 +76,7 @@ void AIPlayerFollowerComponent::update() {
             stepInterp = 0.0f;
         } else {
             if (glm::distance(glm::vec2(lastFoundPosToPlayer[0].x,lastFoundPosToPlayer[0].z),
-                                glm::vec2(thisPosition.x,thisPosition.z)) < getScaleFromIdx(m_currentIdx).x*0.7) {
+                                glm::vec2(thisPosition.x,thisPosition.z)) < getScaleFromIdx(m_currentIdx).x*0.8) {
                 lastFoundPosToPlayer.erase(lastFoundPosToPlayer.begin());
 
                 m_dirToCurrTarget = lastFoundPosToPlayer[0] - thisPosition;
@@ -93,18 +93,30 @@ void AIPlayerFollowerComponent::update() {
     float yRot = glm::eulerAngles(lastQuat).y;
     float yRot2 = glm::eulerAngles(rotQuat).y;
 
-    if (m_interpolate == false || glm::abs(yRot-yRot2) < 0.4) {
-        thisPosition = thisPosition + m_dirToCurrTargetNorm * 0.6f;
+    if (m_interpolate == false || glm::abs(yRot-yRot2) < 0.3) {
+        thisPosition = thisPosition + m_dirToCurrTargetNorm * 0.75f;
         _entity->getTransform().setPosition(thisPosition);
         _entity->getTransform().setRotation(rotQuat);
         lastQuat = rotQuat;
         m_interpolate = false;
     } else {
         glm::quat slerpQuat = glm::slerp(lastQuat, rotQuat, stepInterp);
-        stepInterp += 0.10;
+        stepInterp += 0.3;
         if (stepInterp > 1.0f)
             m_interpolate = false;
         _entity->getTransform().setRotation(slerpQuat);
+    }
+
+    // TODO these component couplings can cause problems
+    PhysicsComponent *physicsComponent = (PhysicsComponent *) _entity->getComponent (Entity::Flags::DYNAMIC);
+
+    if (physicsComponent != NULL) {
+        btRigidBody *m_body = physicsComponent->getRigidBody();
+
+        btTransform transform = m_body->getCenterOfMassTransform();
+
+        transform.setOrigin(btVector3(thisPosition.x, thisPosition.y, thisPosition.z));
+        m_body->setCenterOfMassTransform(transform);
     }
 }
 

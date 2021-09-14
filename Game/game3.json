@@ -1,350 +1,980 @@
 {
-    "ConfigFilePath" : "res/configs/config.json",
-    "gravity" : -10.0,
-    "Lights": [
-        {
-            "Transform": {
-                "position": [0, 0, 0],
-                "rotation": [0, 0, 0],
-                "scale": [0]
+   "ConfigFilePath":"res/configs/config.json",
+   "gravity":-10.000000,
+   "Entities":[
+      {
+         "Transform":{
+            "position":[
+               0.000000,
+               3.000000,
+               0.000000
+            ],
+            "rotation":[
+               0.000000,
+               0.000000,
+               0.000000,
+               1.000000
+            ],
+            "scale":[
+               75.000000,
+               75.000000,
+               75.000000
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/level22.obj"
+            }
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               -2.300000,
+               38.049999,
+               -192.250000
+            ],
+            "rotation":[
+               0.000000,
+               1.000000,
+               0.000000,
+               -0.000436
+            ],
+            "scale":[
+               14.300000,
+               12.825000,
+               21.549999
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/fance.obj"
             },
-            "Attributes": {
-                "type": "DIR",
-                "color": [0.25, 0.15, 0.3],
-                "dir": [1, 0.3, -1],
-                "cast_shadow": true
+            "PhysicsComponent" : {
+               "BoundingBodyType" : ["cube"],
+               "scale": [180, 80, 3],
+               "mass" : 0
             }
-        },
-        {
-            "Transform": {
-                "position": [300, 50, 100],
-                "rotation": [0, 0, 0],
-                "scale": [300]
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               0.000000,
+               0.100000,
+               0.000000
+            ],
+            "rotation":[
+               0.000000,
+               0.000000,
+               0.000000,
+               1.000000
+            ],
+            "scale":[
+               75.000000,
+               75.000000,
+               75.000000
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/stairs1.obj",
+               "Material":{
+                  "ambient":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "diffuse":[
+                     1.000000,
+                     1.000000,
+                     0.000000
+                  ],
+                  "specular":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "shininess":100.000000
+               }
+            }
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               0.000000,
+               0.100000,
+               0.000000
+            ],
+            "rotation":[
+               0.000000,
+               0.000000,
+               0.000000,
+               1.000000
+            ],
+            "scale":[
+               75.000000,
+               75.000000,
+               75.000000
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/stairs2.obj",
+               "Material":{
+                  "ambient":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "diffuse":[
+                     1.000000,
+                     1.000000,
+                     0.000000
+                  ],
+                  "specular":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "shininess":100.000000
+               }
+            }
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               13.000000,
+               27.400000,
+               -60.000000
+            ],
+            "rotation":[
+               0.000000,
+               -1.000000,
+               0.000000,
+               0.000000
+            ],
+            "scale":[
+               17.000000,
+               17.000000,
+               17.000000
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/3-72.obj",
+               "Material":{
+                  "Texture":"res/textures/atlas_puzzle1.jpg",
+                  "ambient":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "diffuse":[
+                     1.000000,
+                     1.000000,
+                     1.000000
+                  ],
+                  "specular":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "isBlackAlpha":false,
+                  "disableCulling":false,
+                  "shininess":50.000000
+               }
             },
-            "Attributes": {
-                "type": "SPOT",
-                "color": [0.8, 0.6, 0.4],
-                "cast_shadow": true,
-                "volumetric": true
-            }
-        },
-        {
-            "Transform": {
-                "position": [200, 50, 100],
-                "rotation": [0, 0, 0],
-                "scale": [300]
+            "ActionComponent":{
+               "radius":10.000000,
+               "action":"y90rotation"
             },
-            "Attributes": {
-                "type": "POINT",
-                "color": [0.8, 0.0, 0.0]
+            "PhysicsComponent" : {
+               "BoundingBodyType" : ["cube"],
+               "scale": [14, 30, 14],
+               "mass" : 0,
+               "shouldUpdate": false
             }
-        }
-    ],
-    "Entities" : [
-        {
-            "Transform" : {
-                "position" : [0, 0.1, 0],
-                "rotation" : [0, 0, 0],
-                "scale" : [75, 75, 75]
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               13.000000,
+               27.400000,
+               -20.000000
+            ],
+            "rotation":[
+               0.000000,
+               0.707107,
+               0.000000,
+               0.707107
+            ],
+            "scale":[
+               17.000000,
+               17.000000,
+               17.000000
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/0-12.obj",
+               "Material":{
+                  "Texture":"res/textures/atlas_puzzle1.jpg",
+                  "ambient":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "diffuse":[
+                     1.000000,
+                     1.000000,
+                     1.000000
+                  ],
+                  "specular":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "isBlackAlpha":false,
+                  "disableCulling":false,
+                  "shininess":50.000000
+               }
             },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/room1_try3.obj",
-                    "Texture" : "res/textures/atlas.jpg",
-                    "NormalMapTexture" : "res/textures/atlas_norm2.jpg",
-                    "RoughnessTexture" : "res/textures/atlas_rough2.jpg",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 100.0
-                    }
-                }
-            }
-        },
-        {
-            "Transform" : {
-                "position" : [0, 0.1, 0],
-                "rotation" : [0, 0, 0],
-                "scale" : [75, 75, 75]
+            "ActionComponent":{
+               "radius":10.000000,
+               "action":"y90rotation"
             },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/fence_room1.obj",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 100.0
-                    }
-                }
+            "PhysicsComponent" : {
+               "BoundingBodyType" : ["cube"],
+               "scale": [14, 30, 14],
+               "mass" : 0,
+               "shouldUpdate": false
             }
-        },
-        {
-            "Transform" : {
-                "position" : [0, 0.1, 0],
-                "rotation" : [0, 0, 0],
-                "scale" : [75, 75, 75]
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               13.000000,
+               27.400000,
+               20.000000
+            ],
+            "rotation":[
+               0.000000,
+               -0.000000,
+               0.000000,
+               -1.000000
+            ],
+            "scale":[
+               17.000000,
+               17.000000,
+               17.000000
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/2-12.obj",
+               "Material":{
+                  "Texture":"res/textures/atlas_puzzle1.jpg",
+                  "ambient":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "diffuse":[
+                     1.000000,
+                     1.000000,
+                     1.000000
+                  ],
+                  "specular":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "isBlackAlpha":false,
+                  "disableCulling":false,
+                  "shininess":50.000000
+               }
             },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/stairs1.obj",
-                    "Material" : {
-                        "ambient" : [1, 1, 0],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 100.0
-                    }
-                }
-            }
-        },
-        {
-            "Transform" : {
-                "position" : [0, 0.1, 0],
-                "rotation" : [0, 0, 0],
-                "scale" : [75, 75, 75]
+            "ActionComponent":{
+               "radius":10.000000,
+               "action":"y90rotation"
             },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/stairs2.obj",
-                    "Material" : {
-                        "ambient" : [1, 1, 0],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 100.0
-                    }
-                }
+            "PhysicsComponent" : {
+               "BoundingBodyType" : ["cube"],
+               "scale": [14, 30, 14],
+               "mass" : 0,
+               "shouldUpdate": false
             }
-        },
-        {
-            "Transform" : {
-                "position" : [13, 27.4, -60],
-                "rotation" : [0, -90, 0],
-                "scale" : [17,17,17]
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               13.000000,
+               27.400000,
+               60.000000
+            ],
+            "rotation":[
+               0.000000,
+               1.000000,
+               0.000000,
+               -0.000000
+            ],
+            "scale":[
+               17.000000,
+               17.000000,
+               17.000000
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/8-12.obj",
+               "Material":{
+                  "Texture":"res/textures/atlas_puzzle1.jpg",
+                  "ambient":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "diffuse":[
+                     1.000000,
+                     1.000000,
+                     1.000000
+                  ],
+                  "specular":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "isBlackAlpha":false,
+                  "disableCulling":false,
+                  "shininess":50.000000
+               }
             },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/3-72.obj",
-                    "Texture" : "res/textures/atlas_puzzle1.jpg",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 50.0
-                    }
-                },
-                "ActionComponent" : {
-                    "radius" : 10,
-                    "action" : "y90rotation"
-                }
-            }
-        },
-        {
-            "Transform" : {
-                "position" : [13, 27.4, -20],
-                "rotation" : [0, -90, 0],
-                "scale" : [17,17,17]
+            "ActionComponent":{
+               "radius":10.000000,
+               "action":"y90rotation"
             },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/0-12.obj",
-                    "Texture" : "res/textures/atlas_puzzle1.jpg",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 50.0
-                    }
-                },
-                "ActionComponent" : {
-                    "radius" : 10,
-                    "action" : "y90rotation"
-                }
+            "PhysicsComponent" : {
+               "BoundingBodyType" : ["cube"],
+               "scale": [14, 30, 14],
+               "mass" : 0,
+               "shouldUpdate": false
             }
-        },
-        {
-            "Transform" : {
-                "position" : [13, 27.4, 20],
-                "rotation" : [0, -90, 0],
-                "scale" : [17,17,17]
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               0.000000,
+               0.000000,
+               0.000000
+            ],
+            "rotation":[
+               0.000000,
+               0.000000,
+               0.000000,
+               1.000000
+            ],
+            "scale":[
+               1.000000,
+               1.000000,
+               1.000000
+            ]
+         },
+         "Components":{
+            "InstanceRenderComponent":{
+               "Mesh":"res/models/stone2.obj",
+               "Material":{
+                  "Texture":"res/textures/rock2k.jpg",
+                  "NormalMapTexture":"res/textures/rock2k_normal.jpg",
+                  "RoughnessTexture":"res/textures/rock2k_rough.jpg",
+                  "ambient":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "diffuse":[
+                     1.000000,
+                     1.000000,
+                     1.000000
+                  ],
+                  "specular":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "normalMapStrength":0.500000,
+                  "isBlackAlpha":false,
+                  "disableCulling":false,
+                  "shininess":100.000000
+               },
+               "Transforms":[
+                  {
+                     "position":[
+                        13.000000,
+                        0.000000,
+                        -60.000000
+                     ],
+                     "rotation":[
+                        0.000000,
+                        -95.000000,
+                        0.000000
+                     ],
+                     "scale":[
+                        17.000000,
+                        17.000000,
+                        17.000000
+                     ]
+                  },
+                  {
+                     "position":[
+                        13.000000,
+                        0.000000,
+                        -20.000000
+                     ],
+                     "rotation":[
+                        0.000000,
+                        -36.000000,
+                        0.000000
+                     ],
+                     "scale":[
+                        17.000000,
+                        17.000000,
+                        17.000000
+                     ]
+                  },
+                  {
+                     "position":[
+                        13.000000,
+                        0.000000,
+                        20.000000
+                     ],
+                     "rotation":[
+                        0.000000,
+                        -73.000000,
+                        0.000000
+                     ],
+                     "scale":[
+                        17.000000,
+                        17.000000,
+                        17.000000
+                     ]
+                  },
+                  {
+                     "position":[
+                        13.000000,
+                        0.000000,
+                        60.000000
+                     ],
+                     "rotation":[
+                        0.000000,
+                        -130.000000,
+                        0.000000
+                     ],
+                     "scale":[
+                        17.000000,
+                        17.000000,
+                        17.000000
+                     ]
+                  }
+               ]
+            }
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               13.000000,
+               0.000000,
+               -120.000000
+            ],
+            "rotation":[
+               -0.000000,
+               1.000000,
+               -0.000000,
+               -0.000000
+            ],
+            "scale":[
+               1.800000,
+               1.800000,
+               1.800000
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/spot.obj",
+               "Material":{
+                  "Texture":"res/textures/spot_atlas.jpg",
+                  "ambient":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "diffuse":[
+                     1.000000,
+                     1.000000,
+                     1.000000
+                  ],
+                  "specular":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "isBlackAlpha":false,
+                  "disableCulling":false,
+                  "shininess":50.000000
+               }
             },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/2-12.obj",
-                    "Texture" : "res/textures/atlas_puzzle1.jpg",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 50.0
-                    }
-                },
-                "ActionComponent" : {
-                    "radius" : 10,
-                    "action" : "y90rotation"
-                }
+            "PhysicsComponent" : {
+               "BoundingBodyType" : ["cube"],
+               "scale": [15, 100, 15],
+               "mass" : 0
             }
-        },
-        {
-            "Transform" : {
-                "position" : [13, 27.4, 60],
-                "rotation" : [0, -90, 0],
-                "scale" : [17,17,17]
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               20.950001,
+               45.400002,
+               168.649994
+            ],
+            "rotation":[
+               0.000000,
+               0.707107,
+               0.000000,
+               0.707107
+            ],
+            "scale":[
+               17.885000,
+               17.495001,
+               25.879999
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/frame.obj",
+               "Material":{
+                  "Texture":"res/textures/bark_albedo.bmp",
+                  "NormalMapTexture":"res/textures/bark_normal.bmp",
+                  "ambient":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "diffuse":[
+                     1.000000,
+                     1.000000,
+                     1.000000
+                  ],
+                  "specular":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "normalMapStrength":1.000000,
+                  "isBlackAlpha":false,
+                  "disableCulling":false,
+                  "shininess":500.000000
+               }
             },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/8-12.obj",
-                    "Texture" : "res/textures/atlas_puzzle1.jpg",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 50.0
-                    }
-                },
-                "ActionComponent" : {
-                    "radius" : 10,
-                    "action" : "y90rotation"
-                }
+            "GrabComponent":{
+               "radius":5.000000
             }
-        },
-        {
-            "Components" : {
-                "InstanceRenderComponent" : {
-                    "Mesh" : "res/models/stone2.obj",
-                    "Texture" : "res/textures/rock2k.jpg",
-                    "NormalMapTexture": "res/textures/rock2k_normal.jpg",
-                    "RoughnessTexture": "res/textures/rock2k_rough.jpg",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 100.0
-                    },
-                    "Transforms" : [
-                        {
-                            "position" : [13, 0, -60],
-                            "rotation" : [0, -95, 0],
-                            "scale" : [17,17,17]
-                        },
-                        {
-                            "position" : [13, 0, -20],
-                            "rotation" : [0, -36, 0],
-                            "scale" : [17,17,17]
-                        },
-                        {
-                            "position" : [13, 0, 20],
-                            "rotation" : [0, -73, 0],
-                            "scale" : [17,17,17]
-                        },
-                        {
-                            "position" : [13, 0, 60],
-                            "rotation" : [0, -130, 0],
-                            "scale" : [17,17,17]
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "Transform" : {
-                "position" : [13, 0, -120],
-                "rotation" : [0, 180, 0],
-                "scale" : [1.8, 1.8, 1.8]
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               20.950001,
+               45.400002,
+               168.649994
+            ],
+            "rotation":[
+               0.000000,
+               0.707107,
+               0.000000,
+               0.707107
+            ],
+            "scale":[
+               17.885000,
+               17.495001,
+               25.879999
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/picture.obj",
+               "Material":{
+                  "Texture":"res/textures/puzzle_shape.png",
+                  "NormalMapTexture":"res/textures/rock2k_normal.jpg",
+                  "ambient":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "diffuse":[
+                     1.000000,
+                     1.000000,
+                     1.000000
+                  ],
+                  "specular":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "normalMapStrength":1.500000,
+                  "isBlackAlpha":false,
+                  "disableCulling":false,
+                  "shininess":0.000000
+               }
             },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/spot.obj",
-                    "Texture" : "res/textures/spot_atlas.jpg",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 50.0
-                    }
-                }
+            "GrabComponent":{
+               "radius":5.000000
             }
-        },
-        {
-            "Transform" : {
-                "position" : [20.95, 45.4, 168.65],
-                "rotation" : [0, 90, 0],
-                "scale" : [17.885, 17.495, 25.88]
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               2.800000,
+               -0.500000,
+               -371.000000
+            ],
+            "rotation":[
+               0.000000,
+               0.894740,
+               0.000000
+            ],
+            "scale":[
+               15.000000,
+               15.000000,
+               15.000000
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/tree.obj"
             },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/frame.obj",
-                    "Texture" : "res/textures/bark_albedo.bmp",
-                    "NormalMapTexture" : "res/textures/bark_normal.bmp",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 500.0
-                    }
-                },
-                "GrabComponent" : {
-                    "radius" : 5
-                }
+            "PhysicsComponent" : {
+               "BoundingBodyType" : ["cube"],
+               "scale": [75, 75, 75],
+               "mass" : 0
             }
-        },
-        {
-            "Transform" : {
-                "position" : [20.95, 45.4, 168.65],
-                "rotation" : [0, 90, 0],
-                "scale" : [17.885, 17.495, 25.88]
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               2.800000,
+               10.000000,
+               500.000000
+            ],
+            "rotation":[
+               0.000000,
+               0.894740,
+               0.000000
+            ],
+            "scale":[
+               50.000000,
+               50.000000,
+               50.000000
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/cube4.obj"
             },
-            "Components" : {
-                "RenderComponent" : {
-                    "Mesh" : "res/models/picture.obj",
-                    "Texture" : "res/textures/puzzle_shape.png",
-                    "NormalMapTexture": "res/textures/rock2k_normal.jpg",
-                    "Material" : {
-                        "ambient" : [1.0, 1.0, 1.0],
-                        "diffuse" : [0.0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 0.0
-                    }
-                },
-                "GrabComponent" : {
-                    "radius" : 5
-                }
+            "PhysicsComponent" : {
+               "BoundingBodyType" : ["cube"],
+               "scale": [50, 50, 50],
+               "mass" : 0
             }
-        },
-        {
-            "Components" : {
-                "InstanceRenderComponent" : {
-                    "Mesh" : "res/models/rock.obj",
-                    "Material" : {
-                        "ambient" : [1, 1, 1],
-                        "diffuse" : [0, 0, 0],
-                        "specular" : [0, 0, 0],
-                        "shininess" : 100.0
-                    },
-                    "Transforms" : [
-                        {
-                            "position" : [300, 0, 100],
-                            "rotation" : [0, 0, 0],
-                            "scale" : [25, 25, 25]
-                        },
-                        {
-                            "position" : [300, 0, 150],
-                            "rotation" : [0, 0, 0],
-                            "scale" : [10, 10, 10]
-                        },
-                        {
-                            "position" : [300, 0, -150],
-                            "rotation" : [0, 0, 0],
-                            "scale" : [20, 20, 20]
-                        },
-                        {
-                            "position" : [300, 0, -100],
-                            "rotation" : [0, 0, 0],
-                            "scale" : [25, 25, 25]
-                        }
-                    ]
-                }
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               20.800000,
+               10.000000,
+               450.000000
+            ],
+            "rotation":[
+               0.000000,
+               0.894740,
+               0.000000
+            ],
+            "scale":[
+               50.000000,
+               50.000000,
+               50.000000
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/cube4.obj"
+            },
+            "PhysicsComponent" : {
+               "BoundingBodyType" : ["cube"],
+               "scale": [50, 50, 50],
+               "mass" : 0
             }
-        }
-    ]
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               200.800000,
+               10.000000,
+               340.000000
+            ],
+            "rotation":[
+               0.000000,
+               0.894740,
+               0.000000
+            ],
+            "scale":[
+               50.000000,
+               50.000000,
+               50.000000
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"res/models/cube4.obj"
+            },
+            "PhysicsComponent" : {
+               "BoundingBodyType" : ["cube"],
+               "scale": [50, 50, 50],
+               "mass" : 0
+            }
+         }
+      },
+      
+      {
+         "Transform":{
+            "position":[
+               0.000000,
+               0.000000,
+               0.000000
+            ],
+            "rotation":[
+               0.000000,
+               0.000000,
+               0.000000,
+               1.000000
+            ],
+            "scale":[
+               5000.000000,
+               5000.000000,
+               5000.000000
+            ]
+         },
+         "Components":{
+            "RenderComponent":{
+               "Mesh":"__rectangle_up__",
+               "Material":{
+                  "ambient":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "diffuse":[
+                     0.500000,
+                     0.500000,
+                     0.500000
+                  ],
+                  "specular":[
+                     1.000000,
+                     1.000000,
+                     1.000000
+                  ],
+                  "shininess":0.500000
+               }
+            }
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               12.723000,
+               37.950001,
+               -116.685997
+            ],
+            "rotation":[
+               0.000000,
+               0.000000,
+               0.000000,
+               1.000000
+            ],
+            "scale":[
+               1.000000,
+               1.000000,
+               1.000000
+            ]
+         },
+         "Components":{
+            "GrabComponent":{
+               "radius":10.000000
+            },
+            "BillboardComponent":{
+               
+            },
+            "RenderComponent":{
+               "Mesh":"__circle__",
+               "Material":{
+                  "ambient":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "diffuse":[
+                     0.980000,
+                     0.850000,
+                     0.850000
+                  ],
+                  "specular":[
+                     0.000000,
+                     0.000000,
+                     0.000000
+                  ],
+                  "shininess":0.000000
+               }
+            }
+         }
+      }
+   ],
+   "Lights":[
+      {
+         "Transform":{
+            "position":[
+               0.000000,
+               0.000000,
+               0.000000
+            ],
+            "rotation":[
+               0.000000,
+               0.000000,
+               0.000000,
+               1.000000
+            ],
+            "scale":[
+               0.000000,
+               0.000000,
+               0.000000
+            ]
+         },
+         "Attributes":{
+            "color":[
+               0.100000,
+               0.030000,
+               0.100000
+            ],
+            "cast_shadow":true,
+            "diffuse_attenuation":[
+               0.000000,
+               0.000000,
+               0.000000
+            ],
+            "specular_attenuation":[
+               0.000000,
+               0.000000,
+               0.000000
+            ],
+            "type":"DIR",
+            "dir":[
+               1.000000,
+               0.400000,
+               -1.000000
+            ]
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               12.784000,
+               38.049999,
+               -118.408997
+            ],
+            "rotation":[
+               1.000000,
+               0.000000,
+               0.000000,
+               -0.000000
+            ],
+            "scale":[
+               277.299988,
+               277.299988,
+               378.700012
+            ]
+         },
+         "Attributes":{
+            "color":[
+               0.980000,
+               0.850000,
+               0.850000
+            ],
+            "cast_shadow":true,
+            "diffuse_attenuation":[
+               3.000000,
+               10.000000,
+               1.400000
+            ],
+            "specular_attenuation":[
+               5.000000,
+               9.956000,
+               0.500000
+            ],
+            "type":"SPOT",
+            "volumetric":true,
+            "numSamplePoints":21,
+            "coef1":0.130000,
+            "coef2":0.021000
+         }
+      },
+      {
+         "Transform":{
+            "position":[
+               31.240000,
+               40.099998,
+               -154.457993
+            ],
+            "rotation":[
+               0.000000,
+               0.000000,
+               0.000000,
+               1.000000
+            ],
+            "scale":[
+               93.800003,
+               93.800003,
+               93.800003
+            ]
+         },
+         "Attributes":{
+            "color":[
+               0.620963,
+               0.839620,
+               0.867647
+            ],
+            "cast_shadow":false,
+            "diffuse_attenuation":[
+               600.000000,
+               10.000000,
+               3.936000
+            ],
+            "specular_attenuation":[
+               90.000000,
+               9.958000,
+               2.000000
+            ],
+            "type":"POINT"
+         }
+      }
+   ]
 }

@@ -6,9 +6,15 @@ Skeleton::Skeleton() {
     m_activeAnimation = NULL;
 
     m_animLoop = false;
+    m_animPlay = false;
+
+    m_scene = NULL;
 }
 
-Skeleton::Skeleton(const std::vector<SkeletalBone *> &bones, const glm::mat4 &globalInverseTransform) {
+Skeleton::Skeleton(aiScene *scene,
+                    const std::vector<SkeletalBone *> &bones,
+                    const glm::mat4 &globalInverseTransform): Skeleton() {
+    m_scene = scene;
     init(bones, globalInverseTransform);
 }
 
@@ -122,4 +128,13 @@ void Skeleton::stopAnimating() {
 //that plays when no other animations are playing)
 void Skeleton::setIdleAnimation(SkeletalAnimation *in_anim) {
     m_idleAnimation = in_anim;
+}
+
+Skeleton::~Skeleton() {
+    delete m_scene;
+    m_scene = NULL;
+    for (SkeletalBone *bone : m_bones) {
+        delete bone;
+        bone = NULL;
+    }
 }

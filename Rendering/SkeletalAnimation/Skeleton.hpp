@@ -7,8 +7,10 @@ class Skeleton
 {
     public:
         Skeleton();
-        Skeleton(const std::vector<SkeletalBone *> &bones,
+        Skeleton(aiScene *scene,
+                    const std::vector<SkeletalBone *> &bones,
                     const glm::mat4 &globalInverseTransform);
+        ~Skeleton();
         void init(const std::vector<SkeletalBone *> &bones,
                     const glm::mat4 &globalInverseTransform);
         SkeletalBone *findBone(const std::string &name);
@@ -22,6 +24,8 @@ class Skeleton
     private:
         std::vector<SkeletalBone *> m_bones;
         glm::mat4 m_globalInverseTransform;
+        aiScene *m_scene;
+
         std::vector<glm::mat4> m_boneMats;
 
         float m_time;

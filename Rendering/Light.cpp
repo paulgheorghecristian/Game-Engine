@@ -21,11 +21,12 @@ Light::Light(const Transform &transform,
                                                           depthMapHeight,
                                                           0,
                                                           false /* depth for variance */),
-                                   m_shadowMapTexture(m_shadowMapFrameBuffer.getDepthTextureId(),
+                                    m_shadowMapTexture(m_shadowMapFrameBuffer.getDepthTextureId(),
                                                       0),
                                     m_can_be_grabbed(grab),
                                     showGUI(false),
-                                    m_to_be_removed(false)
+                                    m_to_be_removed(false),
+                                    m_ghostObj(NULL)
 {
     initPhysics(transform, grab);
     imguiID = Light::g_num_of_instances;
@@ -42,7 +43,8 @@ Light::Light(const Transform &transform,
                                    m_needs_stencil_test(needs_stencil),
                                    m_can_be_grabbed(grab),
                                     showGUI(false),
-                                    m_to_be_removed(false)
+                                    m_to_be_removed(false),
+                                    m_ghostObj(NULL)
 {
     initPhysics(transform, grab);
     imguiID = Light::g_num_of_instances;
@@ -215,5 +217,17 @@ std::string Light::jsonifyAttribs() {
 
 Light::~Light()
 {
+    PhysicsMaster::getInstance()->getWorld()->removeCollisionObject(m_ghostObj);
 
+    UserData *uData = (UserData *) m_ghostObj->getUserPointer();
+    btCollisionShape *collisionShape = m_ghostObj->getCollisionShape();
+
+    delete uData;
+    uData = NULL;
+
+    delete collisionShape;
+    collisionShape = NULL;
+
+    delete m_ghostObj;
+    m_ghostObj = NULL;
 }

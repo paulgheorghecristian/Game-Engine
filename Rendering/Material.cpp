@@ -115,5 +115,12 @@ Material::Material(Material &&otherMaterial) {
 }
 
 Material::~Material() {
-    //TODO delete textures
+    delete m_diffuseTexture;
+    m_diffuseTexture = NULL;
+
+    delete m_normalTexture;
+    m_normalTexture = NULL;
+
+    delete m_roughnessTexture;
+    m_roughnessTexture = NULL;
 }

@@ -127,6 +127,10 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= deferredShading_BufferCombinationShader.updateUniform("colorSampler", 0);
     assert(result);
 
+    DebugRenderer::lineShader.construct("res/shaders/lineShader.json");
+    result &= DebugRenderer::lineShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    assert(result);
+
     albedoTexture = new Texture (gBuffer.getColorTexture(), albedoTextureUnit);
     normalTexture = new Texture (gBuffer.getNormalTexture(), normalTextureUnit);
     lightAccumulationTexture = new Texture (gBuffer.getLightAccumulationTexture(), lightAccumulationTextureUnit);
@@ -347,6 +351,7 @@ void RenderingMaster::update() {
     skyShader->updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     volumetricLightShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     flareShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
+    DebugRenderer::lineShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
 
     smokeRenderer->update(*camera, updateDt);
 

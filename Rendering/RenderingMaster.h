@@ -12,6 +12,7 @@
 #include "Light.h"
 #include "PostProcess.h"
 #include "SmokeParticle.h"
+#include "DebugRenderer.hpp"
 
 #include <vector>
 

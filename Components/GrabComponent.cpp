@@ -8,7 +8,7 @@
 
 unsigned int GrabComponent::g_num_of_instances = 0;
 
-GrabComponent::GrabComponent(float radius) : m_radius(radius), showGUI(false), localRotate(false) {
+GrabComponent::GrabComponent(float radius) : m_radius(radius), showGUI(false), localRotate(false), m_ghostObj(NULL) {
     imguiID = GrabComponent::g_num_of_instances;
     GrabComponent::g_num_of_instances++;
 }
@@ -127,5 +127,17 @@ std::string GrabComponent::jsonify() {
 
 GrabComponent::~GrabComponent()
 {
+    PhysicsMaster::getInstance()->getWorld()->removeCollisionObject(m_ghostObj);
 
+    UserData *uData = (UserData *) m_ghostObj->getUserPointer();
+    btCollisionShape *collisionShape = m_ghostObj->getCollisionShape();
+
+    delete uData;
+    uData = NULL;
+
+    delete collisionShape;
+    collisionShape = NULL;
+
+    delete m_ghostObj;
+    m_ghostObj = NULL;
 }

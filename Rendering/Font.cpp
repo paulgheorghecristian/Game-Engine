@@ -64,7 +64,7 @@ Font::Font(const std::string& fontFilename, const std::string& fontAtlasName) : 
     }
 
     file.close();
-    delete str;
+    free(str);
 
     SDL_Surface *fontAtlas = SDL_LoadBMP(fontAtlasName.c_str());
 
@@ -95,12 +95,12 @@ GLuint Font::getTextureId() {
     return textureId;
 }
 
-int Font::getNumber (std::string str) {
+int Font::getNumber(std::string str) {
     char *p = strdup(str.c_str());
     char *q = strchr(p, '=');
     q += 1;
     int number = atoi(q);
-    delete p;
+    free(p);
     return number;
 }
 

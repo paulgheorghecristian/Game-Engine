@@ -40,7 +40,7 @@ class AnimationLoader {
 
         std::vector<aiNode *> aiNodes;
         std::vector<aiNodeAnim *> aiNodesAnim;
-        std::vector<SkeletalBone*> bones;
+        std::vector<SkeletalBone *> bones;
         glm::mat4 globalInverseTransform;
 
         aiScene *m_scene;
