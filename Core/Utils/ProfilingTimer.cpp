@@ -18,7 +18,10 @@ ProfilingTimer::ProfilingTimer(BarGUI *barGUI, Type type) : total(0),
                                                   numOfCalls(0),
                                                   passedTime(0),
                                                   uptr_barGUI(barGUI),
-                                                  m_type(type) {
+                                                  m_type(type),
+                                                  m_timerQuery(0),
+                                                  m_timerQuery1(0),
+                                                  m_timerQuery2(0) {
     if (type == GPU) {
         glGenQueries(1, &m_timerQuery1);
         glGenQueries(1, &m_timerQuery2);
@@ -77,8 +80,8 @@ double ProfilingTimer::getPassedTimeAvg() {
         }
         return (double) total / numOfCalls;
     } else if (m_type == GPU) {
-        GLuint64 nanoseconds;
-        double milliseconds;
+        GLuint64 nanoseconds = 0;
+        double milliseconds = 0;
         GLint done = GL_FALSE;
 
         if (m_timerQuery == m_timerQuery1) {
@@ -206,6 +209,12 @@ ProfilingTimer::ProfilingTimer(ProfilingTimer &&otherTimer)
 
     uptr_barGUI = std::move(otherTimer.uptr_barGUI);
     m_type = otherTimer.m_type;
+
+    total = 0;
+    maxTime = 0;
+    numOfCalls = 0;
+    passedTime = 0;
+    m_timerQuery = 0;
 }
 
 ProfilingTimer::~ProfilingTimer()

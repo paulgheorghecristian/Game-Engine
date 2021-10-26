@@ -100,8 +100,8 @@ Display::~Display() {
 }
 
 void Display::clear(float r, float g, float b, float a, GLbitfield field) {
-    glClearColor (r, g, b, a);
-    glClear (field);
+    glClearColor(r, g, b, a);
+    glClear(field);
 }
 
 void Display::setViewport(float x, float y, float width, float height) {

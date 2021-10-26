@@ -214,6 +214,19 @@ bool Shader::updateUniform (const std::string &name, bool data) {
     }
 }
 
+bool Shader::updateUniform(const std::string &name, const std::vector<glm::mat4> &mats) {
+    ShaderUniform *uniform = uniforms[name];
+
+    if (uniform != NULL) {
+        assert(uniform->getUniformType() == UNIFORM_MAT4s);
+        uniform->updateUniform(mats);
+        return true;
+    } else {
+        assert(false);
+        return false;
+    }
+}
+
 GLuint Shader::getUniformLocation(const std::string &name) {
     return glGetUniformLocation (program, name.c_str ());
 }

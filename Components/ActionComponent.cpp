@@ -10,7 +10,8 @@
 #include "Common.h"
 
 ActionComponent::ActionComponent(float radius, std::function<void(bool start, Entity *entity)> action,
-                            const std::string &actionName) : m_radius(radius), m_action(action), m_actionName(actionName) {
+                            const std::string &actionName) : m_radius(radius), m_action(action),
+                                                            m_actionName(actionName), m_ghostObj(NULL) {
 }
 
 void ActionComponent::input(Input &inputManager) {
@@ -76,5 +77,17 @@ std::string ActionComponent::jsonify() {
 
 ActionComponent::~ActionComponent()
 {
+    PhysicsMaster::getInstance()->getWorld()->removeCollisionObject(m_ghostObj);
 
+    UserData *uData = (UserData *) m_ghostObj->getUserPointer();
+    btCollisionShape *collisionShape = m_ghostObj->getCollisionShape();
+
+    delete uData;
+    uData = NULL;
+
+    delete collisionShape;
+    collisionShape = NULL;
+
+    delete m_ghostObj;
+    m_ghostObj = NULL;
 }

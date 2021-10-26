@@ -210,4 +210,6 @@ QuadTree::Node::Node() {
     m_children[3] = NULL;
     m_level = 0;
     m_idx = QuadTree::Node::g_IDX++;
+    m_data.isBlocked = false;
+    m_data.dimension = 0;
 }

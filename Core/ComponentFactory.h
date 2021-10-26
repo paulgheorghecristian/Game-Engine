@@ -11,6 +11,7 @@
 #include "BillboardComponent.h"
 #include "ActionComponent.h"
 #include "InstanceRenderComponent.h"
+#include "SkeletalAnimationComponent.hpp"
 
 class ComponentFactory
 {

@@ -16,6 +16,7 @@ void BillboardComponent::update() {
     Transform &transform = _entity->getTransform();
     const glm::mat4 &viewMatrix = camera->getViewMatrix();
     const glm::vec3 &position = transform.getPosition();
+    const glm::vec3 &scale = transform.getScale();
 
     glm::mat4 modelMatrix = glm::mat4(1.0f);
 
@@ -29,7 +30,7 @@ void BillboardComponent::update() {
 	modelMatrix[3][1] = position[1];
 	modelMatrix[3][2] = position[2];
 
-	transform.setModelMatrix(modelMatrix);
+	transform.setModelMatrix(modelMatrix * glm::scale(glm::mat4(1.0), scale));
 }
 
 void BillboardComponent::render() {

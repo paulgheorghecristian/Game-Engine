@@ -10,6 +10,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "ShaderUniform.h"
 #include "FileUtils.h"
@@ -34,8 +35,10 @@ class Shader : public MemoryPoolInterface<Shader>
         bool updateUniform(const std::string &name, int data);
         bool updateUniform(const std::string &name, float data);
         bool updateUniform(const std::string &name, bool data);
+        bool updateUniform(const std::string &name, const std::vector<glm::mat4> &mats);
 
         inline const std::string &getShaderPath() { return shaderPath; }
+        inline GLuint getShaderId() { return program; }
 
         virtual ~Shader();
 

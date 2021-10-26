@@ -12,6 +12,7 @@
 #include "Light.h"
 #include "PostProcess.h"
 #include "SmokeParticle.h"
+#include "DebugRenderer.hpp"
 
 #include <vector>
 
@@ -65,6 +66,7 @@ class RenderingMaster
 
         Shader deferredShading_SceneShader;
         Shader deferredShading_InstanceRender;
+        Shader deferredShading_AnimRender;
         Shader deferredShading_BufferCombinationShader;
         Shader deferredShading_StencilBufferCreator;
         Shader depthMapCreator;

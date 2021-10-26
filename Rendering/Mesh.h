@@ -15,10 +15,15 @@ struct Vertex{
     glm::vec3 normalCoords;
     glm::vec2 textureCoords;
     glm::vec3 tangent, biTangent;
+    glm::vec4 bonesWeights;
+    glm::vec4 bonesIdx;
 
     Vertex() : Vertex (glm::vec3(0),
                        glm::vec3(0),
-                       glm::vec2(0)) {}
+                       glm::vec2(0)) {
+        bonesWeights = glm::vec4(0);
+        bonesIdx = glm::ivec4(0);
+    }
 
     Vertex(glm::vec3 positionCoords,
            glm::vec3 normalCoords,

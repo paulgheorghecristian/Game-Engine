@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 #include <glm/gtc/type_ptr.hpp>
+#include <vector>
 
 class Shader;
 
@@ -18,7 +19,8 @@ enum ShaderUniformType {
     UNIFORM_FLOAT,
     UNIFORM_INT,
     UNIFORM_BOOLEAN,
-    LAST_TYPE = UNIFORM_BOOLEAN + 1
+    UNIFORM_MAT4s,
+    LAST_TYPE = UNIFORM_MAT4s + 1
 };
 
 union ShaderUniformValue {
@@ -41,7 +43,8 @@ class ShaderUniform
 {
     public:
         ShaderUniform(const std::string& name, const char * type, Shader * shader);
-        void updateUniform (void * data);
+        void updateUniform(void * data);
+        void updateUniform(const std::vector<glm::mat4> &mats);
         ShaderUniformType getUniformType ();
         ShaderUniformValue getUniformValue ();
         void reload ();

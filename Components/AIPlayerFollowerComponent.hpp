@@ -22,13 +22,21 @@ class AIPlayerFollowerComponent : public Component
     private:
         Player *player;
         std::vector<std::size_t> lastFoundPathToPlayer;
-        std::size_t m_currentIdx, m_currTargetIdx;
+        std::vector<glm::vec3> lastFoundPosToPlayer;
+        std::size_t m_currentIdx, m_currTargetIdx, m_Idx;
 
-        glm::vec3 m_dirToCurrTarget;
-        bool isMoving, isSameIdx;
+        glm::vec3 m_dirToCurrTarget, m_dirToNextTarget, m_lastPosition;
+        bool m_interpolate, isSameIdx;
+        float stepInterp;
 
-        std::size_t findIdx(const glm::vec3 &thisPosition, bool &found);
         glm::vec3 getDirVecToIdx(std::size_t idx);
+        glm::vec3 getPositionFromIdx(std::size_t idx);
+        glm::vec3 getScaleFromIdx(std::size_t idx);
+
+        glm::quat lastQuat, rotQuat;
+
+        bool draw;
+        bool stop;
 };
 
 #endif /* __AIPLAYERFOLLOWERCOMPONENT_HPP__ */

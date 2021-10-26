@@ -42,9 +42,9 @@ class QuadTree {
         inline Graph &getGraph() { return m_graph; }
         inline int getMaxLevel() { return m_maxLevel; }
 
-    private:
         void clearMem(QuadTree::Node *node);
 
+    private:
         Node m_root;
         int m_maxLevel;
         int m_numLeafs;

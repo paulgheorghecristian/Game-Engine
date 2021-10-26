@@ -25,6 +25,7 @@ Transform::Transform(const Transform &other) {
     scale = other.getScale();
 
     modelMatrix = other.getModelMatrix();
+    modelMatrixNeedsRefresh = other.modelMatrixNeedsRefresh;
 }
 
 Transform &Transform::operator=(const Transform &other) {
@@ -33,6 +34,7 @@ Transform &Transform::operator=(const Transform &other) {
     scale = other.getScale();
 
     modelMatrix = other.getModelMatrix();
+    modelMatrixNeedsRefresh = other.modelMatrixNeedsRefresh;
     return *(this);
 }
 

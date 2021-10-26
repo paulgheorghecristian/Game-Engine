@@ -8,7 +8,8 @@
 enum class PointerType {
     ENTITY = 0,
     LIGHT,
-    QUADT_NODE
+    QUADT_NODE,
+    PHYSICS_BODY
 };
 
 union Pointer {

@@ -52,6 +52,10 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= deferredShading_InstanceRender.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     assert (result);
 
+    deferredShading_AnimRender.construct("res/shaders/deferredShadingAnimSceneShader.json");
+    result &= deferredShading_AnimRender.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    assert (result);
+
     deferredShading_BufferCombinationShader.construct ("res/shaders/bufferCombinationShader.json");
     result &= deferredShading_BufferCombinationShader.updateUniform("normalSampler", (void *) &normalTextureUnit);
     result &= deferredShading_BufferCombinationShader.updateUniform("depthSampler", (void *) &depthTextureUnit);
@@ -121,6 +125,10 @@ RenderingMaster::RenderingMaster(Display *display,
 
     lastStageShader.construct("res/shaders/finalStage.json");
     result &= deferredShading_BufferCombinationShader.updateUniform("colorSampler", 0);
+    assert(result);
+
+    DebugRenderer::lineShader.construct("res/shaders/lineShader.json");
+    result &= DebugRenderer::lineShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     assert(result);
 
     albedoTexture = new Texture (gBuffer.getColorTexture(), albedoTextureUnit);
@@ -338,10 +346,12 @@ void RenderingMaster::update() {
 
     deferredShading_StencilBufferCreator.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     deferredShading_SceneShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
+    deferredShading_AnimRender.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     deferredShading_InstanceRender.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     skyShader->updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     volumetricLightShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     flareShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
+    DebugRenderer::lineShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
 
     smokeRenderer->update(*camera, updateDt);
 
@@ -554,6 +564,7 @@ void RenderingMaster::setFOV(float fov) {
 
     result &= deferredShading_SceneShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= deferredShading_InstanceRender.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    result &= deferredShading_AnimRender.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= SpotLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= PointLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);

@@ -12,6 +12,7 @@
 #include "assimp/postprocess.h"
 
 class Mesh;
+class Skeleton;
 
 class RenderingObject {
     public:
@@ -35,11 +36,16 @@ class RenderingObject {
         inline bool getAddMaterials() { return m_addMaterials; /* if material were added from mtl */ }
 
         static RenderingObject loadObject(const std::string &filename, bool prepare = true, bool addMaterials = true);
+
+        inline void setSkeleton(Skeleton *skeleton) { m_skeleton = skeleton; }
+        inline Skeleton *getSkeleton() { return m_skeleton; }
     private:
         std::vector<Mesh *> m_meshes;
         std::vector<Material *> m_materials;
         std::string m_objectFilePath;
         bool m_addMaterials;
+
+        Skeleton *m_skeleton;
 
         static void processNode(aiNode *node, const aiScene *scene, RenderingObject &renderingObject, bool prepare, bool addMaterials);
         static Mesh *processAssimpMesh(aiMesh *mesh, const aiScene *scene, bool prepare, Material *_material);
