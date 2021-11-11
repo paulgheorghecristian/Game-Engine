@@ -11,6 +11,9 @@
 #include <thread>
 #include "SkeletalAnimationComponent.hpp"
 #include "Common.h"
+#include "TextButton.hpp"
+#include "SelectionButton.hpp"
+#include "SlideButton.hpp"
 
 EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     //create renderingmaster, physicsmaster and entities
@@ -124,6 +127,136 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                          false,
                          glm::vec2(0),
                          "FPS");
+
+    startMenu = new Menu("res/textures/enemy2.png", screenWidth, screenHeight);
+    startMenu->addButton(new TextButton(150, 300, "New Game",
+                                        glm::vec3(1.0, 1.0, 1.0),
+                                        [](Button *button) {},
+                                        [&](Button *button) { isOnStartMenu = false;},
+                                        [](Button *button) {
+                                            ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                        },
+                                        [](Button *button) {
+                                            ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                        }
+                        ));
+    startMenu->addButton(new TextButton(150, 250, "Load Game",
+                                        glm::vec3(1.0, 1.0, 1.0),
+                                        [](Button *button) {},
+                                        [&](Button *button) {},
+                                        [](Button *button) {
+                                            ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                        },
+                                        [](Button *button) {
+                                            ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                        }
+                        ));
+    startMenu->addButton(new TextButton(150, 200, "Options",
+                                    glm::vec3(1.0, 1.0, 1.0),
+                                    [](Button *button) {},
+                                    [&](Button *button) { currentMenu = optionsMenu; },
+                                    [](Button *button) {
+                                        ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                    },
+                                    [](Button *button) {
+                                        ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                    }
+                    ));
+    startMenu->addButton(new TextButton(150, 150, "Exit",
+                                    glm::vec3(1.0, 1.0, 1.0),
+                                    [](Button *button) {},
+                                    [](Button *button) { exit(0); },
+                                    [](Button *button) {
+                                        ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                    },
+                                    [](Button *button) {
+                                        ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                    }
+                    ));
+
+    optionsMenu = new Menu("res/textures/enemy.png", screenWidth, screenHeight);
+    optionsMenu->addButton(new SelectionButton(150, 580,
+                                                "Postprocess",
+                                                glm::vec3(1.0, 1.0, 1.0),
+                                                {"LOW", "MEDIUM", "HIGH"}));
+    optionsMenu->addButton(new SelectionButton(150, 490,
+                                                "Shadows",
+                                                glm::vec3(1.0, 1.0, 1.0),
+                                                {"LOW", "MEDIUM", "HIGH"}));
+    optionsMenu->addButton(new SelectionButton(150, 400,
+                                                "Volumetrics",
+                                                glm::vec3(1.0, 1.0, 1.0),
+                                                {"LOW", "MEDIUM", "HIGH"}));
+    optionsMenu->addButton(new SlideButton(150, 330, 0.7, "Music",
+                                        glm::vec3(1.0, 1.0, 1.0),
+                                        [](Button *button) {
+                                        },
+                                        [](Button *button) {
+                                            SlideButton *slideB = (SlideButton *) button;
+                                            slideB->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                        },
+                                        [](Button *button) {
+                                            SlideButton *slideB = (SlideButton *) button;
+                                            slideB->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                        },
+                                        [](Button *button) {
+                                            SlideButton *slideB = (SlideButton *) button;
+                                            slideB->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                        },
+                                        [](Button *button) {
+                                            SlideButton *slideB = (SlideButton *) button;
+                                            const glm::vec2 &mousePos = slideB->getCurrentMousePos();
+                                            const Transform &barTransform = slideB->getBarTransform();
+                                            glm::vec3 currPos = slideB->getSliderTransform().getPosition();
+
+                                            float len = mousePos.x - currPos.x;
+                                            currPos.x += len * 0.5f;
+
+                                            slideB->getSliderTransform().setPosition(currPos);
+                                            slideB->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                        }
+                        ));
+    optionsMenu->addButton(new SlideButton(150, 260, 0.7, "Sound FX",
+                                        glm::vec3(1.0, 1.0, 1.0),
+                                        [](Button *button) {
+                                        },
+                                        [](Button *button) {
+                                            SlideButton *slideB = (SlideButton *) button;
+                                            slideB->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                        },
+                                        [](Button *button) {
+                                            SlideButton *slideB = (SlideButton *) button;
+                                            slideB->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                        },
+                                        [](Button *button) {
+                                            SlideButton *slideB = (SlideButton *) button;
+                                            slideB->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                        },
+                                        [](Button *button) {
+                                            SlideButton *slideB = (SlideButton *) button;
+                                            const glm::vec2 &mousePos = slideB->getCurrentMousePos();
+                                            const Transform &barTransform = slideB->getBarTransform();
+                                            glm::vec3 currPos = slideB->getSliderTransform().getPosition();
+
+                                            float len = mousePos.x - currPos.x;
+                                            currPos.x += len * 0.5f;
+
+                                            slideB->getSliderTransform().setPosition(currPos);
+                                            slideB->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                        }
+                        ));
+    optionsMenu->addButton(new TextButton(150, 100, "Back",
+                                        glm::vec3(1.0, 1.0, 1.0),
+                                        [](Button *button) {},
+                                        [&](Button *button) { currentMenu = startMenu; },
+                                        [](Button *button) {
+                                            ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                        },
+                                        [](Button *button) {
+                                            ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                        }
+                        ));
+    currentMenu = startMenu;
 }
 
 void EngineCore::start() {
@@ -783,6 +916,36 @@ void EngineCore::findPathToPlayer() {
     }
 }
 
+void EngineCore::startMenuLoop() {
+    const float MENU_FPS = 1000.0f / 200;
+    isOnStartMenu = true;
+
+    auto lastTime = HighResolutionClock::now();
+    auto startTime = lastTime;
+
+    inputManager.setWarpMouse(false);
+
+    while (isOnStartMenu == true) {
+        auto lastTime = HighResolutionClock::now();
+        unsigned int passedTime = std::chrono::duration_cast<std::chrono::milliseconds>(lastTime - startTime).count();
+
+        if (passedTime < MENU_FPS) {
+            SDL_Delay(MENU_FPS - passedTime);
+        }
+
+        startTime = lastTime;
+        inputManager.update(RenderingMaster::getInstance()->getDisplay());
+
+        if (currentMenu != NULL) {
+            currentMenu->input(inputManager);
+            currentMenu->update();
+
+            RenderingMaster::getInstance()->clearScreen(0, 0, 0, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            currentMenu->render();
+            RenderingMaster::getInstance()->swapBuffers();
+        }
+    }
+}
 
 EngineCore::~EngineCore() {
     for (auto entity : entities) {

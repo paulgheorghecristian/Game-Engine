@@ -22,6 +22,7 @@ Game::Game(const std::string &gameJsonFilePath) {
 }
 
 void Game::start() {
+    engineCore->startMenuLoop();
     engineCore->start();
 }
 

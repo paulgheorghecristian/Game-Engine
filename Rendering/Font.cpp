@@ -1,6 +1,8 @@
 #include "Font.h"
 
-Font::Font(const std::string& fontFilename, const std::string& fontAtlasName) : charsInfo(MAX_ASCII, Character())
+std::unordered_map<std::string, Font *> Font::fontsCache;
+
+Font::Font(const std::string& fontFilename, const std::string& fontAtlasName)
 {
     std::ifstream file(fontFilename.c_str(), std::ios::in | std::ios::binary);
 
@@ -40,6 +42,9 @@ Font::Font(const std::string& fontFilename, const std::string& fontAtlasName) : 
     std::getline(file, line);
 
     while(std::getline(file,line)){
+        if (line.find("kernings") != std::string::npos) {
+            break;
+        }
         std::stringstream ss(line, std::ios::in);
         std::string token;
         ss >> token;
@@ -60,7 +65,23 @@ Font::Font(const std::string& fontFilename, const std::string& fontAtlasName) : 
         ss >> token;
         int xadvance = getNumber(token);
 
-        charsInfo[id] = Character(id, x, y, width, height, xoffset, yoffset, xadvance);
+        charsInfo[id] = Character(x, y, width, height, xoffset, yoffset, xadvance);
+    }
+
+    while (std::getline(file,line)) {
+        std::stringstream ss(line, std::ios::in);
+        std::string token;
+
+        ss >> token;
+        ss >> token;
+
+        int first = getNumber(token);
+        ss >> token;
+        int second = getNumber(token);
+        ss >> token;
+        int amount = getNumber(token);
+
+        kernings[std::make_tuple(first, second)] = amount;
     }
 
     file.close();
@@ -95,7 +116,7 @@ GLuint Font::getTextureId() {
     return textureId;
 }
 
-int Font::getNumber(std::string str) {
+int Font::getNumber(const std::string &str) {
     char *p = strdup(str.c_str());
     char *q = strchr(p, '=');
     q += 1;
@@ -104,8 +125,12 @@ int Font::getNumber(std::string str) {
     return number;
 }
 
-const std::vector<Character> &Font::getChars() {
+std::unordered_map<int, Character> &Font::getChars() {
     return charsInfo;
+}
+
+kerningsMap_t &Font::getKernings() {
+    return kernings;
 }
 
 int Font::getWidth() {
@@ -116,10 +141,15 @@ int Font::getHeight() {
     return scaleH;
 }
 
-Font &Font::getNormalFont() {
-    static Font font ("res/fonts/normalFont.fnt", "res/fonts/normalFont.bmp");
+Font *Font::getFontFromCache(const std::string &path) {
+    if (fontsCache.find(path) == fontsCache.end())
+        return nullptr;
 
-    return font;
+    return fontsCache[path];
+}
+
+void Font::addFontToCache(const std::string &path) {
+    fontsCache[path] = new Font(path+".fnt", path+".bmp");
 }
 
 Font::~Font() {

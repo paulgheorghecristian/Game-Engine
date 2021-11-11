@@ -3,7 +3,7 @@
 #include <math.h>
 
 /* TODO add transform to this class */
-Text::Text(Font &font,
+Text::Text(Font *font,
            const glm::vec3 &position,
            const glm::vec3 &color,
            const std::string &text,
@@ -15,7 +15,9 @@ Text::Text(Font &font,
                                         rotation(rotation),
                                         color(color),
                                         size(size),
-                                        modelMatrix(1.0)
+                                        modelMatrix(1.0),
+                                        currentWorldWidth(0.0f),
+                                        currentWorldHeight(0.0f)
 {
     updateMesh(0);
     computeModelMatrix ();
@@ -24,27 +26,36 @@ Text::Text(Font &font,
 void Text::updateMesh(bool dir){
     /* TODO pretty slow, update just what needs to be updated */
 
-    std::vector<Character> chars = m_font.getChars();
+    std::unordered_map<int, Character> &chars = m_font->getChars();
+    kerningsMap_t &kernings = m_font->getKernings();
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
-    glm::vec2 cursor(0);
+    currentCursor = glm::vec2(0);
 
     for(int i = (dir == 0 ? 0 : currentString.size()); dir == 0 ? (i < currentString.size()) : (i >= 0); dir == 0 ? i++ : i--){
         char letter = currentString[i];
         int id = (int)letter;
-        Character charInfo = chars[id];
+        int kerning = 0;
+        if (dir == 0 && i < currentString.size()) {
+            char nextLetter = currentString[i+1];
+            int nextId = (int) nextLetter;
+            if (kernings.find(std::make_tuple(id, nextId)) != kernings.end()) {
+                kerning = kernings[std::make_tuple(id, nextId)];
+            }
+        }
+        const Character &charInfo = chars[id];
         int index = i*4;
 
-        int fontWidth = m_font.getWidth();
-        int fontHeight = m_font.getHeight();
+        int fontWidth = m_font->getWidth();
+        int fontHeight = m_font->getHeight();
 
         float x, y, width, height;
 
-        x = (float)(cursor.x + charInfo.xoffset) / fontWidth;
-        y = (float)(cursor.y + charInfo.yoffset) / fontHeight;
+        x = (float)(currentCursor.x + charInfo.xoffset) / fontWidth;
+        y = (float)(currentCursor.y + charInfo.yoffset) / fontHeight;
         width = (float) charInfo.width / fontWidth;
         height = (float) charInfo.height/ fontHeight;
-        cursor.x += (float) charInfo.xadvance;
+        currentCursor.x += (float) (charInfo.xadvance + kerning);
 
         float x_text = (float) charInfo.x / fontWidth;
         float y_text = (float) charInfo.y / fontHeight;
@@ -64,6 +75,9 @@ void Text::updateMesh(bool dir){
         indices.push_back(index+3);
     }
 
+    currentWorldWidth = (currentCursor.x / m_font->getWidth()) * size * 10;
+    currentWorldHeight = ((float) chars[65].height / m_font->getHeight()) * size * 10;
+
     if (vertices.size () != 0 && indices.size () != 0) {
         mesh.update(vertices, indices, true);
     }
@@ -80,12 +94,10 @@ void Text::computeModelMatrix(){
 }
 
 void Text::changeSize(int dsize){
-    size += dsize;
-    if(size < 1){
-        size = 1;
-    }else if(size > 20){
-        size = 20;
-    }
+    size = dsize;
+    currentWorldWidth = currentCursor.x * size * 10;
+
+    isModelMatrixModified = true;
 }
 
 void Text::addLetter(char letter){
@@ -164,7 +176,7 @@ void Text::draw(Shader &shader) {
 
     glActiveTexture (GL_TEXTURE0);
     glEnable (GL_TEXTURE_2D);
-    glBindTexture (GL_TEXTURE_2D, m_font.getTextureId ());
+    glBindTexture (GL_TEXTURE_2D, m_font->getTextureId ());
 
     mesh.draw ();
 
@@ -197,6 +209,10 @@ void Text::move(glm::vec3 dr) {
 
 const std::string &Text::getCurrentString() {
     return currentString;
+}
+
+const glm::vec3 &Text::getColor() {
+    return color;
 }
 
 

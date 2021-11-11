@@ -21,6 +21,7 @@ INCLUDES := \
 -IGame \
 -IPhysics \
 -IComponents \
+-IGUIs \
 -Ires/libraries/stb \
 -Ires/libraries/imgui \
 -I/usr/include/SDL2 \
@@ -40,6 +41,7 @@ $(wildcard Rendering/*.cpp) \
 $(wildcard Rendering/SkeletalAnimation/*.cpp) \
 $(wildcard Rendering/DebugTools/*.cpp) \
 $(wildcard Components/*.cpp) \
+$(wildcard GUIs/*.cpp) \
 $(wildcard res/libraries/imgui/*.cpp)
 
 CC_PREFIX :=

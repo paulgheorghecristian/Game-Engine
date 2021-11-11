@@ -68,6 +68,7 @@ class Mesh
         static Mesh *getRectangleYUp();
         static Mesh *getArrowMesh();
         static Mesh *getDome(int widthPoints, int heightPoints);
+        static Mesh &getRectangleStatic();
 
         virtual ~Mesh();
 

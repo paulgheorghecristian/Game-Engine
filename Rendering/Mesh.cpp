@@ -339,3 +339,13 @@ Mesh *Mesh::getStar(float x, float y, float radius, int numOfTriangles){
 
     return new Mesh(vertices, indices);
 }
+
+Mesh &Mesh::getRectangleStatic() {
+    static Mesh mesh({Vertex(glm::vec3(-0.5, 0.5, 0), glm::vec3(0, 1, 0), glm::vec2(0, 1)),
+                       Vertex(glm::vec3(-0.5, -0.5, 0), glm::vec3(0, 1, 0), glm::vec2(0, 0)),
+                       Vertex(glm::vec3(0.5, -0.5, 0), glm::vec3(0, 1, 0), glm::vec2(1, 0)),
+                       Vertex(glm::vec3(0.5, 0.5, 0), glm::vec3(0, 1, 0), glm::vec2(1, 1))},
+                      {0,1,3,1,2,3}, true);
+
+    return mesh;
+}

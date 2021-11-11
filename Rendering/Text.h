@@ -11,7 +11,7 @@
 class Text
 {
     public:
-        Text (Font &font,
+        Text (Font *font,
               const glm::vec3 &position,
               const glm::vec3 &color,
               const std::string &text = "",
@@ -30,10 +30,19 @@ class Text
         void displayDouble (double number, int prec = 3);
         void draw (Shader &shader);
         const std::string &getCurrentString();
+        const glm::vec3 &getColor();
+
+        float getCurrentWorldWidth() {
+            return currentWorldWidth;
+        }
+        float getCurrentWorldHeight() {
+            return currentWorldHeight;
+        }
+
         ~Text();
     protected:
     private:
-        Font &m_font;
+        Font *m_font;
         Mesh mesh;
         glm::vec3 position;
         glm::vec3 rotation;
@@ -42,6 +51,9 @@ class Text
         std::string currentString;
         glm::mat4 modelMatrix;
         bool isModelMatrixModified;
+
+        float currentWorldWidth, currentWorldHeight;
+        glm::vec2 currentCursor;
 
         void computeModelMatrix ();
         void updateMesh (bool);
