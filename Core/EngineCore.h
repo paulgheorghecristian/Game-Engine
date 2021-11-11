@@ -13,6 +13,7 @@
 #include "ProfilingTimer.h"
 #include "Player.h"
 #include "BarGUI.h"
+#include "Menu.hpp"
 
 #include <vector>
 #include <chrono>
@@ -26,6 +27,7 @@ class EngineCore
         void update();
         void start();
         void stop();
+        void startMenuLoop();
         std::vector<Entity *> &getEntities();
         virtual ~EngineCore();
 
@@ -37,6 +39,7 @@ class EngineCore
         Input inputManager;
         std::vector<Entity *> entities;
         bool isRunning;
+        bool isOnStartMenu;
 
         float mouseMoveSpeed, mouseRotationSpeed;
         bool warpMouse, showMouse;
@@ -60,6 +63,10 @@ class EngineCore
         std::vector<std::size_t> lastFoundPathToPlayer;
 
         void findPathToPlayer();
+
+        Menu *startMenu;
+        Menu *optionsMenu;
+        Menu *currentMenu;
 };
 
 #endif // ENGINECORE_H

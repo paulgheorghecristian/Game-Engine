@@ -11,6 +11,8 @@
 #include "Common.h"
 #include "PhysicsMaster.h"
 #include "RenderingObject.hpp"
+#include "Button.hpp"
+#include "Font.h"
 
 #include <typeinfo>
 
@@ -21,6 +23,7 @@
 
 RenderingMaster *RenderingMaster::m_instance = NULL;
 Shader RenderingMaster::simpleTextShader;
+glm::mat4 RenderingMaster::orthoProjectionMatrix;
 
 RenderingMaster::RenderingMaster(Display *display,
                                  Camera *camera,
@@ -158,7 +161,7 @@ RenderingMaster::RenderingMaster(Display *display,
 
     screenSizeRectangle = Mesh::getRectangle();
 
-    GUI::init (1920, 1080);
+    GUI::init (display->getWidth(), display->getHeight());
     simpleTextShader.construct ("res/shaders/simpleTextShader.json");
     result &= simpleTextShader.updateUniform ("projectionMatrix", (void *) &GUI::projectionMatrix);
     result &= simpleTextShader.updateUniform ("fontAtlas", 0);
@@ -181,6 +184,12 @@ RenderingMaster::RenderingMaster(Display *display,
 
     skyShader = new Shader("res/shaders/skyShader.json");
     skyShader->updateUniform("projectionMatrix", (void *) &projectionMatrix);
+
+    orthoProjectionMatrix = glm::ortho(0.0f, (float) display->getWidth(), 0.0f, (float) display->getHeight(), 1.0f, 1000.0f);
+    Button::getButtonShader().updateUniform("projectionMatrix", (void *) &orthoProjectionMatrix);
+
+    Font::addFontToCache("res/fonts/normalFont");
+    Font::addFontToCache("res/fonts/horror");
 }
 
 RenderingMaster::~RenderingMaster()

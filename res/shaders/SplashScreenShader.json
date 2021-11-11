@@ -1,0 +1,10 @@
+{
+    "VSPath" : "res/shaders/SplashScreenShader.vs",
+    "FSPath" : "res/shaders/SplashScreenShader.fs",
+    "Uniforms" : {
+                    "modelMatrix" : "MAT4",
+                    "projectionMatrix" : "MAT4",
+                    "splashScreenSampler" : "INT"
+                 }
+}
+

@@ -191,7 +191,7 @@ void main() {
         vec3 blueNoise = texture(blueNoiseSampler, texCoord + vec2(secondFraction*0.005f)).rgb;
         float offset = blueNoise.r;
 
-        float currentT = tmin + sampleLength * (t - offset*2.50f);
+        float currentT = tmin + sampleLength * (t - offset*2.5f);
         vec3 viewPositionLocal = view * currentT;
 
         vec4 worldPosition = vec4(cameraPosition + ray*currentT, 1.0);//inverseViewMatrix * vec4(viewPositionLocal, 1.0));

@@ -14,11 +14,11 @@ BarGUI::BarGUI(const glm::vec2 &position,
                const glm::vec2 &rotation,
                const std::string &name) :   GUI (position, scale, rotation),
                                             m_color (color),
-                                            barNameText (Font::getNormalFont (),
+                                            barNameText(Font::getFontFromCache("res/fonts/normalFont"),
                                                          glm::vec3 (position.x - 20.0f, position.y+30.0f, -10),
                                                          color,
                                                          name),
-                                            amountText (Font::getNormalFont (),
+                                            amountText(Font::getFontFromCache("res/fonts/normalFont"),
                                                         glm::vec3 (position.x - 20.0f, position.y - 10.0f, -10),
                                                         color),
                                             m_maxValue (maxValue),
@@ -27,7 +27,7 @@ BarGUI::BarGUI(const glm::vec2 &position,
 }
 
 Shader &BarGUI::getBarGUIShader() {
-    static Shader shader ("res/shaders/barGUIShader.json");
+    static Shader shader ("res/shaders/GUIShader.json");
 
     return shader;
 }

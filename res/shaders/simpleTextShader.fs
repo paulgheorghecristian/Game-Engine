@@ -6,7 +6,7 @@ in vec2 text_coords;
 
 uniform vec3 color;
 uniform sampler2D fontAtlas;
-uniform float d1 = 0.5;
+uniform float d1 = 0.45;
 uniform float d2 = 0.1;
 
 void main(){

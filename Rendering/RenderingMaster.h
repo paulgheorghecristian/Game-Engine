@@ -108,6 +108,8 @@ class RenderingMaster
 
         float secondFraction;
 
+        static glm::mat4 orthoProjectionMatrix;
+
     private:
         RenderingMaster(Display *display,
                          Camera *camera,

@@ -1,0 +1,8 @@
+{
+    "VSPath" : "res/shaders/lineShader.vs",
+    "FSPath" : "res/shaders/lineShader.fs",
+    "Uniforms" : {
+                    "viewMatrix" : "MAT4",
+                    "projectionMatrix" : "MAT4"
+                 }
+}

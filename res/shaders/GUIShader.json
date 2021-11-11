@@ -1,6 +1,6 @@
 {
-    "VSPath" : "res/shaders/barGUIShader.vs",
-    "FSPath" : "res/shaders/barGUIShader.fs",
+    "VSPath" : "res/shaders/GUIShader.vs",
+    "FSPath" : "res/shaders/GUIShader.fs",
     "Uniforms" : {
                     "modelMatrix" : "MAT4",
                     "projectionMatrix" : "MAT4",

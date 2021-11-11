@@ -16,8 +16,10 @@ class Input
         bool getMouseDown(int);
         bool getMouseUp(int);
         bool getMouse(int);
-        glm::vec2 getMousePos();
+        const glm::vec2 &getMousePos();
+        const glm::vec2 &getCorrectedMousePos();
         const glm::vec2 &getMouseDelta();
+        const glm::vec2 &getMouseDelta2();
         void setWarpMouse(bool warpMouse);
         bool getWarpMouse();
         virtual ~Input();
@@ -35,7 +37,8 @@ class Input
         bool inputMouse[NUM_MOUSE];
         bool downMouse[NUM_MOUSE];
         bool upMouse[NUM_MOUSE];
-        glm::vec2 mousePosition, lastMousePosition, delta;
+        glm::vec2 mousePosition, lastMousePosition, delta, delta2;
+        glm::vec2 correctedMousePosition;
         volatile bool warpMouse;
 };
 

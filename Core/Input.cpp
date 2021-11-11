@@ -85,10 +85,12 @@ void Input::update(Display * display){
             }
             case SDL_MOUSEMOTION:{
                 mousePosition = glm::vec2(event.motion.x, event.motion.y);
+                correctedMousePosition = glm::vec2(mousePosition.x, display->getHeight() - mousePosition.y);
                 delta = glm::vec2(display->getWidth()/2.0f, display->getHeight()/2.0f) - mousePosition;
-                if (!warpMouse) {
-                    delta = glm::vec2(0,0);
-                }
+                delta2 = glm::vec2(event.motion.xrel, event.motion.yrel);
+                // if (!warpMouse) {
+                //     delta = glm::vec2(0,0);
+                // }
                 break;
             }
         }
@@ -134,11 +136,17 @@ bool Input::getMouseUp(int key){
 bool Input::getMouse(int key){
     return inputMouse[key];
 }
-glm::vec2 Input::getMousePos(){
+const glm::vec2 &Input::getMousePos(){
     return mousePosition;
+}
+const glm::vec2 &Input::getCorrectedMousePos() {
+    return correctedMousePosition;
 }
 
 const glm::vec2 &Input::getMouseDelta(){
     return delta;
 }
 
+const glm::vec2 &Input::getMouseDelta2(){
+    return delta2;
+}
