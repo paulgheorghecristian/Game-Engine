@@ -26,6 +26,9 @@ static glm::vec3 getVec3(const rapidjson::Value &json, const char *key, const gl
     return glm::vec3(json[key][0].GetFloat(), json[key][1].GetFloat(), json[key][2].GetFloat());
 }
 
+/* "burst" emitters: a particle waiting to be fired */
+static const float IDLE = -1.0f;
+
 ParticleEmitter::ParticleEmitter(const rapidjson::Value &json)
 {
     std::string type = json.HasMember("type") ? json["type"].GetString() : "smoke";
@@ -63,6 +66,7 @@ ParticleEmitter::ParticleEmitter(const rapidjson::Value &json)
     m_additive = json.HasMember("blend") && std::string(json["blend"].GetString()) == "additive";
     m_atlasTopDown = json.HasMember("atlasTopDown") && json["atlasTopDown"].GetBool();
     m_nightOnly = json.HasMember("nightOnly") && json["nightOnly"].GetBool();
+    m_burst = json.HasMember("burst") && json["burst"].IsBool() && json["burst"].GetBool();
     m_beamAngle = std::max(0.01f, getFloat(json, "angle", 0.15f));
     m_beamLength = std::max(1.0f, getFloat(json, "length", 300.0f));
     m_beamFalloff = std::max(1.0f, getFloat(json, "falloff", 150.0f));
@@ -106,6 +110,9 @@ ParticleEmitter::ParticleEmitter(const rapidjson::Value &json)
     for (Particle &p : m_particles) {
         respawn(p);
         p.ageMs = -rand01() * p.lifeMs;
+    }
+    if (m_burst) {
+        for (Particle &p : m_particles) p.ageMs = IDLE;
     }
     if (m_type == GLOW) {
         for (int i = 0; i < count; i++) {
@@ -217,6 +224,9 @@ void ParticleEmitter::simulate(Particle &p, float dtMs)
     if (m_type == GLOW) {
         return; /* static, always at full strength */
     }
+    if (m_burst && p.ageMs < 0) {
+        return; /* idle until fired */
+    }
     if (p.ageMs < 0) {
         /* not born yet */
         p.ageMs += dtMs;
@@ -231,6 +241,10 @@ void ParticleEmitter::simulate(Particle &p, float dtMs)
 
     p.ageMs += dtMs;
     if (p.ageMs >= p.lifeMs) {
+        if (m_burst) {
+            p.ageMs = IDLE;   /* lived once: idle until fired again */
+            return;
+        }
         respawn(p);
         return;
     }
@@ -286,9 +300,25 @@ void ParticleEmitter::setOrigin(const glm::vec3 &position, const glm::mat3 &rota
     }
 }
 
+void ParticleEmitter::burst(const glm::vec3 &position, int count)
+{
+    m_position = position;
+    for (Particle &p : m_particles) {
+        if (count <= 0) break;
+        if (p.ageMs >= 0) continue;
+        respawn(p);
+        p.ageMs = 0.0f;
+        count--;
+    }
+}
+
 void ParticleEmitter::restart()
 {
     if (m_type == GLOW) {
+        return;
+    }
+    if (m_burst) {
+        for (Particle &p : m_particles) p.ageMs = IDLE;
         return;
     }
     for (Particle &p : m_particles) {
@@ -408,6 +438,8 @@ void ParticleEmitter::draw(const glm::mat4 &projectionMatrix, const glm::mat4 &v
      * their opacity (a darkened color would leave black puffs at dawn) */
     glm::vec3 tint = m_nightOnly && m_additive ? m_tint * s_nightFactor : m_tint;
     float opacity = m_nightOnly && !m_additive ? s_nightFactor : 1.0f;
+    if (m_additive) tint *= m_strength;
+    else opacity *= m_strength;
     shader.updateUniform("tint", (void *) &tint);
     shader.updateUniform("opacity", opacity);
     shader.updateUniform("brightnessAdd", m_brightness);

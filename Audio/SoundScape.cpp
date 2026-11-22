@@ -79,7 +79,7 @@ void SoundScape::update(Camera *camera)
         return;
     }
     /* ignition: the flash first, the deep blast a few seconds later */
-    const float BLAST_DELAY = 3.5f;   /* seconds */
+    const float BLAST_DELAY = 6.5f;   /* seconds */
     if (kugelblitz->playTime < m_lastPlayTime) {
         m_blastDue = -1.0f;           /* Restart / Reset: a pending blast is cancelled */
     }

@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <string>
+#include <vector>
 #include <chrono>
 #include <GL/glew.h>
 
@@ -16,6 +17,10 @@
  * the game renders faster and repeated when it renders slower, so playback
  * speed matches what was seen. Capture happens before the overlays (profiler
  * bars, ImGui) are drawn, so the recording is clean.
+ *
+ * The game's sound is captured from the mixer meanwhile; on stop it is
+ * written to a WAV and muxed with the video by ffmpeg in the background
+ * (the video stream is copied, the sound encoded to AAC).
  *
  * Desktop recorders often capture OpenGL windows as black (GNOME on X11 with
  * the NVIDIA driver); this does not depend on them.
@@ -31,7 +36,8 @@ class FrameRecorder
 
         /* start recording frames of this size; false if ffmpeg could not start */
         bool start(int width, int height);
-        void stop();
+        /* ends the video; with sound (interleaved stereo float), it is muxed in */
+        void stop(const std::vector<float> &audio = std::vector<float>(), int sampleRate = 44100);
         bool isRecording() const { return m_pipe != nullptr; }
         /* call once per frame with the finished image in the bound default framebuffer */
         void captureFrame();
@@ -45,6 +51,7 @@ class FrameRecorder
 
         FILE *m_pipe = nullptr;
         std::string m_path;
+        std::string m_videoPath;         /* the video alone, until the sound is added */
         int m_width = 0, m_height = 0;
         GLuint m_pbos[2] = {0, 0};
         int m_index = 0;

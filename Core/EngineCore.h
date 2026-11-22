@@ -3,6 +3,7 @@
 
 #include "FrameRecorder.h"
 #include "SoundScape.h"
+#include "Aftermath.h"
 #include "Display.h"
 #include "Input.h"
 #include "Entity.h"
@@ -39,7 +40,7 @@ class EngineCore
 
         /* save the current world (F5) as <map>_saved.json; reload it (F9) */
         std::string m_mapPath, m_savePath;
-        std::string m_waterJson, m_emittersJson, m_grassJson, m_audioJson;
+        std::string m_waterJson, m_emittersJson, m_grassJson, m_audioJson, m_footstepsJson;
         /* the map's "Grass" (needs the terrain entity, so after the entities) */
         void loadGrass(rapidjson::Document &gameDocument);
         bool saveMap(const std::string &path);
@@ -81,6 +82,7 @@ class EngineCore
         FrameRecorder m_recorder;
         /* the map's sound ("Audio" block) and the Kugelblitz's */
         SoundScape m_soundScape;
+        Aftermath m_aftermath;     /* the storm after the Kugelblitz */
         int outputType;
 
         void constructPlayer();

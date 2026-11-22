@@ -24,6 +24,8 @@ class Camera
         void invertForward();
         virtual ~Camera();
         void setPosition(const glm::vec3& position);
+        /* small extra rotation (pitch, yaw, roll; radians) for camera shake */
+        void setShake(const glm::vec3 &angles);
         const glm::vec3 &getPosition();
         const glm::vec3 &getRight();
         const glm::vec3 &getForward();
@@ -33,6 +35,7 @@ class Camera
         glm::vec3 getUp();
     protected:
     private:
+        glm::vec3 m_shake = glm::vec3(0.0f);
         glm::vec3 position, rotation, forward, right;
         bool forwardNeedsUpdate, viewMatrixNeedsUpdate;
         void computeForward ();

@@ -32,6 +32,8 @@ void Environment::load(const rapidjson::Value &json)
     readVec3(json, "moonColor", moonColor);
     readFloat(json, "moonPhase", moonPhase);
     readFloat(json, "moonSize", moonSize);
+    if (json.HasMember("moon") && json["moon"].IsBool()) moon = json["moon"].GetBool();
+    if (json.HasMember("timePaused") && json["timePaused"].IsBool()) timePaused = json["timePaused"].GetBool();
     readVec3(json, "fogColor", fogColor);
     readFloat(json, "fogDensity", fogDensity);
     readFloat(json, "fogHeightFalloff", fogHeightFalloff);
@@ -69,7 +71,7 @@ void Environment::load(const rapidjson::Value &json)
     readVec3(json, "dayAmbientSkyTint", dayAmbientSkyTint);
     readVec3(json, "dayAmbientGroundTint", dayAmbientGroundTint);
     lightDirection = moonDirection;
-    lightColor = moonColor;
+    lightColor = moon ? moonColor : glm::vec3(0.0f);
     ambientSky = ambient * ambientSkyTint;
     ambientGround = ambient * ambientGroundTint;
 }
@@ -130,7 +132,7 @@ Environment Environment::atTimeOfDay(const Environment &base, float t)
         e.lightColor = sunLight * sunHeight;
     } else {
         e.lightDirection = moon;
-        e.lightColor = base.moonColor * smoothstepf(-0.02f, 0.3f, moon.y);
+        e.lightColor = base.moon ? base.moonColor * smoothstepf(-0.02f, 0.3f, moon.y) : glm::vec3(0.0f);
     }
     return e;
 }
@@ -153,6 +155,8 @@ void Environment::save(rapidjson::Value &json, rapidjson::Document::AllocatorTyp
     writeVec3(json, "moonColor", moonColor, allocator);
     json.AddMember("moonPhase", moonPhase, allocator);
     json.AddMember("moonSize", moonSize, allocator);
+    if (!moon) json.AddMember("moon", false, allocator);
+    if (timePaused) json.AddMember("timePaused", true, allocator);
     writeVec3(json, "fogColor", fogColor, allocator);
     json.AddMember("fogDensity", fogDensity, allocator);
     json.AddMember("fogHeightFalloff", fogHeightFalloff, allocator);

@@ -132,10 +132,10 @@ int AudioMaster::play3D(const std::string &name, const glm::vec3 &position, floa
     return id;
 }
 
-int AudioMaster::playVariant(const std::string &name, int count, float volume, float pitchVariation)
+int AudioMaster::playVariant(const std::string &name, int count, float volume, float pitchVariation, float basePitch)
 {
     int pick = 1 + std::rand() % std::max(count, 1);
-    float pitch = 1.0f + ((std::rand() % 2001) / 1000.0f - 1.0f) * pitchVariation;
+    float pitch = basePitch * (1.0f + ((std::rand() % 2001) / 1000.0f - 1.0f) * pitchVariation);
     return play(name + "_" + std::to_string(pick), volume, pitch, false);
 }
 
@@ -148,6 +148,19 @@ void AudioMaster::setVolume(int voice, float volume)
             v.baseVolume = volume;
             if (!v.spatial) v.target = volume;
             else spatialize(v);
+        }
+    }
+    SDL_UnlockAudioDevice(m_device);
+}
+
+void AudioMaster::setPosition(int voice, const glm::vec3 &position)
+{
+    if (m_device == 0) return;
+    SDL_LockAudioDevice(m_device);
+    for (Voice &v : m_voices) {
+        if (v.id == voice && v.spatial) {
+            v.worldPosition = position;
+            spatialize(v);
         }
     }
     SDL_UnlockAudioDevice(m_device);
@@ -246,4 +259,33 @@ void AudioMaster::mix(float *out, int frames)
         float x = out[i];
         out[i] = x / (1.0f + std::fabs(x) * 0.25f);
     }
+    if (m_capturing) {
+        m_capture.insert(m_capture.end(), out, out + frames * 2);
+    }
+}
+
+int AudioMaster::sampleRate()
+{
+    return RATE;
+}
+
+void AudioMaster::startCapture()
+{
+    if (m_device == 0) return;
+    SDL_LockAudioDevice(m_device);
+    m_capture.clear();
+    m_capture.reserve((size_t) RATE * 2 * 120);
+    m_capturing = true;
+    SDL_UnlockAudioDevice(m_device);
+}
+
+std::vector<float> AudioMaster::stopCapture()
+{
+    std::vector<float> captured;
+    if (m_device == 0) return captured;
+    SDL_LockAudioDevice(m_device);
+    m_capturing = false;
+    captured.swap(m_capture);
+    SDL_UnlockAudioDevice(m_device);
+    return captured;
 }

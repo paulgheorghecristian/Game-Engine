@@ -3,12 +3,12 @@
  "gravity": -10.0,
  "PlayerStart": {
   "position": [
-   40.0,
-   25.0,
-   820.0
+   0.0,
+   27.5,
+   -625.0
   ],
-  "yaw": -24,
-  "pitch": 2
+  "yaw": 0,
+  "pitch": 15.2
  },
  "Environment": {
   "sky": "night",
@@ -33,6 +33,7 @@
    0.84,
    1.0
   ],
+  "moon": false,
   "fogColor": [
    0.06,
    0.05,
@@ -69,7 +70,8 @@
    0.4
   ],
   "dayLength": 600,
-  "timeOfDay": 0.7,
+  "timeOfDay": 0.74,
+  "timePaused": true,
   "dayZenithColor": [
    0.2,
    0.36,
@@ -139,14 +141,17 @@
  },
  "BlackHoles": [
   {
-   "position": [
-    250,
-    380,
-    -1750
+   "sky": true,
+   "direction": [
+    0.0,
+    0.5075,
+    -0.8616
    ],
-   "radius": 45,
-   "lensing": 1.0,
+   "angularRadius": 0.05,
+   "cloudClear": 0.78,
+   "lensing": 0.6,
    "influence": 9,
+   "colorShift": 0.71,
    "diskInner": 2.6,
    "diskOuter": 7.5,
    "diskColor": [
@@ -158,12 +163,57 @@
    "diskOpacity": 0.85,
    "diskSpeed": 1.0,
    "diskTilt": [
-    14,
-    8
+    41.5,
+    -2.0
    ],
    "glow": 0.6
   }
  ],
+ "Footsteps": {
+  "sound": "step_sand",
+  "variants": 6,
+  "volume": 1.0,
+  "dustPerStep": 7,
+  "dust": {
+   "type": "spray",
+   "burst": true,
+   "texture": "res/textures/smoke.png",
+   "atlas": [
+    8,
+    5
+   ],
+   "count": 90,
+   "lifetimeMs": 1100,
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "radius": 4,
+   "direction": [
+    0,
+    1,
+    0
+   ],
+   "spread": 0.9,
+   "speed": [
+    12,
+    34
+   ],
+   "gravity": -22,
+   "startScale": 7,
+   "growth": 24,
+   "scaleJitter": 0.5,
+   "blend": "alpha",
+   "tint": [
+    0.62,
+    0.5,
+    0.38
+   ],
+   "brightness": 0.75,
+   "fadeIn": 0.1
+  }
+ },
  "Entities": [
   {
    "Transform": {

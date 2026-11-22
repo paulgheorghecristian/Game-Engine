@@ -17,6 +17,7 @@
                     "moonColor" : "VEC3",
                     "moonSampler" : "INT",
                     "moonPhase" : "FLOAT",
+                    "moonVisible" : "FLOAT",
                     "moonSize" : "FLOAT",
                     "cloudPass" : "INT",
                     "collapse" : "FLOAT",

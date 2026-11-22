@@ -1,3 +1,4 @@
+#include "ParticleEmitter.h"
 #include "Player.h"
 
 #include "RenderingMaster.h"
@@ -285,11 +286,14 @@ void Player::PlayerControllerComponent::update() {
 
 /* footsteps paced by the distance walked (longer strides when running),
  * wading steps in water, a splash on going in, a thump on landing */
+Player::Footsteps &Player::footsteps() {
+    static Footsteps footsteps;
+    return footsteps;
+}
+
 void Player::PlayerControllerComponent::playSounds(bool onGround, float groundY, const glm::vec3 &position) {
     AudioMaster *audio = AudioMaster::getInstance();
-    if (!audio->isAvailable()) {
-        return;
-    }
+    const Footsteps &steps = footsteps();
     glm::vec3 moved = position - m_lastSoundPosition;
     float horizontal = glm::length(glm::vec2(moved.x, moved.z));
     float perSecond = horizontal / TICK;
@@ -304,7 +308,7 @@ void Player::PlayerControllerComponent::playSounds(bool onGround, float groundY,
 
     WaterRenderer *water = RenderingMaster::getInstance()->water;
     float feet = onGround ? groundY : position.y - RIDE_HEIGHT;
-    bool inWater = water != nullptr && feet < water->getHeight() - 0.5f;
+    bool inWater = water != nullptr && water->covers(position.x, position.z) && feet < water->getHeight() - 0.5f;
 
     if (!onGround) {
         m_fallSpeed = std::max(m_fallSpeed, -moved.y / TICK);
@@ -315,7 +319,15 @@ void Player::PlayerControllerComponent::playSounds(bool onGround, float groundY,
     } else if (onGround && !m_wasOnGround && m_fallSpeed > 60.0f) {
         float strength = glm::clamp(m_fallSpeed / 250.0f, 0.5f, 1.0f);
         if (inWater) audio->playVariant("wade", 3, strength);
-        else audio->play("land", strength);
+        else {
+            /* a heavy landing: both feet at once, lower and louder (the map's
+             * own step sound: sand, grass...) */
+            audio->playVariant(steps.sound, steps.variants, steps.volume * (0.8f + 0.4f * strength), 0.04f, 0.8f);
+            audio->playVariant(steps.sound, steps.variants, steps.volume * strength, 0.04f, 0.88f);
+            if (steps.dust != nullptr) {
+                steps.dust->burst(glm::vec3(position.x, feet + 1.0f, position.z), (int) (steps.dustPerStep * 3 * strength));
+            }
+        }
         m_strideLeft = 20.0f;   /* the next step a little after landing */
     }
     if (onGround) {
@@ -327,7 +339,17 @@ void Player::PlayerControllerComponent::playSounds(bool onGround, float groundY,
                 m_strideLeft += glm::mix(40.0f, 58.0f, glm::clamp((perSecond - 85.0f) / 85.0f, 0.0f, 1.0f));
                 float loudness = glm::clamp(perSecond / 170.0f, 0.35f, 1.0f);
                 if (inWater) audio->playVariant("wade", 3, 0.5f * loudness);
-                else audio->playVariant("step_grass", 6, 1.0f * loudness);
+                else {
+                    audio->playVariant(steps.sound, steps.variants, steps.volume * loudness);
+                    if (steps.dust != nullptr) {
+                        /* kicked up where the foot lands, ahead (so it is seen in
+                         * first person, settling as you walk through it) */
+                        glm::vec2 heading = glm::normalize(glm::vec2(moved.x, moved.z));
+                        float ahead = 18.0f + 0.1f * perSecond;
+                        glm::vec3 at(position.x + heading.x * ahead, feet + 1.0f, position.z + heading.y * ahead);
+                        steps.dust->burst(at, std::max(1, (int) (steps.dustPerStep * (0.5f + loudness))));
+                    }
+                }
             }
         } else {
             m_strideLeft = std::min(m_strideLeft, 12.0f);   /* starting off: a step soon */

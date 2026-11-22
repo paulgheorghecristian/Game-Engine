@@ -130,6 +130,7 @@ class RenderingMaster
         Environment getEnvironmentToSave() const {
             Environment e = m_baseEnvironment;
             e.timeOfDay = m_environment.timeOfDay;
+            e.timePaused = m_timePaused;
             return e;
         }
         /* directional light as configured (the day-night cycle overrides it at runtime) */
@@ -279,6 +280,21 @@ class RenderingMaster
         void renderLensSky(const BlackHole &hole);
         void renderBlackHoles(FrameBuffer &target);
         bool m_skyCloudCut = false;   /* a sky black hole with clouds: split the cloud layer */
+    public:
+        /* the Kugelblitz aftermath (Core/Aftermath): storm 0..1 adds wind,
+         * fog, clouds and waves; calm 0..1 stills the wind before it hits */
+        void setStorm(float storm, float calm) { m_storm = storm; m_calm = calm; }
+        float getStorm() const { return m_storm; }
+        /* the storm's wind direction (xz) and how far the wind has turned to it (0..1) */
+        void setStormDirection(const glm::vec2 &direction, float turn) { m_stormDirection = direction; m_stormTurn = turn; }
+        /* 0: normal, 1: the picture is black (the ending) */
+        void setFadeOut(float fade) { m_fadeOut = fade; }
+    private:
+        float m_storm = 0.0f, m_calm = 0.0f;
+        float m_appliedStorm = 0.0f, m_appliedCalm = 0.0f;
+        glm::vec2 m_stormDirection = glm::vec2(1.0f, 0.0f);
+        float m_stormTurn = 0.0f;
+        float m_fadeOut = 0.0f;
         float m_lastCollapseTime = -1.0f;
         void blackHoleGUI();
 };

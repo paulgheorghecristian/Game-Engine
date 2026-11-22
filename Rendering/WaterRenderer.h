@@ -1,6 +1,7 @@
 #ifndef WATER_RENDERER_H
 #define WATER_RENDERER_H
 
+#include <cmath>
 #include <vector>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -45,6 +46,10 @@ class WaterRenderer
         void render(FrameBuffer &target);
 
         inline float getHeight() const { return m_height; }
+        /* whether (x, z) is over the water's rectangle */
+        inline bool covers(float x, float z) const {
+            return std::abs(x - m_center.x) <= m_size.x * 0.5f && std::abs(z - m_center.y) <= m_size.y * 0.5f;
+        }
 
         /* lights passed to forward shaders (water surface, reflection pass) */
         static const int MAX_FORWARD_LIGHTS = 16;

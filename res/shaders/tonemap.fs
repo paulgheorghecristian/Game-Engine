@@ -12,6 +12,8 @@ uniform sampler2D bloomSamplerNear;  /* half resolution blur */
 uniform sampler2D bloomSamplerFar;   /* quarter resolution blur (wider) */
 uniform float exposure;
 uniform float bloomStrength;
+uniform sampler2D flareSampler;    /* the lens flare, when it comes after the black holes */
+uniform float flareStrength;       /* 0: already in the HDR image */
 uniform float saturation;      /* 1 = untouched */
 uniform float gradeStrength;   /* 0 = off: cool shadows / warm highlights and a vignette */
 
@@ -25,6 +27,11 @@ void main() {
     vec3 bloom = texture(bloomSamplerNear, textureCoords).rgb * 0.6 +
                  texture(bloomSamplerFar, textureCoords).rgb * 0.8;
     color += bloom * bloomStrength;
+    if (flareStrength > 0.0) {
+        /* a camera effect: on top of whatever the black holes bent */
+        vec4 flare = texture(flareSampler, textureCoords);
+        color += flare.rgb * flare.a * flareStrength;
+    }
     /* the engine's colors are display-referred (no gamma pipeline): tone map in
      * linear light and convert back, so darks keep their contrast and only the
      * bright end is compressed */

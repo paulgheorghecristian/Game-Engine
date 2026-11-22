@@ -88,6 +88,7 @@ class BlackHole
         float collapseSpeed = 0.0f;
         float collapseDelay = 0.0f;    /* seconds the moon stays intact after Play, before ignition */
         bool autoPlay = false;         /* start playing when the map loads */
+        float quitAfter = 0.0f;        /* seconds after the hole forms (into the storm) to fade out and close the game; 0: never */
         /* runtime playback (Play / Pause / Restart / Reset in the editor):
          * collapse only advances while playing */
         bool playing = false;

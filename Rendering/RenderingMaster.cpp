@@ -414,6 +414,10 @@ void RenderingMaster::drawDeferredShadingBuffers()
     volumetricLightTxt.use(9);
     flarePostProcess->getResultingTexture().use(10);
     wBlurPostProcess->getResultingTexture().use(11);
+    /* with a black hole the lens flare goes on after it (in the tone mapping):
+     * it is the camera's, so the hole must not bend or hide it */
+    float flareInComposite = hdr && !blackHoles.empty() ? 0.0f : 1.0f;
+    deferredShading_BufferCombinationShader.updateUniform("flareInComposite", flareInComposite);
 
     screenSizeRectangle->draw();
 
@@ -443,6 +447,9 @@ void RenderingMaster::drawDeferredShadingBuffers()
 
 void RenderingMaster::update() {
     m_time += updateDt / 1000.0f;
+    if (m_baseEnvironment.dayLength <= 0.0f && (m_storm != m_appliedStorm || m_calm != m_appliedCalm)) {
+        applyEnvironment(m_baseEnvironment);   /* a fixed time of day still gets the storm */
+    }
 
     if (m_baseEnvironment.dayLength > 0.0f) {
         float speed = m_timePaused ? 0.0f : m_timeScale;
@@ -983,8 +990,14 @@ void RenderingMaster::uploadFogCutoff(Shader &shader) const {
 }
 
 glm::vec2 RenderingMaster::getWindDirection() const {
-    /* the wind blows the way the clouds drift */
-    return glm::normalize(glm::vec2(0.8f, 0.35f)) * m_environment.wind;
+    /* the wind blows the way the clouds drift (or, in the Kugelblitz
+     * aftermath, from the black hole) */
+    glm::vec2 direction = glm::normalize(glm::vec2(0.8f, 0.35f));
+    if (m_stormTurn > 0.0f) {
+        glm::vec2 turned = glm::mix(direction, m_stormDirection, m_stormTurn);
+        direction = glm::length(turned) > 1e-3f ? glm::normalize(turned) : m_stormDirection;
+    }
+    return direction * m_environment.wind;
 }
 
 void RenderingMaster::uploadWind(Shader &shader) const {
@@ -1016,6 +1029,7 @@ void RenderingMaster::uploadProjection() {
 void RenderingMaster::setEnvironment(const Environment &environment)
 {
     m_baseEnvironment = environment;
+    m_timePaused = environment.timePaused;
     m_dirLightBaseCaptured = false;
     applyEnvironment(environment.dayLength > 0.0f ?
                      Environment::atTimeOfDay(environment, environment.timeOfDay) : environment);
@@ -1076,6 +1090,7 @@ void RenderingMaster::environmentGUI()
     changed |= ImGui::SliderFloat("Fog height falloff", &m_baseEnvironment.fogHeightFalloff, 0.0f, 0.03f, "%.4f");
     changed |= ImGui::SliderFloat("Haze glow", &m_baseEnvironment.fogMoonGlow, 0.0f, 1.0f);
     changed |= ImGui::SliderFloat("Clouds", &m_baseEnvironment.cloudCoverage, 0.0f, 1.0f, "%.2f");
+    changed |= ImGui::Checkbox("Moon", &m_baseEnvironment.moon);
     changed |= ImGui::SliderFloat("Moon phase", &m_baseEnvironment.moonPhase, 0.0f, 1.0f, "%.2f");
     changed |= ImGui::SliderFloat("Moon size", &m_baseEnvironment.moonSize, 0.005f, 0.09f, "%.3f");
     changed |= ImGui::SliderFloat("Wind", &m_baseEnvironment.wind, 0.0f, 3.0f, "%.2f");
@@ -1129,8 +1144,21 @@ float RenderingMaster::getNightFactor() const
     return 1.0f - m_environment.sunVisibility;
 }
 
-void RenderingMaster::applyEnvironment(const Environment &environment)
+void RenderingMaster::applyEnvironment(const Environment &base)
 {
+    /* the aftermath's storm on top of the time of day */
+    Environment environment = base;
+    environment.wind = environment.wind * (1.0f - 0.85f * m_calm) + 4.5f * m_storm;
+    environment.fogDensity *= 1.0f + 3.0f * m_storm;
+    environment.fogHeightFalloff *= 1.0f - 0.6f * m_storm;
+    environment.cloudCoverage = std::min(1.0f, environment.cloudCoverage + 0.35f * m_storm);
+    environment.cloudSpeed *= 1.0f + 3.0f * m_storm;
+    if (!environment.moon) {
+        environment.moonColor = glm::vec3(0.0f);   /* no halo, no moonlit clouds or haze */
+        environment.fogMoonGlow = 0.0f;
+    }
+    m_appliedStorm = m_storm;
+    m_appliedCalm = m_calm;
     m_environment = environment;
     const Environment &e = m_environment;
 
@@ -1144,6 +1172,8 @@ void RenderingMaster::applyEnvironment(const Environment &environment)
     skyShader->updateUniform("moonPhase", moonPhase);
     float moonSize = glm::clamp(e.moonSize, 0.005f, 0.09f);
     skyShader->updateUniform("moonSize", moonSize);
+    float moonVisible = e.moon ? 1.0f : 0.0f;
+    skyShader->updateUniform("moonVisible", moonVisible);
 
     Shader &c = deferredShading_BufferCombinationShader;
     c.updateUniform("ambient", e.ambient);
@@ -1372,6 +1402,7 @@ void RenderingMaster::renderBloomAndToneMap()
         m_tonemapShader->updateUniform("hdrSampler", 0);
         m_tonemapShader->updateUniform("bloomSamplerNear", 1);
         m_tonemapShader->updateUniform("bloomSamplerFar", 2);
+        m_tonemapShader->updateUniform("flareSampler", 3);
     }
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
@@ -1392,7 +1423,7 @@ void RenderingMaster::renderBloomAndToneMap()
         blurPass(*m_bloomQuarterA, *m_bloomQuarterB, glm::vec2(0.0f, 2.0f / qh));
     }
 
-    float exposure = m_environment.exposure;
+    float exposure = m_environment.exposure * (1.0f - m_fadeOut);
     float bloomStrength = bloom ? m_environment.bloomStrength : 0.0f;
     m_tonemapShader->updateUniform("exposure", exposure);
     m_tonemapShader->updateUniform("bloomStrength", bloomStrength);
@@ -1404,6 +1435,11 @@ void RenderingMaster::renderBloomAndToneMap()
     bindTexture(0, m_hdrFB->getRenderTargets()[0]);
     bindTexture(1, m_bloomHalfA->getRenderTargets()[0]);
     bindTexture(2, m_bloomQuarterB->getRenderTargets()[0]);
+    float flareStrength = blackHoles.empty() ? 0.0f : 1.0f;
+    m_tonemapShader->updateUniform("flareStrength", flareStrength);
+    if (flareStrength > 0.0f) {
+        flarePostProcess->getResultingTexture().use(3);
+    }
     screenSizeRectangle->draw();
     glEnable(GL_DEPTH_TEST);
 }

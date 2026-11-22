@@ -273,12 +273,16 @@ vec3 lensSky(vec3 d) {
 }
 
 /* a sky pixel looking along `view`, bent to `bent`: the sky behind swapped
- * for the bent one; where it is not bent the pixel stays exactly as it was
- * (its clouds, haze, particles in front) */
+ * for the bent one, and what our atmosphere adds in front of it (haze,
+ * thin cloud, particles, the sunset glow) kept as it was, unbent. Only
+ * close to the shadow, where the bending is strong and the disk's light
+ * covers the change, is it the bent sky alone (switching there instead of
+ * far out avoids a visible circle where the clean lens sky meets the hazy
+ * real one) */
 vec3 skyBehind(vec3 view, vec3 bent, vec3 scene) {
     vec3 lensed = lensSky(bent);
     vec3 here = lensSky(view);
-    float k = smoothstep(0.002, 0.01, length(bent - view));
+    float k = smoothstep(0.08, 0.35, length(bent - view));
     return mix(max(scene + lensed - here, vec3(0.0)), lensed, k);
 }
 

@@ -515,14 +515,27 @@ emitters += [
      "startScale": 0.9, "blend": "additive", "tint": [1.0, 0.85, 0.6], "fadeIn": 0.35},
 ]
 
+# the view: on the axis at the head of the pool; the black hole sits just
+# above the colossus' head (its shadow clears the head, the disk crowns it)
+VIEW = (0.0, -625.0)
+VIEW_Y = TOP + 26.0
+colossus_top = colossus_y + 20.67 * COL_SCALE
+head_angle = math.atan2(colossus_top - VIEW_Y, VIEW[1] - PED[1])
+hole_angle = head_angle + 0.105
+HOLE_DIR = [0.0, round(math.sin(hole_angle), 4), round(-math.cos(hole_angle), 4)]
+VIEW_PITCH = round(math.degrees(hole_angle) * 0.5, 1)
+
 # --------------------------------------------------------------------------
 game = {
     "ConfigFilePath": "res/configs/config.json",
     "gravity": -10.0,
-    # yaw: 0 looks down -z; the valley first heads north-east
-    "PlayerStart": {"position": [SPAWN[0], H(*SPAWN) + 25, SPAWN[1]], "yaw": -24, "pitch": 2},
+    # at the head of the pool, facing the colossus and the black hole above it
+    # (yaw: 0 looks down -z); the valley walk starts at SPAWN behind you
+    "PlayerStart": {"position": [VIEW[0], VIEW_Y, VIEW[1]], "yaw": 0, "pitch": VIEW_PITCH},
     "Environment": {"sky": "night", "zenithColor": [0.006, 0.008, 0.028], "horizonColor": [0.07, 0.055, 0.085],
                     "starIntensity": 1.0, "moonDirection": moon, "moonColor": [0.8, 0.84, 1.0],
+                    # the moon is gone (the black hole took its place)
+                    "moon": False,
                     "fogColor": [0.06, 0.05, 0.065], "fogDensity": 0.0011, "fogHeightFalloff": 0.0042,
                     "fogBaseHeight": BASIN_Y, "fogMoonGlow": 0.3,
                     # distance cut-off: the fog closes in from 400 and is opaque at
@@ -535,8 +548,9 @@ game = {
                     "aoStrength": 0.9, "aoRadius": 18,
                     "saturation": 0.92, "grade": 0.6,
                     "ambientSkyTint": [0.85, 0.9, 1.3], "ambientGroundTint": [0.6, 0.45, 0.4],
-                    # golden hour: the sun sets about 30 s after you arrive (T speeds time up)
-                    "dayLength": 600, "timeOfDay": 0.70,
+                    # held at dusk: the sun just down behind the colossus (Pause time
+                    # in the World panel lets it run again)
+                    "dayLength": 600, "timeOfDay": 0.74, "timePaused": True,
                     "dayZenithColor": [0.2, 0.36, 0.68], "dayHorizonColor": [0.86, 0.72, 0.58],
                     "sunsetColor": [1.0, 0.42, 0.14], "sunColor": [0.9, 0.78, 0.62],
                     "dayFogColor": [0.78, 0.62, 0.46], "dayFogDensityScale": 0.6, "dayAmbient": 0.38,
@@ -547,11 +561,19 @@ game = {
               "murkDepth": 14, "softEdge": 1.5, "reflectivity": 1.0,
               # bright reflections (crystal, braziers) bloom into soft rippling streaks
               "reflectionGlow": 1.8},
-    # a black hole hanging over the basin behind the colossus: it bends the
-    # light of the sky, the buttes and its own accretion disk
-    "BlackHoles": [{"position": [250, 380, -1750], "radius": 45, "lensing": 1.0, "influence": 9,
+    # where the moon was, a black hole in the sky (at infinity, like the moon),
+    # crowning the colossus as seen from the head of the pool
+    "BlackHoles": [{"sky": True, "direction": HOLE_DIR, "angularRadius": 0.05, "cloudClear": 0.78,
+                    "lensing": 0.6, "influence": 9, "colorShift": 0.71,
                     "diskInner": 2.6, "diskOuter": 7.5, "diskColor": [1.0, 0.62, 0.3], "diskBrightness": 3.0,
-                    "diskOpacity": 0.85, "diskSpeed": 1.0, "diskTilt": [14, 8], "glow": 0.6}],
+                    "diskOpacity": 0.85, "diskSpeed": 1.0, "diskTilt": [41.5, -2.0], "glow": 0.6}],
+    # walking on sand: crunching steps, and a puff of sand kicked up at each
+    "Footsteps": {"sound": "step_sand", "variants": 6, "volume": 1.0, "dustPerStep": 7,
+                  "dust": {"type": "spray", "burst": True, "texture": "res/textures/smoke.png", "atlas": [8, 5],
+                           "count": 90, "lifetimeMs": 1100, "position": [0, 0, 0], "radius": 4,
+                           "direction": [0, 1, 0], "spread": 0.9, "speed": [12, 34], "gravity": -22,
+                           "startScale": 7, "growth": 24, "scaleJitter": 0.5, "blend": "alpha",
+                           "tint": [0.62, 0.5, 0.38], "brightness": 0.75, "fadeIn": 0.1}},
     "Entities": entities,
     "Lights": lights,
     "ParticleEmitters": emitters,

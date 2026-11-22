@@ -115,6 +115,10 @@ void Camera::computeViewMatrix () {
     glm::quat zRotQuat = glm::angleAxis (-rotation.z, glm::vec3(0,0,1));
 
     glm::quat orientation = m_localZRot * xRotQuat * yRotQuat * zRotQuat;
+    if (m_shake != glm::vec3(0.0f)) {
+        orientation = glm::angleAxis(m_shake.x, glm::vec3(1, 0, 0)) * glm::angleAxis(m_shake.y, glm::vec3(0, 1, 0)) *
+                      glm::angleAxis(m_shake.z, glm::vec3(0, 0, 1)) * orientation;
+    }
     orientation = glm::normalize (orientation);
 
     viewMatrix = glm::mat4_cast (orientation);
@@ -192,3 +196,10 @@ void Camera::compute_forward(){
 
     forward = glm::normalize(forward);
 }*/
+
+void Camera::setShake(const glm::vec3 &angles) {
+    if (angles != m_shake) {
+        m_shake = angles;
+        viewMatrixNeedsUpdate = true;
+    }
+}

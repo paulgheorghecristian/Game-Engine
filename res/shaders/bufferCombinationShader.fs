@@ -14,6 +14,7 @@ uniform sampler2D particlesSampler;
 uniform sampler2D dirLightDepthSampler;
 uniform sampler2D volumetricLightSampler;
 uniform sampler2D flareSampler;
+uniform float flareInComposite;   /* 1: the lens flare is added here; 0: later, by the tone mapping */
 uniform sampler2D flareBlurSampler;
 uniform sampler2D roughnessSampler;
 
@@ -176,7 +177,7 @@ void main() {
         vec4 particlesPixel = particles();
         vec4 volumetricPixel = volumetrics();
         vec3 albedoPixel = color();
-        vec4 flarePixel = flareMap();// + flareBlurMap();
+        vec4 flarePixel = flareMap() * flareInComposite;   /* 0: added after the black holes (tonemap) */
 
         vec3 depthVal = depth();
 

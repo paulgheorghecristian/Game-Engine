@@ -311,6 +311,8 @@ void WaterRenderer::render(FrameBuffer &target)
     shader.updateUniform("time", time);
     shader.updateUniform("hasReflection", reflectionValid);
     shader.updateUniform("reflectionGlow", m_reflectionGlow);
+    float waveHeight = m_waveHeight * (1.0f + 5.0f * rm->getStorm());   /* the aftermath's storm swell */
+    shader.updateUniform("waveHeight", waveHeight);
     uploadEnvironment(shader);
     uploadForwardLights(shader, camera->getPosition());
     rm->uploadWind(shader);

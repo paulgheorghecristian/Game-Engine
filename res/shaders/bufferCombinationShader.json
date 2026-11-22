@@ -15,6 +15,7 @@
                     "dirLightDepthSampler" : "INT",
                     "volumetricLightSampler" : "INT",
                     "flareSampler" : "INT",
+                    "flareInComposite" : "FLOAT",
                     "flareBlurSampler" : "INT",
                     "roughnessSampler" : "INT",
                     "ambient" : "FLOAT",

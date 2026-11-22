@@ -13,6 +13,7 @@ uniform vec3 moonDirection, moonColor;
 uniform sampler2D moonSampler; /* lunar map, equirectangular, 0 longitude in the middle */
 uniform float moonPhase;       /* 0 full moon, 0.5 half (lit from the right), 1 new */
 uniform float moonSize;     /* angular radius (radians) */
+uniform float moonVisible;  /* 0: the map has no moon */
 uniform float time;
 /* a black hole in the sky tearing a stream of dust off the moon */
 uniform float moonStream;            /* 0: none */
@@ -429,7 +430,7 @@ vec3 nightSky(vec3 dir) {
     vec3 upAxis = cross(right, moonDir);
     bool kugelblitz = collapse >= 0.0;
     float breakup = kugelblitz ? smoothstep(0.55, 0.97, collapse) : 0.0;
-    if (m > cos(moonRadius * 1.1) && discs > 0.0) {
+    if (m > cos(moonRadius * 1.1) && discs > 0.0 && moonVisible > 0.5) {
         vec2 p = vec2(dot(dir, right), dot(dir, upAxis)) / sin(moonRadius);
         /* death spiral: the inner crust orbits faster and falls inwards, so
          * the disc shears into a whirlpool and shrinks */

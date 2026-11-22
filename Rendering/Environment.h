@@ -21,6 +21,8 @@ struct Environment
     glm::vec3 moonColor = glm::vec3(0.55f, 0.65f, 0.9f);
     float moonPhase = 0.0f;             /* 0 full, 0.5 half, 1 new */
     float moonSize = 0.026f;            /* angular radius of the moon (radians, max 0.09) */
+    bool moon = true;                   /* false: no moon (no disc, halo or moonlight) */
+    bool timePaused = false;            /* the day-night cycle starts paused at timeOfDay */
 
     glm::vec3 fogColor = glm::vec3(0.0f);
     float fogDensity = 0.0f;            /* 0 disables fog */

@@ -87,7 +87,7 @@ float waterNoise(vec2 p) {
 vec2 waveSlopes(vec2 p, float t, float footprint, out float unresolved) {
     float wind = length(windDirection);
     vec2 w = wind > 1e-3 ? windDirection / wind : vec2(1.0, 0.0);
-    float strength = clamp(wind, 0.25, 2.0);
+    float strength = clamp(wind, 0.25, 3.5);
     /* cat's paws: gusts roughen the water in patches that drift downwind */
     vec2 drift = p - w * t * 9.0;
     float gust = waterNoise(drift * 0.007) * 0.65 + waterNoise(drift * 0.019 + 7.3) * 0.35;
@@ -232,6 +232,7 @@ void main() {
 
     /* glints: the sky's light (sun by day, moon by night) and nearby lights */
     vec3 specular = glint(normal, V, normalize(moonDirection), moonColor * 1.5, alpha2);
+    vec3 scatter = vec3(0.0);
     for (int i = 0; i < numLights; i++) {
         vec3 L = lightPositions[i] - worldPosition;
         float d = length(L);
@@ -240,8 +241,18 @@ void main() {
         L /= d;
         if (lightSpots[i].w >= -1.0 && dot(-L, lightSpots[i].xyz) < lightSpots[i].w) continue;
         att *= att;
-        specular += glint(normal, V, L, lightColors[i] * att * 0.6, alpha2 + 0.004) + lightColors[i] * att * 0.02;
+        float NdotL = max(dot(normal, L), 0.0);
+        specular += glint(normal, V, L, lightColors[i] * att * 0.6, alpha2 + 0.004)
+                  /* a broad sheen: the ripples spread a lamp's highlight into a
+                   * soft glossy patch (a bare light has no globe to reflect) */
+                  + glint(normal, V, L, lightColors[i] * att * 0.6, alpha2 + 0.05);
+        /* light scattered back out of the water body (murky water glows
+         * under a lamp), on top of the lit bed seen through clear water */
+        scatter += lightColors[i] * att * (0.15 + 0.85 * NdotL) * (1.0 - 0.6 * fresnel);
     }
+    /* the water's own hue (its colors are dark: use their tint, not their level) */
+    vec3 hue = shallowColor / max(max(shallowColor.r, max(shallowColor.g, shallowColor.b)), 1e-3);
+    color += scatter * hue * mix(0.9, 0.45, murk) * edge;
     color = mix(behind, color, surfaceEdge);
     color += specular * (1.0 - murk * 0.3) * surfaceEdge;
 

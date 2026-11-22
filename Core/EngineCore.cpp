@@ -20,6 +20,7 @@
 #include "imgui.h"
 #include "ParticleEmitterComponent.h"
 #include "WaterRenderer.h"
+#include "AudioMaster.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -145,6 +146,9 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
     }
     if (gameDocument.HasMember("Audio")) {
         m_audioJson = jsonToString(gameDocument["Audio"]);
+    }
+    if (gameDocument.HasMember("Footsteps")) {
+        m_footstepsJson = jsonToString(gameDocument["Footsteps"]);
     }
     RenderingMaster::getInstance()->savedMapPath = m_savePath;
     RenderingMaster::getInstance()->onSaveMap = [this]() { saveMap(m_savePath); };
@@ -611,10 +615,12 @@ void EngineCore::input() {
 
     if (inputManager.getKeyDown(SDLK_F12)) {
         if (m_recorder.isRecording()) {
-            m_recorder.stop();
+            m_recorder.stop(AudioMaster::getInstance()->stopCapture(), AudioMaster::sampleRate());
         } else {
             Display *display = RenderingMaster::getInstance()->getDisplay();
-            m_recorder.start(display->getWidth(), display->getHeight());
+            if (m_recorder.start(display->getWidth(), display->getHeight())) {
+                AudioMaster::getInstance()->startCapture();
+            }
         }
     }
 
@@ -749,6 +755,9 @@ static inline uint64_t fnv1a(uint64_t h, const void *data, size_t size) {
 
 void EngineCore::render(float alpha) {
     beginInterpolation(alpha);
+    if (m_aftermath.update(RenderingMaster::getInstance()->getCamera())) {
+        isRunning = false;   /* the Kugelblitz's ending: the game closes */
+    }
     RenderingMaster::getInstance()->prepareFrame(alpha);
     m_soundScape.update(RenderingMaster::getInstance()->getCamera());
 
@@ -925,7 +934,9 @@ void EngineCore::render(float alpha) {
     if (autoRecord) {
         autoRecord = false;
         Display *display = RenderingMaster::getInstance()->getDisplay();
-        m_recorder.start(display->getWidth(), display->getHeight());
+        if (m_recorder.start(display->getWidth(), display->getHeight())) {
+            AudioMaster::getInstance()->startCapture();
+        }
     }
     m_recorder.captureFrame();
 
@@ -1277,6 +1288,20 @@ void EngineCore::loadMapFeatures(rapidjson::Document &gameDocument) {
         m_soundScape.load(gameDocument["Audio"]);
     }
 
+    /* the map's footsteps: their sound and the dust they kick up */
+    if (gameDocument.HasMember("Footsteps") && gameDocument["Footsteps"].IsObject()) {
+        const rapidjson::Value &steps = gameDocument["Footsteps"];
+        Player::Footsteps &footsteps = Player::footsteps();
+        if (steps.HasMember("sound") && steps["sound"].IsString()) footsteps.sound = steps["sound"].GetString();
+        if (steps.HasMember("variants") && steps["variants"].IsInt()) footsteps.variants = std::max(1, steps["variants"].GetInt());
+        if (steps.HasMember("volume") && steps["volume"].IsNumber()) footsteps.volume = steps["volume"].GetFloat();
+        if (steps.HasMember("dustPerStep") && steps["dustPerStep"].IsInt()) footsteps.dustPerStep = steps["dustPerStep"].GetInt();
+        if (steps.HasMember("dust") && steps["dust"].IsObject()) {
+            footsteps.dust = new ParticleEmitter(steps["dust"]);
+            rm->addParticleEmitter(footsteps.dust);
+        }
+    }
+
     if (gameDocument.HasMember("BlackHoles") && gameDocument["BlackHoles"].IsArray()) {
         for (auto const &hole : gameDocument["BlackHoles"].GetArray()) {
             rm->blackHoles.push_back(new BlackHole(hole));
@@ -1486,6 +1511,8 @@ std::string EngineCore::mapJson() {
     if (parseInto(m_grassJson, grass)) doc.AddMember("Grass", grass, allocator);
     rapidjson::Value audio;
     if (parseInto(m_audioJson, audio)) doc.AddMember("Audio", audio, allocator);
+    rapidjson::Value footsteps;
+    if (parseInto(m_footstepsJson, footsteps)) doc.AddMember("Footsteps", footsteps, allocator);
     if (parseInto(m_emittersJson, emitters)) doc.AddMember("ParticleEmitters", emitters, allocator);
 
     rapidjson::Value entityArray(rapidjson::kArrayType);
@@ -1800,6 +1827,10 @@ void EngineCore::startMenuLoop() {
 }
 
 EngineCore::~EngineCore() {
+    if (m_recorder.isRecording()) {
+        /* quitting while recording: keep the sound too */
+        m_recorder.stop(AudioMaster::getInstance()->stopCapture(), AudioMaster::sampleRate());
+    }
     for (auto entity : entities) {
         delete entity;
     }

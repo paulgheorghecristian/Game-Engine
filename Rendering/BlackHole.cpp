@@ -50,6 +50,7 @@ BlackHole::BlackHole(const rapidjson::Value &json) :
     collapseSpeed = jsonFloat(json, "collapseSpeed", collapseSpeed);
     collapseDelay = jsonFloat(json, "collapseDelay", collapseDelay);
     autoPlay = json.HasMember("autoPlay") && json["autoPlay"].IsBool() && json["autoPlay"].GetBool();
+    quitAfter = jsonFloat(json, "quitAfter", quitAfter);
     if (autoPlay && kugelblitz) {
         collapse = 0.0f;
         playing = true;
@@ -318,6 +319,7 @@ bool BlackHole::renderGUI(int index)
                 ImGui::SliderFloat("Collapse", &collapse, 0.0f, 1.0f, "%.3f");
                 ImGui::SliderFloat("Collapse speed (/min)", &collapseSpeed, 0.0f, 5.0f, "%.3f", 3.0f);   /* curved: fine control of slow speeds */
                 ImGui::SliderFloat("Start delay (s)", &collapseDelay, 0.0f, 120.0f, "%.0f");
+                ImGui::SliderFloat("Close game after (s)", &quitAfter, 0.0f, 60.0f, quitAfter > 0.0f ? "%.0f s into the storm" : "never");
                 ImGui::DragFloat2("Facility (on the moon)", &collapseSite.x, 0.01f, -0.9f, 0.9f);
             } else {
                 ImGui::SliderFloat("Moon stream", &moonStream, 0.0f, 3.0f, "%.2f");
@@ -372,6 +374,7 @@ void BlackHole::save(rapidjson::Value &json, rapidjson::Document::AllocatorType 
             json.AddMember("collapseSpeed", collapseSpeed, allocator);
             json.AddMember("collapseDelay", collapseDelay, allocator);
             if (autoPlay) json.AddMember("autoPlay", true, allocator);
+            if (quitAfter > 0.0f) json.AddMember("quitAfter", quitAfter, allocator);
             rapidjson::Value site(rapidjson::kArrayType);
             site.PushBack(collapseSite.x, allocator).PushBack(collapseSite.y, allocator);
             json.AddMember("collapseSite", site, allocator);

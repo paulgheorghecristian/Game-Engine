@@ -8,6 +8,8 @@
                     "bloomSamplerNear" : "INT",
                     "bloomSamplerFar" : "INT",
                     "exposure" : "FLOAT",
-                    "bloomStrength" : "FLOAT"
+                    "bloomStrength" : "FLOAT",
+                    "flareSampler" : "INT",
+                    "flareStrength" : "FLOAT"
                  }
 }

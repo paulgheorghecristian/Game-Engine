@@ -32,15 +32,22 @@ class AudioMaster
         int play3D(const std::string &name, const glm::vec3 &position, float volume, float radius,
                    float pitch = 1.0f, bool loop = false);
         /* one of name_1..name_count at random, with a little pitch variety */
-        int playVariant(const std::string &name, int count, float volume, float pitchVariation = 0.08f);
+        int playVariant(const std::string &name, int count, float volume, float pitchVariation = 0.08f,
+                        float basePitch = 1.0f);
 
         void setVolume(int voice, float volume);    /* ramps there over ~50 ms */
+        void setPosition(int voice, const glm::vec3 &position);   /* a 3D voice moves */
         void stop(int voice);                       /* fades out, then ends */
         bool isPlaying(int voice) const;
 
         /* the listener (camera); call once a frame: updates 3D voices */
         void setListener(const glm::vec3 &position, const glm::vec3 &forward, const glm::vec3 &up);
         void setMasterVolume(float volume) { m_master = volume; }
+        /* recording (F12): keeps a copy of everything mixed from now on */
+        void startCapture();
+        /* the mix since startCapture: interleaved stereo float at sampleRate() */
+        std::vector<float> stopCapture();
+        static int sampleRate();
         float getMasterVolume() const { return m_master; }
 
         ~AudioMaster();
@@ -73,6 +80,8 @@ class AudioMaster
         int m_nextId = 1;
         float m_master = 0.8f;
         glm::vec3 m_listener = glm::vec3(0.0f), m_listenerRight = glm::vec3(1, 0, 0);
+        bool m_capturing = false;
+        std::vector<float> m_capture;
 };
 
 #endif // AUDIO_MASTER_H

@@ -151,6 +151,7 @@
    "collapse": 0.0,
    "collapseSpeed": 5.0,
    "collapseDelay": 3.0,
+   "quitAfter": 12.0,
    "collapseSite": [
     0.36,
     0.77

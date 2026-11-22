@@ -16,3 +16,7 @@ levelled; loops crossfaded).
 | boom_1, boom_2 | Rain + long thunder (the thunder roll from 21 s / 24.5 s, slowed to 0.78 / 0.72 and low-passed to drop the rain) — https://opengameart.org/content/rain-long-thunder |
 | boom_3 | Rain + long thunder (from 22 s, slowed to 0.85, low-passed at 1 kHz, soft-saturated) — https://opengameart.org/content/rain-long-thunder |
 | blast | `deathboom.wav` slowed to 0.55 and low-passed at ~1 kHz and soft-saturated (heavy but audible on small speakers), layered with the thunder roll slowed to 0.8 — sources above |
+| storm_loop | `wind woosh loop.ogg` (downloaded with the wind set; verify its page), slowed to 0.8 with a bass lift: the shockwave's roar and the gale |
+| spray_loop | Rain + long thunder: the rain bed (0.5–20.5 s, high-passed at 300 Hz), as wind-driven spray — https://opengameart.org/content/rain-long-thunder |
+| gust_1..3 | Wind (Wind.ogg, Wind2.ogg, Wind3.ogg) slowed to 0.85 with a bass lift — https://opengameart.org/content/wind |
+| step_sand_1..6 | Water Splash and sand footsteps: single steps cut from the sand footsteps recording (around its loudest hits) — https://opengameart.org/content/water-splash-and-sand-footsteps |

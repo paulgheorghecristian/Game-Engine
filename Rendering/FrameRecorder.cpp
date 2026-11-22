@@ -1,6 +1,9 @@
 #include "FrameRecorder.h"
 
 #include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
@@ -27,6 +30,7 @@ bool FrameRecorder::start(int width, int height)
     std::time_t now = std::time(nullptr);
     std::strftime(stamp, sizeof(stamp), "%Y%m%d-%H%M%S", std::localtime(&now));
     m_path = dir + "/ge-" + stamp + ".mp4";
+    m_videoPath = dir + "/.ge-" + stamp + ".video.mp4";
 
     const char *encoder = std::getenv("GE_RECORD_ENCODER");
     std::string codec = encoder != nullptr ? encoder : "h264_nvenc";
@@ -34,7 +38,7 @@ bool FrameRecorder::start(int width, int height)
     /* raw RGBA frames on stdin, bottom-up (OpenGL), flipped by ffmpeg */
     std::string command = "ffmpeg -loglevel error -y -f rawvideo -pix_fmt rgba -s " +
                           std::to_string(width) + "x" + std::to_string(height) + " -r " + std::to_string(FPS) +
-                          " -i - -vf vflip -c:v " + codec + " " + quality + " -pix_fmt yuv420p \"" + m_path + "\"";
+                          " -i - -vf vflip -c:v " + codec + " " + quality + " -pix_fmt yuv420p \"" + m_videoPath + "\"";
     m_pipe = popen(command.c_str(), "w");
     if (m_pipe == nullptr) {
         std::cout << "Recording: could not start ffmpeg" << std::endl;
@@ -111,7 +115,32 @@ void FrameRecorder::captureFrame()
     m_index = 1 - m_index;
 }
 
-void FrameRecorder::stop()
+/* 16-bit stereo PCM */
+static bool writeWav(const std::string &path, const std::vector<float> &samples, int sampleRate)
+{
+    FILE *file = fopen(path.c_str(), "wb");
+    if (file == nullptr) {
+        return false;
+    }
+    uint32_t dataBytes = (uint32_t) (samples.size() * 2);
+    uint32_t riffBytes = 36 + dataBytes, fmtBytes = 16, byteRate = (uint32_t) sampleRate * 4;
+    uint16_t format = 1, channels = 2, blockAlign = 4, bits = 16;
+    uint32_t rate = (uint32_t) sampleRate;
+    fwrite("RIFF", 1, 4, file); fwrite(&riffBytes, 4, 1, file); fwrite("WAVE", 1, 4, file);
+    fwrite("fmt ", 1, 4, file); fwrite(&fmtBytes, 4, 1, file); fwrite(&format, 2, 1, file);
+    fwrite(&channels, 2, 1, file); fwrite(&rate, 4, 1, file); fwrite(&byteRate, 4, 1, file);
+    fwrite(&blockAlign, 2, 1, file); fwrite(&bits, 2, 1, file);
+    fwrite("data", 1, 4, file); fwrite(&dataBytes, 4, 1, file);
+    std::vector<int16_t> pcm(samples.size());
+    for (size_t i = 0; i < samples.size(); i++) {
+        pcm[i] = (int16_t) std::lround(std::max(-1.0f, std::min(1.0f, samples[i])) * 32767.0f);
+    }
+    fwrite(pcm.data(), 2, pcm.size(), file);
+    fclose(file);
+    return true;
+}
+
+void FrameRecorder::stop(const std::vector<float> &audio, int sampleRate)
 {
     if (m_pipe == nullptr) {
         return;
@@ -121,5 +150,20 @@ void FrameRecorder::stop()
     m_pipe = nullptr;
     glDeleteBuffers(2, m_pbos);
     m_pbos[0] = m_pbos[1] = 0;
-    std::cout << "Recording saved to " << m_path << " (" << m_framesWritten / (float) FPS << " s)" << std::endl;
+
+    std::string audioPath = m_videoPath + ".wav";
+    if (!audio.empty() && writeWav(audioPath, audio, sampleRate)) {
+        /* mux in the background (the game goes on); the video is copied as is */
+        std::string command = "( ffmpeg -loglevel error -y -i \"" + m_videoPath + "\" -i \"" + audioPath +
+                              "\" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k -shortest \"" + m_path +
+                              "\" && rm -f \"" + m_videoPath + "\" \"" + audioPath + "\" || mv -f \"" + m_videoPath +
+                              "\" \"" + m_path + "\" ) >/dev/null 2>&1 &";
+        if (std::system(command.c_str()) != 0) {
+            std::rename(m_videoPath.c_str(), m_path.c_str());
+        }
+    } else {
+        std::rename(m_videoPath.c_str(), m_path.c_str());
+    }
+    std::cout << "Recording saved to " << m_path << " (" << m_framesWritten / (float) FPS << " s"
+              << (audio.empty() ? ", no sound" : ", with sound") << ")" << std::endl;
 }
