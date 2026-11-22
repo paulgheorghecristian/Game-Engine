@@ -316,7 +316,7 @@ game = {
     "PlayerStart": {"position": [SPAWN[0], H(*SPAWN) + 25, SPAWN[1]], "yaw": 0, "pitch": -4},
     "Environment": {"sky": "night", "zenithColor": [0.004, 0.008, 0.03], "horizonColor": [0.05, 0.07, 0.14],
                     "starIntensity": 1.4, "moonDirection": moon, "moonColor": [0.6, 0.7, 0.95],
-                    "moonPhase": 0.5,     # half moon
+                    "moonPhase": 0.38,    # waxing gibbous: a curved terminator
                     "fogColor": [0.055, 0.07, 0.11], "fogDensity": 0.0024, "fogHeightFalloff": 0.0035,
                     "fogBaseHeight": WATER, "fogMoonGlow": 0.35,
                     # drifting clouds and their shadows sweeping over the hills

@@ -132,7 +132,10 @@ vec3 nightSky(vec3 dir) {
             /* sunlight on the moon for its phase: from behind the viewer at
              * full moon, from the side at half moon */
             float phaseAngle = moonPhase * 3.14159265;
-            vec3 sunOnMoon = normalize(-moonDir * cos(phaseAngle) + right * sin(phaseAngle));
+            /* lit a little from below (at night the sun is under the horizon),
+             * which also tilts the terminator the way a real night moon shows */
+            vec3 side = normalize(right * 0.94 - upAxis * 0.34);
+            vec3 sunOnMoon = normalize(-moonDir * cos(phaseAngle) + side * sin(phaseAngle));
             float lit = max(dot(n, sunOnMoon), 0.0);
             /* the full moon is nearly flat-lit (little limb darkening), with a
              * soft terminator */
