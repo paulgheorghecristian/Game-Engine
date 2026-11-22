@@ -16,6 +16,7 @@
                     "moonDirection" : "VEC3",
                     "moonColor" : "VEC3",
                     "moonSampler" : "INT",
+                    "moonPhase" : "FLOAT",
                     "time" : "FLOAT",
                     "sunDirection" : "VEC3",
                     "sunColor" : "VEC3",

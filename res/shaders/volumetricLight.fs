@@ -324,7 +324,9 @@ void main() {
         beam *= 1.0 - fogCutoff(cameraDistanceSum / max(pointsNotInShadow, 1e-4));
         /* translucent: the beam lights the haze but the background stays visible */
         outLight.rgb = lightColor * beam;
-        outLight.a = beam * 0.55;
+        /* mostly additive: scattered light adds to what is behind the beam
+         * and only dims it slightly (it must not hide a statue it lights) */
+        outLight.a = beam * 0.12;
         return;
     } else {
         outLight.a = min(pointsNotInShadow / numSamplePoints, 0.8);

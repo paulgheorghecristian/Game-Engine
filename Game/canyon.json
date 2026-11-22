@@ -53,6 +53,7 @@
   "exposure": 1.15,
   "bloomStrength": 0.5,
   "bloomThreshold": 0.9,
+  "dayExposure": 0.92,
   "aoStrength": 0.9,
   "aoRadius": 18,
   "saturation": 0.92,
@@ -85,9 +86,9 @@
    0.14
   ],
   "sunColor": [
-   1.0,
-   0.86,
-   0.68
+   0.9,
+   0.78,
+   0.62
   ],
   "dayFogColor": [
    0.78,
@@ -95,7 +96,7 @@
    0.46
   ],
   "dayFogDensityScale": 0.6,
-  "dayAmbient": 0.3,
+  "dayAmbient": 0.38,
   "dayAmbientSkyTint": [
    0.8,
    0.88,
@@ -8069,9 +8070,9 @@
   {
    "Transform": {
     "position": [
-     -30,
+     -22,
      1.5,
-     -612
+     -625
     ],
     "rotation": [
      0,
@@ -8113,9 +8114,9 @@
   {
    "Transform": {
     "position": [
-     -30,
+     -22,
      12.36,
-     -612
+     -625
     ],
     "rotation": [
      0,
@@ -8157,9 +8158,9 @@
   {
    "Transform": {
     "position": [
-     30,
+     22,
      1.5,
-     -612
+     -625
     ],
     "rotation": [
      0,
@@ -8201,9 +8202,9 @@
   {
    "Transform": {
     "position": [
-     30,
+     22,
      12.36,
-     -612
+     -625
     ],
     "rotation": [
      0,
@@ -12132,13 +12133,13 @@
   {
    "Transform": {
     "position": [
-     -52,
+     -72,
      4.0,
-     -932.0
+     -1044.0
     ],
     "rotation": [
-     59.22,
-     -30.02,
+     73.45,
+     -101.0,
      0
     ],
     "scale": [
@@ -12177,9 +12178,9 @@
   {
    "Transform": {
     "position": [
-     -52,
+     -72,
      6.7,
-     -932.0
+     -1044.0
     ],
     "rotation": [
      0,
@@ -12222,13 +12223,13 @@
   {
    "Transform": {
     "position": [
-     52,
+     72,
      4.0,
-     -932.0
+     -1044.0
     ],
     "rotation": [
-     59.22,
-     30.02,
+     73.45,
+     101.0,
      0
     ],
     "scale": [
@@ -12267,9 +12268,9 @@
   {
    "Transform": {
     "position": [
-     52,
+     72,
      6.7,
-     -932.0
+     -1044.0
     ],
     "rotation": [
      0,
@@ -12560,9 +12561,9 @@
   {
    "Transform": {
     "position": [
-     -30,
+     -22,
      20.76,
-     -612
+     -625
     ],
     "rotation": [
      0,
@@ -12601,9 +12602,9 @@
   {
    "Transform": {
     "position": [
-     30,
+     22,
      20.76,
-     -612
+     -625
     ],
     "rotation": [
      0,
@@ -13013,19 +13014,19 @@
   {
    "Transform": {
     "position": [
-     -52,
+     -72,
      6.5,
-     -932.0
+     -1044.0
     ],
     "rotation": [
-     59.22,
-     -30.02,
+     73.45,
+     -101.0,
      0
     ],
     "scale": [
-     121.8,
-     121.8,
-     400
+     127.8,
+     127.8,
+     420
     ]
    },
    "Attributes": {
@@ -13041,7 +13042,7 @@
     "coef1": 0.8,
     "coef2": 0.02,
     "beamDensity": 0.04,
-    "beamFalloff": 280,
+    "beamFalloff": 300,
     "beamHaze": 0.8,
     "coneAngle": 0.14,
     "shadowMapSize": 1024,
@@ -13061,19 +13062,19 @@
   {
    "Transform": {
     "position": [
-     52,
+     72,
      6.5,
-     -932.0
+     -1044.0
     ],
     "rotation": [
-     59.22,
-     30.02,
+     73.45,
+     101.0,
      0
     ],
     "scale": [
-     121.8,
-     121.8,
-     400
+     127.8,
+     127.8,
+     420
     ]
    },
    "Attributes": {
@@ -13089,7 +13090,7 @@
     "coef1": 0.8,
     "coef2": 0.02,
     "beamDensity": 0.04,
-    "beamFalloff": 280,
+    "beamFalloff": 300,
     "beamHaze": 0.8,
     "coneAngle": 0.14,
     "shadowMapSize": 1024,
@@ -13102,6 +13103,46 @@
      60,
      1,
      0.3
+    ],
+    "nightOnly": true
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     0.0,
+     31.5,
+     -872.0
+    ],
+    "rotation": [
+     34.27,
+     -0.0,
+     0
+    ],
+    "scale": [
+     500,
+     500,
+     380
+    ]
+   },
+   "Attributes": {
+    "color": [
+     1.15,
+     0.85,
+     0.55
+    ],
+    "type": "SPOT",
+    "cast_shadow": true,
+    "volumetric": false,
+    "diffuse_attenuation": [
+     220,
+     4,
+     0.8
+    ],
+    "specular_attenuation": [
+     300,
+     4,
+     1.2
     ],
     "nightOnly": true
    }
@@ -13625,9 +13666,9 @@
    "count": 18,
    "lifetimeMs": 700,
    "position": [
-    -30,
+    -22,
     13.26,
-    -612
+    -625
    ],
    "radius": 2.2,
    "direction": [
@@ -13658,9 +13699,9 @@
    "count": 22,
    "lifetimeMs": 2400,
    "position": [
-    -30,
+    -22,
     14.76,
-    -612
+    -625
    ],
    "radius": 2,
    "direction": [
@@ -13693,9 +13734,9 @@
    "count": 18,
    "lifetimeMs": 700,
    "position": [
-    30,
+    22,
     13.26,
-    -612
+    -625
    ],
    "radius": 2.2,
    "direction": [
@@ -13726,9 +13767,9 @@
    "count": 22,
    "lifetimeMs": 2400,
    "position": [
-    30,
+    22,
     14.76,
-    -612
+    -625
    ],
    "radius": 2,
    "direction": [
@@ -14022,7 +14063,7 @@
    "texture": "res/textures/glowWhite.png",
    "count": 240,
    "lifetimeMs": 9000,
-   "length": 320.0,
+   "length": 336.0,
    "speed": [
     0.5,
     2.0
@@ -14044,7 +14085,7 @@
    "texture": "res/textures/glowWhite.png",
    "count": 240,
    "lifetimeMs": 9000,
-   "length": 320.0,
+   "length": 336.0,
    "speed": [
     0.5,
     2.0
@@ -14095,14 +14136,14 @@
      -893
     ],
     [
-     -30,
+     -22,
      13.26,
-     -612
+     -625
     ],
     [
-     30,
+     22,
      13.26,
-     -612
+     -625
     ]
    ],
    "startScale": 38,

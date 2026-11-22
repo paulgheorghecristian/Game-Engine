@@ -891,6 +891,10 @@ void EngineCore::render(float alpha) {
     RenderingMaster::getInstance()->drawDeferredShadingBuffers();
     PT_ToHere ("buffersDraw");
 
+    /* GE_CLEAN_SHOTS=1: no profiler bars, FPS text or ImGui windows (clean
+     * screenshots, e.g. tools/visual_tour.py) */
+    static const bool cleanShots = std::getenv("GE_CLEAN_SHOTS") != NULL;
+    if (!cleanShots) {
     ProfilingTimer::renderAllBarGUIs();
     fpsGUI->render();
     RenderingMaster::getInstance()->startIMGUIFrame();
@@ -906,6 +910,7 @@ void EngineCore::render(float alpha) {
     }
     RenderingMaster::getInstance()->imguiDrawCalls();
     RenderingMaster::getInstance()->renderIMGUI();
+    }
 
     if (m_captureBeforeSwap != NULL) {
         Display *display = RenderingMaster::getInstance()->getDisplay();
@@ -1214,6 +1219,10 @@ void EngineCore::loadMapFeatures(rapidjson::Document &gameDocument) {
     if (gameDocument.HasMember("Environment")) {
         Environment environment;
         environment.load(gameDocument["Environment"]);
+        /* GE_TIME_OF_DAY=0.5: start at this time of day (testing / screenshots) */
+        if (const char *timeOfDay = std::getenv("GE_TIME_OF_DAY")) {
+            environment.timeOfDay = (float) std::atof(timeOfDay);
+        }
         rm->setEnvironment(environment);
     }
 

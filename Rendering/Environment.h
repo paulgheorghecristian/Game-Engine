@@ -19,6 +19,7 @@ struct Environment
 
     glm::vec3 moonDirection = glm::normalize(glm::vec3(0.4f, 0.35f, -1.0f)); /* towards the moon */
     glm::vec3 moonColor = glm::vec3(0.55f, 0.65f, 0.9f);
+    float moonPhase = 0.0f;             /* 0 full, 0.5 half, 1 new */
 
     glm::vec3 fogColor = glm::vec3(0.0f);
     float fogDensity = 0.0f;            /* 0 disables fog */
@@ -42,6 +43,7 @@ struct Environment
     bool hdr = false;                   /* filmic tone mapping instead of clipping at 1.0 */
     bool pbr = false;                   /* physically based shading (roughness / metallic materials) */
     float exposure = 1.0f;
+    float dayExposure = -1.0f;          /* exposure by day (blended with the sun); < 0: same as exposure */
     float saturation = 1.0f;            /* colour grade (needs hdr): 1 = untouched */
     float grade = 0.0f;                 /* 0..1: cool shadows, warm highlights, vignette */
     float bloomStrength = 0.0f;         /* needs hdr */

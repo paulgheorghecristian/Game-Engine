@@ -239,7 +239,7 @@ class RenderingMaster
         Texture *albedoTexture, *normalTexture, *lightAccumulationTexture;\
         Texture *roughnessTexture;
         Texture *blueNoiseTexture;
-        Texture *m_moonTexture = nullptr;   /* sky: full-moon albedo, unit 15 */
+        Texture *m_moonTexture = nullptr;   /* sky: lunar map (equirectangular), unit 15 */
         Mesh *screenSizeRectangle;
 
         void computeStencilBufferForLight(Light *light);

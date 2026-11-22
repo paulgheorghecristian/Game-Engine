@@ -8,6 +8,9 @@
                     "gridSize" : "INT",
                     "spacing" : "FLOAT",
                     "radius" : "FLOAT",
+                    "farLayer" : "BOOL",
+                    "nearRadius" : "FLOAT",
+                    "colorBlend" : "VEC2",
                     "bladeHeight" : "VEC2",
                     "bladeWidth" : "FLOAT",
                     "minGroundHeight" : "FLOAT",
@@ -27,6 +30,7 @@
                     "grass2Sampler" : "INT",
                     "terrainTileSize" : "FLOAT",
                     "terrainShoreHeight" : "FLOAT",
-                    "terrainVariation" : "FLOAT"
+                    "terrainVariation" : "FLOAT",
+                    "albedoScale" : "FLOAT"
                  }
 }

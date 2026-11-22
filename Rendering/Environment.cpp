@@ -30,6 +30,7 @@ void Environment::load(const rapidjson::Value &json)
         moonDirection = glm::normalize(moonDirection);
     }
     readVec3(json, "moonColor", moonColor);
+    readFloat(json, "moonPhase", moonPhase);
     readVec3(json, "fogColor", fogColor);
     readFloat(json, "fogDensity", fogDensity);
     readFloat(json, "fogHeightFalloff", fogHeightFalloff);
@@ -44,6 +45,7 @@ void Environment::load(const rapidjson::Value &json)
     if (json.HasMember("hdr") && json["hdr"].IsBool()) hdr = json["hdr"].GetBool();
     if (json.HasMember("pbr") && json["pbr"].IsBool()) pbr = json["pbr"].GetBool();
     readFloat(json, "exposure", exposure);
+    readFloat(json, "dayExposure", dayExposure);
     readFloat(json, "saturation", saturation);
     readFloat(json, "grade", grade);
     readFloat(json, "bloomStrength", bloomStrength);
@@ -108,9 +110,15 @@ Environment Environment::atTimeOfDay(const Environment &base, float t)
     e.fogColor = glm::mix(base.fogColor, base.dayFogColor, day) +
                  base.sunsetColor * (0.25f * e.sunsetStrength);
     e.fogDensity = base.fogDensity * glm::mix(1.0f, base.dayFogDensityScale, day);
-    e.ambient = glm::mix(base.ambient, base.dayAmbient, day);
-    e.ambientSky = glm::mix(base.ambient * base.ambientSkyTint, base.dayAmbient * base.dayAmbientSkyTint, day);
-    e.ambientGround = glm::mix(base.ambient * base.ambientGroundTint, base.dayAmbient * base.dayAmbientGroundTint, day);
+    /* sky light outlasts direct sun: at dusk the sky is still bright and
+     * lights the ground (so the ground does not go dark under a bright sky) */
+    float skyLight = smoothstepf(-0.17f, 0.1f, e.sunDirection.y);
+    e.ambient = glm::mix(base.ambient, base.dayAmbient, skyLight);
+    e.ambientSky = glm::mix(base.ambient * base.ambientSkyTint, base.dayAmbient * base.dayAmbientSkyTint, skyLight);
+    e.ambientGround = glm::mix(base.ambient * base.ambientGroundTint, base.dayAmbient * base.dayAmbientGroundTint, skyLight);
+    if (base.dayExposure >= 0.0f) {
+        e.exposure = glm::mix(base.exposure, base.dayExposure, day);
+    }
 
     /* dominant sky light: the (warm, low) sun by day, the moon by night */
     float sunHeight = smoothstepf(-0.02f, 0.3f, e.sunDirection.y);
@@ -142,6 +150,7 @@ void Environment::save(rapidjson::Value &json, rapidjson::Document::AllocatorTyp
     json.AddMember("starIntensity", starIntensity, allocator);
     writeVec3(json, "moonDirection", moonDirection, allocator);
     writeVec3(json, "moonColor", moonColor, allocator);
+    json.AddMember("moonPhase", moonPhase, allocator);
     writeVec3(json, "fogColor", fogColor, allocator);
     json.AddMember("fogDensity", fogDensity, allocator);
     json.AddMember("fogHeightFalloff", fogHeightFalloff, allocator);
@@ -163,6 +172,9 @@ void Environment::save(rapidjson::Value &json, rapidjson::Document::AllocatorTyp
     json.AddMember("hdr", hdr, allocator);
     json.AddMember("pbr", pbr, allocator);
     json.AddMember("exposure", exposure, allocator);
+    if (dayExposure >= 0.0f) {
+        json.AddMember("dayExposure", dayExposure, allocator);
+    }
     json.AddMember("saturation", saturation, allocator);
     json.AddMember("grade", grade, allocator);
     json.AddMember("bloomStrength", bloomStrength, allocator);

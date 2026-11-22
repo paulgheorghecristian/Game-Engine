@@ -40,6 +40,10 @@ vec4 sunFlare() {
     }
     vec4 rays = vec4(color * sunExposure, 1.0);
 
+    /* ghosts and halo: only from samples inside the screen (the source
+     * buffer repeats at its edges, and wrapped samples near an edge picked up
+     * the sun all over the frame), weighted down towards the borders, and
+     * faded out as the sun itself nears the edge of the screen */
     vec2 texcoord = -textureCoords + vec2(1.0);
     const float ghostDispersal = 0.2;
     const int ghosts = 4;
@@ -47,14 +51,22 @@ vec4 sunFlare() {
     vec2 ghostVec = (vec2(0.5) - texcoord) * ghostDispersal;
     vec4 result = vec4(0.0);
     for (int i = 0; i < ghosts; i++) {
-        result += texture(textureSampler, fract(texcoord + ghostVec * float(i)));
+        vec2 offset = texcoord + ghostVec * float(i);
+        if (any(lessThan(offset, vec2(0.0))) || any(greaterThan(offset, vec2(1.0)))) continue;
+        float w = pow(max(1.0 - length(vec2(0.5) - offset) / length(vec2(0.5)), 0.0), 6.0);
+        result += texture(textureSampler, offset) * w;
     }
-    vec2 haloVec = normalize(ghostVec) * haloWidth;
-    float haloWeight = pow(1.0 - length(vec2(0.5) - fract(texcoord + haloVec)) / length(vec2(0.5)), 5.0);
-    vec4 halo = texture(textureSampler, texcoord + haloVec) * haloWeight;
+    vec2 haloCoord = texcoord + normalize(ghostVec) * haloWidth;
+    vec4 halo = vec4(0.0);
+    if (all(greaterThanEqual(haloCoord, vec2(0.0))) && all(lessThanEqual(haloCoord, vec2(1.0)))) {
+        float haloWeight = pow(max(1.0 - length(vec2(0.5) - haloCoord) / length(vec2(0.5)), 0.0), 5.0);
+        halo = texture(textureSampler, haloCoord) * haloWeight;
+    }
+    vec2 s = sunScreenPosition;
+    float onScreen = smoothstep(0.0, 0.18, min(min(s.x, 1.0 - s.x), min(s.y, 1.0 - s.y)));
 
     vec2 lensCoord = vec2(length(vec2(0.5) - texcoord) / length(vec2(0.5)), 0.0);
-    return rays + (result + halo) * texture(lensFlareColorSampler, lensCoord);
+    return rays + (result + halo) * texture(lensFlareColorSampler, lensCoord) * onScreen;
 }
 
 void main(){

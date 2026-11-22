@@ -22,7 +22,7 @@
    0.07,
    0.14
   ],
-  "starIntensity": 1.0,
+  "starIntensity": 1.4,
   "moonDirection": [
    -0.25,
    0.5,
@@ -33,6 +33,7 @@
    0.7,
    0.95
   ],
+  "moonPhase": 0.5,
   "fogColor": [
    0.055,
    0.07,
@@ -51,6 +52,23 @@
   "exposure": 1.25,
   "bloomStrength": 0.5,
   "bloomThreshold": 0.9,
+  "dayExposure": 0.9,
+  "dayAmbient": 0.42,
+  "sunColor": [
+   0.86,
+   0.8,
+   0.7
+  ],
+  "dayAmbientSkyTint": [
+   0.78,
+   0.88,
+   1.12
+  ],
+  "dayAmbientGroundTint": [
+   0.62,
+   0.72,
+   0.45
+  ],
   "aoStrength": 0.9,
   "aoRadius": 18,
   "saturation": 0.84,
@@ -71,6 +89,8 @@
  "Grass": {
   "radius": 200,
   "spacing": 0.9,
+  "farRadius": 650,
+  "farSpacing": 3.2,
   "height": [
    2.2,
    4.8
@@ -80,6 +100,7 @@
   "maxSlope": 0.5,
   "wind": 1.0,
   "clumping": 0.6,
+  "albedo": 0.8,
   "clearings": [
    [
     720.7,
@@ -146,9 +167,9 @@
        0
       ],
       "diffuse": [
-       0.9,
-       0.9,
-       0.9
+       0.78,
+       0.78,
+       0.78
       ],
       "specular": [
        0.2,
@@ -4214,6 +4235,7 @@
     "type": "SPOT",
     "cast_shadow": true,
     "volumetric": false,
+    "nightOnly": true,
     "diffuse_attenuation": [
      700,
      10,
@@ -4253,6 +4275,7 @@
     "type": "SPOT",
     "cast_shadow": true,
     "volumetric": false,
+    "nightOnly": true,
     "diffuse_attenuation": [
      700,
      10,
@@ -4292,6 +4315,7 @@
     "type": "SPOT",
     "cast_shadow": true,
     "volumetric": false,
+    "nightOnly": true,
     "diffuse_attenuation": [
      500,
      10,
@@ -4330,6 +4354,7 @@
     ],
     "type": "POINT",
     "cast_shadow": false,
+    "nightOnly": true,
     "diffuse_attenuation": [
      600,
      10,
@@ -4379,6 +4404,7 @@
     ],
     "type": "POINT",
     "cast_shadow": false,
+    "nightOnly": true,
     "diffuse_attenuation": [
      600,
      10,
@@ -4428,6 +4454,7 @@
     ],
     "type": "POINT",
     "cast_shadow": false,
+    "nightOnly": true,
     "diffuse_attenuation": [
      600,
      10,

@@ -175,7 +175,9 @@ RenderingMaster::RenderingMaster(Display *display,
     flarePostProcess->getShader().updateUniform("lensFlareColorSampler", 1);
     lensFlareColorTxt = new Texture("res/textures/lenscolor.bmp", 1);
     blueNoiseTexture = new Texture("res/textures/BlueNoise64Tiled.png", 2);
-    m_moonTexture = new Texture("res/textures/moon.png", 15);
+    /* NASA Lunar Reconnaissance Orbiter color map (CGI Moon Kit, NASA Scientific
+     * Visualization Studio, public domain), equirectangular, 0 longitude in the middle */
+    m_moonTexture = new Texture("res/textures/moon_lroc.jpg", 15);
 
     fxaaPostProcess = new PostProcess(renderWidth, renderHeight,
                                         fxaaFrameBuffer.getRenderTargets()[0],
@@ -868,6 +870,7 @@ void RenderingMaster::environmentGUI()
     changed |= ImGui::SliderFloat("Fog height falloff", &m_baseEnvironment.fogHeightFalloff, 0.0f, 0.03f, "%.4f");
     changed |= ImGui::SliderFloat("Haze glow", &m_baseEnvironment.fogMoonGlow, 0.0f, 1.0f);
     changed |= ImGui::SliderFloat("Clouds", &m_baseEnvironment.cloudCoverage, 0.0f, 1.0f, "%.2f");
+    changed |= ImGui::SliderFloat("Moon phase", &m_baseEnvironment.moonPhase, 0.0f, 1.0f, "%.2f");
     changed |= ImGui::SliderFloat("Wind", &m_baseEnvironment.wind, 0.0f, 3.0f, "%.2f");
     if (m_baseEnvironment.cloudCoverage > 0.0f) {
         changed |= ImGui::SliderFloat("Cloud speed", &m_baseEnvironment.cloudSpeed, 0.0f, 80.0f, "%.0f");
@@ -887,6 +890,9 @@ void RenderingMaster::environmentGUI()
     changed |= ImGui::Checkbox("HDR + filmic tone mapping", &m_baseEnvironment.hdr);
     if (m_baseEnvironment.hdr) {
         changed |= ImGui::SliderFloat("Exposure", &m_baseEnvironment.exposure, 0.2f, 4.0f);
+        if (m_baseEnvironment.dayLength > 0.0f && m_baseEnvironment.dayExposure >= 0.0f) {
+            changed |= ImGui::SliderFloat("Exposure (day)", &m_baseEnvironment.dayExposure, 0.2f, 4.0f);
+        }
         changed |= ImGui::SliderFloat("Bloom", &m_baseEnvironment.bloomStrength, 0.0f, 2.0f);
         changed |= ImGui::SliderFloat("Bloom threshold", &m_baseEnvironment.bloomThreshold, 0.2f, 3.0f);
         changed |= ImGui::SliderFloat("Saturation", &m_baseEnvironment.saturation, 0.0f, 1.5f);
@@ -927,6 +933,8 @@ void RenderingMaster::applyEnvironment(const Environment &environment)
     skyShader->updateUniform("starIntensity", e.starIntensity);
     skyShader->updateUniform("moonDirection", (void *) &e.moonDirection);
     skyShader->updateUniform("moonColor", (void *) &e.moonColor);
+    float moonPhase = e.moonPhase;
+    skyShader->updateUniform("moonPhase", moonPhase);
 
     Shader &c = deferredShading_BufferCombinationShader;
     c.updateUniform("ambient", e.ambient);
@@ -1014,8 +1022,13 @@ void RenderingMaster::drawSunFlareSource()
     /* camera-facing disc far along the sun direction; the flare shader drops
      * the pixels where scene geometry is in front of it */
     glm::mat4 rotation = glm::transpose(glm::mat4(glm::mat3(camera->getViewMatrix())));
-    float radius = SUN_DISTANCE * glm::tan(glm::radians(1.3f));
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), camera->getPosition() + m_environment.sunDirection * SUN_DISTANCE) *
+    /* inside the far plane (a map's fog cut-off can bring it closer than
+     * SUN_DISTANCE): otherwise the disc is clipped when the sun is near the
+     * middle of the screen and pops back in near the edges, where its view
+     * depth (distance * cos(angle off-axis)) gets small enough */
+    float distance = std::min(SUN_DISTANCE, m_farPlane * 0.7f);
+    float radius = distance * glm::tan(glm::radians(1.3f));
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), camera->getPosition() + m_environment.sunDirection * distance) *
                       rotation * glm::scale(glm::mat4(1.0f), glm::vec3(radius));
     glm::vec3 color = m_environment.sunColor * m_environment.sunVisibility;
     flareShader.updateUniform("modelMatrix", (void *) &model);

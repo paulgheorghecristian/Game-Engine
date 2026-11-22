@@ -10,7 +10,8 @@ uniform int skyMode;           /* 0: original dusk gradient, 1: night sky */
 uniform vec3 zenithColor, horizonColor;
 uniform float starIntensity;
 uniform vec3 moonDirection, moonColor;
-uniform sampler2D moonSampler;
+uniform sampler2D moonSampler; /* lunar map, equirectangular, 0 longitude in the middle */
+uniform float moonPhase;       /* 0 full moon, 0.5 half (lit from the right), 1 new */
 uniform vec3 cameraPosition;
 /* ---- clouds: one drifting fbm layer at CLOUD_HEIGHT (world units); the
  * sky draws it and the directional light pass uses the same density for the
@@ -76,13 +77,14 @@ vec3 nightSky(vec3 dir) {
     vec3 p = dir * 140.0;
     vec3 cell = floor(p);
     float h = hash13(cell);
-    if (h > 0.985) {
+    if (h > 0.972) {
         vec3 jitter = hash33(cell) - 0.5;
         float d = length(fract(p) - 0.5 - jitter * 0.6);
         float twinkle = 0.65 + 0.35 * sin(time * (1.5 + h * 4.0) + h * 91.0);
-        float brightness = (h - 0.985) / 0.015;
+        float brightness = (h - 0.972) / 0.028;
+        brightness = brightness * brightness * 2.2;      /* a few standout bright stars */
         vec3 tint = mix(vec3(0.75, 0.85, 1.0), vec3(1.0, 0.9, 0.75), hash13(cell + 7.0));
-        color += tint * smoothstep(0.16, 0.0, d) * twinkle * (0.4 + brightness) *
+        color += tint * smoothstep(0.2 + 0.08 * brightness, 0.0, d) * twinkle * (0.55 + brightness) * 1.6 *
                  starIntensity * smoothstep(0.02, 0.25, up);
     }
 
@@ -100,27 +102,55 @@ vec3 nightSky(vec3 dir) {
                                          pow(max(s, 0.0), 24.0) * 0.18 +
                                          pow(max(s, 0.0), 4.0) * 0.12); /* broad scattering glow */
 
-    /* moon: a textured disc (limb darkened), a soft halo and a wide glow */
+    /* moon: a sphere lit by the sun (so it has a terminator and phases), with
+     * the albedo map for maria and craters and the same map as a height field
+     * for relief, faint earthshine on the dark side, a soft halo and glow */
     vec3 moonDir = normalize(moonDirection);
     float m = dot(dir, moonDir);
-    const float moonRadius = 0.036;                       /* angular radius (radians) */
-    if (m > 0.99 && discs > 0.0) {
+    const float moonRadius = 0.026;                       /* angular radius (radians) */
+    if (m > 0.995 && discs > 0.0) {
         vec3 right = normalize(cross(moonDir, abs(moonDir.y) < 0.99 ? vec3(0, 1, 0) : vec3(1, 0, 0)));
         vec3 upAxis = cross(right, moonDir);
         vec2 p = vec2(dot(dir, right), dot(dir, upAxis)) / sin(moonRadius);
         float r = length(p);
         if (r < 1.02) {
-            float albedo = texture(moonSampler, p * 0.5 + 0.5).r;
-            float limb = sqrt(max(1.0 - r * r, 0.0));
-            float disc = 1.0 - smoothstep(0.97, 1.01, r);
-            /* kept in the tone mapper's mid range so the maria and craters
-             * survive exposure and bloom; a greyer tint than the moonlight */
+            float z = sqrt(max(1.0 - r * r, 0.0));
+            /* the visible face of the globe: latitude / longitude of this point
+             * of the sphere (the near side faces us) */
+            float longitude = atan(p.x, z);
+            float latitude = asin(clamp(p.y, -1.0, 1.0));
+            vec2 uv = vec2(0.5 + longitude / 6.2831853, 0.5 + latitude / 3.14159265);
+            float albedo = texture(moonSampler, uv).r;
+            /* a little relief from the map (crater rims are bright) */
+            float e = 1.0 / 1024.0;
+            float hx = texture(moonSampler, uv + vec2(e, 0)).r - texture(moonSampler, uv - vec2(e, 0)).r;
+            float hy = texture(moonSampler, uv + vec2(0, e)).r - texture(moonSampler, uv - vec2(0, e)).r;
+
+            /* sphere normal (towards the viewer is -moonDir), bumped */
+            vec3 n = normalize(right * p.x + upAxis * p.y - moonDir * z);
+            n = normalize(n - (right * hx + upAxis * hy) * 1.5);
+            /* sunlight on the moon for its phase: from behind the viewer at
+             * full moon, from the side at half moon */
+            float phaseAngle = moonPhase * 3.14159265;
+            vec3 sunOnMoon = normalize(-moonDir * cos(phaseAngle) + right * sin(phaseAngle));
+            float lit = max(dot(n, sunOnMoon), 0.0);
+            /* the full moon is nearly flat-lit (little limb darkening), with a
+             * soft terminator */
+            lit = smoothstep(0.0, 0.2, lit) * pow(lit, 0.45);
+            float earthshine = 0.035;
+            float disc = 1.0 - smoothstep(0.955, 1.0, r);
             vec3 discColor = mix(moonColor, vec3(dot(moonColor, vec3(0.3333))), 0.6);
-            color += discColor * disc * pow(albedo, 1.5) * (0.55 + 0.45 * limb) * 1.25;
+            /* at night the disc hides the stars behind it; by day the bright
+             * sky is in front of the moon (scattering in our atmosphere), so
+             * it only adds a pale moon on top */
+            color = mix(color, color * 0.4, disc * (1.0 - sunVisibility));
+            color += discColor * disc * pow(albedo, 1.1) * (lit * 1.5 + earthshine);
+            color += vec3(0.75, 0.8, 0.9) * disc * pow(albedo, 1.1) * lit * 0.22 * sunVisibility;
         }
     }
-    color += moonColor * (pow(max(m, 0.0), 300.0) * 0.35 * discs +
-                          pow(max(m, 0.0), 12.0) * 0.12);
+    color += moonColor * (pow(max(m, 0.0), 2000.0) * 0.1 * discs +
+                          pow(max(m, 0.0), 300.0) * 0.05 * discs +
+                          pow(max(m, 0.0), 12.0) * 0.1);
     return color;
 }
 

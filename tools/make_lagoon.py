@@ -95,7 +95,7 @@ ROCK_MAT = mat((0.8, 0.8, 0.85), "res/textures/rock2k.jpg", "res/textures/rock2k
 # --- terrain + collision ---------------------------------------------------
 entities.append({"Transform": {"position": [0, 3, 0], "rotation": [0, 0, 0, 1], "scale": [4800, 1600, 4800]},
                  "Components": {"RenderComponent": {"Mesh": "res/models/terrain4.obj",
-                                                    "Material": mat((0.9, 0.9, 0.9), shininess=100, extra={
+                                                    "Material": mat((0.78, 0.78, 0.78), shininess=100, extra={
                                                         # world-space tiled, slope / height blended layers
                                                         "Terrain": {"grass": "res/textures/terrain_grass.bmp",
                                                                     "grass2": "res/textures/terrain_grass2.bmp",
@@ -263,16 +263,16 @@ lights.append(light((lamp[0], lamp[1] + 1, lamp[2]), (1.0, 0.93, 0.75), "SPOT", 
 for color, side in (((0.95, 0.3, 0.85), -1), ((0.3, 0.85, 1.0), 1)):
     src = (C[0] + side * 22, rock_top + 2, C[1] + 26)
     lights.append(light(src, color, "SPOT", (420, 420, 160), rot=aim(src, (buddha_pos[0], buddha_pos[1] + 8, buddha_pos[2])),
-                        cast_shadow=True, volumetric=False,
+                        cast_shadow=True, volumetric=False, nightOnly=True,
                         diffuse_attenuation=[700, 10, 4], specular_attenuation=[500, 10, 4]))
 # dragon uplight
 dsrc = (dx + 45, H(dx + 45, dz) + 3, dz)
 lights.append(light(dsrc, (0.35, 1.0, 0.55), "SPOT", (500, 500, 170), rot=aim(dsrc, (dx, H(dx, dz) + 40, dz)),
-                    cast_shadow=True, volumetric=False,
+                    cast_shadow=True, volumetric=False, nightOnly=True,
                     diffuse_attenuation=[500, 10, 3], specular_attenuation=[400, 10, 3]))
 # wisps circling over the lagoon
 for i, color in enumerate(((0.3, 1.0, 0.75), (0.45, 0.6, 1.0), (0.9, 0.5, 1.0))):
-    lights.append(light((C[0], WATER + 16, C[1]), color, "POINT", (190, 190, 190), cast_shadow=False,
+    lights.append(light((C[0], WATER + 16, C[1]), color, "POINT", (190, 190, 190), cast_shadow=False, nightOnly=True,
                         diffuse_attenuation=[600, 10, 3.9], specular_attenuation=[90, 10, 2],
                         orbit={"center": [C[0], WATER + 16 + i * 4, C[1]], "radius": 150 + i * 45,
                                "speed": 12 + i * 5 * (-1 if i == 1 else 1), "bob": 6, "phase": i * 120}))
@@ -315,7 +315,8 @@ game = {
     "gravity": -10.0,
     "PlayerStart": {"position": [SPAWN[0], H(*SPAWN) + 25, SPAWN[1]], "yaw": 0, "pitch": -4},
     "Environment": {"sky": "night", "zenithColor": [0.004, 0.008, 0.03], "horizonColor": [0.05, 0.07, 0.14],
-                    "starIntensity": 1.0, "moonDirection": moon, "moonColor": [0.6, 0.7, 0.95],
+                    "starIntensity": 1.4, "moonDirection": moon, "moonColor": [0.6, 0.7, 0.95],
+                    "moonPhase": 0.5,     # half moon
                     "fogColor": [0.055, 0.07, 0.11], "fogDensity": 0.0024, "fogHeightFalloff": 0.0035,
                     "fogBaseHeight": WATER, "fogMoonGlow": 0.35,
                     # drifting clouds and their shadows sweeping over the hills
@@ -323,6 +324,10 @@ game = {
                     # HDR + filmic tone mapping, bloom, ambient occlusion
                     "pbr": True,
                     "hdr": True, "exposure": 1.25, "bloomStrength": 0.5, "bloomThreshold": 0.9,
+                    # softer daylight: lower exposure by day, more sky light, gentler sun,
+                    # a green bounce from the grass
+                    "dayExposure": 0.9, "dayAmbient": 0.42, "sunColor": [0.86, 0.8, 0.7],
+                    "dayAmbientSkyTint": [0.78, 0.88, 1.12], "dayAmbientGroundTint": [0.62, 0.72, 0.45],
                     "aoStrength": 0.9, "aoRadius": 18,
                     # colour grade: daylight is never fully saturated primaries
                     "saturation": 0.84, "grade": 0.8,
@@ -332,8 +337,8 @@ game = {
                     "dayLength": 480, "timeOfDay": 0.0},
     # grass blades around the player, bending in the wind (colored like the
     # terrain's grass; none under water or on steep slopes)
-    "Grass": {"radius": 200, "spacing": 0.9, "height": [2.2, 4.8], "width": 0.42,
-              "minHeight": WATER + 1.5, "maxSlope": 0.5, "wind": 1.0, "clumping": 0.6,
+    "Grass": {"radius": 200, "spacing": 0.9, "farRadius": 650, "farSpacing": 3.2, "height": [2.2, 4.8], "width": 0.42,
+              "minHeight": WATER + 1.5, "maxSlope": 0.5, "wind": 1.0, "clumping": 0.6, "albedo": 0.8,
               "clearings": [[round(fx, 1), round(fz, 1), 17]]},   # bare ground around the campfire
     "Water": {"height": WATER, "center": list(C), "size": [1150, 1150], "tiling": 90, "waveStrength": 0.016,
               "waveSpeed": 0.03, "waveHeight": 0.5, "shallowColor": [0.7, 0.85, 0.9], "deepColor": [0.0, 0.025, 0.05],

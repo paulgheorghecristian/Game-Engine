@@ -36,11 +36,17 @@ GrassRenderer::GrassRenderer(const rapidjson::Value &json, const std::string &te
     m_maxSlope(jsonFloat(json, "maxSlope", 0.45f)),
     m_wind(jsonFloat(json, "wind", 1.0f)),
     m_clumping(jsonFloat(json, "clumping", 0.6f)),
+    m_albedo(jsonFloat(json, "albedo", 1.0f)),
     m_bladeHeight(jsonVec2(json, "height", glm::vec2(2.2f, 4.8f))),
+    m_farRadius(jsonFloat(json, "farRadius", 0.0f)),
+    m_farSpacing(std::max(0.5f, jsonFloat(json, "farSpacing", 3.0f))),
     m_terrain(terrainLayers),
     m_shader("res/shaders/grass.json")
 {
     m_grid = std::min(512, (int) std::ceil(2.0f * m_radius / m_spacing));
+    if (m_farRadius > m_radius) {
+        m_farGrid = std::min(768, (int) std::ceil(2.0f * m_farRadius / m_farSpacing));
+    }
     if (json.HasMember("clearings") && json["clearings"].IsArray()) {
         for (auto const &c : json["clearings"].GetArray()) {
             if (c.IsArray() && c.Size() >= 3 && m_clearings.size() < 8) {
@@ -78,6 +84,20 @@ GrassRenderer::GrassRenderer(const rapidjson::Value &json, const std::string &te
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    if (m_farGrid > 0) {
+        /* far blades: a single triangle (root corners, tip) */
+        const float tri[] = { -0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 1.0f };
+        glGenVertexArrays(1, &m_farVao);
+        glBindVertexArray(m_farVao);
+        glGenBuffers(1, &m_farVbo);
+        glBindBuffer(GL_ARRAY_BUFFER, m_farVbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(tri), tri, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *) 0);
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
     m_shader.updateUniform("heightSampler", 0);
     m_shader.updateUniform("grassSampler", 1);
     m_shader.updateUniform("grass2Sampler", 2);
@@ -87,6 +107,8 @@ GrassRenderer::~GrassRenderer()
 {
     if (m_heightTexture != 0) glDeleteTextures(1, &m_heightTexture);
     if (m_vbo != 0) glDeleteBuffers(1, &m_vbo);
+    if (m_farVbo != 0) glDeleteBuffers(1, &m_farVbo);
+    if (m_farVao != 0) glDeleteVertexArrays(1, &m_farVao);
     if (m_vao != 0) glDeleteVertexArrays(1, &m_vao);
 }
 
@@ -187,11 +209,7 @@ void GrassRenderer::render()
     s.updateUniform("viewMatrix", (void *) &camera->getViewMatrix());
     s.updateUniform("projectionMatrix", (void *) &rm->getProjectionMatrix());
     s.updateUniform("cameraPosition", (void *) &camera->getPosition());
-    s.updateUniform("gridSize", m_grid);
-    s.updateUniform("spacing", m_spacing);
-    s.updateUniform("radius", m_radius);
     s.updateUniform("bladeHeight", (void *) &m_bladeHeight);
-    s.updateUniform("bladeWidth", m_width);
     s.updateUniform("minGroundHeight", m_minHeight);
     s.updateUniform("maxSlope", m_maxSlope);
     s.updateUniform("clumping", m_clumping);
@@ -218,11 +236,37 @@ void GrassRenderer::render()
     s.updateUniform("terrainTileSize", tileSize);
     s.updateUniform("terrainShoreHeight", shoreHeight);
     s.updateUniform("terrainVariation", variation);
+    s.updateUniform("albedoScale", m_albedo);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_heightTexture);
 
     glDisable(GL_CULL_FACE);   /* blades are seen from both sides */
+    drawLayer(false);
+    if (m_farGrid > 0) {
+        drawLayer(true);
+    }
+    glEnable(GL_CULL_FACE);
+}
+
+void GrassRenderer::drawLayer(bool far)
+{
+    Shader &s = m_shader;
+    float radius = far ? m_farRadius : m_radius;
+    float spacing = far ? m_farSpacing : m_spacing;
+    int grid = far ? m_farGrid : m_grid;
+    /* far blades are wider (fewer of them cover the same ground) */
+    float width = far ? m_width * (m_farSpacing / m_spacing) * 0.7f : m_width;
+    /* blades take the plain ground color only where the grass really ends */
+    glm::vec2 colorBlend = far || m_farGrid == 0 ? glm::vec2(radius * 0.45f, radius * 0.95f)
+                                                 : glm::vec2(1e6f, 2e6f);
+    s.updateUniform("farLayer", far);
+    s.updateUniform("gridSize", grid);
+    s.updateUniform("spacing", spacing);
+    s.updateUniform("radius", radius);
+    s.updateUniform("nearRadius", m_radius);
+    s.updateUniform("bladeWidth", width);
+    s.updateUniform("colorBlend", (void *) &colorBlend);
     int numClearings = (int) m_clearings.size();
     s.updateUniform("numClearings", numClearings);
     s.bind();
@@ -230,9 +274,13 @@ void GrassRenderer::render()
     if (location >= 0 && numClearings > 0) {
         glUniform3fv(location, numClearings, &m_clearings[0].x);
     }
-    glBindVertexArray(m_vao);
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, m_bladeVertices, m_grid * m_grid);
+    if (far) {
+        glBindVertexArray(m_farVao);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 3, grid * grid);
+    } else {
+        glBindVertexArray(m_vao);
+        glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, m_bladeVertices, grid * grid);
+    }
     glBindVertexArray(0);
     s.unbind();
-    glEnable(GL_CULL_FACE);
 }

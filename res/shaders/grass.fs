@@ -17,6 +17,7 @@ uniform bool pbrEnabled;
 uniform bool hasTerrainTextures;
 uniform sampler2D grassSampler, grass2Sampler;
 uniform float terrainTileSize, terrainShoreHeight, terrainVariation;
+uniform float albedoScale;      /* match the terrain material's diffuse */
 
 float terrainHash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -58,7 +59,7 @@ void main() {
      * grass field blends into the terrain instead of showing as a darker band */
     albedo = mix(albedo, grass, farBlend);
 
-    outColor = vec4(albedo, 1.0);
+    outColor = vec4(albedo * albedoScale, 1.0);
     outEyeSpaceNormal = (normalize(eyeSpaceNormal) + vec3(1.0)) * 0.5;
     outRoughness = pbrEnabled ? vec3(0.85, 0.0, 0.0) : vec3(0.06);
 }

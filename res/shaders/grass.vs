@@ -9,6 +9,9 @@ uniform mat4 viewMatrix, projectionMatrix;
 uniform vec3 cameraPosition;
 uniform int gridSize;
 uniform float spacing, radius;
+uniform bool farLayer;                /* the cheap far ring (single-triangle blades) */
+uniform float nearRadius;             /* far ring: where the detailed grass thins out */
+uniform vec2 colorBlend;              /* distance range over which blades take the plain ground color */
 uniform vec2 bladeHeight;             /* min, max */
 uniform float bladeWidth;
 uniform float minGroundHeight, maxSlope, clumping;
@@ -75,8 +78,13 @@ void main() {
      * the remaining blades widen to keep the same coverage, and only in the
      * last stretch do they shrink away */
     float dist = length(base - cameraPosition.xz) * (0.85 + 0.3 * r.z);
-    float thin = smoothstep(radius * 0.3, radius, dist);
+    float thin = smoothstep(radius * (farLayer ? 0.45 : 0.3), radius, dist);
     keep *= step(thin * 0.8, r.y);
+    if (farLayer) {
+        /* fill in exactly where the detailed grass thins out */
+        float nearThin = smoothstep(nearRadius * 0.3, nearRadius, dist);
+        keep *= step(r.x, nearThin * 0.8 + 0.001) * step(0.001, nearThin);
+    }
     float fade = 1.0 - smoothstep(radius * 0.7, radius, dist);
     float height = mix(bladeHeight.x, bladeHeight.y, r.z) * fade * keep * (0.75 + 0.5 * clump);
 
@@ -96,13 +104,13 @@ void main() {
 
     vec3 world = vec3(base.x, h - 0.15, base.y);
     /* far blades get wider so they stay visible instead of shrinking below a pixel */
-    float widen = 1.0 + dist * 0.02 + thin * 2.5;
+    float widen = farLayer ? 1.0 + dist * 0.004 + thin * 1.5 : 1.0 + dist * 0.02 + thin * 2.5;
     world += vec3(across.x, 0.0, across.y) * blade.x * bladeWidth * widen * keep * (1.0 - t * 0.8);
     world += vec3(bend.x, sqrt(max(1.0 - bendAmount * bendAmount, 0.05)) * t, bend.y) * height;
     worldPosition = world;
     bladeT = t;
     bladeShade = 0.8 + 0.4 * r.z;
-    farBlend = smoothstep(radius * 0.25, radius * 0.9, dist);
+    farBlend = smoothstep(colorBlend.x, colorBlend.y, dist);
 
     /* lit mostly like the ground it stands on (soft, no harsh blade facets) */
     vec3 face = normalize(vec3(-across.y, 0.0, across.x));

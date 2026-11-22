@@ -353,7 +353,8 @@ entities.append(entity("res/models/sphere.obj", (ALTAR[0], CRYSTAL_Y, ALTAR[1]),
 # --------------------------------------------------------------------------
 # braziers
 # --------------------------------------------------------------------------
-BRAZIERS = [(side * 44, z) for side in (-1, 1) for z in (-661, -777, -893)] + [(-30, -612), (30, -612)]
+# (the gate pair stands well inside the gate, away from its pillars)
+BRAZIERS = [(side * 44, z) for side in (-1, 1) for z in (-661, -777, -893)] + [(-22, -625), (22, -625)]
 brazier_tops = []
 for bx, bz in BRAZIERS:
     entities.append(entity("res/models/stone2.obj", (bx, TOP, bz), (6.5, 6.0, 6.5), material=BRONZE))
@@ -446,14 +447,15 @@ lights.append(light((0, 0, 0), (0.22, 0.26, 0.38), "DIR", (0, 0, 0), dir=moon, c
 lights.append(light((ALTAR[0], CRYSTAL_Y, ALTAR[1] + 4), (0.4, 0.85, 1.0), "POINT", (260, 260, 260),
                     cast_shadow=True, shadowMapSize=512, diffuse_attenuation=[500, 10, 3],
                     specular_attenuation=[90, 10, 2], flicker=0.12, flickerSpeed=2))
-# two crossed volumetric beams on the colossus: lamps on either side of the
-# altar aim at its neck, so the beams cross there in an X and carry on past
-# it into the night sky (the statue's shadow cuts into them beyond)
-BEAM_ANGLE, BEAM_RANGE, BEAM_FALLOFF = 0.14, 400, 280
+# two crossed volumetric beams behind the colossus: lamps behind it on either
+# side aim up past its shoulders and cross above its head, so the statue
+# stands in silhouette against the beams (which rim-light it) instead of the
+# beams passing in front of it; a warm key light from the plaza lights its front
+BEAM_ANGLE, BEAM_RANGE, BEAM_FALLOFF = 0.14, 420, 300
 beam_volume = round(2 * BEAM_RANGE * math.tan(BEAM_ANGLE) * 1.08, 1)
-CROSS = (PED[0], colossus_y + 17.5 * COL_SCALE, PED[1])
+CROSS = (PED[0], colossus_y + 20.67 * COL_SCALE + 45, PED[1] - 8)
 for side in (-1, 1):
-    src = (side * 52, TOP + 5, -932.0)
+    src = (side * 72, TOP + 5, PED[1] - 22)
     entities.append(entity("res/models/cube4.obj", (src[0], TOP + 2.5, src[2]), (7, 5, 7), aim(src, CROSS),
                            BRONZE, cast_shadow=False))
     entities.append(entity("res/models/sphere.obj", (src[0], TOP + 5.2, src[2]), 2.2,
@@ -471,6 +473,11 @@ for side in (-1, 1):
                      "count": 240, "lifetimeMs": 9000, "length": BEAM_RANGE * 0.8,
                      "speed": [0.5, 2.0], "wander": 1.0, "startScale": 3.3, "scaleJitter": 0.6,
                      "blend": "additive", "tint": [1.0, 0.88, 0.66], "fadeIn": 0.25})
+# warm key light on the colossus' front, from the plaza (no volumetric haze)
+key = (PED[0], TOP + 30, PED[1] + 150)
+lights.append(light(key, (1.15, 0.85, 0.55), "SPOT", (500, 500, 380),
+                    rot=aim(key, (PED[0], colossus_y + 12.0 * COL_SCALE, PED[1])), cast_shadow=True, volumetric=False,
+                    diffuse_attenuation=[220, 4, 0.8], specular_attenuation=[300, 4, 1.2], nightOnly=True))
 # spirit lights circling the crystal
 for i, color in enumerate(((0.4, 0.9, 1.0), (0.7, 0.55, 1.0))):
     lights.append(light((ALTAR[0], CRYSTAL_Y, ALTAR[1]), color, "POINT", (120, 120, 120), cast_shadow=False,
@@ -524,14 +531,15 @@ game = {
                     # a few desert clouds (and their shadows on the mesas)
                     "cloudCoverage": 0.25, "cloudSpeed": 10, "ambient": 0.085, "emissiveStrength": 1.7,
                     "pbr": True, "hdr": True, "exposure": 1.15, "bloomStrength": 0.5, "bloomThreshold": 0.9,
+                    "dayExposure": 0.92,
                     "aoStrength": 0.9, "aoRadius": 18,
                     "saturation": 0.92, "grade": 0.6,
                     "ambientSkyTint": [0.85, 0.9, 1.3], "ambientGroundTint": [0.6, 0.45, 0.4],
                     # golden hour: the sun sets about 30 s after you arrive (T speeds time up)
                     "dayLength": 600, "timeOfDay": 0.70,
                     "dayZenithColor": [0.2, 0.36, 0.68], "dayHorizonColor": [0.86, 0.72, 0.58],
-                    "sunsetColor": [1.0, 0.42, 0.14], "sunColor": [1.0, 0.86, 0.68],
-                    "dayFogColor": [0.78, 0.62, 0.46], "dayFogDensityScale": 0.6, "dayAmbient": 0.3,
+                    "sunsetColor": [1.0, 0.42, 0.14], "sunColor": [0.9, 0.78, 0.62],
+                    "dayFogColor": [0.78, 0.62, 0.46], "dayFogDensityScale": 0.6, "dayAmbient": 0.38,
                     "dayAmbientSkyTint": [0.8, 0.88, 1.15], "dayAmbientGroundTint": [0.95, 0.7, 0.5]},
     "Water": {"height": WATER_Y, "center": [0, (POOL_Z0 + POOL_Z1) / 2], "size": [2 * POOL_X, POOL_Z1 - POOL_Z0],
               "tiling": 12, "waveStrength": 0.006, "waveSpeed": 0.02, "waveHeight": 0.15,
