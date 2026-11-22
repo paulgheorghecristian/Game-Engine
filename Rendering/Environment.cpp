@@ -36,6 +36,12 @@ void Environment::load(const rapidjson::Value &json)
     readFloat(json, "fogBaseHeight", fogBaseHeight);
     readFloat(json, "fogMoonGlow", fogMoonGlow);
     readFloat(json, "ambient", ambient);
+    if (json.HasMember("hdr") && json["hdr"].IsBool()) hdr = json["hdr"].GetBool();
+    readFloat(json, "exposure", exposure);
+    readFloat(json, "bloomStrength", bloomStrength);
+    readFloat(json, "bloomThreshold", bloomThreshold);
+    readFloat(json, "aoStrength", aoStrength);
+    readFloat(json, "aoRadius", aoRadius);
     readFloat(json, "emissiveStrength", emissiveStrength);
 
     readFloat(json, "dayLength", dayLength);
@@ -47,8 +53,14 @@ void Environment::load(const rapidjson::Value &json)
     readVec3(json, "dayFogColor", dayFogColor);
     readFloat(json, "dayFogDensityScale", dayFogDensityScale);
     readFloat(json, "dayAmbient", dayAmbient);
+    readVec3(json, "ambientSkyTint", ambientSkyTint);
+    readVec3(json, "ambientGroundTint", ambientGroundTint);
+    readVec3(json, "dayAmbientSkyTint", dayAmbientSkyTint);
+    readVec3(json, "dayAmbientGroundTint", dayAmbientGroundTint);
     lightDirection = moonDirection;
     lightColor = moonColor;
+    ambientSky = ambient * ambientSkyTint;
+    ambientGround = ambient * ambientGroundTint;
 }
 
 static float smoothstepf(float e0, float e1, float x) {
@@ -82,12 +94,15 @@ Environment Environment::atTimeOfDay(const Environment &base, float t)
     e.zenithColor = glm::mix(base.zenithColor, base.dayZenithColor, day);
     e.horizonColor = glm::mix(base.horizonColor, base.dayHorizonColor, day);
     e.starIntensity = base.starIntensity * night * night;
-    e.moonColor = base.moonColor * (0.25f + 0.75f * night);
+    /* by day the moon is only a faint pale disc */
+    e.moonColor = base.moonColor * (0.04f + 0.96f * night * night);
 
     e.fogColor = glm::mix(base.fogColor, base.dayFogColor, day) +
                  base.sunsetColor * (0.25f * e.sunsetStrength);
     e.fogDensity = base.fogDensity * glm::mix(1.0f, base.dayFogDensityScale, day);
     e.ambient = glm::mix(base.ambient, base.dayAmbient, day);
+    e.ambientSky = glm::mix(base.ambient * base.ambientSkyTint, base.dayAmbient * base.dayAmbientSkyTint, day);
+    e.ambientGround = glm::mix(base.ambient * base.ambientGroundTint, base.dayAmbient * base.dayAmbientGroundTint, day);
 
     /* dominant sky light: the (warm, low) sun by day, the moon by night */
     float sunHeight = smoothstepf(-0.02f, 0.3f, e.sunDirection.y);
@@ -101,4 +116,48 @@ Environment Environment::atTimeOfDay(const Environment &base, float t)
         e.lightColor = base.moonColor * smoothstepf(-0.02f, 0.3f, moon.y);
     }
     return e;
+}
+
+static void writeVec3(rapidjson::Value &json, const char *key, const glm::vec3 &v,
+                      rapidjson::Document::AllocatorType &allocator) {
+    rapidjson::Value array(rapidjson::kArrayType);
+    array.PushBack(v.x, allocator).PushBack(v.y, allocator).PushBack(v.z, allocator);
+    json.AddMember(rapidjson::StringRef(key), array, allocator);
+}
+
+void Environment::save(rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) const
+{
+    json.SetObject();
+    json.AddMember("sky", rapidjson::StringRef(skyMode == 1 ? "night" : "dusk"), allocator);
+    writeVec3(json, "zenithColor", zenithColor, allocator);
+    writeVec3(json, "horizonColor", horizonColor, allocator);
+    json.AddMember("starIntensity", starIntensity, allocator);
+    writeVec3(json, "moonDirection", moonDirection, allocator);
+    writeVec3(json, "moonColor", moonColor, allocator);
+    writeVec3(json, "fogColor", fogColor, allocator);
+    json.AddMember("fogDensity", fogDensity, allocator);
+    json.AddMember("fogHeightFalloff", fogHeightFalloff, allocator);
+    json.AddMember("fogBaseHeight", fogBaseHeight, allocator);
+    json.AddMember("fogMoonGlow", fogMoonGlow, allocator);
+    json.AddMember("ambient", ambient, allocator);
+    writeVec3(json, "ambientSkyTint", ambientSkyTint, allocator);
+    writeVec3(json, "ambientGroundTint", ambientGroundTint, allocator);
+    json.AddMember("emissiveStrength", emissiveStrength, allocator);
+    json.AddMember("hdr", hdr, allocator);
+    json.AddMember("exposure", exposure, allocator);
+    json.AddMember("bloomStrength", bloomStrength, allocator);
+    json.AddMember("bloomThreshold", bloomThreshold, allocator);
+    json.AddMember("aoStrength", aoStrength, allocator);
+    json.AddMember("aoRadius", aoRadius, allocator);
+    json.AddMember("dayLength", dayLength, allocator);
+    json.AddMember("timeOfDay", timeOfDay, allocator);
+    writeVec3(json, "dayZenithColor", dayZenithColor, allocator);
+    writeVec3(json, "dayHorizonColor", dayHorizonColor, allocator);
+    writeVec3(json, "sunsetColor", sunsetColor, allocator);
+    writeVec3(json, "sunColor", sunColor, allocator);
+    writeVec3(json, "dayFogColor", dayFogColor, allocator);
+    json.AddMember("dayFogDensityScale", dayFogDensityScale, allocator);
+    json.AddMember("dayAmbient", dayAmbient, allocator);
+    writeVec3(json, "dayAmbientSkyTint", dayAmbientSkyTint, allocator);
+    writeVec3(json, "dayAmbientGroundTint", dayAmbientGroundTint, allocator);
 }

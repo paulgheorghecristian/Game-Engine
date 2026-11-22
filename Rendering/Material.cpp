@@ -72,7 +72,12 @@ bool Material::getDisableCulling() const {
     return m_disableCulling;
 }
 
+float Material::s_nightFactor = 1.0f;
+
 TerrainLayers::~TerrainLayers() {
+    delete grassNormal;
+    delete dirtNormal;
+    delete soilNormal;
     delete grass;
     delete grass2;
     delete rock;
@@ -98,6 +103,7 @@ Material *Material::clone() const {
     copy->m_isBlackAlpha = m_isBlackAlpha;
     copy->m_disableCulling = m_disableCulling;
     copy->m_emissive = m_emissive;
+    copy->m_emissiveNightOnly = m_emissiveNightOnly;
     copy->m_specularStrength = m_specularStrength;
     copy->m_diffuseTexture = cloneTexture(m_diffuseTexture);
     copy->m_normalTexture = cloneTexture(m_normalTexture);
@@ -110,6 +116,10 @@ Material *Material::clone() const {
         t->rockNormal = cloneTexture(m_terrain->rockNormal);
         t->dirt = cloneTexture(m_terrain->dirt);
         t->soil = cloneTexture(m_terrain->soil);
+        t->grassNormal = cloneTexture(m_terrain->grassNormal);
+        t->dirtNormal = cloneTexture(m_terrain->dirtNormal);
+        t->soilNormal = cloneTexture(m_terrain->soilNormal);
+        t->normalStrength = m_terrain->normalStrength;
         t->tileSize = m_terrain->tileSize;
         t->shoreHeight = m_terrain->shoreHeight;
         copy->m_terrain = t;

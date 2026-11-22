@@ -10,17 +10,20 @@
 class FrameBuffer
 {
     public:
-        FrameBuffer(int width, int height, unsigned int numOfRenderTargets, bool depthForVariance = false);
+        FrameBuffer(int width, int height, unsigned int numOfRenderTargets, bool depthForVariance = false,
+                    GLenum colorFormat = GL_RGBA8);
         FrameBuffer();
         ~FrameBuffer();
 
-        ErrorCode init(int width, int height, unsigned int numOfRenderTargets, bool depthForVariance = false);
+        ErrorCode init(int width, int height, unsigned int numOfRenderTargets, bool depthForVariance = false,
+                       GLenum colorFormat = GL_RGBA8);
 
         void bindAllRenderTargets();
         void bindSingleRenderTarget (unsigned int index);
         void unbind();
 
         unsigned int getNumOfRenderTargets();
+        inline int getWidth() const { return width; }
         GLuint getDepthTextureId();
         GLuint getFrameBufferObject();
         const std::vector<GLuint> &getRenderTargets();

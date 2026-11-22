@@ -33,7 +33,7 @@ void RenderComponent::render(Shader *externShader) {
         result &= externShader->updateUniform ("material.shininess", m_materials[i]->getShininess());
         result &= externShader->updateUniform ("material.normalMapStrength", m_materials[i]->getNormalMapStrength());
         result &= externShader->updateUniform ("material.isBlackAlpha", m_materials[i]->getIsBlackAlpha());
-        externShader->updateUniform ("material.emissive", m_materials[i]->getEmissive());
+        externShader->updateUniform ("material.emissive", m_materials[i]->getEffectiveEmissive());
         externShader->updateUniform ("material.specularStrength", m_materials[i]->getSpecularStrength());
 
         const TerrainLayers *terrain = m_materials[i]->getTerrain();
@@ -52,6 +52,18 @@ void RenderComponent::render(Shader *externShader) {
                     layers[layer]->use(3 + layer);
                 }
             }
+            Texture *normals[3] = { terrain->grassNormal, terrain->dirtNormal, terrain->soilNormal };
+            const char *normalNames[3] = { "terrainGrassNormal", "terrainDirtNormal", "terrainSoilNormal" };
+            for (int layer = 0; layer < 3; layer++) {
+                externShader->updateUniform (normalNames[layer], 9 + layer);
+                if (normals[layer] != nullptr) {
+                    normals[layer]->use(9 + layer);
+                }
+            }
+            bool hasGroundNormals = terrain->grassNormal != nullptr && terrain->dirtNormal != nullptr &&
+                                    terrain->soilNormal != nullptr;
+            externShader->updateUniform ("terrainHasGroundNormals", hasGroundNormals);
+            externShader->updateUniform ("terrainNormalStrength", terrain->normalStrength);
             bool hasRockNormal = terrain->rockNormal != nullptr;
             externShader->updateUniform ("terrainHasRockNormal", hasRockNormal);
             externShader->updateUniform ("terrainTileSize", terrain->tileSize);

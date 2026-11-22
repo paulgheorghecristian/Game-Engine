@@ -46,7 +46,8 @@ void GBuffer::generate (unsigned int width, unsigned int height){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    /* half float: lights can add up beyond 1.0 (HDR); clamped later when HDR is off */
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
 
     // Packed depth+stencil texture. Separate DEPTH_COMPONENT24 + STENCIL_INDEX8
     // attachments are rejected as GL_FRAMEBUFFER_UNSUPPORTED by Mesa (and are

@@ -16,6 +16,8 @@
 #include "Environment.h"
 
 #include <vector>
+#include <functional>
+#include <string>
 #include <algorithm>
 
 template<typename P>
@@ -114,6 +116,21 @@ class RenderingMaster
         /* 1 at night, 0 by day ("nightOnly" lights fade with it) */
         float getNightFactor() const;
         inline const Environment &getEnvironment() const { return m_environment; }
+        /* the map's configuration (+ GUI edits) at the current time of day, for saving */
+        Environment getEnvironmentToSave() const {
+            Environment e = m_baseEnvironment;
+            e.timeOfDay = m_environment.timeOfDay;
+            return e;
+        }
+        /* directional light as configured (the day-night cycle overrides it at runtime) */
+        bool getDirectionalLightBase(glm::vec3 &color, glm::vec3 &direction) const {
+            color = m_dirLightBaseColor;
+            direction = m_baseEnvironment.moonDirection;
+            return m_baseEnvironment.dayLength > 0.0f && m_dirLightBaseCaptured;
+        }
+        /* map save / reload, provided by the engine (GUI buttons, F5 / F9) */
+        std::function<void()> onSaveMap, onReloadMap;
+        std::string savedMapPath;
         /* seconds of simulated time, interpolated for the frame being rendered */
         inline float getTime() const { return m_renderTime; }
         inline float getRenderAlpha() const { return m_renderAlpha; }
@@ -183,6 +200,17 @@ class RenderingMaster
         glm::vec3 m_dirLightBaseColor = glm::vec3(0.0f);
         glm::vec3 m_dirLightBaseDirection = glm::vec3(0.0f, 1.0f, 0.0f);
         void applyEnvironment(const Environment &environment);
+
+        /* post-processing, created on first use */
+        FrameBuffer *m_ssaoFB = nullptr, *m_ssaoBlurFB = nullptr;
+        FrameBuffer *m_hdrFB = nullptr;
+        FrameBuffer *m_bloomHalfA = nullptr, *m_bloomHalfB = nullptr;
+        FrameBuffer *m_bloomQuarterA = nullptr, *m_bloomQuarterB = nullptr;
+        Shader *m_ssaoShader = nullptr, *m_ssaoBlurShader = nullptr;
+        Shader *m_bloomBrightShader = nullptr, *m_blurShader = nullptr, *m_tonemapShader = nullptr;
+        void renderSSAO();
+        void renderBloomAndToneMap();
+        void blurPass(FrameBuffer &source, FrameBuffer &target, const glm::vec2 &direction);
         float m_time = 0.0f;
         float m_renderTime = 0.0f;
         float m_renderAlpha = 1.0f;

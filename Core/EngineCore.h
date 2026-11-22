@@ -21,7 +21,7 @@
 class EngineCore
 {
     public:
-        EngineCore(rapidjson::Document &gameDocument);
+        EngineCore(rapidjson::Document &gameDocument, const std::string &mapPath = "");
         void input();
         void render(float alpha = 1.0f);
         void update();
@@ -34,6 +34,12 @@ class EngineCore
          * draws the world blended between the previous and the current tick. */
         void applyMouseLook();
         void throwFireball();
+
+        /* save the current world (F5) as <map>_saved.json; reload it (F9) */
+        std::string m_mapPath, m_savePath;
+        std::string m_waterJson, m_emittersJson;
+        bool saveMap(const std::string &path);
+        void reloadMap(const std::string &path);
         std::vector<std::pair<Entity *, float>> m_fireballs; /* entity, spawn time */
         void capturePreviousState();
         void beginInterpolation(float alpha);

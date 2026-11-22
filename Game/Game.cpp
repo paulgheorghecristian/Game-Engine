@@ -18,7 +18,7 @@ Game::Game(const std::string &gameJsonFilePath) {
         exit (-1);
     }
 
-    engineCore = new EngineCore(gameDocument);
+    engineCore = new EngineCore(gameDocument, gameJsonFilePath);
 }
 
 void Game::start() {

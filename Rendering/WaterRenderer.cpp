@@ -154,6 +154,8 @@ static void uploadEnvironment(Shader &shader)
     shader.updateUniform("fogBaseHeight", env.fogBaseHeight);
     shader.updateUniform("fogMoonGlow", env.fogMoonGlow);
     shader.updateUniform("ambient", ambient);
+    shader.updateUniform("ambientSky", (void *) &env.ambientSky);
+    shader.updateUniform("ambientGround", (void *) &env.ambientGround);
     shader.updateUniform("emissiveStrength", env.emissiveStrength);
 
     /* forward-lit passes use the scene's directional light (moonlight) */

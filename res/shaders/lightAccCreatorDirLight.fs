@@ -30,6 +30,8 @@ const float maxDist = 500.0f;
 
 flat in vec3 lightDirectionEyeSpace;
 
+uniform int castsShadow; /* 0: skip the shadow-map test */
+
 void main() {
     vec3 view = vec3(viewRay.xy/-viewRay.z, -1.0);
     vec2 texCoord = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
@@ -54,7 +56,7 @@ void main() {
 
     vec2 depthMapTexelSize = 1.0f / textureSize(dirLightDepthSampler, 0);
 
-    for (int i = -PCFStartingIndex; i <= PCFStartingIndex; i++) {
+    for (int i = -PCFStartingIndex; i <= PCFStartingIndex && castsShadow != 0; i++) {
         for (int j = -PCFStartingIndex; j <= PCFStartingIndex; j++) {
             vec3 blueNoise = texture(blueNoiseSampler, texCoord + vec2(0.1*i, 0.1*j)).rgb;
             vec2 offset = vec2(blueNoise.r, blueNoise.g);

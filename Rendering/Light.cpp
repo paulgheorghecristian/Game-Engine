@@ -177,6 +177,13 @@ void Light::renderGUI() {
         ImGui::PushID(std::to_string(imguiID).c_str());
         ImGui::Text("Light Color");
         ImGui::ColorEdit3("light color", (float *) &m_lightColor);
+        if (m_animated) {
+            m_baseColor = m_lightColor; /* edits survive flicker / nightOnly */
+        }
+
+        if (ImGui::Checkbox("Cast shadow", &m_casts_shadow)) {
+            m_shadowSignatureValid = false; /* render the shadow map on the next frame */
+        }
 
         glm::vec3 pos = m_transform.getPosition();
 

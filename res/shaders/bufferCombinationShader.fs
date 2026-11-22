@@ -20,6 +20,11 @@ uniform sampler2D roughnessSampler;
 uniform int outputType;
 
 uniform float ambient;           /* engine default 0.1 */
+uniform vec3 ambientSky;         /* hemisphere ambient: up-facing ... */
+uniform vec3 ambientGround;      /* ... and down-facing surfaces */
+uniform sampler2D aoSampler;     /* screen-space ambient occlusion (1 = open) */
+uniform float aoStrength;        /* 0 = off */
+uniform bool hdrEnabled;         /* false: light is clamped at 1.0 like the old 8-bit buffer */
 uniform float emissiveStrength;
 uniform vec3 fogColor;
 uniform float fogDensity;        /* 0: no fog */
@@ -70,7 +75,13 @@ vec3 worldNormal() {
 }
 vec3 lightAccumulation() {
     vec3 lightAcc = texture (lightAccumulationSampler, textureCoords).xyz;
-    return lightAcc + vec3(ambient);	//diffuse + specular + ambiental
+    if (!hdrEnabled) {
+        lightAcc = min(lightAcc, vec3(1.0));
+    }
+    vec3 n = texture(normalSampler, textureCoords).xyz * 2.0 - 1.0;
+    float up = length(n) > 0.1 ? normalize(mat3(inverseViewMatrix) * n).y : 1.0;
+    float occlusion = aoStrength > 0.0 ? mix(1.0, texture(aoSampler, textureCoords).r, aoStrength) : 1.0;
+    return lightAcc + mix(ambientGround, ambientSky, up * 0.5 + 0.5) * occlusion;	//diffuse + specular + ambiental
 }
 
 vec3 dirLightDepthMap() {
@@ -131,4 +142,5 @@ void main() {
     if (outputType == 8) outColor = dirLightDepthMap();
     //if (outputType == 9) outColor = volumetrics();
     if (outputType == 10) outColor = roughnessMap();
+    if (outputType == 9) outColor = vec3(texture(aoSampler, textureCoords).r);
 }

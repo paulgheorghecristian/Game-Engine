@@ -155,6 +155,7 @@ std::string PointLight::jsonifyAttribs() {
 
     res += Light::jsonifyAttribs();
     res += ",\"type\": \"POINT\"";
+    res += ",\"shadowMapSize\":" + std::to_string(m_shadowMapSize);
 
     return res;
 }

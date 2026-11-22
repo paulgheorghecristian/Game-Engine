@@ -12,6 +12,8 @@ static const int FLOATS_PER_INSTANCE = 5;
 /* the shader animates/fades over liveForInMs; ages are normalized to this */
 static const int NORMALIZED_LIFETIME = 1000;
 
+float ParticleEmitter::s_nightFactor = 1.0f;
+
 static float getFloat(const rapidjson::Value &json, const char *key, float def) {
     return json.HasMember(key) && json[key].IsNumber() ? json[key].GetFloat() : def;
 }
@@ -58,6 +60,7 @@ ParticleEmitter::ParticleEmitter(const rapidjson::Value &json)
     m_wander = getFloat(json, "wander", 30.0f);
     m_additive = json.HasMember("blend") && std::string(json["blend"].GetString()) == "additive";
     m_atlasTopDown = json.HasMember("atlasTopDown") && json["atlasTopDown"].GetBool();
+    m_nightOnly = json.HasMember("nightOnly") && json["nightOnly"].GetBool();
 
     int cols = 1, rows = 1;
     if (json.HasMember("atlas") && json["atlas"].IsArray() && json["atlas"].Size() >= 2) {
@@ -304,7 +307,7 @@ void ParticleEmitter::draw(const glm::mat4 &projectionMatrix, const glm::mat4 &v
         *out++ = (p.ageMs / p.lifeMs) * NORMALIZED_LIFETIME;
         alive++;
     }
-    if (alive == 0) {
+    if (alive == 0 || (m_nightOnly && s_nightFactor <= 0.001f)) {
         return;
     }
 
@@ -328,7 +331,8 @@ void ParticleEmitter::draw(const glm::mat4 &projectionMatrix, const glm::mat4 &v
     shader.updateUniform("numOfSubTxtsH", m_texture->getNumOfSubTxtsH());
     shader.updateUniform("subWidth", m_texture->getSubWidth());
     shader.updateUniform("subHeight", m_texture->getSubHeight());
-    shader.updateUniform("tint", (void *) &m_tint);
+    glm::vec3 tint = m_nightOnly ? m_tint * s_nightFactor : m_tint;
+    shader.updateUniform("tint", (void *) &tint);
     shader.updateUniform("brightnessAdd", m_brightness);
     shader.updateUniform("additive", additive);
     shader.updateUniform("fadeIn", m_fadeIn);

@@ -1,0 +1,13 @@
+{
+    "VSPath" : "res/shaders/bufferCombinationShader.vs",
+    "FSPath" : "res/shaders/ssao.fs",
+    "Uniforms" : {
+                    "depthSampler" : "INT",
+                    "normalSampler" : "INT",
+                    "noiseSampler" : "INT",
+                    "projectionMatrix" : "MAT4",
+                    "inverseProjectionMatrix" : "MAT4",
+                    "noiseScale" : "VEC2",
+                    "radius" : "FLOAT"
+                 }
+}

@@ -1,0 +1,8 @@
+{
+    "VSPath" : "res/shaders/bufferCombinationShader.vs",
+    "FSPath" : "res/shaders/ssaoBlur.fs",
+    "Uniforms" : {
+                    "aoSampler" : "INT",
+                    "texelSize" : "VEC2"
+                 }
+}

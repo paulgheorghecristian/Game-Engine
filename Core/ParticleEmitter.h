@@ -52,6 +52,8 @@ class ParticleEmitter
                   int renderWidth, int renderHeight, float alpha = 1.0f);
 
         static Shader &getShader();
+        /* 1 at night, 0 by day; "nightOnly" emitters fade with it */
+        static float s_nightFactor;
 
         /* move the emitter (ParticleEmitterComponent): new particles spawn
          * around `position`, launched along the rotated "direction" */
@@ -79,7 +81,7 @@ class ParticleEmitter
         float m_gravity, m_buoyancy;
         float m_startScale, m_growth, m_scaleJitter;
         float m_lifetimeMs, m_brightness, m_fadeIn, m_wander;
-        bool m_additive, m_atlasTopDown;
+        bool m_additive, m_atlasTopDown, m_nightOnly;
 
         Texture *m_texture;
         GLuint m_vao, m_vbo;

@@ -39,6 +39,8 @@ uniform float alpha;
 uniform vec3 att_diffuse;
 uniform vec3 att_specular;
 
+uniform int castsShadow; /* 0: skip the shadow-map test */
+
 void main() {
     bool getLight;
     vec2 texCoord = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
@@ -75,7 +77,7 @@ void main() {
 
     vec2 depthMapTexelSize = 1.0f / textureSize(spotLightDepthSampler, 0);
 
-    for (int i = -PCFStartingIndex; i <= PCFStartingIndex; i++) {
+    for (int i = -PCFStartingIndex; i <= PCFStartingIndex && castsShadow != 0; i++) {
         for (int j = -PCFStartingIndex; j <= PCFStartingIndex; j++) {
             vec3 blueNoise = texture(blueNoiseSampler, texCoord + vec2(0.1*i, 0.1*j)).rgb;
             vec2 offset = vec2(blueNoise.r, blueNoise.g);

@@ -102,6 +102,10 @@ entities.append({"Transform": {"position": [0, 3, 0], "rotation": [0, 0, 0, 1], 
                                                                     "rockNormal": "res/textures/165_norm.bmp",
                                                                     "dirt": "res/textures/terrain_dirt.bmp",
                                                                     "soil": "res/textures/terrain_soil.bmp",
+                                                                    "grassNormal": "res/textures/terrain_grass2_normal.png",
+                                                                    "dirtNormal": "res/textures/terrain_dirt_normal.png",
+                                                                    "soilNormal": "res/textures/terrain_soil_normal.png",
+                                                                    "normalStrength": 1.0,
                                                                     "tileSize": 60, "shoreHeight": WATER}})},
                                 "PhysicsComponent": {"BoundingBodyType": ["mesh", "res/models/terrain4.obj"],
                                                      "scale": [4800, 1600, 4800], "mass": 0}}})
@@ -138,11 +142,11 @@ tower_h = 110
 entities.append(entity("res/models/cube4.obj", (lx, lh + tower_h / 2 - 5, lz), (18, tower_h, 18), (0, 20, 0),
                        mat((0.75, 0.72, 0.7), "res/textures/brick_wall.jpg", "res/textures/brick_wall_normal.jpg")))
 lamp = (lx, lh + tower_h - 2, lz)
-entities.append(entity("res/models/sphere.obj", lamp, 7, material=mat((1.0, 0.95, 0.8), emissive=1.0), cast_shadow=False))
+entities.append(entity("res/models/sphere.obj", lamp, 7, material=mat((1.0, 0.95, 0.8), emissive=1.0, extra={"emissiveNightOnly": True}), cast_shadow=False))
 
 # --- lantern path from the spawn to the shore --------------------------------
 SPAWN = (490.0, -60.0)
-LANTERN_MAT = mat((1.0, 0.78, 0.45), emissive=1.0)
+LANTERN_MAT = mat((1.0, 0.78, 0.45), emissive=1.0, extra={"emissiveNightOnly": True})
 POST_MAT = mat((0.55, 0.45, 0.35), "res/textures/Bark002_2K_Color.jpg", "res/textures/Bark002_2K_Normal.jpg")
 for i, z in enumerate([-150, -230, -310, -390]):
     x = SPAWN[0] + (-38 if i % 2 == 0 else 38)
@@ -262,11 +266,11 @@ lights.append(light((C[0], rock_top + 4, C[1] - 18), (0.35, 0.75, 1.0), "POINT",
 lantern_globes = [l["Transform"]["position"] for l in lights if l["Attributes"].get("flicker") == 0.08]
 emitters += [
     {"type": "glow", "texture": "res/textures/glowWhite.png", "positions": lantern_globes, "startScale": 60,
-     "blend": "additive", "tint": [1.0, 0.6, 0.28]},
+     "blend": "additive", "tint": [1.0, 0.6, 0.28], "nightOnly": True},
     {"type": "glow", "texture": "res/textures/glowWhite.png", "positions": [[fx, fy + 14, fz]], "startScale": 55,
      "blend": "additive", "tint": [1.0, 0.45, 0.15]},
     {"type": "glow", "texture": "res/textures/glowWhite.png", "positions": [[lamp[0], lamp[1], lamp[2]]], "startScale": 110,
-     "blend": "additive", "tint": [1.0, 0.92, 0.75]},
+     "blend": "additive", "tint": [1.0, 0.92, 0.75], "nightOnly": True},
     {"type": "glow", "texture": "res/textures/glowWhite.png", "positions": [[C[0], rock_top + 6, C[1] - 18]], "startScale": 70,
      "blend": "additive", "tint": [0.3, 0.65, 0.95]},
 ]
@@ -275,7 +279,7 @@ emitters += [
 emitters += [
     {"type": "drift", "texture": "res/textures/glowWhite.png", "count": 160, "lifetimeMs": 5000,
      "position": [C[0], WATER + 22, C[1] + 120], "radius": 330, "height": 22, "speed": [4, 12], "wander": 14,
-     "startScale": 2.6, "blend": "additive", "tint": [0.65, 1.0, 0.35], "fadeIn": 0.35},
+     "startScale": 2.6, "blend": "additive", "tint": [0.65, 1.0, 0.35], "fadeIn": 0.35, "nightOnly": True},
     {"type": "spray", "texture": "res/textures/glowWhite.png", "count": 260, "lifetimeMs": 2600,
      "position": [C[0], rock_top + 2, C[1] - 18], "radius": 2, "direction": [0, 1, 0], "spread": 0.18,
      "speed": [70, 105], "gravity": -70, "startScale": 2.2, "blend": "additive", "tint": [0.45, 0.8, 1.0]},
@@ -296,6 +300,11 @@ game = {
                     "starIntensity": 1.0, "moonDirection": moon, "moonColor": [0.6, 0.7, 0.95],
                     "fogColor": [0.055, 0.07, 0.11], "fogDensity": 0.0024, "fogHeightFalloff": 0.0035,
                     "fogBaseHeight": WATER, "fogMoonGlow": 0.35, "ambient": 0.05, "emissiveStrength": 1.6,
+                    # HDR + filmic tone mapping, bloom, ambient occlusion
+                    "hdr": True, "exposure": 1.25, "bloomStrength": 0.5, "bloomThreshold": 0.9,
+                    "aoStrength": 0.9, "aoRadius": 10,
+                    # hemisphere ambient: moonlit sky above, dark ground below
+                    "ambientSkyTint": [0.85, 0.95, 1.35], "ambientGroundTint": [0.45, 0.45, 0.5],
                     # day-night cycle: 8 minute days starting at midnight (T speeds it up)
                     "dayLength": 480, "timeOfDay": 0.0},
     "Water": {"height": WATER, "center": list(C), "size": [1150, 1150], "tiling": 90, "waveStrength": 0.016,

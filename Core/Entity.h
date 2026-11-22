@@ -31,6 +31,11 @@ class Entity : public MemoryPoolInterface<Entity>
 
         virtual std::string jsonify();
 
+        /* the map JSON this entity was loaded from (saving writes it back with
+         * the current transform, so nothing the engine can't serialize is lost) */
+        inline void setSourceJson(const std::string &json) { m_sourceJson = json; }
+        inline const std::string &getSourceJson() const { return m_sourceJson; }
+
         enum Flags {
             RENDERABLE = 1, /* contains RenderComponent */
             DYNAMIC, /* contains PhysicsComponent */
@@ -52,6 +57,7 @@ class Entity : public MemoryPoolInterface<Entity>
     private:
 
         bool m_to_be_removed;
+        std::string m_sourceJson;
 };
 
 #endif // ENTITY_H

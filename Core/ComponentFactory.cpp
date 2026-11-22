@@ -55,6 +55,9 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             if (itr->value["Material"].HasMember("emissive")) {
                 material->setEmissive(itr->value["Material"]["emissive"].GetFloat());
             }
+            if (itr->value["Material"].HasMember("emissiveNightOnly")) {
+                material->setEmissiveNightOnly(itr->value["Material"]["emissiveNightOnly"].GetBool());
+            }
             if (itr->value["Material"].HasMember("specularStrength")) {
                 material->setSpecularStrength(itr->value["Material"]["specularStrength"].GetFloat());
             }
@@ -70,6 +73,10 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                 terrain->rockNormal = layer("rockNormal", 6);
                 terrain->dirt = layer("dirt", 7);
                 terrain->soil = layer("soil", 8);
+                terrain->grassNormal = layer("grassNormal", 9);
+                terrain->dirtNormal = layer("dirtNormal", 10);
+                terrain->soilNormal = layer("soilNormal", 11);
+                if (t.HasMember("normalStrength")) terrain->normalStrength = t["normalStrength"].GetFloat();
                 if (t.HasMember("tileSize")) terrain->tileSize = t["tileSize"].GetFloat();
                 if (t.HasMember("shoreHeight")) terrain->shoreHeight = t["shoreHeight"].GetFloat();
                 material->setTerrain(terrain);
@@ -212,6 +219,9 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             if (itr->value["Material"].HasMember("emissive")) {
                 material->setEmissive(itr->value["Material"]["emissive"].GetFloat());
             }
+            if (itr->value["Material"].HasMember("emissiveNightOnly")) {
+                material->setEmissiveNightOnly(itr->value["Material"]["emissiveNightOnly"].GetBool());
+            }
             if (itr->value["Material"].HasMember("specularStrength")) {
                 material->setSpecularStrength(itr->value["Material"]["specularStrength"].GetFloat());
             }
@@ -227,6 +237,10 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                 terrain->rockNormal = layer("rockNormal", 6);
                 terrain->dirt = layer("dirt", 7);
                 terrain->soil = layer("soil", 8);
+                terrain->grassNormal = layer("grassNormal", 9);
+                terrain->dirtNormal = layer("dirtNormal", 10);
+                terrain->soilNormal = layer("soilNormal", 11);
+                if (t.HasMember("normalStrength")) terrain->normalStrength = t["normalStrength"].GetFloat();
                 if (t.HasMember("tileSize")) terrain->tileSize = t["tileSize"].GetFloat();
                 if (t.HasMember("shoreHeight")) terrain->shoreHeight = t["shoreHeight"].GetFloat();
                 material->setTerrain(terrain);
@@ -312,6 +326,9 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             if (itr->value["Material"].HasMember("emissive")) {
                 material->setEmissive(itr->value["Material"]["emissive"].GetFloat());
             }
+            if (itr->value["Material"].HasMember("emissiveNightOnly")) {
+                material->setEmissiveNightOnly(itr->value["Material"]["emissiveNightOnly"].GetBool());
+            }
             if (itr->value["Material"].HasMember("specularStrength")) {
                 material->setSpecularStrength(itr->value["Material"]["specularStrength"].GetFloat());
             }
@@ -327,6 +344,10 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                 terrain->rockNormal = layer("rockNormal", 6);
                 terrain->dirt = layer("dirt", 7);
                 terrain->soil = layer("soil", 8);
+                terrain->grassNormal = layer("grassNormal", 9);
+                terrain->dirtNormal = layer("dirtNormal", 10);
+                terrain->soilNormal = layer("soilNormal", 11);
+                if (t.HasMember("normalStrength")) terrain->normalStrength = t["normalStrength"].GetFloat();
                 if (t.HasMember("tileSize")) terrain->tileSize = t["tileSize"].GetFloat();
                 if (t.HasMember("shoreHeight")) terrain->shoreHeight = t["shoreHeight"].GetFloat();
                 material->setTerrain(terrain);

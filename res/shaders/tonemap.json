@@ -1,0 +1,11 @@
+{
+    "VSPath" : "res/shaders/bufferCombinationShader.vs",
+    "FSPath" : "res/shaders/tonemap.fs",
+    "Uniforms" : {
+                    "hdrSampler" : "INT",
+                    "bloomSamplerNear" : "INT",
+                    "bloomSamplerFar" : "INT",
+                    "exposure" : "FLOAT",
+                    "bloomStrength" : "FLOAT"
+                 }
+}

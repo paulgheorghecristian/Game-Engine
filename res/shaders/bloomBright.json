@@ -1,0 +1,8 @@
+{
+    "VSPath" : "res/shaders/bufferCombinationShader.vs",
+    "FSPath" : "res/shaders/bloomBright.fs",
+    "Uniforms" : {
+                    "hdrSampler" : "INT",
+                    "threshold" : "FLOAT"
+                 }
+}

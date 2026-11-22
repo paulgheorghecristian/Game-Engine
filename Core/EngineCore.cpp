@@ -17,11 +17,37 @@
 #include "ParticleEmitter.h"
 #include "ParticleEmitterComponent.h"
 #include "WaterRenderer.h"
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+#include <unistd.h>
 #include <algorithm>
 #include <cstdlib>
 #include "stb_image_write.h"
 
-EngineCore::EngineCore(rapidjson::Document &gameDocument) {
+static std::string jsonToString(const rapidjson::Value &value) {
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    value.Accept(writer);
+    return buffer.GetString();
+}
+
+static std::string savePathFor(const std::string &mapPath) {
+    std::string base = mapPath.empty() ? std::string("Game/map") : mapPath;
+    size_t dot = base.rfind(".json");
+    if (dot != std::string::npos) {
+        base = base.substr(0, dot);
+    }
+    const std::string suffix = "_saved";
+    if (base.size() >= suffix.size() && base.compare(base.size() - suffix.size(), suffix.size(), suffix) == 0) {
+        return base + ".json"; /* saving a saved map overwrites it */
+    }
+    return base + suffix + ".json";
+}
+
+EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &mapPath) {
+    m_mapPath = mapPath;
+    m_savePath = savePathFor(mapPath);
     //create renderingmaster, physicsmaster and entities
     rapidjson::Document configDocument;
     rapidjson::ParseResult parseResult;
@@ -105,6 +131,15 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                             renderScale);
 
     Light::s_tickSeconds = display->getFrameTimeInMs() / 1000.0f;
+    if (gameDocument.HasMember("Water")) {
+        m_waterJson = jsonToString(gameDocument["Water"]);
+    }
+    if (gameDocument.HasMember("ParticleEmitters")) {
+        m_emittersJson = jsonToString(gameDocument["ParticleEmitters"]);
+    }
+    RenderingMaster::getInstance()->savedMapPath = m_savePath;
+    RenderingMaster::getInstance()->onSaveMap = [this]() { saveMap(m_savePath); };
+    RenderingMaster::getInstance()->onReloadMap = [this]() { reloadMap(m_savePath); };
     loadMapFeatures(gameDocument);
     loadEntities(gameDocument);
     PhysicsMaster::getInstance()->startGraphCreation();
@@ -534,6 +569,13 @@ void EngineCore::input() {
         stop ();
     }
 
+    if (inputManager.getKeyDown(SDLK_F5)) {
+        saveMap(m_savePath);
+    }
+    if (inputManager.getKeyDown(SDLK_F9)) {
+        reloadMap(m_savePath);
+    }
+
     if (inputManager.getKeyDown(SDLK_g)) {
         throwFireball();
     }
@@ -606,7 +648,8 @@ void EngineCore::input() {
         RenderingMaster::getInstance()->addLightToScene(new PointLight(Transform(cameraPosition,
                                                                                   glm::vec3(0),
                                                                                   glm::vec3(500.0f)),
-                                                                       glm::vec3(1.0f, 0.7f, 0.2f)));
+                                                                       glm::vec3(1.0f, 0.7f, 0.2f),
+                                                                       true /* casts shadow */));
 
     }
 
@@ -1190,6 +1233,7 @@ void EngineCore::loadEntities(rapidjson::Document &gameDocument) {
             }
             Entity *newEntity = new Entity ();
             newEntity->setTransform (trans);
+            newEntity->setSourceJson (jsonToString(entity));
             if (entity.HasMember("Components")) {
                 for (rapidjson::Value::ConstMemberIterator itr = entity["Components"].GetObject().MemberBegin();
                         itr != entity["Components"].GetObject().MemberEnd(); ++itr) {
@@ -1202,6 +1246,139 @@ void EngineCore::loadEntities(rapidjson::Document &gameDocument) {
     }
 
     std::cout << "Number of entities: " << entities.size() << std::endl;
+}
+
+static void writeTransform(rapidjson::Value &object, const Transform &transform,
+                           rapidjson::Document::AllocatorType &allocator) {
+    const glm::vec3 &p = transform.getPosition();
+    const glm::quat &r = transform.getRotation();
+    const glm::vec3 &s = transform.getScale();
+    rapidjson::Value t(rapidjson::kObjectType), position(rapidjson::kArrayType), rotation(rapidjson::kArrayType),
+                     scale(rapidjson::kArrayType);
+    position.PushBack(p.x, allocator).PushBack(p.y, allocator).PushBack(p.z, allocator);
+    rotation.PushBack(r.x, allocator).PushBack(r.y, allocator).PushBack(r.z, allocator).PushBack(r.w, allocator);
+    scale.PushBack(s.x, allocator).PushBack(s.y, allocator).PushBack(s.z, allocator);
+    t.AddMember("position", position, allocator);
+    t.AddMember("rotation", rotation, allocator);
+    t.AddMember("scale", scale, allocator);
+    if (object.HasMember("Transform")) {
+        object["Transform"] = t;
+    } else {
+        object.AddMember("Transform", t, allocator);
+    }
+}
+
+bool EngineCore::saveMap(const std::string &path) {
+    rapidjson::Document doc;
+    doc.SetObject();
+    auto &allocator = doc.GetAllocator();
+    RenderingMaster *rm = RenderingMaster::getInstance();
+
+    doc.AddMember("ConfigFilePath", rapidjson::Value(m_configFilePath.c_str(), allocator), allocator);
+    doc.AddMember("gravity", m_gravity, allocator);
+
+    /* where you are now becomes the spawn point */
+    rapidjson::Value start(rapidjson::kObjectType), position(rapidjson::kArrayType);
+    const glm::vec3 &playerPosition = player->getTransform().getPosition();
+    const glm::vec3 &cameraRotation = rm->getCamera()->getRotation();
+    position.PushBack(playerPosition.x, allocator).PushBack(playerPosition.y + 5.0f, allocator).PushBack(playerPosition.z, allocator);
+    start.AddMember("position", position, allocator);
+    start.AddMember("yaw", glm::degrees(cameraRotation.y), allocator);
+    start.AddMember("pitch", glm::degrees(cameraRotation.x), allocator);
+    doc.AddMember("PlayerStart", start, allocator);
+
+    rapidjson::Value environment;
+    rm->getEnvironmentToSave().save(environment, allocator);
+    doc.AddMember("Environment", environment, allocator);
+
+    auto parseInto = [&](const std::string &json, rapidjson::Value &out) -> bool {
+        rapidjson::Document part;
+        if (json.empty() || part.Parse(json.c_str()).HasParseError()) {
+            return false;
+        }
+        out.CopyFrom(part, allocator);
+        return true;
+    };
+    rapidjson::Value water, emitters;
+    if (parseInto(m_waterJson, water)) doc.AddMember("Water", water, allocator);
+    if (parseInto(m_emittersJson, emitters)) doc.AddMember("ParticleEmitters", emitters, allocator);
+
+    rapidjson::Value entityArray(rapidjson::kArrayType);
+    for (Entity *entity : entities) {
+        bool temporary = false;
+        for (auto &fireball : m_fireballs) temporary |= fireball.first == entity;
+        if (temporary || entity == player) {
+            continue;
+        }
+        rapidjson::Value value;
+        if (!entity->getSourceJson().empty()) {
+            parseInto(entity->getSourceJson(), value);
+        } else {
+            /* spawned at runtime: serialize what the engine knows */
+            std::string json = entity->jsonify();
+            if (json.empty() || !parseInto("{" + json + "}", value)) {
+                continue;
+            }
+        }
+        writeTransform(value, entity->getTransform(), allocator);
+        entityArray.PushBack(value, allocator);
+    }
+    doc.AddMember("Entities", entityArray, allocator);
+
+    rapidjson::Value lightArray(rapidjson::kArrayType);
+    for (Light *light : rm->getLights()) {
+        rapidjson::Value value;
+        if (!parseInto("{" + light->jsonify() + "}", value)) {
+            continue;
+        }
+        glm::vec3 baseColor, baseDirection;
+        if (dynamic_cast<DirectionalLight *>(light) != NULL && rm->getDirectionalLightBase(baseColor, baseDirection)) {
+            /* the day-night cycle drives it at runtime: save the configured moonlight */
+            rapidjson::Value color(rapidjson::kArrayType), dir(rapidjson::kArrayType);
+            color.PushBack(baseColor.x, allocator).PushBack(baseColor.y, allocator).PushBack(baseColor.z, allocator);
+            dir.PushBack(baseDirection.x, allocator).PushBack(baseDirection.y, allocator).PushBack(baseDirection.z, allocator);
+            value["Attributes"]["color"] = color;
+            value["Attributes"]["dir"] = dir;
+        }
+        lightArray.PushBack(value, allocator);
+    }
+    doc.AddMember("Lights", lightArray, allocator);
+
+    rapidjson::StringBuffer buffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+    writer.SetIndent(' ', 1);
+    doc.Accept(writer);
+    FILE *file = fopen(path.c_str(), "w");
+    if (file == NULL) {
+        std::cout << "Could not save the map to " << path << std::endl;
+        return false;
+    }
+    fputs(buffer.GetString(), file);
+    fclose(file);
+    std::cout << "Map saved to " << path << std::endl;
+    return true;
+}
+
+void EngineCore::reloadMap(const std::string &path) {
+    FILE *file = fopen(path.c_str(), "r");
+    if (file == NULL) {
+        std::cout << "Nothing to reload: " << path << " does not exist (save with F5 first)" << std::endl;
+        return;
+    }
+    fclose(file);
+    std::cout << "Reloading " << path << std::endl;
+    fflush(stdout);
+    /* restart the engine on the saved map (simplest way to rebuild every system) */
+    char exe[4096];
+    ssize_t n = readlink("/proc/self/exe", exe, sizeof(exe) - 1);
+    if (n <= 0) {
+        std::cout << "Could not restart; run: ./ge " << path << std::endl;
+        return;
+    }
+    exe[n] = 0;
+    setenv("GE_SKIP_MENU", "1", 1);
+    execl(exe, exe, path.c_str(), (char *) NULL);
+    std::cout << "Could not restart; run: ./ge " << path << std::endl;
 }
 
 std::string EngineCore::dumpJson() {
@@ -1352,6 +1529,9 @@ void EngineCore::runBenchmark(int numFrames) {
 
     if (!m_screenshotPath.empty()) {
         saveScreenshot(m_screenshotPath);
+    }
+    if (const char *savePath = std::getenv("GE_BENCH_SAVE")) {
+        saveMap(savePath);
     }
 
     if (frameMs.empty()) {

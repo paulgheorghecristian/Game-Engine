@@ -78,6 +78,7 @@ void SpotLight::render()
     shader.updateUniform("att_diffuse", (void *) &m_att_diffuse);
     shader.updateUniform("att_specular", (void *) &m_att_specular);
 
+    shader.updateUniform("castsShadow", isCastingShadow() ? 1 : 0);
     m_shadowMapTexture.use(0);
 
     shader.bind();
@@ -204,6 +205,7 @@ std::string SpotLight::jsonifyAttribs() {
     res += ",\"numSamplePoints\":" + std::to_string(numSamplePoints);
     res += ",\"coef1\":" + std::to_string(coef1);
     res += ",\"coef2\":" + std::to_string(coef2);
+    res += ",\"shadowMapSize\":" + std::to_string(m_shadowMapFrameBuffer.getWidth());
     if (m_beamDensity > 0.0f) {
         res += ",\"beamDensity\":" + std::to_string(m_beamDensity);
         res += ",\"beamFalloff\":" + std::to_string(m_beamFalloff);

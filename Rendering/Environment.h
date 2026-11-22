@@ -27,6 +27,18 @@ struct Environment
     float fogMoonGlow = 0.0f;           /* haze brightens toward the moon (forward scattering) */
 
     float ambient = 0.1f;               /* added to the light accumulation */
+
+    /* post-processing (all off by default) */
+    bool hdr = false;                   /* filmic tone mapping instead of clipping at 1.0 */
+    float exposure = 1.0f;
+    float bloomStrength = 0.0f;         /* needs hdr */
+    float bloomThreshold = 1.0f;
+    float aoStrength = 0.0f;            /* screen-space ambient occlusion, 0 = off */
+    float aoRadius = 8.0f;              /* world units */
+    /* hemisphere ambient: surfaces facing up get ambient * skyTint, facing
+     * down ambient * groundTint (neutral defaults = flat ambient as before) */
+    glm::vec3 ambientSkyTint = glm::vec3(1.0f);
+    glm::vec3 ambientGroundTint = glm::vec3(1.0f);
     float emissiveStrength = 1.5f;      /* scale for material "emissive" */
 
     /* Day-night cycle (off when dayLength is 0). The moon stays at
@@ -42,6 +54,8 @@ struct Environment
     glm::vec3 dayFogColor = glm::vec3(0.55f, 0.65f, 0.78f);
     float dayFogDensityScale = 0.4f;
     float dayAmbient = 0.3f;
+    glm::vec3 dayAmbientSkyTint = glm::vec3(0.8f, 0.9f, 1.2f);    /* blue sky light */
+    glm::vec3 dayAmbientGroundTint = glm::vec3(0.75f, 0.68f, 0.5f); /* warm ground bounce */
 
     /* derived each tick (not read from JSON) */
     glm::vec3 sunDirection = glm::vec3(0.0f, -1.0f, 0.0f);
@@ -49,8 +63,11 @@ struct Environment
     float sunsetStrength = 0.0f;        /* horizon glow around sunrise/sunset */
     glm::vec3 lightDirection = moonDirection; /* dominant sky light (glints, haze glow) */
     glm::vec3 lightColor = moonColor;
+    glm::vec3 ambientSky = glm::vec3(0.1f), ambientGround = glm::vec3(0.1f); /* final, per tick */
 
     void load(const rapidjson::Value &json);
+    /* all configurable fields (what load() reads) */
+    void save(rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) const;
     /* the environment at `timeOfDay` (night colors stay in `base`) */
     static Environment atTimeOfDay(const Environment &base, float timeOfDay);
 };

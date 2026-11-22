@@ -4,15 +4,17 @@ FrameBuffer::FrameBuffer() : width(-1), height(-1), numOfRenderTargets(-1)
 {
 }
 
-FrameBuffer::FrameBuffer(int width, int height, unsigned int numOfRenderTargets, bool depthForVariance)
+FrameBuffer::FrameBuffer(int width, int height, unsigned int numOfRenderTargets, bool depthForVariance,
+                         GLenum colorFormat)
 {
     ErrorCode ec;
 
-    ec = init(width, height, numOfRenderTargets, depthForVariance);
+    ec = init(width, height, numOfRenderTargets, depthForVariance, colorFormat);
     assert(ec == NO_ERROR);
 }
 
-ErrorCode FrameBuffer::init(int width, int height, unsigned int numOfRenderTargets, bool depthForVariance)
+ErrorCode FrameBuffer::init(int width, int height, unsigned int numOfRenderTargets, bool depthForVariance,
+                            GLenum colorFormat)
 {
     glGetIntegerv (GL_VIEWPORT, previousViewport);
 
@@ -33,9 +35,10 @@ ErrorCode FrameBuffer::init(int width, int height, unsigned int numOfRenderTarge
         glBindTexture (GL_TEXTURE_2D, renderTargets[i]);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, colorFormat == GL_RGBA8 ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, colorFormat == GL_RGBA8 ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+        glTexImage2D(GL_TEXTURE_2D, 0, colorFormat, width, height, 0, GL_RGBA,
+                     colorFormat == GL_RGBA8 ? GL_UNSIGNED_BYTE : GL_FLOAT, 0);
     }
 
     float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };

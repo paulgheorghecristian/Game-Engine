@@ -13,6 +13,8 @@ class Texture;
 struct TerrainLayers {
     Texture *grass = nullptr, *grass2 = nullptr, *rock = nullptr, *rockNormal = nullptr;
     Texture *dirt = nullptr, *soil = nullptr;
+    Texture *grassNormal = nullptr, *dirtNormal = nullptr, *soilNormal = nullptr;
+    float normalStrength = 1.0f;
     float tileSize = 60.0f;      /* world units per texture repeat */
     float shoreHeight = 0.0f;    /* shoreline blend around this height */
     ~TerrainLayers();
@@ -49,6 +51,11 @@ class Material
         float getNormalMapStrength() const;
         /* 0..1: how much the surface glows on its own (lanterns, crystals) */
         void setEmissive(float e) { m_emissive = e; }
+        /* emissive only at night (lantern globes): scaled by s_nightFactor */
+        void setEmissiveNightOnly(bool nightOnly) { m_emissiveNightOnly = nightOnly; }
+        float getEffectiveEmissive() const { return m_emissiveNightOnly ? m_emissive * s_nightFactor : m_emissive; }
+        /* 1 at night, 0 by day; set by the renderer every tick */
+        static float s_nightFactor;
         /* scales the specular term (written to the roughness target); 1 = old behaviour */
         void setSpecularStrength(float s) { m_specularStrength = s; }
         float getSpecularStrength() const { return m_specularStrength; }
@@ -75,6 +82,7 @@ class Material
         glm::vec3 m_ambient, m_diffuse, m_specular;
         float m_shininess, m_normalMapStrength;
         float m_emissive = 0.0f;
+        bool m_emissiveNightOnly = false;
         float m_specularStrength = 1.0f;
         TerrainLayers *m_terrain = nullptr;
 

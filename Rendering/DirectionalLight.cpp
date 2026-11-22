@@ -52,6 +52,7 @@ void DirectionalLight::render()
     shader.updateUniform("lightColor", (void *) &m_lightColor);
     shader.updateUniform("lightDirection", (void *) &m_lightDirection);
 
+    shader.updateUniform("castsShadow", isCastingShadow() ? 1 : 0);
     m_shadowMapTexture.use(0);
 
     shader.bind();

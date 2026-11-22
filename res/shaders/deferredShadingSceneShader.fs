@@ -36,6 +36,15 @@ uniform bool terrainHasRockNormal;
 uniform sampler2D terrainGrass, terrainGrass2, terrainRock, terrainRockNormal, terrainDirt, terrainSoil;
 uniform float terrainTileSize;
 uniform float terrainShoreHeight;
+uniform sampler2D terrainGrassNormal, terrainDirtNormal, terrainSoilNormal;
+uniform bool terrainHasGroundNormals;
+uniform float terrainNormalStrength;
+
+/* planar (xz) tangent-space normal map -> world-space perturbation */
+vec3 terrainGroundBump(sampler2D map, vec2 uv) {
+    vec3 t = texture(map, uv).xyz * 2.0 - 1.0;
+    return vec3(t.x, 0.0, -t.y);
+}
 
 float terrainHash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -98,6 +107,16 @@ vec3 terrainSurface(vec3 position, vec3 geometricNormal, bool wantNormal, out ve
     specular = mix(0.06, 0.22, rockAmount) + (1.0 - smoothstep(-1.0, 3.0, h)) * 0.4;
 
     normal = n;
+    if (wantNormal && terrainHasGroundNormals) {
+        /* grass / shore relief, blended with the same weights as the colors */
+        vec3 grassBump = mix(terrainGroundBump(terrainGrassNormal, uv),
+                             terrainGroundBump(terrainGrassNormal, uv * 1.37 + vec2(0.31, 0.17)),
+                             smoothstep(0.35, 0.7, macro));
+        vec3 shoreBump = mix(terrainGroundBump(terrainDirtNormal, uv * 2.1),
+                             terrainGroundBump(terrainSoilNormal, uv * 1.3), smoothstep(-2.0, 7.0, h));
+        vec3 groundBump = mix(grassBump, shoreBump, shoreAmount) * terrainNormalStrength;
+        normal = normalize(n + groundBump);
+    }
     if (wantNormal && terrainHasRockNormal && rockAmount > 0.01) {
         /* triplanar normal mapping (UDN blend) on the rock */
         vec3 tx = texture(terrainRockNormal, position.zy * rockScale).xyz * 2.0 - 1.0;
@@ -106,8 +125,8 @@ vec3 terrainSurface(vec3 position, vec3 geometricNormal, bool wantNormal, out ve
         vec3 nx = vec3(0.0, tx.y, tx.x) * 0.8;
         vec3 ny = vec3(ty.x, 0.0, ty.y) * 0.8;
         vec3 nz = vec3(tz.x, tz.y, 0.0) * 0.8;
-        vec3 rockNormal = normalize(n + nx * w.x + ny * w.y + nz * w.z);
-        normal = normalize(mix(n, rockNormal, rockAmount));
+        vec3 rockNormal = normalize(n + (nx * w.x + ny * w.y + nz * w.z) * terrainNormalStrength);
+        normal = normalize(mix(normal, rockNormal, rockAmount));
     }
     return albedo;
 }

@@ -30,6 +30,8 @@ vec3 hash33(vec3 p) {
 vec3 nightSky(vec3 dir) {
     float up = clamp(dir.y, 0.0, 1.0);
     vec3 color = mix(horizonColor, zenithColor, pow(up, 0.45));
+    /* the air near the horizon is thicker: a paler band blending into the haze */
+    color = mix(color, horizonColor * 1.12, pow(1.0 - up, 7.0) * 0.6);
 
     /* stars: one candidate per cell of a 3D grid around the sky sphere */
     vec3 p = dir * 140.0;
@@ -55,7 +57,8 @@ vec3 nightSky(vec3 dir) {
     float s = dot(dir, normalize(sunDirection));
     color += sunColor * sunVisibility * (smoothstep(0.9993, 0.9996, s) * 4.0 +
                                          pow(max(s, 0.0), 500.0) * 1.2 +
-                                         pow(max(s, 0.0), 24.0) * 0.18);
+                                         pow(max(s, 0.0), 24.0) * 0.18 +
+                                         pow(max(s, 0.0), 4.0) * 0.12); /* broad scattering glow */
 
     /* moon disc, halo and a wide glow */
     float m = dot(dir, normalize(moonDirection));

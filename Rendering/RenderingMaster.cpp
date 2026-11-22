@@ -14,6 +14,7 @@
 #include "Button.hpp"
 #include "Font.h"
 #include "ParticleEmitter.h"
+#include "Material.h"
 #include "WaterRenderer.h"
 
 #include <typeinfo>
@@ -232,6 +233,9 @@ RenderingMaster::~RenderingMaster()
     delete flarePostProcess;
     delete smokeRenderer;
     delete m_sunDisc;
+    delete m_ssaoFB; delete m_ssaoBlurFB; delete m_hdrFB;
+    delete m_bloomHalfA; delete m_bloomHalfB; delete m_bloomQuarterA; delete m_bloomQuarterB;
+    delete m_ssaoShader; delete m_ssaoBlurShader; delete m_bloomBrightShader; delete m_blurShader; delete m_tonemapShader;
     delete water;
     for (ParticleEmitter *emitter : particleEmitters) {
         delete emitter;
@@ -339,9 +343,32 @@ void RenderingMaster::drawDeferredShadingBuffers()
         flarePostProcess->process({lensFlareColorTxt});
     }
 
+    const bool hdr = m_environment.hdr;
+    int aoUnit = 13;
+    float aoStrength = 0.0f;
+    if (m_environment.aoStrength > 0.0f) {
+        renderSSAO();
+        aoStrength = m_environment.aoStrength;
+    }
+    deferredShading_BufferCombinationShader.updateUniform("aoSampler", aoUnit);
+    deferredShading_BufferCombinationShader.updateUniform("aoStrength", aoStrength);
+    deferredShading_BufferCombinationShader.updateUniform("hdrEnabled", hdr);
+
     //START FXAA
-    fxaaFrameBuffer.bindSingleRenderTarget(0);
+    if (hdr) {
+        if (m_hdrFB == nullptr) {
+            m_hdrFB = new FrameBuffer(renderWidth, renderHeight, 1, false, GL_RGBA16F);
+        }
+        /* the scene is composited in HDR, then bloomed and tone mapped into the FXAA input */
+        m_hdrFB->bindSingleRenderTarget(0);
+    } else {
+        fxaaFrameBuffer.bindSingleRenderTarget(0);
+    }
     deferredShading_BufferCombinationShader.bind();
+    if (aoStrength > 0.0f) {
+        glActiveTexture(GL_TEXTURE0 + aoUnit);
+        glBindTexture(GL_TEXTURE_2D, m_ssaoBlurFB->getRenderTargets()[0]);
+    }
 
     albedoTexture->use();
     normalTexture->use();
@@ -363,6 +390,10 @@ void RenderingMaster::drawDeferredShadingBuffers()
     screenSizeRectangle->draw();
 
     deferredShading_BufferCombinationShader.unbind();
+    if (hdr) {
+        m_hdrFB->unbind();
+        renderBloomAndToneMap(); /* leaves fxaaFrameBuffer bound */
+    }
     if (water != NULL) {
         water->render(fxaaFrameBuffer);
     }
@@ -399,6 +430,8 @@ void RenderingMaster::update() {
         }
     }
     Light::s_nightFactor = getNightFactor();
+    Material::s_nightFactor = Light::s_nightFactor;
+    ParticleEmitter::s_nightFactor = Light::s_nightFactor;
 
     if (smokeRenderer != NULL) {
         smokeRenderer->update(*camera, updateDt);
@@ -703,7 +736,19 @@ void RenderingMaster::environmentGUI()
 {
     ImGui::SetNextWindowPos(ImVec2(display->getWidth() - 430.0f, 20.0f), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(410.0f, 0.0f), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Time & Atmosphere");
+    ImGui::Begin("World");
+
+    if (onSaveMap && ImGui::Button("Save map (F5)")) {
+        onSaveMap();
+    }
+    ImGui::SameLine();
+    if (onReloadMap && ImGui::Button("Reload saved (F9)")) {
+        onReloadMap();
+    }
+    if (!savedMapPath.empty()) {
+        ImGui::TextDisabled("%s", savedMapPath.c_str());
+    }
+    ImGui::Separator();
 
     bool changed = false;
     if (m_baseEnvironment.dayLength > 0.0f) {
@@ -737,6 +782,15 @@ void RenderingMaster::environmentGUI()
         changed |= ImGui::SliderFloat("Ambient (day)", &m_baseEnvironment.dayAmbient, 0.0f, 0.8f);
         changed |= ImGui::SliderFloat("Stars", &m_baseEnvironment.starIntensity, 0.0f, 3.0f);
     }
+    ImGui::Separator();
+    changed |= ImGui::Checkbox("HDR + filmic tone mapping", &m_baseEnvironment.hdr);
+    if (m_baseEnvironment.hdr) {
+        changed |= ImGui::SliderFloat("Exposure", &m_baseEnvironment.exposure, 0.2f, 4.0f);
+        changed |= ImGui::SliderFloat("Bloom", &m_baseEnvironment.bloomStrength, 0.0f, 2.0f);
+        changed |= ImGui::SliderFloat("Bloom threshold", &m_baseEnvironment.bloomThreshold, 0.2f, 3.0f);
+    }
+    changed |= ImGui::SliderFloat("Ambient occlusion", &m_baseEnvironment.aoStrength, 0.0f, 1.0f);
+    changed |= ImGui::SliderFloat("AO radius", &m_baseEnvironment.aoRadius, 1.0f, 40.0f);
     if (changed) {
         applyEnvironment(m_baseEnvironment.dayLength > 0.0f ?
                          Environment::atTimeOfDay(m_baseEnvironment, m_environment.timeOfDay) : m_baseEnvironment);
@@ -773,6 +827,8 @@ void RenderingMaster::applyEnvironment(const Environment &environment)
 
     Shader &c = deferredShading_BufferCombinationShader;
     c.updateUniform("ambient", e.ambient);
+    c.updateUniform("ambientSky", (void *) &e.ambientSky);
+    c.updateUniform("ambientGround", (void *) &e.ambientGround);
     c.updateUniform("emissiveStrength", e.emissiveStrength);
     c.updateUniform("fogColor", (void *) &e.fogColor);
     c.updateUniform("fogDensity", e.fogDensity);
@@ -845,6 +901,112 @@ void RenderingMaster::drawSunFlareSource()
     glDisable(GL_CULL_FACE);
     m_sunDisc->draw();
     glEnable(GL_CULL_FACE);
+}
+
+static void bindTexture(int unit, GLuint texture) {
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(GL_TEXTURE_2D, texture);
+}
+
+void RenderingMaster::renderSSAO()
+{
+    int w = std::max(16, renderWidth / 2), h = std::max(16, renderHeight / 2);
+    if (m_ssaoFB == nullptr) {
+        m_ssaoFB = new FrameBuffer(w, h, 1);
+        m_ssaoBlurFB = new FrameBuffer(w, h, 1);
+        m_ssaoShader = new Shader("res/shaders/ssao.json");
+        m_ssaoBlurShader = new Shader("res/shaders/ssaoBlur.json");
+        m_ssaoShader->updateUniform("depthSampler", 0);
+        m_ssaoShader->updateUniform("normalSampler", 1);
+        m_ssaoShader->updateUniform("noiseSampler", 2);
+        glm::vec2 noiseScale(w / 64.0f, h / 64.0f);
+        m_ssaoShader->updateUniform("noiseScale", (void *) &noiseScale);
+        m_ssaoBlurShader->updateUniform("aoSampler", 0);
+        glm::vec2 texel(1.0f / w, 1.0f / h);
+        m_ssaoBlurShader->updateUniform("texelSize", (void *) &texel);
+    }
+    glm::mat4 inverseProjection = glm::inverse(projectionMatrix);
+    float radius = m_environment.aoRadius;
+    m_ssaoShader->updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    m_ssaoShader->updateUniform("inverseProjectionMatrix", (void *) &inverseProjection);
+    m_ssaoShader->updateUniform("radius", radius);
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    m_ssaoFB->bindSingleRenderTarget(0);
+    m_ssaoShader->bind();
+    depthTexture->use(0);
+    normalTexture->use(1);
+    blueNoiseTexture->use(2);
+    screenSizeRectangle->draw();
+    m_ssaoFB->unbind();
+
+    m_ssaoBlurFB->bindSingleRenderTarget(0);
+    m_ssaoBlurShader->bind();
+    bindTexture(0, m_ssaoFB->getRenderTargets()[0]);
+    screenSizeRectangle->draw();
+    m_ssaoBlurFB->unbind();
+    glEnable(GL_DEPTH_TEST);
+}
+
+void RenderingMaster::blurPass(FrameBuffer &source, FrameBuffer &target, const glm::vec2 &direction)
+{
+    target.bindSingleRenderTarget(0);
+    m_blurShader->updateUniform("direction", (void *) &direction);
+    m_blurShader->bind();
+    bindTexture(0, source.getRenderTargets()[0]);
+    screenSizeRectangle->draw();
+    target.unbind();
+}
+
+void RenderingMaster::renderBloomAndToneMap()
+{
+    int hw = std::max(16, renderWidth / 2), hh = std::max(16, renderHeight / 2);
+    int qw = std::max(16, renderWidth / 4), qh = std::max(16, renderHeight / 4);
+    if (m_tonemapShader == nullptr) {
+        m_bloomHalfA = new FrameBuffer(hw, hh, 1, false, GL_RGBA16F);
+        m_bloomHalfB = new FrameBuffer(hw, hh, 1, false, GL_RGBA16F);
+        m_bloomQuarterA = new FrameBuffer(qw, qh, 1, false, GL_RGBA16F);
+        m_bloomQuarterB = new FrameBuffer(qw, qh, 1, false, GL_RGBA16F);
+        m_bloomBrightShader = new Shader("res/shaders/bloomBright.json");
+        m_blurShader = new Shader("res/shaders/blur.json");
+        m_tonemapShader = new Shader("res/shaders/tonemap.json");
+        m_bloomBrightShader->updateUniform("hdrSampler", 0);
+        m_blurShader->updateUniform("sourceSampler", 0);
+        m_tonemapShader->updateUniform("hdrSampler", 0);
+        m_tonemapShader->updateUniform("bloomSamplerNear", 1);
+        m_tonemapShader->updateUniform("bloomSamplerFar", 2);
+    }
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+
+    const bool bloom = m_environment.bloomStrength > 0.0f;
+    if (bloom) {
+        /* bright parts -> half res, blurred; then a wider blur at quarter res */
+        float threshold = m_environment.bloomThreshold;
+        m_bloomBrightShader->updateUniform("threshold", threshold);
+        m_bloomHalfA->bindSingleRenderTarget(0);
+        m_bloomBrightShader->bind();
+        bindTexture(0, m_hdrFB->getRenderTargets()[0]);
+        screenSizeRectangle->draw();
+        m_bloomHalfA->unbind();
+        blurPass(*m_bloomHalfA, *m_bloomHalfB, glm::vec2(1.0f / hw, 0.0f));
+        blurPass(*m_bloomHalfB, *m_bloomHalfA, glm::vec2(0.0f, 1.0f / hh));
+        blurPass(*m_bloomHalfA, *m_bloomQuarterA, glm::vec2(2.0f / hw, 0.0f));
+        blurPass(*m_bloomQuarterA, *m_bloomQuarterB, glm::vec2(0.0f, 2.0f / qh));
+    }
+
+    float exposure = m_environment.exposure;
+    float bloomStrength = bloom ? m_environment.bloomStrength : 0.0f;
+    m_tonemapShader->updateUniform("exposure", exposure);
+    m_tonemapShader->updateUniform("bloomStrength", bloomStrength);
+    fxaaFrameBuffer.bindSingleRenderTarget(0);
+    m_tonemapShader->bind();
+    bindTexture(0, m_hdrFB->getRenderTargets()[0]);
+    bindTexture(1, m_bloomHalfA->getRenderTargets()[0]);
+    bindTexture(2, m_bloomQuarterB->getRenderTargets()[0]);
+    screenSizeRectangle->draw();
+    glEnable(GL_DEPTH_TEST);
 }
 
 void RenderingMaster::drawParticles()
