@@ -2,6 +2,8 @@
     "VSPath" : "res/shaders/lightAccCreatorDirLight.vs",
     "FSPath" : "res/shaders/lightAccCreatorDirLight.fs",
     "Uniforms" : {
+                    "pbrEnabled" : "BOOL",
+                    "albedoSampler" : "INT",
                     "castsShadow" : "INT",
                     "dirLightDepthSampler" : "INT",
                     "lightColor" : "VEC3",

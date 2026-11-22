@@ -58,6 +58,11 @@ class Material
         static float s_nightFactor;
         /* scales the specular term (written to the roughness target); 1 = old behaviour */
         void setSpecularStrength(float s) { m_specularStrength = s; }
+        /* PBR (maps with Environment "pbr": true) */
+        void setRoughness(float r) { m_roughness = r; }
+        float getRoughness() const { return m_roughness; }
+        void setMetallic(float m) { m_metallic = m; }
+        float getMetallic() const { return m_metallic; }
         float getSpecularStrength() const { return m_specularStrength; }
         float getEmissive() const { return m_emissive; }
 
@@ -84,6 +89,7 @@ class Material
         float m_emissive = 0.0f;
         bool m_emissiveNightOnly = false;
         float m_specularStrength = 1.0f;
+        float m_roughness = 0.6f, m_metallic = 0.0f;
         TerrainLayers *m_terrain = nullptr;
 
         bool m_isBlackAlpha, m_disableCulling;

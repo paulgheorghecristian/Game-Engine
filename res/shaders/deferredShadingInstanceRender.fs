@@ -11,7 +11,10 @@ struct Material {
     float shininess;
     float normalMapStrength;
     bool isBlackAlpha;
+    float roughness;   /* PBR */
+    float metallic;
 };
+uniform bool pbrEnabled;
 
 uniform sampler2D textureSampler;
 uniform sampler2D normalMapSampler;
@@ -49,7 +52,10 @@ void main(){
         outEyeSpaceNormal = (normalize(mat3(viewMatrix) * mat3(frag_modelMatrix) * fromTangentToModelSpace * normalMapNormal * frontCond) + vec3(1.0)) * 0.5;
 	}
 
-	if (!hasRoughness) {
+	if (pbrEnabled) {
+        float roughness = hasRoughness ? texture(roughnessSampler, textureCoords).r : material.roughness;
+        outRoughness = vec3(roughness, material.metallic, 0.0);
+	} else if (!hasRoughness) {
         outRoughness = vec3(0.5);
 	} else {
         outRoughness = texture(roughnessSampler, textureCoords).xyz;

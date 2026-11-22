@@ -207,6 +207,9 @@ RenderingMaster::RenderingMaster(Display *display,
     Button::getButtonShader().updateUniform("projectionMatrix", (void *) &orthoProjectionMatrix);
 
     smokeRenderer = NULL;
+    SpotLight::getLightAccumulationShader().updateUniform("albedoSampler", 6);
+    PointLight::getLightAccumulationShader().updateUniform("albedoSampler", 6);
+    DirectionalLight::getLightAccumulationShader().updateUniform("albedoSampler", 6);
     setEnvironment(Environment());
     glm::mat4 inverseProjection = glm::inverse(projectionMatrix);
     deferredShading_BufferCombinationShader.updateUniform("inverseProjectionMatrix", (void *) &inverseProjection);
@@ -520,6 +523,7 @@ void RenderingMaster::computeLightAccumulationBufferForLight(Light *light)
     depthTexture->use(2);
     roughnessTexture->use(3);
     blueNoiseTexture->use(4);
+    albedoTexture->use(6); /* PBR light passes apply the surface color themselves */
 
     light->render();
 }
@@ -634,6 +638,8 @@ void RenderingMaster::renderVolumetricLight()
             volumetricLightShader.updateUniform("coef2", spot->getCoef2());
             volumetricLightShader.updateUniform("beamDensity", spot->getBeamDensity());
             volumetricLightShader.updateUniform("beamFalloff", spot->getBeamFalloff());
+            volumetricLightShader.updateUniform("beamSparkle", spot->getBeamSparkle());
+            volumetricLightShader.updateUniform("time", m_renderTime);
             volumetricLightShader.updateUniform("secondFraction", secondFraction);
             lights[i]->render(volumetricLightShader);
             glEnable(GL_DEPTH_TEST);
@@ -783,6 +789,7 @@ void RenderingMaster::environmentGUI()
         changed |= ImGui::SliderFloat("Stars", &m_baseEnvironment.starIntensity, 0.0f, 3.0f);
     }
     ImGui::Separator();
+    changed |= ImGui::Checkbox("PBR shading", &m_baseEnvironment.pbr);
     changed |= ImGui::Checkbox("HDR + filmic tone mapping", &m_baseEnvironment.hdr);
     if (m_baseEnvironment.hdr) {
         changed |= ImGui::SliderFloat("Exposure", &m_baseEnvironment.exposure, 0.2f, 4.0f);
@@ -827,6 +834,13 @@ void RenderingMaster::applyEnvironment(const Environment &environment)
 
     Shader &c = deferredShading_BufferCombinationShader;
     c.updateUniform("ambient", e.ambient);
+    bool pbr = e.pbr;
+    c.updateUniform("pbrEnabled", pbr);
+    deferredShading_SceneShader.updateUniform("pbrEnabled", pbr);
+    deferredShading_InstanceRender.updateUniform("pbrEnabled", pbr);
+    SpotLight::getLightAccumulationShader().updateUniform("pbrEnabled", pbr);
+    PointLight::getLightAccumulationShader().updateUniform("pbrEnabled", pbr);
+    DirectionalLight::getLightAccumulationShader().updateUniform("pbrEnabled", pbr);
     c.updateUniform("ambientSky", (void *) &e.ambientSky);
     c.updateUniform("ambientGround", (void *) &e.ambientGround);
     c.updateUniform("emissiveStrength", e.emissiveStrength);

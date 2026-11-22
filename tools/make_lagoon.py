@@ -121,7 +121,8 @@ rock_top = island_y + 1.31 * island_rock_scale
 buddha_scale = 0.95
 buddha_pos = (C[0], rock_top - 7 + 30 * buddha_scale, C[1])
 entities.append(entity("res/models/buddha.obj", buddha_pos, buddha_scale, (0, 0, 0),
-                       mat((0.95, 0.78, 0.45), shininess=60, emissive=0.04)))
+                       mat((0.95, 0.78, 0.45), shininess=60, emissive=0.04,
+                           extra={"metallic": 1.0, "roughness": 0.3})))       # gold
 # smaller rocks around the island
 for i in range(7):
     a = i * 360 / 7 + random.uniform(-15, 15)
@@ -133,21 +134,24 @@ for i in range(7):
 dr = shore_radius(185) + 25
 dx, dz = polar(185, dr)
 entities.append(entity("res/models/dragon.obj", (dx, H(dx, dz) + 21 * 1.7 - 4, dz), 1.7, (0, 90, 0),
-                       mat((0.25, 0.55, 0.42), shininess=80, emissive=0.03)))
+                       mat((0.25, 0.55, 0.42), shininess=80, emissive=0.03,
+                           extra={"roughness": 0.22})))                        # polished jade
 
 # --- lighthouse on the north-west hill -------------------------------------
 lx, lz = polar(272, 440)   # north shore, straight ahead of the spawn
 lh = H(lx, lz)
 tower_h = 110
 entities.append(entity("res/models/cube4.obj", (lx, lh + tower_h / 2 - 5, lz), (18, tower_h, 18), (0, 20, 0),
-                       mat((0.75, 0.72, 0.7), "res/textures/brick_wall.jpg", "res/textures/brick_wall_normal.jpg")))
+                       mat((0.75, 0.72, 0.7), "res/textures/brick_wall.jpg", "res/textures/brick_wall_normal.jpg",
+                           extra={"roughness": 0.85})))
 lamp = (lx, lh + tower_h - 2, lz)
 entities.append(entity("res/models/sphere.obj", lamp, 7, material=mat((1.0, 0.95, 0.8), emissive=1.0, extra={"emissiveNightOnly": True}), cast_shadow=False))
 
 # --- lantern path from the spawn to the shore --------------------------------
 SPAWN = (490.0, -60.0)
 LANTERN_MAT = mat((1.0, 0.78, 0.45), emissive=1.0, extra={"emissiveNightOnly": True})
-POST_MAT = mat((0.55, 0.45, 0.35), "res/textures/Bark002_2K_Color.jpg", "res/textures/Bark002_2K_Normal.jpg")
+POST_MAT = mat((0.55, 0.45, 0.35), "res/textures/Bark002_2K_Color.jpg", "res/textures/Bark002_2K_Normal.jpg",
+               extra={"roughness": 0.85})
 for i, z in enumerate([-150, -230, -310, -390]):
     x = SPAWN[0] + (-38 if i % 2 == 0 else 38)
     g = H(x, z)
@@ -239,7 +243,7 @@ lights.append(light((0, 0, 0), (0.16, 0.2, 0.32), "DIR", (0, 0, 0), dir=moon, ca
 # lighthouse: sweeping volumetric beam
 # (half angle = scale.x/1000 rad must fit inside the light-volume mesh: atan(scale.x / (2 scale.z)))
 lights.append(light((lamp[0], lamp[1] + 1, lamp[2]), (1.0, 0.93, 0.75), "SPOT", (140, 140, 480), rot=(-12, 180, 0),
-                    cast_shadow=True, volumetric=True, numSamplePoints=32, coef1=0.8, coef2=0.02, beamDensity=0.035, beamFalloff=130, shadowMapSize=1024,
+                    cast_shadow=True, volumetric=True, numSamplePoints=32, coef1=0.8, coef2=0.02, beamDensity=0.04, beamFalloff=200, beamSparkle=1.5, shadowMapSize=1024,
                     diffuse_attenuation=[3, 10, 1.4], specular_attenuation=[5, 10, 0.5], spin=20, nightOnly=True))
 # statue uplights
 for color, side in (((0.95, 0.3, 0.85), -1), ((0.3, 0.85, 1.0), 1)):
@@ -301,6 +305,7 @@ game = {
                     "fogColor": [0.055, 0.07, 0.11], "fogDensity": 0.0024, "fogHeightFalloff": 0.0035,
                     "fogBaseHeight": WATER, "fogMoonGlow": 0.35, "ambient": 0.05, "emissiveStrength": 1.6,
                     # HDR + filmic tone mapping, bloom, ambient occlusion
+                    "pbr": True,
                     "hdr": True, "exposure": 1.25, "bloomStrength": 0.5, "bloomThreshold": 0.9,
                     "aoStrength": 0.9, "aoRadius": 10,
                     # hemisphere ambient: moonlit sky above, dark ground below

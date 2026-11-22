@@ -35,6 +35,8 @@ void RenderComponent::render(Shader *externShader) {
         result &= externShader->updateUniform ("material.isBlackAlpha", m_materials[i]->getIsBlackAlpha());
         externShader->updateUniform ("material.emissive", m_materials[i]->getEffectiveEmissive());
         externShader->updateUniform ("material.specularStrength", m_materials[i]->getSpecularStrength());
+        externShader->updateUniform ("material.roughness", m_materials[i]->getRoughness());
+        externShader->updateUniform ("material.metallic", m_materials[i]->getMetallic());
 
         const TerrainLayers *terrain = m_materials[i]->getTerrain();
         bool terrainEnabled = terrain != nullptr && terrain->grass != nullptr && terrain->rock != nullptr;

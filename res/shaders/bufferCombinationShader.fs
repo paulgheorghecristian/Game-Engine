@@ -25,6 +25,9 @@ uniform vec3 ambientGround;      /* ... and down-facing surfaces */
 uniform sampler2D aoSampler;     /* screen-space ambient occlusion (1 = open) */
 uniform float aoStrength;        /* 0 = off */
 uniform bool hdrEnabled;         /* false: light is clamped at 1.0 like the old 8-bit buffer */
+uniform bool pbrEnabled;         /* light buffer already includes albedo; roughness target = (roughness, metallic) */
+
+
 uniform float emissiveStrength;
 uniform vec3 fogColor;
 uniform float fogDensity;        /* 0: no fog */
@@ -34,6 +37,34 @@ uniform mat4 inverseProjectionMatrix;
 uniform mat4 inverseViewMatrix;
 uniform float fogMoonGlow;
 uniform vec3 moonDirection, moonColor;
+
+/* PBR: lit color = direct light (from the light passes) + ambient light,
+ * diffuse for dielectrics plus a Fresnel-weighted specular share from the sky */
+vec3 pbrComposite(vec3 albedo) {
+    vec3 direct = texture(lightAccumulationSampler, textureCoords).xyz;
+    if (!hdrEnabled) {
+        direct = min(direct, vec3(1.0));
+    }
+    vec3 surface = texture(roughnessSampler, textureCoords).rgb;
+    float roughness = clamp(surface.r, 0.05, 1.0);
+    float metallic = clamp(surface.g, 0.0, 1.0);
+
+    vec3 nEye = texture(normalSampler, textureCoords).xyz * 2.0 - 1.0;
+    float d = texture(depthSampler, textureCoords).x;
+    vec4 view = inverseProjectionMatrix * vec4(textureCoords * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);
+    vec3 V = normalize(-view.xyz / view.w);
+    vec3 N = length(nEye) > 0.1 ? normalize(nEye) : V;
+    float NdotV = max(dot(N, V), 0.0);
+    vec3 worldN = normalize(mat3(inverseViewMatrix) * N);
+
+    float occlusion = aoStrength > 0.0 ? mix(1.0, texture(aoSampler, textureCoords).r, aoStrength) : 1.0;
+    vec3 hemisphere = mix(ambientGround, ambientSky, worldN.y * 0.5 + 0.5);
+    vec3 F0 = mix(vec3(0.04), albedo, metallic);
+    vec3 F = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - NdotV, 5.0);
+    vec3 diffuseAmbient = (1.0 - F) * (1.0 - metallic) * albedo * hemisphere;
+    vec3 specularAmbient = F * ambientSky * (1.0 - 0.6 * roughness);
+    return direct + (diffuseAmbient + specularAmbient) * occlusion;
+}
 
 /* fog factor for the pixel at textureCoords with depth buffer value d;
  * also returns the fog color, brightened toward the moon */
@@ -119,7 +150,8 @@ void main() {
         if (depthVal.x != 1) {
             vec4 albedoEmissive = texture(colorSampler, textureCoords);
             float emissive = 1.0 - albedoEmissive.a;
-            vec3 finalColor = albedoPixel * lightAccumulation() + albedoPixel * emissive * emissiveStrength;
+            vec3 finalColor = (pbrEnabled ? pbrComposite(albedoPixel) : albedoPixel * lightAccumulation()) +
+                              albedoPixel * emissive * emissiveStrength;
             vec3 hazeColor;
             float haze = fogAmount(texture(depthSampler, textureCoords).x, hazeColor);
             finalColor = mix(finalColor, hazeColor, haze);

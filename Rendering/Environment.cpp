@@ -37,6 +37,7 @@ void Environment::load(const rapidjson::Value &json)
     readFloat(json, "fogMoonGlow", fogMoonGlow);
     readFloat(json, "ambient", ambient);
     if (json.HasMember("hdr") && json["hdr"].IsBool()) hdr = json["hdr"].GetBool();
+    if (json.HasMember("pbr") && json["pbr"].IsBool()) pbr = json["pbr"].GetBool();
     readFloat(json, "exposure", exposure);
     readFloat(json, "bloomStrength", bloomStrength);
     readFloat(json, "bloomThreshold", bloomThreshold);
@@ -144,6 +145,7 @@ void Environment::save(rapidjson::Value &json, rapidjson::Document::AllocatorTyp
     writeVec3(json, "ambientGroundTint", ambientGroundTint, allocator);
     json.AddMember("emissiveStrength", emissiveStrength, allocator);
     json.AddMember("hdr", hdr, allocator);
+    json.AddMember("pbr", pbr, allocator);
     json.AddMember("exposure", exposure, allocator);
     json.AddMember("bloomStrength", bloomStrength, allocator);
     json.AddMember("bloomThreshold", bloomThreshold, allocator);

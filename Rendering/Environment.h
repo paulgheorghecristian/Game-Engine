@@ -30,6 +30,7 @@ struct Environment
 
     /* post-processing (all off by default) */
     bool hdr = false;                   /* filmic tone mapping instead of clipping at 1.0 */
+    bool pbr = false;                   /* physically based shading (roughness / metallic materials) */
     float exposure = 1.0f;
     float bloomStrength = 0.0f;         /* needs hdr */
     float bloomThreshold = 1.0f;

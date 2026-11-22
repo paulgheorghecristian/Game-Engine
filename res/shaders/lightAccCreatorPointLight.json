@@ -2,6 +2,8 @@
     "VSPath" : "res/shaders/lightAccCreatorPointLight.vs",
     "FSPath" : "res/shaders/lightAccCreatorPointLight.fs",
     "Uniforms" : {
+                    "pbrEnabled" : "BOOL",
+                    "albedoSampler" : "INT",
                     "modelMatrix" : "MAT4",
                     "viewMatrix" : "MAT4",
                     "projectionMatrix" : "MAT4",

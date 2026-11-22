@@ -38,6 +38,8 @@ class SpotLight : public Light
         float getBeamFalloff() const { return m_beamFalloff; }
         void setBeamDensity(float d) { m_beamDensity = d; }
         void setBeamFalloff(float f) { m_beamFalloff = f; }
+        float getBeamSparkle() const { return m_beamSparkle; }
+        void setBeamSparkle(float s) { m_beamSparkle = s; }
 
         void setNumSamplePoints(int num) { numSamplePoints = num; }
         void setCoef1(float coef) { coef1 = coef; }
@@ -55,7 +57,7 @@ class SpotLight : public Light
         glm::vec3 worldRot;
 
         int numSamplePoints;
-        float m_beamDensity = 0.0f, m_beamFalloff = 250.0f;
+        float m_beamDensity = 0.0f, m_beamFalloff = 250.0f, m_beamSparkle = 0.0f;
         float coef1;
         float coef2;
 

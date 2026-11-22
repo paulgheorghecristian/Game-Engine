@@ -13,6 +13,8 @@ struct Material {
     bool isBlackAlpha;
     float emissive; /* 0..1, stored as (1 - alpha) in the albedo target */
     float specularStrength; /* 1.0 unless a map asks for duller surfaces */
+    float roughness;        /* PBR */
+    float metallic;
 };
 
 uniform sampler2D textureSampler;
@@ -22,6 +24,7 @@ uniform Material material;
 uniform bool hasTexture;
 uniform bool hasNormalMap;
 uniform bool hasRoughness;
+uniform bool pbrEnabled; /* the "roughness" target holds (roughness, metallic) instead of a specular mask */
 uniform mat4 viewMatrix, modelMatrix;
 
 in vec3 eyeSpaceNormal;
@@ -64,7 +67,8 @@ float terrainMacro(vec2 p) {
 }
 
 /* albedo + (world) normal + specular strength for a terrain point */
-vec3 terrainSurface(vec3 position, vec3 geometricNormal, bool wantNormal, out vec3 normal, out float specular) {
+vec3 terrainSurface(vec3 position, vec3 geometricNormal, bool wantNormal, out vec3 normal, out float specular,
+                    out float roughness) {
     vec3 n = normalize(geometricNormal);
     float scale = 1.0 / terrainTileSize;
     vec2 uv = position.xz * scale;
@@ -105,6 +109,9 @@ vec3 terrainSurface(vec3 position, vec3 geometricNormal, bool wantNormal, out ve
     albedo *= mix(0.82, 1.12, macro);
 
     specular = mix(0.06, 0.22, rockAmount) + (1.0 - smoothstep(-1.0, 3.0, h)) * 0.4;
+    /* PBR: grass is very rough, rock less so, wet mud at the waterline is smooth */
+    roughness = mix(0.92, 0.65, rockAmount);
+    roughness = mix(roughness, 0.25, 1.0 - smoothstep(-1.0, 4.0, h));
 
     normal = n;
     if (wantNormal && terrainHasGroundNormals) {
@@ -135,11 +142,11 @@ vec3 terrainSurface(vec3 position, vec3 geometricNormal, bool wantNormal, out ve
 void main(){
     if (terrainEnabled) {
         vec3 terrainNormal;
-        float terrainSpecular;
-        vec3 albedo = terrainSurface(worldPosition, worldNormal, true, terrainNormal, terrainSpecular);
+        float terrainSpecular, terrainRoughness;
+        vec3 albedo = terrainSurface(worldPosition, worldNormal, true, terrainNormal, terrainSpecular, terrainRoughness);
         outColor = vec4(albedo * material.diffuse, 1.0 - material.emissive);
         outEyeSpaceNormal = (normalize(mat3(viewMatrix) * terrainNormal) + vec3(1.0)) * 0.5;
-        outRoughness = vec3(terrainSpecular);
+        outRoughness = pbrEnabled ? vec3(terrainRoughness, 0.0, 0.0) : vec3(terrainSpecular);
         return;
     }
     if (hasTexture){
@@ -163,7 +170,10 @@ void main(){
         outEyeSpaceNormal = (normalize(mat3(viewMatrix) * mat3(modelMatrix) * fromTangentToModelSpace * normalMapNormal * frontCond) + vec3(1.0)) * 0.5;
 	}
 
-	if (!hasRoughness) {
+	if (pbrEnabled) {
+        float roughness = hasRoughness ? texture(roughnessSampler, textureCoords).r : material.roughness;
+        outRoughness = vec3(roughness, material.metallic, 0.0);
+	} else if (!hasRoughness) {
         outRoughness = vec3(material.specularStrength);
 	} else {
         outRoughness = texture(roughnessSampler, textureCoords).xyz * material.specularStrength;

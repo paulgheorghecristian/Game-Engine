@@ -1141,6 +1141,9 @@ void EngineCore::loadLights(rapidjson::Document &gameDocument) {
                         if (attribs.HasMember("beamFalloff")) {
                             spot->setBeamFalloff(attribs["beamFalloff"].GetFloat());
                         }
+                        if (attribs.HasMember("beamSparkle")) {
+                            spot->setBeamSparkle(attribs["beamSparkle"].GetFloat());
+                        }
                     }
                 }
             }

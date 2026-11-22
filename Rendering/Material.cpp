@@ -105,6 +105,8 @@ Material *Material::clone() const {
     copy->m_emissive = m_emissive;
     copy->m_emissiveNightOnly = m_emissiveNightOnly;
     copy->m_specularStrength = m_specularStrength;
+    copy->m_roughness = m_roughness;
+    copy->m_metallic = m_metallic;
     copy->m_diffuseTexture = cloneTexture(m_diffuseTexture);
     copy->m_normalTexture = cloneTexture(m_normalTexture);
     copy->m_roughnessTexture = cloneTexture(m_roughnessTexture);

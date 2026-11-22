@@ -51,7 +51,8 @@ float terrainMacro(vec2 p) {
 }
 
 /* albedo + (world) normal + specular strength for a terrain point */
-vec3 terrainSurface(vec3 position, vec3 geometricNormal, bool wantNormal, out vec3 normal, out float specular) {
+vec3 terrainSurface(vec3 position, vec3 geometricNormal, bool wantNormal, out vec3 normal, out float specular,
+                    out float roughness) {
     vec3 n = normalize(geometricNormal);
     float scale = 1.0 / terrainTileSize;
     vec2 uv = position.xz * scale;
@@ -92,6 +93,9 @@ vec3 terrainSurface(vec3 position, vec3 geometricNormal, bool wantNormal, out ve
     albedo *= mix(0.82, 1.12, macro);
 
     specular = mix(0.06, 0.22, rockAmount) + (1.0 - smoothstep(-1.0, 3.0, h)) * 0.4;
+    /* PBR: grass is very rough, rock less so, wet mud at the waterline is smooth */
+    roughness = mix(0.92, 0.65, rockAmount);
+    roughness = mix(roughness, 0.25, 1.0 - smoothstep(-1.0, 4.0, h));
 
     normal = n;
     if (wantNormal && terrainHasGroundNormals) {
@@ -136,8 +140,8 @@ void main() {
     vec3 albedo = material.diffuse;
     if (terrainEnabled) {
         vec3 terrainNormal;
-        float terrainSpecular;
-        albedo *= terrainSurface(worldPosition, worldNormal, false, terrainNormal, terrainSpecular);
+        float terrainSpecular, terrainRoughness;
+        albedo *= terrainSurface(worldPosition, worldNormal, false, terrainNormal, terrainSpecular, terrainRoughness);
     } else if (hasTexture) {
         vec3 texel = texture(textureSampler, textureCoords).rgb;
         if (material.isBlackAlpha && (texel.r + texel.g + texel.b) / 3.0 <= 0.1) {
