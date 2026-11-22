@@ -24,7 +24,13 @@ SpotLight::SpotLight(const Transform &transform,
     float near = 1.0f;
     float far = m_transform.getScale().z+near;
 
-    m_shadowMapProjectionMatrix = glm::perspective(glm::radians(90.0f), 1.0f, near, far);
+    /* a cone with an explicit angle gets a frustum fitted around it, so the
+     * whole shadow map covers the beam (90 degrees otherwise, as before) */
+    float fov = glm::radians(90.0f);
+    if (m_coneAngle > 0.0f) {
+        fov = glm::min(fov, 2.0f * m_coneAngle * 1.2f);
+    }
+    m_shadowMapProjectionMatrix = glm::perspective(fov, 1.0f, near, far);
     m_shadowMapViewMatrix = glm::mat4_cast (glm::inverse (m_transform.getRotation()));
     m_shadowMapViewMatrix = glm::translate (m_shadowMapViewMatrix, -(m_transform.getPosition()));
 
@@ -62,7 +68,7 @@ void SpotLight::render()
     Shader &shader = getLightAccumulationShader();
 
     // empirical value
-    float alpha = m_transform.getScale().x / 1000.0f;
+    float alpha = getConeAngle();
     float lightLength = m_transform.getScale().z;
 
     shader.updateUniform("spotLightProjectionMatrix", (void *) &m_shadowMapProjectionMatrix);
@@ -108,7 +114,13 @@ void SpotLight::recomputeShadowMapProjectionMatrix()
     float near = 1.0f;
     float far = m_transform.getScale().z+near;
 
-    m_shadowMapProjectionMatrix = glm::perspective(glm::radians(90.0f), 1.0f, near, far);
+    /* a cone with an explicit angle gets a frustum fitted around it, so the
+     * whole shadow map covers the beam (90 degrees otherwise, as before) */
+    float fov = glm::radians(90.0f);
+    if (m_coneAngle > 0.0f) {
+        fov = glm::min(fov, 2.0f * m_coneAngle * 1.2f);
+    }
+    m_shadowMapProjectionMatrix = glm::perspective(fov, 1.0f, near, far);
 }
 
 void SpotLight::prepareOpenGLForLightPass()
@@ -170,6 +182,11 @@ void SpotLight::renderGUI() {
         ImGui::DragFloat("Radius", &scale.x, 0.1f);
         ImGui::DragFloat("Length", &scale.z, 0.1f);
         scale.y = scale.x;
+        if (m_coneAngle > 0.0f) {
+            ImGui::SliderFloat("Cone angle", &m_coneAngle, 0.101f, 0.6f, "%.3f rad");
+            /* keep the light volume enclosing the cone */
+            scale.x = scale.y = glm::max(scale.x, 2.1f * scale.z * glm::tan(m_coneAngle));
+        }
 
         ImGui::Text("Volumetric attribs");
         ImGui::DragInt("numSamplePoints", &numSamplePoints);
@@ -178,7 +195,6 @@ void SpotLight::renderGUI() {
         ImGui::Text("Beam (beamDensity > 0: fades along its length)");
         ImGui::SliderFloat("Beam density", &m_beamDensity, 0.0f, 0.2f, "%.3f");
         ImGui::SliderFloat("Beam falloff", &m_beamFalloff, 20.0f, 1000.0f, "%.0f");
-        ImGui::SliderFloat("Beam droplets", &m_beamSparkle, 0.0f, 3.0f, "%.2f");
 
         m_transform.setScale(scale);
 
@@ -213,7 +229,9 @@ std::string SpotLight::jsonifyAttribs() {
     if (m_beamDensity > 0.0f) {
         res += ",\"beamDensity\":" + std::to_string(m_beamDensity);
         res += ",\"beamFalloff\":" + std::to_string(m_beamFalloff);
-        res += ",\"beamSparkle\":" + std::to_string(m_beamSparkle);
+    }
+    if (m_coneAngle > 0.0f) {
+        res += ",\"coneAngle\":" + std::to_string(m_coneAngle);
     }
 
     return res;

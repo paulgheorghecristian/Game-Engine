@@ -25,8 +25,6 @@
                     "coef2" : "FLOAT",
                     "beamDensity" : "FLOAT",
                     "beamFalloff" : "FLOAT",
-                    "beamSparkle" : "FLOAT",
-                    "time" : "FLOAT",
                     "secondFraction": "FLOAT"
                  }
 }

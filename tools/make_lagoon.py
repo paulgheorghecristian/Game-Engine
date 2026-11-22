@@ -240,11 +240,15 @@ entities.append(instanced("res/models/rock.obj", stones, ROCK_MAT))
 moon = [-0.25, 0.5, -0.83]   # towards the moon (~28 degrees up, above the northern hills)
 lights.append(light((0, 0, 0), (0.16, 0.2, 0.32), "DIR", (0, 0, 0), dir=moon, cast_shadow=True,
                     diffuse_attenuation=[0, 0, 0], specular_attenuation=[0, 0, 0]))
-# lighthouse: sweeping volumetric beam
-# (half angle = scale.x/1000 rad must fit inside the light-volume mesh: atan(scale.x / (2 scale.z)))
-lights.append(light((lamp[0], lamp[1] + 1, lamp[2]), (1.0, 0.93, 0.75), "SPOT", (140, 140, 480), rot=(-12, 180, 0),
-                    cast_shadow=True, volumetric=True, numSamplePoints=32, coef1=0.8, coef2=0.02, beamDensity=0.04, beamFalloff=200, beamSparkle=1.5, shadowMapSize=1024,
-                    diffuse_attenuation=[3, 10, 1.4], specular_attenuation=[5, 10, 0.5], spin=20, nightOnly=True))
+# lighthouse: sweeping volumetric beam. coneAngle decouples the beam width
+# from its range (the light volume, scale.x, just has to enclose the cone), so
+# it reaches the hills and shore and leaves a pool of light where it lands
+BEAM_ANGLE, BEAM_RANGE = 0.13, 1150
+beam_volume = round(2 * BEAM_RANGE * math.tan(BEAM_ANGLE) * 1.08, 1)
+lights.append(light((lamp[0], lamp[1] + 1, lamp[2]), (1.0, 0.93, 0.75), "SPOT", (beam_volume, beam_volume, BEAM_RANGE), rot=(-11, 180, 0),
+                    cast_shadow=True, volumetric=True, numSamplePoints=48, coef1=0.8, coef2=0.02,
+                    beamDensity=0.035, beamFalloff=280, coneAngle=BEAM_ANGLE, shadowMapSize=1024,
+                    diffuse_attenuation=[30, 1, 0.1], specular_attenuation=[40, 1, 0.2], spin=20, nightOnly=True))
 # statue uplights
 for color, side in (((0.95, 0.3, 0.85), -1), ((0.3, 0.85, 1.0), 1)):
     src = (C[0] + side * 22, rock_top + 2, C[1] + 26)

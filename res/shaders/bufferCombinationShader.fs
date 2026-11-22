@@ -63,7 +63,7 @@ vec3 pbrComposite(vec3 albedo) {
     float occlusion = aoStrength > 0.0 ? mix(1.0, texture(aoSampler, textureCoords).r, aoStrength) : 1.0;
     vec3 hemisphere = mix(ambientGround, ambientSky, worldN.y * 0.5 + 0.5);
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
-    vec3 F = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - NdotV, 5.0);
+    vec3 F = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - NdotV, 0.0, 1.0), 5.0);
     vec3 diffuseAmbient = (1.0 - F) * (1.0 - metallic) * albedo * hemisphere;
     vec3 specularAmbient;
     if (skyReflections) {

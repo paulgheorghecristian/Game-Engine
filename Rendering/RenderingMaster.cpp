@@ -624,7 +624,7 @@ void RenderingMaster::renderVolumetricLight()
     for (unsigned int i = 0; i < lights.size(); i++) {
         SpotLight *spot = NULL;
         if ((spot = dynamic_cast<SpotLight *>(lights[i])) != NULL && spot->isVolumetric() == true) {
-            float alpha = lights[i]->getTransform().getScale().x / 1000.0f;
+            float alpha = spot->getConeAngle();
             float virtualSphereDiameter = lights[i]->getTransform().getScale().z * 2.0f;
 
             lights[i]->getShadowMapTexture().use(0);
@@ -652,8 +652,6 @@ void RenderingMaster::renderVolumetricLight()
             volumetricLightShader.updateUniform("coef2", spot->getCoef2());
             volumetricLightShader.updateUniform("beamDensity", spot->getBeamDensity());
             volumetricLightShader.updateUniform("beamFalloff", spot->getBeamFalloff());
-            volumetricLightShader.updateUniform("beamSparkle", spot->getBeamSparkle());
-            volumetricLightShader.updateUniform("time", m_renderTime);
             volumetricLightShader.updateUniform("secondFraction", secondFraction);
             lights[i]->render(volumetricLightShader);
             glEnable(GL_DEPTH_TEST);

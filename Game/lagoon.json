@@ -4030,14 +4030,14 @@
      -1214.73
     ],
     "rotation": [
-     -12,
+     -11,
      180,
      0
     ],
     "scale": [
-     140,
-     140,
-     480
+     324.8,
+     324.8,
+     1150
     ]
    },
    "Attributes": {
@@ -4049,22 +4049,22 @@
     "type": "SPOT",
     "cast_shadow": true,
     "volumetric": true,
-    "numSamplePoints": 32,
+    "numSamplePoints": 48,
     "coef1": 0.8,
     "coef2": 0.02,
-    "beamDensity": 0.04,
-    "beamFalloff": 200,
-    "beamSparkle": 1.5,
+    "beamDensity": 0.035,
+    "beamFalloff": 280,
+    "coneAngle": 0.13,
     "shadowMapSize": 1024,
     "diffuse_attenuation": [
-     3,
-     10,
-     1.4
+     30,
+     1,
+     0.1
     ],
     "specular_attenuation": [
-     5,
-     10,
-     0.5
+     40,
+     1,
+     0.2
     ],
     "spin": 20,
     "nightOnly": true

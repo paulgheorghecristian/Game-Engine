@@ -106,7 +106,7 @@ void WaterRenderer::uploadForwardLights(Shader &shader, const glm::vec3 &referen
         } else if (dynamic_cast<SpotLight *>(light) != NULL) {
             fl.radius = t.getScale().z;
             glm::vec3 dir = glm::normalize(glm::mat3(t.getModelMatrix()) * glm::vec3(0, 0, -1));
-            fl.spot = glm::vec4(dir, glm::cos(t.getScale().x / 1000.0f));
+            fl.spot = glm::vec4(dir, glm::cos(dynamic_cast<SpotLight *>(light)->getConeAngle()));
         } else {
             continue; /* directional lights come in as the moon */
         }

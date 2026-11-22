@@ -91,7 +91,7 @@ void main() {
     }
 
     float cosTheta = max(dot(V, normalize(mix(vec3(0, 1, 0), normal, 0.25))), 0.0);
-    float fresnel = clamp((0.02 + 0.98 * pow(1.0 - cosTheta, 5.0)) * reflectivity, 0.0, 1.0);
+    float fresnel = clamp((0.02 + 0.98 * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0)) * reflectivity, 0.0, 1.0);
     vec3 color = mix(refraction, reflection, fresnel);
 
     /* glints: the moon and every nearby light */

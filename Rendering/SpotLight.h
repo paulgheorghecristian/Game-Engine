@@ -38,8 +38,15 @@ class SpotLight : public Light
         float getBeamFalloff() const { return m_beamFalloff; }
         void setBeamDensity(float d) { m_beamDensity = d; }
         void setBeamFalloff(float f) { m_beamFalloff = f; }
-        float getBeamSparkle() const { return m_beamSparkle; }
-        void setBeamSparkle(float s) { m_beamSparkle = s; }
+        /* Cone half-angle in radians. By default it is derived from the
+         * light's scale (scale.x / 1000, the original convention, which ties
+         * the beam width to its range); "coneAngle" sets it independently so a
+         * narrow beam can reach far. The light volume must still enclose the
+         * cone: scale.x >= 2 * scale.z * tan(coneAngle). */
+        float getConeAngle() const {
+            return m_coneAngle > 0.0f ? m_coneAngle : m_transform.getScale().x / 1000.0f;
+        }
+        void setConeAngle(float a) { m_coneAngle = a; }
 
         void setNumSamplePoints(int num) { numSamplePoints = num; }
         void setCoef1(float coef) { coef1 = coef; }
@@ -57,7 +64,7 @@ class SpotLight : public Light
         glm::vec3 worldRot;
 
         int numSamplePoints;
-        float m_beamDensity = 0.0f, m_beamFalloff = 250.0f, m_beamSparkle = 0.0f;
+        float m_beamDensity = 0.0f, m_beamFalloff = 250.0f, m_coneAngle = 0.0f;
         float coef1;
         float coef2;
 

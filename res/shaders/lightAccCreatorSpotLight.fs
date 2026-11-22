@@ -68,7 +68,7 @@ vec3 pbrShade(vec2 uv, vec3 P, vec3 N, vec3 L, vec3 radiance) {
     float k = (roughness + 1.0) * (roughness + 1.0) / 8.0;
     float G = (NdotV / (NdotV * (1.0 - k) + k)) * (NdotL / (NdotL * (1.0 - k) + k));
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
-    vec3 F = F0 + (1.0 - F0) * pow(1.0 - VdotH, 5.0);
+    vec3 F = F0 + (1.0 - F0) * pow(clamp(1.0 - VdotH, 0.0, 1.0), 5.0);
 
     vec3 specular = D * G * F / (4.0 * NdotV * max(NdotL, 1e-4));
     vec3 diffuse = (1.0 - F) * (1.0 - metallic) * albedo;
