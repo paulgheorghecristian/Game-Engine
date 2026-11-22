@@ -313,6 +313,7 @@ void WaterRenderer::render(FrameBuffer &target)
     shader.updateUniform("reflectionGlow", m_reflectionGlow);
     uploadEnvironment(shader);
     uploadForwardLights(shader, camera->getPosition());
+    rm->uploadWind(shader);
 
     m_reflectionTexture.use(0);
     m_sceneCopyTexture.use(1);

@@ -252,6 +252,7 @@ RenderingMaster::~RenderingMaster()
     delete grass;
     for (BlackHole *hole : blackHoles) delete hole;
     delete m_lensCopyFB;
+    delete m_lensSkyFB;
     for (ParticleEmitter *emitter : particleEmitters) {
         delete emitter;
     }
@@ -502,6 +503,34 @@ void RenderingMaster::prepareFrame(float alpha) {
     skyShader->updateUniform("time", m_renderTime);
     /* clouds drift with time; the sky needs the camera to place them in the world */
     skyShader->updateUniform("cloudTime", m_renderTime);
+    {
+        /* a black hole in the sky: the moon stream in the sky shader spirals into it */
+        BlackHole *skyHole = nullptr;
+        for (BlackHole *hole : blackHoles) {
+            if (hole->sky) { skyHole = hole; break; }
+        }
+        m_skyCloudCut = skyHole != nullptr && m_environment.cloudCoverage > 0.0f;
+        float clear = skyHole != nullptr ? skyHole->cloudClear : 0.0f;
+        skyShader->updateUniform("holeCloudClear", clear);
+        skyShader->updateUniform("cloudPass", 0);
+        float stream = skyHole != nullptr ? skyHole->moonStream : 0.0f;
+        skyShader->updateUniform("moonStream", stream);
+        if (skyHole != nullptr) {
+            glm::vec3 holeDirection = glm::normalize(skyHole->direction);
+            glm::vec3 holeDiskNormal = skyHole->diskNormal();
+            float diskAngle = skyHole->diskOuterAngle();
+            skyShader->updateUniform("blackHoleDirection", (void *) &holeDirection);
+            skyShader->updateUniform("blackHoleDiskNormal", (void *) &holeDiskNormal);
+            skyShader->updateUniform("blackHoleDiskAngle", diskAngle);
+            skyShader->updateUniform("blackHoleDiskColor", (void *) &skyHole->diskColor);
+            /* the clouds are cut out where the hole bends the sky (a bit beyond
+             * its reach: rays grazing the shadow look further out) */
+            float lensAngle = std::asin(std::min(skyHole->influence * std::tan(skyHole->angularRadius), 0.99f));
+            glm::vec2 cutCos(std::cos(std::min(lensAngle * 1.3f, 1.3f)), std::cos(std::min(lensAngle * 1.6f, 1.5f)));
+            skyShader->updateUniform("cloudCutDirection", (void *) &holeDirection);
+            skyShader->updateUniform("cloudCutCos", (void *) &cutCos);
+        }
+    }
     skyShader->updateUniform("cameraPosition", (void *) &camera->getPosition());
     DirectionalLight::getLightAccumulationShader().updateUniform("cloudTime", m_renderTime);
     uploadWind(deferredShading_InstanceRender);
@@ -645,6 +674,13 @@ std::vector<Light *> &RenderingMaster::getLights()
     return lights;
 }
 
+void RenderingMaster::drawMainSky()
+{
+    skyShader->updateUniform("cloudPass", m_skyCloudCut ? 1 : 0);
+    drawSky();
+    skyShader->updateUniform("cloudPass", 0);
+}
+
 void RenderingMaster::drawSky()
 {
     glDepthMask(GL_FALSE);
@@ -730,12 +766,25 @@ void RenderingMaster::renderBlackHoles(FrameBuffer &target)
     }
     GLuint sky = m_environment.pbr ? m_skyCube : 0;
     for (BlackHole *hole : blackHoles) {
+        GLuint lensSky = 0;
+        if (hole->sky) {
+            if (!hole->skyMayBeVisible(camera->getForward(), projectionMatrix)) {
+                continue;
+            }
+            renderLensSky(*hole);
+            lensSky = m_lensSkyFB->getRenderTargets()[0];
+        }
         glBindFramebuffer(GL_READ_FRAMEBUFFER, target.getFrameBufferObject());
         glReadBuffer(GL_COLOR_ATTACHMENT0);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_lensCopyFB->getFrameBufferObject());
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
         glBlitFramebuffer(0, 0, renderWidth, renderHeight, 0, 0, renderWidth, renderHeight,
                           GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        /* mipmaps: the lens samples it minified near the Einstein ring */
+        glBindTexture(GL_TEXTURE_2D, m_lensCopyFB->getRenderTargets()[0]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, target.getFrameBufferObject());
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
         glViewport(0, 0, renderWidth, renderHeight);
@@ -743,10 +792,60 @@ void RenderingMaster::renderBlackHoles(FrameBuffer &target)
         glDepthMask(GL_FALSE);
         glDisable(GL_BLEND);
         hole->render(m_lensCopyFB->getRenderTargets()[0], depthTexture->getTextureId(), sky,
-                     renderWidth, renderHeight);
+                     renderWidth, renderHeight, lensSky);
+    }
+    if (m_skyCloudCut) {
+        /* the clouds in front of a sky black hole, over what it bent */
+        glBindFramebuffer(GL_FRAMEBUFFER, target.getFrameBufferObject());
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        glViewport(0, 0, renderWidth, renderHeight);
+        glEnable(GL_BLEND);
+        glBlendEquation(GL_FUNC_ADD);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        depthTexture->use(13);
+        glm::mat4 cameraView = camera->getViewMatrix();
+        glm::vec2 screenSize((float) renderWidth, (float) renderHeight);
+        skyShader->updateUniform("viewMatrix", (void *) &cameraView);
+        skyShader->updateUniform("projectionMatrix", (void *) &projectionMatrix);
+        skyShader->updateUniform("sceneDepth", 13);
+        skyShader->updateUniform("screenSize", (void *) &screenSize);
+        skyShader->updateUniform("cloudPass", 2);
+        drawSky();
+        skyShader->updateUniform("cloudPass", 0);
+        glDisable(GL_BLEND);
     }
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
+}
+
+/* the sky behind a sky black hole: stars, moon and the moon stream, without
+ * the clouds (they are in front of it), sharper than the screen around it */
+void RenderingMaster::renderLensSky(const BlackHole &hole)
+{
+    if (m_lensSkyFB == nullptr) {
+        m_lensSkyFB = new FrameBuffer(LENS_SKY_SIZE, LENS_SKY_SIZE, 1, false, GL_RGBA16F);
+    }
+    glm::mat4 view = hole.lensSkyView();
+    glm::mat4 projection = hole.lensSkyProjection();
+    m_lensSkyFB->bindSingleRenderTarget(0);
+    glViewport(0, 0, LENS_SKY_SIZE, LENS_SKY_SIZE);
+    glDisable(GL_BLEND);
+    skyShader->updateUniform("viewMatrix", (void *) &view);
+    skyShader->updateUniform("projectionMatrix", (void *) &projection);
+    skyShader->updateUniform("cloudPass", 3);
+    drawSky();
+    skyShader->updateUniform("cloudPass", 0);
+    glm::mat4 cameraView = camera->getViewMatrix();
+    skyShader->updateUniform("viewMatrix", (void *) &cameraView);
+    skyShader->updateUniform("projectionMatrix", (void *) &projectionMatrix);
+
+    glBindTexture(GL_TEXTURE_2D, m_lensSkyFB->getRenderTargets()[0]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glViewport(0, 0, renderWidth, renderHeight);
 }
 
 void RenderingMaster::blackHoleGUI()
@@ -930,6 +1029,7 @@ void RenderingMaster::environmentGUI()
     changed |= ImGui::SliderFloat("Haze glow", &m_baseEnvironment.fogMoonGlow, 0.0f, 1.0f);
     changed |= ImGui::SliderFloat("Clouds", &m_baseEnvironment.cloudCoverage, 0.0f, 1.0f, "%.2f");
     changed |= ImGui::SliderFloat("Moon phase", &m_baseEnvironment.moonPhase, 0.0f, 1.0f, "%.2f");
+    changed |= ImGui::SliderFloat("Moon size", &m_baseEnvironment.moonSize, 0.005f, 0.09f, "%.3f");
     changed |= ImGui::SliderFloat("Wind", &m_baseEnvironment.wind, 0.0f, 3.0f, "%.2f");
     if (m_baseEnvironment.cloudCoverage > 0.0f) {
         changed |= ImGui::SliderFloat("Cloud speed", &m_baseEnvironment.cloudSpeed, 0.0f, 80.0f, "%.0f");
@@ -994,6 +1094,8 @@ void RenderingMaster::applyEnvironment(const Environment &environment)
     skyShader->updateUniform("moonColor", (void *) &e.moonColor);
     float moonPhase = e.moonPhase;
     skyShader->updateUniform("moonPhase", moonPhase);
+    float moonSize = glm::clamp(e.moonSize, 0.005f, 0.09f);
+    skyShader->updateUniform("moonSize", moonSize);
 
     Shader &c = deferredShading_BufferCombinationShader;
     c.updateUniform("ambient", e.ambient);

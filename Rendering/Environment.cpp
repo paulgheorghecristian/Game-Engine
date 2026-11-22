@@ -31,6 +31,7 @@ void Environment::load(const rapidjson::Value &json)
     }
     readVec3(json, "moonColor", moonColor);
     readFloat(json, "moonPhase", moonPhase);
+    readFloat(json, "moonSize", moonSize);
     readVec3(json, "fogColor", fogColor);
     readFloat(json, "fogDensity", fogDensity);
     readFloat(json, "fogHeightFalloff", fogHeightFalloff);
@@ -151,6 +152,7 @@ void Environment::save(rapidjson::Value &json, rapidjson::Document::AllocatorTyp
     writeVec3(json, "moonDirection", moonDirection, allocator);
     writeVec3(json, "moonColor", moonColor, allocator);
     json.AddMember("moonPhase", moonPhase, allocator);
+    json.AddMember("moonSize", moonSize, allocator);
     writeVec3(json, "fogColor", fogColor, allocator);
     json.AddMember("fogDensity", fogDensity, allocator);
     json.AddMember("fogHeightFalloff", fogHeightFalloff, allocator);

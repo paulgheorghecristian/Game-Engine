@@ -21,6 +21,7 @@
 		    "brightnessAdd" : "FLOAT",
 		    "additive" : "INT",
 		    "fadeIn" : "FLOAT",
+		    "opacity" : "FLOAT",
 		    "atlasTopDown" : "INT"
             }
 }

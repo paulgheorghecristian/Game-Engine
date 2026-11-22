@@ -107,6 +107,9 @@ class RenderingMaster
         void endCreateDepthTextureForLight(Light *light);
 
         void drawSky();
+        /* the sky of the main view (leaves the clouds around a sky black hole
+         * out; they are drawn over the hole afterwards) */
+        void drawMainSky();
         void renderVolumetricLight();
 
         void renderIMGUI();
@@ -271,7 +274,11 @@ class RenderingMaster
         float m_farPlane = 5000.0f, m_defaultFarPlane = 5000.0f;
         void uploadProjection();
         FrameBuffer *m_lensCopyFB = nullptr;   /* black holes read a copy of the image they bend */
+        FrameBuffer *m_lensSkyFB = nullptr;    /* sky black holes: the sky behind them, no clouds */
+        static const int LENS_SKY_SIZE = 1024;
+        void renderLensSky(const BlackHole &hole);
         void renderBlackHoles(FrameBuffer &target);
+        bool m_skyCloudCut = false;   /* a sky black hole with clouds: split the cloud layer */
         void blackHoleGUI();
 };
 

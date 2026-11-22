@@ -1,6 +1,7 @@
 #ifndef BLACK_HOLE_H
 #define BLACK_HOLE_H
 
+#include <cmath>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
@@ -29,7 +30,18 @@ class PointLight;
  *   strength, 1 = physical), influence (lensing reach, in radii),
  *   diskInner / diskOuter (in radii), diskColor [r,g,b], diskBrightness,
  *   diskOpacity (0..1), diskSpeed (orbit speed), diskTilt [pitch, roll]
- *   (degrees), glow (strength of the light it casts, 0 = none)
+ *   (degrees), glow (strength of the light it casts, 0 = none), colorShift
+ *   (0..1: how much the Doppler and gravitational shifts change the disk's
+ *   color, not only its brightness: bluer where it comes towards the viewer,
+ *   redder where it recedes and near the horizon)
+ *
+ * "sky": true makes it a sky object like the moon: placed by "direction"
+ * [x,y,z] and "angularRadius" (horizon, radians) instead of a position and a
+ * radius, it stays at the same place in the sky however the camera moves
+ * (no parallax; the landscape is always in front of it). "moonStream" > 0
+ * draws a stream of moon dust torn off the moon spiralling into its disk.
+ * The clouds pass in front of a sky black hole (they are not lensed), and
+ * "cloudClear" (0..1) thins them out around it so it is never buried.
  */
 class BlackHole
 {
@@ -41,8 +53,11 @@ class BlackHole
         BlackHole(const BlackHole &) = delete;
         BlackHole &operator=(const BlackHole &) = delete;
 
-        /* draws into the bound framebuffer; sourceTexture is a copy of it */
-        void render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height);
+        /* draws into the bound framebuffer; sourceTexture is a copy of it.
+         * lensSky (sky black holes): the sky behind it without clouds, as seen
+         * by lensSkyViewProjection(); everything it bends comes from there */
+        void render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height,
+                    GLuint lensSky = 0);
         /* editor controls (inside an ImGui window); false when "Delete" was pressed */
         bool renderGUI(int index);
         void save(rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) const;
@@ -56,12 +71,29 @@ class BlackHole
         float diskBrightness = 3.0f;
         float diskOpacity = 0.85f;
         float diskSpeed = 1.0f;
+        float colorShift = 0.7f;   /* Doppler / gravitational color shift (0 = none, 1 = physical) */
         glm::vec2 diskTilt = glm::vec2(12.0f, 6.0f);
         float glow = 1.0f;
 
+        bool sky = false;
+        glm::vec3 direction = glm::vec3(0.0f, 0.5f, -1.0f);
+        float angularRadius = 0.045f;
+        float moonStream = 0.0f;
+        float cloudClear = 0.7f;   /* sky: how much the clouds thin out around it (0..1) */
+        /* the disk's normal (from diskTilt) and its outer edge as an angle on
+         * the sky (sky objects; used by the sky shader for the moon stream) */
+        glm::vec3 diskNormal() const;
+        float diskOuterAngle() const { return std::atan(std::tan(angularRadius) * diskOuter); }
+        /* sky: the view of the sky behind it, centred on it (camera at the
+         * origin), LENS_SKY_HALF_ANGLE radians each way */
+        static constexpr float LENS_SKY_HALF_ANGLE = 0.5f;
+        glm::mat4 lensSkyView() const;
+        glm::mat4 lensSkyProjection() const;
+        /* sky: whether anything it bends can be on screen for this camera */
+        bool skyMayBeVisible(const glm::vec3 &forward, const glm::mat4 &projection) const;
+
     private:
         void updateLight();
-        glm::vec3 diskNormal() const;
         PointLight *m_light = nullptr;    /* owned by RenderingMaster's light list */
         static Shader &getShader();
 };

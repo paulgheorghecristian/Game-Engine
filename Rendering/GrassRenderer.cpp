@@ -257,9 +257,13 @@ void GrassRenderer::drawLayer(bool far)
     int grid = far ? m_farGrid : m_grid;
     /* far blades are wider (fewer of them cover the same ground) */
     float width = far ? m_width * (m_farSpacing / m_spacing) * 0.7f : m_width;
-    /* blades take the plain ground color only where the grass really ends */
-    glm::vec2 colorBlend = far || m_farGrid == 0 ? glm::vec2(radius * 0.45f, radius * 0.95f)
-                                                 : glm::vec2(1e6f, 2e6f);
+    /* blades take the plain ground color towards where the grass ends. With
+     * a far ring, both layers do it together over the hand-over zone (where
+     * the detailed blades thin out and the far ones fill in): seen whole, a
+     * far blade is darker than the tips of the dense near ones, and blended
+     * separately the hand-over showed as a dark ring that follows you */
+    glm::vec2 colorBlend = m_farGrid == 0 ? glm::vec2(radius * 0.45f, radius * 0.95f)
+                                          : glm::vec2(m_radius * 0.3f, m_radius);
     s.updateUniform("farLayer", far);
     s.updateUniform("gridSize", grid);
     s.updateUniform("spacing", spacing);

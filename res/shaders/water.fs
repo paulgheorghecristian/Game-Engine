@@ -64,8 +64,84 @@ float fogAmount(float dist, float height) {
     return 1.0 - (1.0 - haze) * (1.0 - fogCutoff(dist));
 }
 
+/* ---- wind waves: a sum of wave trains around the wind direction, from ~40
+ * units long down to ~half a unit, each moving at its deep-water speed. A
+ * train too short for the pixels it covers is not drawn (it would only
+ * shimmer); its slopes go into the surface roughness instead, which spreads
+ * the sun into a glitter path the way real water does ---- */
+uniform vec2 windDirection;    /* xz, length = the map's wind strength */
+const int WAVES = 16;
+const float GRAVITY = 140.0;   /* world units / s^2 (a unit is ~7 cm) */
+
+float waterHash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+float waterNoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(waterHash(i), waterHash(i + vec2(1, 0)), u.x),
+               mix(waterHash(i + vec2(0, 1)), waterHash(i + vec2(1, 1)), u.x), u.y);
+}
+
+vec2 waveSlopes(vec2 p, float t, float footprint, out float unresolved) {
+    float wind = length(windDirection);
+    vec2 w = wind > 1e-3 ? windDirection / wind : vec2(1.0, 0.0);
+    float strength = clamp(wind, 0.25, 2.0);
+    /* cat's paws: gusts roughen the water in patches that drift downwind */
+    vec2 drift = p - w * t * 9.0;
+    float gust = waterNoise(drift * 0.007) * 0.65 + waterNoise(drift * 0.019 + 7.3) * 0.35;
+    strength *= mix(0.35, 1.45, smoothstep(0.25, 0.75, gust));
+    /* sine trains have dead straight crests that cross into a lattice: bend
+     * them with a slow large-scale warp */
+    p += (vec2(waterNoise(p * 0.011), waterNoise(p * 0.011 + 31.7)) - 0.5) * 30.0 +
+         (vec2(waterNoise(p * 0.043 + 5.1), waterNoise(p * 0.043 + 12.9)) - 0.5) * 6.0;
+    vec2 slope = vec2(0.0);
+    unresolved = 0.0;
+    float wavelength = 30.0;
+    for (int i = 0; i < WAVES; i++) {
+        float h1 = fract(sin(float(i) * 12.9898 + 1.3) * 43758.5453);
+        float h2 = fract(sin(float(i) * 78.233 + 4.1) * 24634.6345);
+        /* directions spread all round (golden angle steps), mostly downwind */
+        float angle = float(i) * 2.39996 + (h1 - 0.5) * 0.6;
+        vec2 d = vec2(cos(angle), sin(angle));
+        float downwind = dot(d, w);
+        if (downwind < 0.0) {
+            d = -d;               /* waves run with the wind... */
+            downwind = -downwind;
+        }
+        float spread = 0.35 + 0.65 * downwind * downwind;   /* ...and crosswind ones are weaker */
+        float lambda = wavelength * (0.85 + 0.3 * h2);
+        float k = 6.2831853 / lambda;
+        float omega = sqrt(GRAVITY * k);
+        /* a lake's chop: long waves gentle, the energy in the short ones */
+        float steepness = mix(0.025, 0.09, smoothstep(30.0, 4.0, lambda)) * spread * strength *
+                          waveStrength / 0.016;
+        float phase = dot(d, p) * k - omega * t + h2 * 6.2831853;
+        float resolved = smoothstep(3.0, 8.0, lambda / max(footprint, 1e-4));
+        slope += d * steepness * cos(phase) * resolved;
+        unresolved += 0.5 * steepness * steepness * (1.0 - resolved);
+        wavelength *= 0.76;
+    }
+    return slope;
+}
+
+/* GGX highlight of a light of color c from direction L */
+vec3 glint(vec3 n, vec3 V, vec3 L, vec3 c, float alpha2) {
+    vec3 H = normalize(L + V);
+    float NdotH = max(dot(n, H), 0.0);
+    float NdotL = max(dot(n, L), 0.0);
+    float denominator = NdotH * NdotH * (alpha2 - 1.0) + 1.0;
+    float D = alpha2 / (3.14159265 * denominator * denominator);
+    float F = 0.02 + 0.98 * pow(1.0 - max(dot(V, H), 0.0), 5.0);
+    return c * D * F * NdotL / max(4.0 * max(dot(n, V), 0.05) * NdotL, 1e-3) * step(0.0, NdotL - 1e-4);
+}
+
 void main() {
     vec2 uv = gl_FragCoord.xy / screenSize;
+    /* world size of this pixel (before any discard: derivatives) */
+    vec2 footprintXZ = fwidth(worldPosition.xz);
+    float footprint = max(footprintXZ.x, footprintXZ.y);
     float sceneDepth = texture(depthSampler, uv).r;
     if (gl_FragCoord.z > sceneDepth) {
         discard; /* terrain / objects in front of the water */
@@ -73,21 +149,17 @@ void main() {
     float surfaceZ = linearDepth(gl_FragCoord.z);
     float waterDepth = linearDepth(sceneDepth) - surfaceZ;
 
-    /* World2 DuDv scheme, plus a second, slower layer for less tiling */
-    float offset = fract(time * waveSpeed);
-    vec2 distorted = texture(dudvSampler, vec2(waveCoords.x + offset, waveCoords.y)).rg * 0.1;
-    distorted = waveCoords + vec2(distorted.x, distorted.y + offset);
-    vec2 distortion = (texture(dudvSampler, distorted).rg * 2.0 - 1.0) * waveStrength *
-                      clamp(waterDepth / 20.0, 0.0, 1.0);
-
-    vec3 n1 = texture(normalMapSampler, distorted).rgb;
-    vec3 n2 = texture(normalMapSampler, waveCoords * 0.37 - vec2(offset * 0.6, offset * 0.3)).rgb;
-    vec3 normal = normalize(vec3(n1.r * 2.0 - 1.0, n1.b * 2.5, n1.g * 2.0 - 1.0) +
-                            vec3(n2.r * 2.0 - 1.0, n2.b * 2.5, n2.g * 2.0 - 1.0));
+    float unresolved;
+    vec2 slope = waveSlopes(worldPosition.xz, time, footprint, unresolved);
+    vec3 normal = normalize(vec3(-slope.x, 1.0, -slope.y));
+    vec2 distortion = slope * 0.03 * clamp(waterDepth / 20.0, 0.0, 1.0);
 
     vec3 toCamera = cameraPosition - worldPosition;
     float distanceToCamera = length(toCamera);
     vec3 V = toCamera / distanceToCamera;
+    /* roughness (GGX alpha^2): calm water is nearly a mirror; slopes too
+     * small to draw, and distance, roughen it */
+    float alpha2 = 0.0006 + 2.0 * unresolved + 0.0035 * smoothstep(30.0, 500.0, distanceToCamera);
 
     /* refraction: don't pull in geometry that is in front of the water */
     vec2 refractionUV = clamp(uv + distortion, vec2(0.001), vec2(0.999));
@@ -110,13 +182,13 @@ void main() {
     if (hasReflection != 0) {
         vec2 reflectionUV = clamp(uv + distortion, vec2(0.001), vec2(0.999));
         /* slightly soft: a mirror-sharp edge on a lamp reads as a cut-out disc */
-        reflection = textureLod(reflectionSampler, reflectionUV, 0.7).rgb;
+        reflection = textureLod(reflectionSampler, reflectionUV, 0.7 + clamp(sqrt(alpha2) * 12.0, 0.0, 3.0)).rgb;
         reflectedParticles = texture(reflectionParticlesSampler, reflectionUV);
         if (reflectionGlow > 0.0) {
             /* light scattered by the ripples: the bright parts of the blurred
              * reflection (mip chain), stretched into a vertical streak towards
              * the viewer and wobbling with the waves */
-            vec2 wobble = (texture(dudvSampler, waveCoords * 0.6 + vec2(time * 0.02, 0.0)).rg - 0.5) * 0.02;
+            vec2 wobble = slope * 0.04;
             for (int k = -3; k <= 3; k++) {
                 float w = exp(-0.35 * float(k * k));
                 vec2 tap = clamp(reflectionUV + wobble + vec2(0.0, float(k) * 0.028), vec2(0.001), vec2(0.999));
@@ -132,7 +204,7 @@ void main() {
         }
     }
 
-    float cosTheta = max(dot(V, normalize(mix(vec3(0, 1, 0), normal, 0.25))), 0.0);
+    float cosTheta = max(dot(V, normalize(mix(vec3(0, 1, 0), normal, 0.3))), 0.0);
     float fresnel = clamp((0.02 + 0.98 * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0)) * reflectivity, 0.0, 1.0);
     vec3 color = mix(refraction, reflection, fresnel);
     /* the glow is light scattered off the surface: not weighted by Fresnel */
@@ -142,8 +214,8 @@ void main() {
     float particleReflect = mix(0.75, 1.0, fresnel);
     color = reflectedParticles.rgb * particleReflect + color * (1.0 - reflectedParticles.a * particleReflect);
 
-    /* glints: the moon and every nearby light */
-    vec3 specular = moonColor * pow(max(dot(reflect(-moonDirection, normal), V), 0.0), 400.0) * 2.0;
+    /* glints: the sky's light (sun by day, moon by night) and nearby lights */
+    vec3 specular = glint(normal, V, normalize(moonDirection), moonColor * 1.5, alpha2);
     for (int i = 0; i < numLights; i++) {
         vec3 L = lightPositions[i] - worldPosition;
         float d = length(L);
@@ -152,14 +224,18 @@ void main() {
         L /= d;
         if (lightSpots[i].w >= -1.0 && dot(-L, lightSpots[i].xyz) < lightSpots[i].w) continue;
         att *= att;
-        vec3 H = normalize(L + V);
-        specular += lightColors[i] * att * (pow(max(dot(normal, H), 0.0), 160.0) * 2.5 + 0.02);
+        specular += glint(normal, V, L, lightColors[i] * att * 0.6, alpha2 + 0.004) + lightColors[i] * att * 0.02;
     }
-    color += specular * (1.0 - murk * 0.3);
-
-    /* soft shoreline */
+    /* soft shoreline: the water body fades out over softEdge, but the surface
+     * (reflection, glints) stays until the last half unit, so shallow flats
+     * still read as water */
     float edge = clamp(waterDepth / softEdge, 0.0, 1.0);
-    color = mix(texture(refractionSampler, uv).rgb, color, edge);
+    float surfaceEdge = clamp(waterDepth / 0.5, 0.0, 1.0);
+    vec3 behind = texture(refractionSampler, uv).rgb;
+    vec3 shallow = mix(behind, refraction, edge);
+    /* swap the refracted water body in the mix for its faded version */
+    color = mix(behind, color - (1.0 - fresnel) * (refraction - shallow), surfaceEdge);
+    color += specular * (1.0 - murk * 0.3) * surfaceEdge;
 
     vec3 hazeColor = fogColor + moonColor * fogMoonGlow * pow(max(dot(-V, moonDirection), 0.0), 6.0);
     color = mix(color, hazeColor, fogAmount(distanceToCamera, worldPosition.y));

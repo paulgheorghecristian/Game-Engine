@@ -15,6 +15,7 @@
                     "holeRadius" : "FLOAT",
                     "lensing" : "FLOAT",
                     "influenceRadius" : "FLOAT",
+                    "boundRadius" : "FLOAT",
                     "diskNormal" : "VEC3",
                     "diskInner" : "FLOAT",
                     "diskOuter" : "FLOAT",
@@ -22,6 +23,10 @@
                     "diskBrightness" : "FLOAT",
                     "diskOpacity" : "FLOAT",
                     "diskSpeed" : "FLOAT",
+                    "colorShift" : "FLOAT",
+                    "skySource" : "INT",
+                    "lensSkySampler" : "INT",
+                    "lensSkyViewProjection" : "MAT4",
                     "time" : "FLOAT"
                  }
 }

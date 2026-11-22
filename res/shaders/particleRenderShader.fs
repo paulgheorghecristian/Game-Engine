@@ -17,6 +17,7 @@ uniform vec3 tint;           /* color multiplier */
 uniform float brightnessAdd; /* added to the texture color (smoke: 0.25) */
 uniform int additive;        /* 1: additive glow (fire, fireflies) */
 uniform float fadeIn;        /* fraction of the lifetime spent fading in */
+uniform float opacity;       /* whole emitter (night-only alpha emitters fade by day) */
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
@@ -68,7 +69,7 @@ void main(){
     if (fadeIn > 0.0) {
         envelope *= clamp(aliveFor / fadeIn, 0.0, 1.0);
     }
-    outColor.a *= envelope * particleIntensity;
+    outColor.a *= envelope * particleIntensity * opacity;
     /* particles are composited over the fogged scene: fade them with the
      * same cut-off (distance along the view axis) */
     if (fogEnd > 0.0) {

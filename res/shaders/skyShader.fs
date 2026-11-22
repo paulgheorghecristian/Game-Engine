@@ -12,6 +12,60 @@ uniform float starIntensity;
 uniform vec3 moonDirection, moonColor;
 uniform sampler2D moonSampler; /* lunar map, equirectangular, 0 longitude in the middle */
 uniform float moonPhase;       /* 0 full moon, 0.5 half (lit from the right), 1 new */
+uniform float moonSize;     /* angular radius (radians) */
+uniform float time;
+/* a black hole in the sky tearing a stream of dust off the moon */
+uniform float moonStream;            /* 0: none */
+uniform vec3 blackHoleDirection, blackHoleDiskNormal, blackHoleDiskColor;
+uniform float blackHoleDiskAngle;    /* outer edge of its disk, radians on the sky */
+
+float streamHash(float x) { return fract(sin(x * 127.1) * 43758.5453); }
+float streamNoise(float x) {
+    float i = floor(x), f = fract(x);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(streamHash(i), streamHash(i + 1.0), f);
+}
+
+/* tangent-plane coordinates (radians) of a direction around the hole */
+vec2 holePlane(vec3 d, vec3 e1, vec3 e2, vec3 h) {
+    return vec2(dot(d, e1), dot(d, e2)) / max(dot(d, h), 1e-3);
+}
+
+/* moon dust torn off the moon, curving around the hole into its disk:
+ * grey moonlit dust near the moon, heated to the disk's color as it falls in */
+vec3 moonDustStream(vec3 dir, vec3 moonDir) {
+    vec3 h = normalize(blackHoleDirection);
+    if (dot(dir, h) < 0.5 || dot(moonDir, h) < 0.5) return vec3(0.0);
+    vec3 e1 = normalize(cross(h, abs(h.y) < 0.99 ? vec3(0, 1, 0) : vec3(1, 0, 0)));
+    vec3 e2 = cross(e1, h);
+    vec2 p = holePlane(dir, e1, e2, h);
+    vec2 moonP = holePlane(moonDir, e1, e2, h);
+    /* where it joins the disk: the disk point nearest the moon's side */
+    vec3 n = normalize(blackHoleDiskNormal);
+    vec3 towardsMoon = moonDir - h * dot(moonDir, h);
+    vec3 inDisk = normalize(towardsMoon - n * dot(towardsMoon, n));
+    vec3 endDir = normalize(h + inDisk * tan(blackHoleDiskAngle * 0.5));
+    vec2 endP = holePlane(endDir, e1, e2, h);
+    /* bent around the hole in the sense of the orbit */
+    vec2 mid = (moonP + endP) * 0.5;
+    vec2 side = normalize(vec2(-(endP - moonP).y, (endP - moonP).x));
+    if (dot(side, mid) < 0.0) side = -side;
+    vec2 control = mid + side * length(endP - moonP) * 0.45;
+
+    float best = 1e9, bestT = 0.0;
+    for (int i = 0; i <= 28; i++) {
+        float t = float(i) / 28.0;
+        vec2 q = mix(mix(moonP, control, t), mix(control, endP, t), t);
+        float d = length(p - q);
+        if (d < best) { best = d; bestT = t; }
+    }
+    float width = mix(moonSize * 0.6, 0.003, bestT);
+    float core = exp(-pow(best / width, 2.0));
+    float clumps = 0.55 + 0.45 * streamNoise(bestT * 38.0 - time * 1.2);
+    float ends = smoothstep(0.0, 0.08, bestT) * (1.0 - smoothstep(0.88, 1.0, bestT));
+    vec3 dust = mix(vec3(0.62, 0.64, 0.7), blackHoleDiskColor * 2.2, smoothstep(0.25, 1.0, bestT));
+    return dust * core * clumps * ends * moonStream * 0.55;
+}
 uniform vec3 cameraPosition;
 /* ---- clouds: one drifting fbm layer at CLOUD_HEIGHT (world units); the
  * sky draws it and the directional light pass uses the same density for the
@@ -48,7 +102,6 @@ float cloudDensity(vec2 xz) {
     return smoothstep(threshold, threshold + 0.22, n);
 }
  /* full-moon albedo (maria, craters), on the disc */
-uniform float time;
 uniform vec3 sunDirection, sunColor, sunsetColor;
 uniform float sunVisibility;   /* 0 at night */
 uniform float sunsetStrength;  /* horizon glow around sunrise / sunset */
@@ -102,13 +155,17 @@ vec3 nightSky(vec3 dir) {
                                          pow(max(s, 0.0), 24.0) * 0.18 +
                                          pow(max(s, 0.0), 4.0) * 0.12); /* broad scattering glow */
 
+    if (moonStream > 0.0) {
+        color += moonDustStream(dir, normalize(moonDirection)) * mix(0.35, 1.0, 1.0 - sunVisibility);
+    }
+
     /* moon: a sphere lit by the sun (so it has a terminator and phases), with
      * the albedo map for maria and craters and the same map as a height field
      * for relief, faint earthshine on the dark side, a soft halo and glow */
     vec3 moonDir = normalize(moonDirection);
     float m = dot(dir, moonDir);
-    const float moonRadius = 0.026;                       /* angular radius (radians) */
-    if (m > 0.995 && discs > 0.0) {
+    float moonRadius = moonSize;
+    if (m > cos(moonRadius * 1.1) && discs > 0.0) {
         vec3 right = normalize(cross(moonDir, abs(moonDir.y) < 0.99 ? vec3(0, 1, 0) : vec3(1, 0, 0)));
         vec3 upAxis = cross(right, moonDir);
         vec2 p = vec2(dot(dir, right), dot(dir, upAxis)) / sin(moonRadius);
@@ -157,12 +214,18 @@ vec3 nightSky(vec3 dir) {
     return color;
 }
 
-vec3 clouds(vec3 dir, vec3 sky) {
-    if (cloudCoverage <= 0.0 || dir.y <= 0.0) return sky;
+uniform vec2 cloudCutCos;        /* cosines of the inner / outer edge of the hole's cloud cut */
+uniform float holeCloudClear;    /* 0..1: how much the clouds thin out around a sky black hole */
+
+/* the cloud layer in direction dir: its color and opacity */
+void cloudLayer(vec3 dir, out vec3 cloudColor, out float alpha) {
+    cloudColor = vec3(0.0);
+    alpha = 0.0;
+    if (cloudCoverage <= 0.0 || dir.y <= 0.0) return;
     float t = (CLOUD_HEIGHT - cameraPosition.y) / max(dir.y, 0.02);
     vec2 xz = cameraPosition.xz + dir.xz * t;
     float d = cloudDensity(xz);
-    if (d <= 0.001) return sky;
+    if (d <= 0.001) return;
 
     /* light from the sun by day, the moon by night: sample the density a bit
      * towards the light; denser there = this part is in the cloud's shadow */
@@ -177,17 +240,53 @@ vec3 clouds(vec3 dir, vec3 sky) {
     float toSun = max(dot(dir, normalize(sunDirection)), 0.0);
     dayColor += sunColor * pow(toSun, 12.0) * (1.0 - d) * 1.5;
     vec3 nightColor = horizonColor * 0.6 + moonColor * 0.12 * lit;
-    vec3 cloudColor = mix(nightColor, dayColor, sunVisibility);
+    cloudColor = mix(nightColor, dayColor, sunVisibility);
 
     /* thinner and hazier towards the horizon */
     float fade = smoothstep(0.0, 0.14, dir.y) * exp(-t * 0.000035);
-    return mix(sky, cloudColor, d * fade * 0.95);
+    alpha = d * fade * 0.95;
+    /* thinner around a black hole in the sky, so it is never buried */
+    if (holeCloudClear > 0.0) {
+        float near = smoothstep(cloudCutCos.y - 0.1, cloudCutCos.x, dot(dir, normalize(blackHoleDirection)));
+        alpha *= 1.0 - holeCloudClear * near;
+    }
 }
+
+/* A black hole in the sky lenses what is behind it (stars, the moon), but
+ * the clouds are in front of it. So the main view draws the sky without the
+ * clouds around the hole (pass 1), the hole bends that, and then those clouds
+ * are blended back on top (pass 2), weighted so the two passes add up to the
+ * plain sky. Reflections use the plain sky (pass 0). Pass 3 is the sky
+ * behind the hole with no clouds at all, which the hole bends. */
+uniform int cloudPass;
+uniform vec3 cloudCutDirection;
+uniform sampler2D sceneDepth;    /* pass 2: only over the sky */
+uniform vec2 screenSize;
 
 void main(){
     if (skyMode == 1) {
         vec3 dir = normalize(skyDirection);
-        outColor = vec4(clouds(dir, nightSky(dir)), 1.0);
+        if (cloudPass == 3) {
+            outColor = vec4(nightSky(dir), 1.0);
+            outEyeSpaceNormal = vec3(0);
+            return;
+        }
+        float cut = cloudPass == 0 ? 0.0 : smoothstep(cloudCutCos.y, cloudCutCos.x, dot(dir, cloudCutDirection));
+        if (cloudPass == 2) {
+            if (cut <= 0.0 || texture(sceneDepth, gl_FragCoord.xy / screenSize).r < 1.0) discard;
+            vec3 cloudColor;
+            float alpha;
+            cloudLayer(dir, cloudColor, alpha);
+            /* over a sky that already has alpha * (1 - cut) of the cloud */
+            float rest = alpha * cut / max(1.0 - alpha + alpha * cut, 1e-4);
+            outColor = vec4(cloudColor, rest);
+            outEyeSpaceNormal = vec3(0);
+            return;
+        }
+        vec3 cloudColor;
+        float alpha;
+        cloudLayer(dir, cloudColor, alpha);
+        outColor = vec4(mix(nightSky(dir), cloudColor, alpha * (1.0 - cut)), 1.0);
     } else {
         outColor = vec4(mix(vec3(0.22, 0.25, 0.58), vec3(0.6, 0.20, 0.1), texCoords.y-0.2), 1) * 0.3;
     }

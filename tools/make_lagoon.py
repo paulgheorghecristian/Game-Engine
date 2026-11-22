@@ -109,7 +109,9 @@ entities.append({"Transform": {"position": [0, 3, 0], "rotation": [0, 0, 0, 1], 
                                                                     "normalStrength": 1.0,
                                                                     "tileSize": 60, "shoreHeight": WATER,
                                                                     # dry / lush patches, sparser grass up the hills
-                                                                    "variation": 1.0}})},
+                                                                    "variation": 1.0,
+                                                                    # relief, strata, ledges on the hills' rock
+                                                                    "rockDetail": 1.0}})},
                                 "PhysicsComponent": {"BoundingBodyType": ["mesh", "res/models/terrain4.obj"],
                                                      "scale": [4800, 1600, 4800], "mass": 0}}})
 # invisible floor just under the surface: you wade instead of sinking into the lagoon
@@ -247,7 +249,7 @@ for z in range(-110, -440, -22):
 entities.append(instanced("res/models/rock.obj", stones, ROCK_MAT))
 
 # --- lights --------------------------------------------------------------------
-moon = [-0.25, 0.5, -0.83]   # towards the moon (~28 degrees up, above the northern hills)
+moon = [-0.25, 0.66, -0.83]  # towards the moon (~37 degrees up, above the northern hills)
 lights.append(light((0, 0, 0), (0.16, 0.2, 0.32), "DIR", (0, 0, 0), dir=moon, cast_shadow=True,
                     diffuse_attenuation=[0, 0, 0], specular_attenuation=[0, 0, 0]))
 # lighthouse: sweeping volumetric beam. coneAngle decouples the beam width
@@ -307,8 +309,38 @@ emitters += [
     {"type": "drift", "texture": "res/textures/smoke.png", "atlas": [8, 5], "count": 45, "lifetimeMs": 9000,
      "position": [C[0], WATER + 6, C[1]], "radius": 300, "height": 4, "speed": [3, 6], "wander": 4,
      "startScale": 70, "scaleJitter": 0.4, "blend": "alpha", "tint": [0.35, 0.42, 0.55], "brightness": 0.05,
-     "fadeIn": 0.4},
+     "fadeIn": 0.4, "nightOnly": True},   # night mist: unlit, it would be dark smoke by day
 ]
+
+# --- a black hole in the night sky, tearing a stream of dust off the moon ---
+def _norm(v):
+    l = math.sqrt(sum(c * c for c in v)); return [c / l for c in v]
+def _cross(a, b):
+    return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
+_moon = _norm(moon)
+_right = _norm(_cross(_moon, [0, 1, 0]))
+_up = _cross(_right, _moon)
+_sep = 0.30                     # the moon sits ~23 degrees below the hole, inside its lensing:
+_offset = [_up[i] * 0.8 + _right[i] * 0.6 for i in range(3)]   # bent, with a faint second image above it
+hole_dir = _norm([_moon[i] * math.cos(_sep) + _offset[i] * math.sin(_sep) for i in range(3)])
+# a long thin disk, nearly edge-on (7 degrees), rolled a little
+_h = hole_dir
+_level = _norm([[0, 1, 0][i] - _h[i] * _h[1] for i in range(3)])
+_n = _norm([_level[i] * math.cos(math.radians(7)) - _h[i] * math.sin(math.radians(7)) for i in range(3)])
+# rolled a little on the sky, like Gargantua's diagonal disk
+_roll = math.radians(9)
+_hxn = _cross(_h, _n)
+_n = _norm([_n[i] * math.cos(_roll) + _hxn[i] * math.sin(_roll) for i in range(3)])
+# BlackHole::diskNormal(): n = (-sin b, cos b cos a, cos b sin a) for diskTilt [a, b]
+_tilt_b = math.degrees(-math.asin(_n[0]))
+_tilt_a = math.degrees(math.atan2(_n[2], _n[1]))
+black_holes = [{"sky": True, "direction": [round(c, 4) for c in hole_dir], "angularRadius": 0.03,
+                # restrained: a small black void, a thin dim disk, lensing that
+                # only bends the sky close to it
+                "lensing": 0.8, "influence": 11, "colorShift": 0.7, "diskInner": 3.0, "diskOuter": 16.0,
+                "diskColor": [1.0, 0.55, 0.26], "diskBrightness": 2.0, "diskOpacity": 0.55, "diskSpeed": 0.8,
+                "diskTilt": [round(_tilt_a, 2), round(_tilt_b, 2)], "glow": 0.0, "moonStream": 1.0,
+                "cloudClear": 0.7}]   # clouds pass in front of it, thinning out around it
 
 game = {
     "ConfigFilePath": "res/configs/config.json",
@@ -316,11 +348,12 @@ game = {
     "PlayerStart": {"position": [SPAWN[0], H(*SPAWN) + 25, SPAWN[1]], "yaw": 0, "pitch": -4},
     "Environment": {"sky": "night", "zenithColor": [0.004, 0.008, 0.03], "horizonColor": [0.05, 0.07, 0.14],
                     "starIntensity": 1.4, "moonDirection": moon, "moonColor": [0.6, 0.7, 0.95],
-                    "moonPhase": 0.38,    # waxing gibbous: a curved terminator
+                    "moonSize": 0.04,     # bigger than real, so it reads next to the hole
+                    "moonPhase": 0.0,     # full: the moon reads clearly next to the hole
                     "fogColor": [0.055, 0.07, 0.11], "fogDensity": 0.0024, "fogHeightFalloff": 0.0035,
                     "fogBaseHeight": WATER, "fogMoonGlow": 0.35,
                     # drifting clouds and their shadows sweeping over the hills
-                    "cloudCoverage": 0.45, "cloudSpeed": 14, "ambient": 0.05, "emissiveStrength": 1.6,
+                    "cloudCoverage": 0.5, "cloudSpeed": 14, "ambient": 0.05, "emissiveStrength": 1.6,
                     # HDR + filmic tone mapping, bloom, ambient occlusion
                     "pbr": True,
                     "hdr": True, "exposure": 1.25, "bloomStrength": 0.5, "bloomThreshold": 0.9,
@@ -343,6 +376,7 @@ game = {
     "Water": {"height": WATER, "center": list(C), "size": [1150, 1150], "tiling": 90, "waveStrength": 0.016,
               "waveSpeed": 0.03, "waveHeight": 0.5, "shallowColor": [0.7, 0.85, 0.9], "deepColor": [0.0, 0.025, 0.05],
               "murkDepth": 45, "softEdge": 3, "reflectivity": 1.0},
+    "BlackHoles": black_holes,
     "Entities": entities,
     "Lights": lights,
     "ParticleEmitters": emitters,

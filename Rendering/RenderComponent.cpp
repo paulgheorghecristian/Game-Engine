@@ -72,6 +72,7 @@ void RenderComponent::render(Shader *externShader) {
             externShader->updateUniform ("terrainTileSize", terrain->tileSize);
             externShader->updateUniform ("terrainShoreHeight", terrain->shoreHeight);
             externShader->updateUniform ("terrainVariation", terrain->variation);
+            externShader->updateUniform ("terrainRockDetail", terrain->rockDetail);
         }
 
         if (m_materials[i]->getDiffuseTexture() != NULL) {

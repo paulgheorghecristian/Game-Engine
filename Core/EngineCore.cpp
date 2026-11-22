@@ -591,6 +591,20 @@ void EngineCore::input() {
         stop ();
     }
 
+    if (inputManager.getKeyDown(SDLK_F1)) {
+        /* play mode: hide every overlay and the cursor, mouse captured for
+         * looking around; F1 again brings the editor back as it was */
+        m_playMode = !m_playMode;
+        if (m_playMode) {
+            m_warpBeforePlayMode = inputManager.getWarpMouse();
+            inputManager.setWarpMouse(true);
+            SDL_ShowCursor(SDL_DISABLE);
+        } else {
+            inputManager.setWarpMouse(m_warpBeforePlayMode);
+            SDL_ShowCursor(showMouse ? SDL_ENABLE : SDL_DISABLE);
+        }
+    }
+
     if (inputManager.getKeyDown(SDLK_F5)) {
         saveMap(m_savePath);
     }
@@ -729,7 +743,7 @@ void EngineCore::render(float alpha) {
     RenderingMaster::getInstance()->getGBuffer().bindForScene();
     RenderingMaster::getInstance()->clearScreen(1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    RenderingMaster::getInstance()->drawSky();
+    RenderingMaster::getInstance()->drawMainSky();
 
     for (auto entity : entities) {
         RenderComponent *renderComponent = NULL;
@@ -893,9 +907,9 @@ void EngineCore::render(float alpha) {
     PT_ToHere ("buffersDraw");
 
     /* GE_CLEAN_SHOTS=1: no profiler bars, FPS text or ImGui windows (clean
-     * screenshots, e.g. tools/visual_tour.py) */
+     * screenshots, e.g. tools/visual_tour.py); F1 does the same while playing */
     static const bool cleanShots = std::getenv("GE_CLEAN_SHOTS") != NULL;
-    if (!cleanShots) {
+    if (!cleanShots && !m_playMode) {
     ProfilingTimer::renderAllBarGUIs();
     fpsGUI->render();
     RenderingMaster::getInstance()->startIMGUIFrame();

@@ -404,8 +404,12 @@ void ParticleEmitter::draw(const glm::mat4 &projectionMatrix, const glm::mat4 &v
     shader.updateUniform("numOfSubTxtsH", m_texture->getNumOfSubTxtsH());
     shader.updateUniform("subWidth", m_texture->getSubWidth());
     shader.updateUniform("subHeight", m_texture->getSubHeight());
-    glm::vec3 tint = m_nightOnly ? m_tint * s_nightFactor : m_tint;
+    /* night-only: additive light fades by its color, alpha-blended puffs by
+     * their opacity (a darkened color would leave black puffs at dawn) */
+    glm::vec3 tint = m_nightOnly && m_additive ? m_tint * s_nightFactor : m_tint;
+    float opacity = m_nightOnly && !m_additive ? s_nightFactor : 1.0f;
     shader.updateUniform("tint", (void *) &tint);
+    shader.updateUniform("opacity", opacity);
     shader.updateUniform("brightnessAdd", m_brightness);
     shader.updateUniform("additive", additive);
     shader.updateUniform("fadeIn", m_fadeIn);

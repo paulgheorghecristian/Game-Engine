@@ -108,7 +108,9 @@ void main() {
     world += vec3(across.x, 0.0, across.y) * blade.x * bladeWidth * widen * keep * (1.0 - t * 0.8);
     world += vec3(bend.x, sqrt(max(1.0 - bendAmount * bendAmount, 0.05)) * t, bend.y) * height;
     worldPosition = world;
-    bladeT = t;
+    /* the dark root (other blades' shade) is for the dense near grass; a far
+     * blade is seen whole, and a dark root there reads as a speck */
+    bladeT = farLayer ? 0.55 + 0.45 * t : t;
     bladeShade = 0.8 + 0.4 * r.z;
     farBlend = smoothstep(colorBlend.x, colorBlend.y, dist);
 

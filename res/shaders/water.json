@@ -38,6 +38,8 @@
                     "fogHeightFalloff" : "FLOAT",
                     "fogBaseHeight" : "FLOAT",
                     "fogMoonGlow" : "FLOAT",
-                    "numLights" : "INT"
+                    "numLights" : "INT",
+                    "windDirection" : "VEC2",
+                    "windTime" : "FLOAT"
                  }
 }

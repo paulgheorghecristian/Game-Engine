@@ -71,6 +71,9 @@ class EngineCore
 
         float mouseMoveSpeed, mouseRotationSpeed;
         bool warpMouse, showMouse;
+        /* F1: play mode, no overlays (profiler, FPS, ImGui) and no cursor */
+        bool m_playMode = false;
+        bool m_warpBeforePlayMode = false;
         int outputType;
 
         void constructPlayer();
