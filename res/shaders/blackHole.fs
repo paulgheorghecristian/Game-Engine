@@ -59,7 +59,9 @@ float fbm(vec2 p) {
 
 /* light from the disk where the ray crosses it at `hit` (relative to the
  * hole); rr = distance in horizon radii; rgb = radiance, a = opacity */
-vec4 diskEmission(vec3 hit, vec3 rayDir, float rr) {
+/* footprint: disk size (in horizon radii) one pixel covers there. Detail
+ * finer than a pixel is faded out, or a distant disk sparkles with dots */
+vec4 diskEmission(vec3 hit, vec3 rayDir, float rr, float footprint) {
     vec3 radial = normalize(hit);
     vec3 orbit = normalize(cross(diskNormal, radial));
     vec3 e1 = normalize(cross(diskNormal, abs(diskNormal.y) < 0.9 ? vec3(0, 1, 0) : vec3(1, 0, 0)));
@@ -83,8 +85,10 @@ vec4 diskEmission(vec3 hit, vec3 rayDir, float rr) {
     float t0 = fbm(vec2(rr * 3.2, 1.7) + vec2(cos(a0), sin(a0)) * 0.9 + floor(time / PERIOD) * 5.13);
     float t1 = fbm(vec2(rr * 3.2, 1.7) + vec2(cos(a1), sin(a1)) * 0.9 + floor(time / PERIOD + 0.5) * 5.13 + 2.9);
     float streaks = clamp(0.5 + (mix(t0, t1, w) - 0.5) * 1.6, 0.0, 1.0);
+    streaks = mix(streaks, 0.5, smoothstep(0.06, 0.25, footprint));
     /* crossfading two noises flattens contrast; restore it */
     swirl = clamp(0.5 + (swirl - 0.5) * 1.35, 0.0, 1.0);
+    swirl = mix(swirl, 0.5, smoothstep(0.25, 0.9, footprint));
     /* faint banding only: the turbulence carries the structure */
     float rings = 0.9 + 0.1 * sin(rr * 5.0 + swirl * 6.0);
     /* thin-disk temperature, T ~ r^-3/4 (1 - sqrt(r_in / r))^1/4, scaled to 1
@@ -159,6 +163,101 @@ vec3 bend(vec3 rel, float L2, float rs) {
     return -1.5 * lensing * rs * L2 / pow(r, 5.0) * rel * smoothstep(influenceRadius, influenceRadius * 0.45, r);
 }
 
+/* ---- world black holes: the bent rays are traced against the depth
+ * buffer (like screen-space reflections), so geometry around and behind the
+ * hole is seen where the bent ray really meets it. A ray that is barely bent
+ * meets the surface at (almost) its own pixel: no seams ---- */
+float sceneViewDepth(vec2 uv) {
+    float d = texture(depthSampler, uv).r;
+    if (d >= 0.99999) return 1e9;
+    vec4 v = inverseProjectionMatrix * vec4(uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);
+    return -v.z / v.w;
+}
+
+/* mip level for what a traced ray sees: rays that came close to the hole
+ * see a band of the world squeezed into a thin ring; read that from a
+ * blurrier mip, or it breaks into jagged sub-pixel dashes */
+float traceLod = 0.0;
+
+/* did the ray cross the visible surface on its way to p? It is behind the
+ * surface now, and the surface lies beyond where the ray was at the previous
+ * step (`previousDepth`, view depth). A surface well in front of that is a
+ * foreground object the ray passes behind, not one it hits. depth: the
+ * ray's view depth at p; uv.x < 0 when p is off screen */
+bool crossesScene(vec3 p, float previousDepth, float tolerance, out vec2 uv, out float depth) {
+    vec4 clip = viewProjectionMatrix * vec4(p, 1.0);
+    depth = clip.w;
+    uv = vec2(-1.0);
+    if (clip.w <= 0.0) return false;
+    vec2 screen = clip.xy / clip.w * 0.5 + 0.5;
+    if (any(lessThan(screen, vec2(0.0))) || any(greaterThan(screen, vec2(1.0)))) return false;
+    uv = screen;
+    float sceneZ = sceneViewDepth(uv);
+    return clip.w > sceneZ && sceneZ > previousDepth - tolerance;
+}
+
+/* is p behind the visible surface (and where on screen)? */
+bool behindScene(vec3 p, out vec2 uv) {
+    vec4 clip = viewProjectionMatrix * vec4(p, 1.0);
+    uv = clip.xy / max(clip.w, 1e-6) * 0.5 + 0.5;
+    return clip.w > 0.0 && clip.w > sceneViewDepth(clamp(uv, vec2(0.0), vec2(1.0)));
+}
+
+/* the hit lies between a (in front) and b (behind): bisect to where the ray
+ * crosses the surface, so silhouettes seen through the lens are not
+ * stair-stepped by the march's step length */
+vec2 refineHit(vec3 a, vec3 b, vec2 uv) {
+    for (int k = 0; k < 6; k++) {
+        vec3 m = (a + b) * 0.5;
+        vec2 mUV;
+        if (behindScene(m, mUV)) {
+            b = m;
+            uv = mUV;
+        } else {
+            a = m;
+        }
+    }
+    return uv;
+}
+
+/* a ray leaving the sphere at p along d: march on (growing steps) until it
+ * meets the scene; if it never does, it sees the sky that way */
+vec3 traceOut(vec3 p, vec3 d) {
+    float t = 0.0, stepLength = boundRadius * 0.05;
+    float previousDepth = (viewProjectionMatrix * vec4(p, 1.0)).w;
+    vec2 uv;
+    float depth;
+    for (int i = 0; i < 40; i++) {
+        t += stepLength;
+        if (crossesScene(p + d * t, previousDepth, stepLength * 0.25, uv, depth)) {
+            uv = refineHit(p + d * (t - stepLength), p + d * t, uv);
+            return textureLod(sceneSampler, uv, traceLod).rgb;
+        }
+        if (uv.x < 0.0) break;   /* off screen or behind the camera */
+        previousDepth = depth;
+        stepLength *= 1.15;
+    }
+    /* the sky in that direction: the screen where it shows sky there */
+    vec4 clip = viewProjectionMatrix * vec4(d, 0.0);
+    if (clip.w > 0.0) {
+        vec2 skyUV = clip.xy / clip.w * 0.5 + 0.5;
+        if (all(greaterThanEqual(skyUV, vec2(0.0))) && all(lessThanEqual(skyUV, vec2(1.0))) &&
+            texture(depthSampler, skyUV).r >= 0.99999) {
+            return textureLod(sceneSampler, skyUV, traceLod).rgb;
+        }
+    }
+    if (hasSky == 0) return vec3(0.0);
+    if (d.y < 0.0) {
+        /* off screen and below the horizon: distant ground we have no image
+         * of. The cube only holds a flat ground color there (a green-grey
+         * band round the hole); far land fades into the horizon haze, so use
+         * that, darker the steeper down the ray looks */
+        vec3 horizon = textureLod(skySampler, normalize(vec3(d.x, 0.02, d.z)), traceLod * 0.5 + 1.0).rgb;
+        return horizon * mix(1.0, 0.55, smoothstep(0.0, -0.6, d.y));
+    }
+    return textureLod(skySampler, d, traceLod * 0.5).rgb;
+}
+
 /* the sky behind the hole in direction d (the cube far off the hole) */
 vec3 lensSky(vec3 d) {
     vec4 clip = lensSkyViewProjection * vec4(d, 0.0);
@@ -202,8 +301,11 @@ void main() {
     }
     h = sqrt(h);
     float t0 = max(-b - h, 0.0), t1 = -b + h;
-    /* geometry in front of the hole stays as it is */
-    if (t1 <= 0.0 || sceneDistance < max(t0, -b)) {
+    /* geometry in front of the hole stays as it is: for a sky hole
+     * everything is in front; for a world hole what is before the sphere
+     * (geometry inside it is met by the traced rays) */
+    bool worldHole = skySource == 0;
+    if (t1 <= 0.0 || sceneDistance < (worldHole ? t0 : max(t0, -b))) {
         outColor = vec4(scene, 1.0);
         return;
     }
@@ -217,6 +319,13 @@ void main() {
     vec3 light = vec3(0.0);
     float transmittance = 1.0;
     bool captured = false;
+    bool hitGeometry = false;
+    vec3 hitColor = vec3(0.0);
+    float closest = 1e9;
+    int crossings = 0;       /* times the ray caught the disk */
+    int innerCrossings = 0;  /* times it went through the disk's plane inside its inner edge */
+    float captureEdge = max(1.5 * lensing, 1.0) * rs;
+    float previousDepth = (viewProjectionMatrix * vec4(pos, 1.0)).w;
     /* leapfrog (kick-drift-kick, second order): plain Euler with a step that
      * grows with distance makes the total bending jump from pixel to pixel,
      * which shows as faint concentric ripples in the lensed sky */
@@ -224,6 +333,7 @@ void main() {
     for (int i = 0; i < 180; i++) {
         rel = pos - holePosition;
         float r = length(rel);
+        closest = min(closest, r);
         if (r < rs) {
             captured = true;
             break;
@@ -245,18 +355,86 @@ void main() {
             vec3 hit = mix(rel, relNext, s0 / (s0 - s1));
             float rr = length(hit) / rs;
             if (rr > diskInner && rr < diskOuter) {
-                vec4 e = diskEmission(hit, vel, rr);
+                /* one pixel's size there, in horizon radii */
+                float footprint = length(holePosition + hit - cameraPosition) * 2.0 /
+                                  (projectionMatrix[1][1] * float(textureSize(sceneSampler, 0).y) * rs);
+                /* rays grazing the capture edge (the photon ring) see the
+                 * disk squeezed into a hairline: no texture there, or the
+                 * ring breaks into dots */
+                footprint += smoothstep(captureEdge * 1.7, captureEdge * 1.1, closest) * 2.0;
+                vec4 e = diskEmission(hit, vel, rr, footprint);
+                /* higher-order images (light caught on a second pass through
+                 * the disk, after looping round the hole) are hairlines far
+                 * thinner than a pixel: only a few pixels' rays catch them,
+                 * as scattered dots. Keep just a trace of them */
+                /* a ray that already went through the disk's inner hole (right
+                 * by the black hole) and looped round makes a secondary image
+                 * of the disk: a hairline, scattered dots. (The arcs of the
+                 * far side bent over and under the hole cross the plane only
+                 * far out, outside the disk) */
+                float order = innerCrossings == 0 && (!worldHole || crossings == 0) ? 1.0 : 0.08;
+                /* a ray already turned back by more than ~100 degrees sees
+                 * the disk squeezed into a hairline (scattered dots) */
+                if (worldHole) order *= smoothstep(-0.55, -0.1, dot(vel, dir));
+                e.rgb *= order;
+                e.a *= order;
+                crossings++;
                 light += transmittance * e.rgb * e.a;
                 transmittance *= 1.0 - e.a;
             }
+            if (rr <= diskInner) innerCrossings++;
         }
         pos = next;
         if (transmittance < 0.01) {
             break;
         }
+        vec2 hitUV;
+        float depthHere;
+        if (worldHole && crossesScene(pos, previousDepth, step * 0.25 + rs * 0.1, hitUV, depthHere)) {
+            hitGeometry = true;
+            hitColor = textureLod(sceneSampler, refineHit(pos - normalize(vel) * step, pos, hitUV),
+                                  clamp((max(1.5 * lensing, 1.0) * rs * 2.4 - closest) / (rs * 0.35), 0.0, 4.0)).rgb;
+            break;
+        }
+        previousDepth = depthHere;
     }
-    vec3 behind = captured ? vec3(0.0)
-                : skySource == 1 && sceneDistance > 1e8 ? skyBehind(dir, vel, scene)
+    /* rays grazing the capture edge (photon sphere at 1.5 * lensing rs, or the
+     * horizon) swing round in arbitrary directions: what they show is the
+     * world behind the viewer squeezed into a ring a pixel or two thick,
+     * and off screen we only have a flat stand-in for it (a hard grey-green
+     * rim). Real images show it dark, apart from the disk's light, which is
+     * kept: fade what is behind over a thin band outside the shadow */
+    float rim = smoothstep(captureEdge * 1.02, captureEdge * 1.45, closest);
+    /* a world hole's rays turned past ~90 degrees head back behind the
+     * viewer, where the screen has nothing to show (they fell back to a flat
+     * ground color: a mottled grey-green band round the shadow); dark there */
+    if (worldHole && !captured) {
+        rim *= smoothstep(-0.35, 0.15, dot(vel, dir));
+    }
+    traceLod = clamp((captureEdge * 2.4 - closest) / (rs * 0.35), 0.0, 4.0);
+    /* the photon ring: escaping rays that grazed the capture edge catch the
+     * disk in a window far thinner than a pixel (a dotted ring) */
+    if (!captured) {
+        /* (narrower for the sky hole: its arcs pass just outside this band) */
+        light *= worldHole ? smoothstep(captureEdge * 1.03, captureEdge * 1.35, closest)
+                           : smoothstep(captureEdge * 1.01, captureEdge * 1.12, closest);
+    }
+    vec3 behind = captured || rim <= 0.0 ? vec3(0.0)
+                : hitGeometry ? hitColor
+                : worldHole ? traceOut(pos, vel)
+                : sceneDistance > 1e8 ? skyBehind(dir, vel, scene)
                 : background(pos, vel, sceneDistance);
-    outColor = vec4(light + transmittance * behind, 1.0);
+    /* a world hole's rays that came close see the world squeezed into a
+     * sliver: hit-or-miss per pixel turns outlines there into stripes. Blend
+     * into a blurred average of the surroundings instead */
+    if (worldHole && !captured && hasSky != 0) {
+        float squeezed = smoothstep(captureEdge * 4.2, captureEdge * 1.8, closest);
+        if (squeezed > 0.0) {
+            vec3 around = vel.y >= 0.0 ? textureLod(skySampler, vel, 3.0).rgb
+                        : textureLod(skySampler, normalize(vec3(vel.x, 0.02, vel.z)), 3.0).rgb *
+                          mix(1.0, 0.55, smoothstep(0.0, -0.6, vel.y));
+            behind = mix(behind, around, squeezed);
+        }
+    }
+    outColor = vec4(light + transmittance * behind * rim, 1.0);
 }

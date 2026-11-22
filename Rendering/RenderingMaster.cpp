@@ -510,10 +510,55 @@ void RenderingMaster::prepareFrame(float alpha) {
             if (hole->sky) { skyHole = hole; break; }
         }
         m_skyCloudCut = skyHole != nullptr && m_environment.cloudCoverage > 0.0f;
+        /* a Kugelblitz sits in the moon, and eats it at its own pace */
+        float collapse = -1.0f;
+        if (skyHole != nullptr && skyHole->kugelblitz) {
+            skyHole->direction = m_environment.moonDirection;
+            float dt = m_lastCollapseTime < 0.0f ? 0.0f : glm::clamp(m_renderTime - m_lastCollapseTime, 0.0f, 0.1f);   /* hitches (loading) must not eat the countdown */
+            /* playback: from 0 it waits collapseDelay seconds, then ignites
+             * and runs at collapseSpeed until the moon is gone */
+            if (skyHole->playing) {
+                bool waiting = false;
+                if (skyHole->collapse <= 0.0f) {
+                    skyHole->delayElapsed += dt;
+                    waiting = skyHole->delayElapsed < skyHole->collapseDelay;
+                }
+                if (!waiting) {
+                    skyHole->collapse = glm::clamp(skyHole->collapse + skyHole->collapseSpeed / 60.0f * dt, 0.0f, 1.0f);
+                }
+                if (skyHole->collapse >= 1.0f) {
+                    skyHole->playing = false;
+                }
+            }
+            collapse = skyHole->collapse;
+            /* ignition: the moment collapse leaves 0 (running, or dragged) */
+            const float IGNITION = 0.0005f;
+            if (skyHole->previousCollapse >= 0.0f && skyHole->previousCollapse <= IGNITION && collapse > IGNITION) {
+                skyHole->ignitionTime = m_renderTime;
+            }
+            skyHole->previousCollapse = collapse;
+            float flash = std::exp(-std::max(m_renderTime - skyHole->ignitionTime, 0.0f) * 1.4f);
+            skyShader->updateUniform("collapseFlash", flash);
+            /* the jets leave along the spin axis (the disk's normal), as seen on the moon's disc */
+            glm::vec3 moonDir = glm::normalize(m_environment.moonDirection);
+            glm::vec3 right = glm::normalize(glm::cross(moonDir, std::abs(moonDir.y) < 0.99f ? glm::vec3(0, 1, 0) : glm::vec3(1, 0, 0)));
+            glm::vec3 up = glm::cross(right, moonDir);
+            glm::vec3 axis = skyHole->diskNormal();
+            glm::vec2 jet(glm::dot(axis, right), glm::dot(axis, up));
+            jet = glm::length(jet) > 1e-3f ? glm::normalize(jet) : glm::vec2(0.0f, 1.0f);
+            skyShader->updateUniform("collapseSite", (void *) &skyHole->collapseSite);
+            skyShader->updateUniform("jetAxis", (void *) &jet);
+        }
+        m_lastCollapseTime = m_renderTime;
+        skyShader->updateUniform("collapse", collapse);
+        if (collapse < 0.0f) {
+            float noFlash = 0.0f;
+            skyShader->updateUniform("collapseFlash", noFlash);
+        }
         float clear = skyHole != nullptr ? skyHole->cloudClear : 0.0f;
         skyShader->updateUniform("holeCloudClear", clear);
         skyShader->updateUniform("cloudPass", 0);
-        float stream = skyHole != nullptr ? skyHole->moonStream : 0.0f;
+        float stream = skyHole != nullptr && !skyHole->kugelblitz ? skyHole->moonStream : 0.0f;
         skyShader->updateUniform("moonStream", stream);
         if (skyHole != nullptr) {
             glm::vec3 holeDirection = glm::normalize(skyHole->direction);

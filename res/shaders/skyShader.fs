@@ -108,6 +108,217 @@ uniform float sunsetStrength;  /* horizon glow around sunrise / sunset */
 uniform bool reflectionPass;   /* rendering the reflection cube: no sun / moon discs
                                 * (their highlights come from the direct light) */
 
+/* ---- Kugelblitz: a black hole made of pure light, ignited by accident at
+ * an AI's laser facility on the moon, eating the moon from the inside.
+ * collapse runs 0..1 through the stages: flash at the facility (0..0.05),
+ * a glowing bore-hole and seismic rings (..0.4), cracks of molten light
+ * spreading from inside (0.2..), twin plasma jets out of the poles (0.38..),
+ * then the death spiral: slabs of crust shear into a whirlpool and fall in
+ * until only the hole's debris ring is left (0.55..1). The hole itself is
+ * drawn by BlackHole (it only shows once the crust breaks up) ---- */
+uniform float collapse;         /* < 0: no Kugelblitz */
+uniform vec2 collapseSite;      /* the facility, on the moon's disc (-1..1) */
+uniform vec2 jetAxis;           /* the jets' direction across the disc (unit) */
+uniform float collapseFlash;    /* the ignition flash, 1 at ignition fading in real time */
+
+float breakupAmount() {
+    return collapse >= 0.0 ? smoothstep(0.55, 0.97, collapse) : 0.0;
+}
+
+vec2 kbHash2(vec2 p) {
+    return fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)))) * 43758.5453);
+}
+
+/* cells: x = distance to the nearest point, y = distance to the cell's
+ * edge (approx.), z = the cell's random id */
+vec3 kbCells(vec2 x) {
+    vec2 n = floor(x), f = fract(x);
+    float f1 = 8.0, f2 = 8.0, id = 0.0;
+    for (int j = -1; j <= 1; j++) {
+        for (int i = -1; i <= 1; i++) {
+            vec2 g = vec2(i, j);
+            vec2 o = kbHash2(n + g);
+            vec2 d = g + o - f;
+            float dd = dot(d, d);
+            if (dd < f1) {
+                f2 = f1;
+                f1 = dd;
+                id = kbHash2(n + g + 17.0).x;
+            } else if (dd < f2) {
+                f2 = dd;
+            }
+        }
+    }
+    return vec3(sqrt(f1), sqrt(f2) - sqrt(f1), id);
+}
+
+/* the same cells, wrapping every `period` along x (angles round the moon,
+ * so there is no seam where the angle jumps) */
+vec3 kbCellsWrapped(vec2 x, float period) {
+    vec2 n = floor(x), f = fract(x);
+    float f1 = 8.0, f2 = 8.0, id = 0.0;
+    for (int j = -1; j <= 1; j++) {
+        for (int i = -1; i <= 1; i++) {
+            vec2 g = vec2(i, j);
+            vec2 cell = vec2(mod(n.x + g.x, period), n.y + g.y);
+            vec2 o = kbHash2(cell);
+            vec2 d = g + o - f;
+            float dd = dot(d, d);
+            if (dd < f1) {
+                f2 = f1;
+                f1 = dd;
+                id = kbHash2(cell + 17.0).x;
+            } else if (dd < f2) {
+                f2 = dd;
+            }
+        }
+    }
+    return vec3(sqrt(f1), sqrt(f2) - sqrt(f1), id);
+}
+
+/* the moon's face as the hole eats it: p = point on the (sheared) disc */
+void kugelblitzMoon(vec2 p, float r, inout float albedo, inout float lit, inout float disc, inout vec3 heat) {
+    float ds = length(p - collapseSite);
+    vec3 magma = vec3(1.0, 0.38, 0.1), whiteHot = vec3(1.0, 0.86, 0.62);
+
+    /* the death spiral: slabs break off, the middle first (it falls into the
+     * hole), then outwards; what has fallen in takes its glow with it */
+    float b = breakupAmount();
+    float present = 1.0, edge = 0.0;
+    if (b > 0.0) {
+        vec3 slabs = kbCells(p * 3.2 + 11.0);
+        float order = slabs.z * 0.45 + r * 0.75;
+        float threshold = b * 1.3 - 0.06;
+        present = smoothstep(threshold - 0.03, threshold + 0.03, order);
+        edge = 1.0 - smoothstep(0.0, 0.07, slabs.y);
+    }
+    vec3 surface = vec3(0.0);
+
+    /* the bore-hole: where the singularity sank through the crust */
+    float bore = smoothstep(0.02, 0.09, collapse) * (1.0 - 0.6 * smoothstep(0.5, 0.9, collapse));
+    surface += mix(magma, whiteHot, exp(-ds * ds / 0.002)) * bore *
+               (exp(-ds * ds / 0.003) * 3.0 + exp(-ds * ds / 0.04) * 0.5);
+
+    /* seismic shockwaves rippling out across the surface */
+    float quake = smoothstep(0.03, 0.08, collapse) * (1.0 - smoothstep(0.3, 0.45, collapse));
+    float ring = pow(0.5 + 0.5 * sin(ds * 26.0 - time * 3.5), 12.0) * exp(-ds * 1.1) * quake;
+    lit *= 1.0 + ring * 0.6;
+    surface += vec3(0.5, 0.6, 0.8) * ring * 0.08;
+
+    /* cracks of light from the inside, spreading from the facility (wide
+     * enough to read on a moon a few dozen pixels across) */
+    float spread = smoothstep(0.18, 0.55, collapse) * 2.5;
+    vec3 cracks = kbCells(p * 3.6);
+    float wobble = kbCells(p * 2.1 + 3.0).x * 0.35;
+    float reach = 1.0 - smoothstep(spread - 0.35, spread, ds + wobble);
+    float width = mix(0.05, 0.12, smoothstep(0.3, 0.85, collapse));
+    float crack = (1.0 - smoothstep(0.0, width, cracks.y)) * reach;
+    float pulse = 0.75 + 0.25 * sin(time * 2.3 + cracks.z * 40.0);
+    surface += mix(magma, whiteHot, crack * crack) * crack * 4.0 * pulse;
+    surface += magma * exp(-cracks.y / 0.12) * reach * 0.8;   /* the glow around them */
+    /* the crust chars as the inside heats up: near-black between blazing veins */
+    albedo *= mix(1.0, 0.22, reach * smoothstep(0.25, 0.65, collapse));
+
+    /* the limb glows as the inside heats up */
+    surface += mix(vec3(0.6, 0.12, 0.04), magma, smoothstep(0.5, 0.9, collapse)) *
+               smoothstep(0.7, 1.0, r) * smoothstep(0.3, 0.7, collapse) * 0.9;
+
+    /* molten slab edges, and glowing rivers where slabs were */
+    surface += magma * edge * b * 1.8;
+    heat += surface * present * disc;
+    heat += mix(magma, whiteHot, 0.3) * (1.0 - present) * b * (1.0 - b) * 1.2 * disc *
+            (0.6 + 0.4 * sin(r * 30.0 - time * 5.0));
+    disc *= present;
+}
+
+/* in the sky around the moon: the ignition flash and shock ring, gas venting
+ * from the heated moon, the debris spiralling in, dust, and the polar jets.
+ * Adds light to color and dims it where dust hides the stars */
+void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRadius, inout vec3 color) {
+    vec3 result = vec3(0.0);
+    /* gnomonic (tangent-plane) coordinates in moon radii: straight lines on
+     * the sky stay straight, and distance keeps growing (with sines it
+     * saturates at 90 degrees, so the jets never reached their fade-out and
+     * were cut off where this function stops) */
+    vec2 q = vec2(dot(dir, right), dot(dir, upAxis)) / (max(dot(dir, moonDir), 1e-3) * tan(moonRadius));
+    float r = length(q);
+    float theta = atan(q.y, q.x) / 6.2831853;     /* 0..1 round the moon */
+
+    /* 1. the flash at ignition: a blinding blue-white pinpoint at the
+     * facility, a moment long, and the shock ring it sends out */
+    if (collapseFlash > 0.001) {
+        float f = collapseFlash;
+        float d = length(q - collapseSite) * moonRadius;      /* radians */
+        result += vec3(0.75, 0.85, 1.0) * f * (exp(-d * d / 1e-6) * 60.0 + exp(-d / 0.004) * 4.0 +
+                                               exp(-d / 0.12) * 0.25 * f);
+        float t = -log(f) / 1.4;                               /* seconds since ignition */
+        float ringRadius = 1.0 + t * 2.6, ringWidth = 0.12 + 0.12 * t;
+        float rough = 0.6 + 0.8 * kbCellsWrapped(vec2(theta * 30.0, t * 2.0), 30.0).x;
+        result += vec3(0.6, 0.75, 1.0) * exp(-pow((r - ringRadius) / (ringWidth * rough), 2.0)) * exp(-t * 0.9) * 1.3;
+    }
+
+    /* 3. gas venting from the heated moon: ragged plumes off the limb */
+    float vent = smoothstep(0.25, 0.4, collapse) * (1.0 - smoothstep(0.7, 0.9, collapse));
+    if (vent > 0.0 && r > 0.9 && r < 3.0) {
+        /* cells long in radius, narrow round the limb: streaks blown outwards */
+        vec3 plume = kbCellsWrapped(vec2(theta * 34.0, r * 0.5 - time * 0.3), 34.0);
+        float wisp = smoothstep(0.5, 0.0, plume.x) * step(0.4, plume.z);
+        float flicker = 0.6 + 0.4 * sin(time * 3.0 + plume.z * 30.0);
+        float fade = smoothstep(0.92, 1.05, r) * exp(-(r - 1.0) * 1.2);
+        result += mix(vec3(0.5, 0.42, 0.38), vec3(1.0, 0.5, 0.2), exp(-(r - 1.0) * 2.5)) * wisp * flicker * fade * vent * 0.8;
+    }
+
+    /* 5. the death spiral: torn crust stretched into two glowing streams
+     * spiralling into the hole, lumpy with chunks, white-hot as they fall in */
+    float b = breakupAmount();
+    if (b > 0.0 && r > 0.04 && r < 4.5) {
+        float arm = theta * 2.0 + log(r) * 0.55 + time * 0.12;  /* two arms of a logarithmic spiral */
+        float band = pow(0.5 + 0.5 * cos(arm * 6.2831853), 5.0);
+        vec3 bits = kbCellsWrapped(vec2(theta * 40.0, log(r) * 9.0 + time * 0.8), 40.0);
+        float chunk = smoothstep(0.32, 0.0, bits.x) * step(0.35, bits.z);
+        float outer = mix(1.3, 3.6, b);
+        float extent = smoothstep(0.06, 0.25, r) * (1.0 - smoothstep(outer * 0.7, outer, r));
+        float hot = smoothstep(2.6, 0.25, r);
+        vec3 stream = mix(vec3(0.5, 0.18, 0.08), vec3(1.0, 0.68, 0.38), hot);
+        stream = mix(stream, vec3(1.0, 0.94, 0.82), hot * hot * chunk);
+        /* all fallen in by the end: only the black hole and its disk remain */
+        float fadeOut = 1.0 - smoothstep(0.85, 1.0, collapse);
+        result += stream * band * (0.3 + 1.8 * chunk) * extent * b * fadeOut * 2.2;
+
+        /* flares: big chunks hitting the hole, at irregular moments */
+        float beat = floor(time * 0.8), phase = fract(time * 0.8);
+        float burst = step(0.45, kbHash2(vec2(beat, 3.1)).x) * exp(-phase * 4.0) * b * (1.0 - b) * 4.0;
+        result += vec3(1.0, 0.86, 0.66) * burst * (exp(-r * 2.2) * 2.5 + exp(-r * 0.6) * 0.25);
+
+        /* dust thrown up by the breakup hides the stars, lit from inside */
+        float dust = extent * b * fadeOut * (0.35 + 0.5 * band);
+        color *= 1.0 - dust * 0.55;
+        result += vec3(0.35, 0.16, 0.08) * dust * 0.06;
+    }
+
+    /* 4. twin plasma jets out of the poles, a cosmic lighthouse */
+    /* they die down at the end, when there is no more moon to feed them */
+    float grow = smoothstep(0.38, 0.62, collapse) * (1.0 - smoothstep(0.88, 1.0, collapse));
+    if (grow > 0.0) {
+        float along = dot(q, jetAxis);
+        float perp = abs(dot(q, vec2(-jetAxis.y, jetAxis.x)));
+        float s = abs(along);
+        float len = mix(1.2, 28.0, grow);
+        float width = 0.035 + 0.012 * s;
+        float extent = smoothstep(0.75, 1.05, s) * (1.0 - smoothstep(len * 0.55, len, s));
+        float beam = exp(-pow(perp / width, 2.0)) * extent;
+        float knots = 0.65 + 0.35 * sin(s * 2.2 - time * 9.0 + (along > 0.0 ? 0.0 : 1.7));
+        /* the same hot inflow as the disk: a white-hot core with an edge and
+         * glow in the disk's color (blue jets clashed with the orange disk,
+         * and the lens smeared their glow into blue smudges round the hole) */
+        vec3 amber = blackHoleDiskColor * vec3(1.1, 0.9, 0.75);
+        vec3 jetColor = mix(amber, vec3(1.0, 0.96, 0.88), exp(-pow(perp / (width * 0.4), 2.0)));
+        result += jetColor * beam * knots * 2.5 * grow;
+        result += amber * exp(-pow(perp / (width * 6.0), 2.0)) * extent * 0.1 * grow;
+    }
+    color += result;
+}
+
 float hash13(vec3 p) {
     p = fract(p * 0.1031);
     p += dot(p, p.zyx + 31.32);
@@ -161,14 +372,21 @@ vec3 nightSky(vec3 dir) {
 
     /* moon: a sphere lit by the sun (so it has a terminator and phases), with
      * the albedo map for maria and craters and the same map as a height field
-     * for relief, faint earthshine on the dark side, a soft halo and glow */
+     * for relief, faint earthshine on the dark side, a soft halo and glow.
+     * With a Kugelblitz (collapse >= 0) it is being eaten from the inside */
     vec3 moonDir = normalize(moonDirection);
     float m = dot(dir, moonDir);
     float moonRadius = moonSize;
+    vec3 right = normalize(cross(moonDir, abs(moonDir.y) < 0.99 ? vec3(0, 1, 0) : vec3(1, 0, 0)));
+    vec3 upAxis = cross(right, moonDir);
+    bool kugelblitz = collapse >= 0.0;
+    float breakup = kugelblitz ? smoothstep(0.55, 0.97, collapse) : 0.0;
     if (m > cos(moonRadius * 1.1) && discs > 0.0) {
-        vec3 right = normalize(cross(moonDir, abs(moonDir.y) < 0.99 ? vec3(0, 1, 0) : vec3(1, 0, 0)));
-        vec3 upAxis = cross(right, moonDir);
         vec2 p = vec2(dot(dir, right), dot(dir, upAxis)) / sin(moonRadius);
+        /* death spiral: the inner crust orbits faster and falls inwards, so
+         * the disc shears into a whirlpool and shrinks */
+        float twist = breakup * breakup * 7.0 / (0.3 + length(p));
+        p = mat2(cos(twist), sin(twist), -sin(twist), cos(twist)) * p * (1.0 + breakup * 0.9);
         float r = length(p);
         if (r < 1.02) {
             float z = sqrt(max(1.0 - r * r, 0.0));
@@ -200,17 +418,27 @@ vec3 nightSky(vec3 dir) {
             float earthshine = 0.035;
             float disc = 1.0 - smoothstep(0.955, 1.0, r);
             vec3 discColor = mix(moonColor, vec3(dot(moonColor, vec3(0.3333))), 0.6);
+
+            vec3 heat = vec3(0.0);
+            if (kugelblitz) {
+                kugelblitzMoon(p, r, albedo, lit, disc, heat);
+            }
             /* at night the disc hides the stars behind it; by day the bright
              * sky is in front of the moon (scattering in our atmosphere), so
              * it only adds a pale moon on top */
             color = mix(color, color * 0.4, disc * (1.0 - sunVisibility));
             color += discColor * disc * pow(albedo, 1.1) * (lit * 1.5 + earthshine);
             color += vec3(0.75, 0.8, 0.9) * disc * pow(albedo, 1.1) * lit * 0.22 * sunVisibility;
+            color += heat;
         }
     }
-    color += moonColor * (pow(max(m, 0.0), 2000.0) * 0.1 * discs +
-                          pow(max(m, 0.0), 300.0) * 0.05 * discs +
-                          pow(max(m, 0.0), 12.0) * 0.1);
+    float halo = kugelblitz ? 1.0 - smoothstep(0.55, 0.8, collapse) : 1.0;
+    color += moonColor * halo * (pow(max(m, 0.0), 2000.0) * 0.1 * discs +
+                                 pow(max(m, 0.0), 300.0) * 0.05 * discs +
+                                 pow(max(m, 0.0), 12.0) * 0.1);
+    if (kugelblitz && m > 0.3) {
+        kugelblitzSky(dir, moonDir, right, upAxis, moonRadius, color);
+    }
     return color;
 }
 

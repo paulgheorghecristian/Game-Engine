@@ -312,34 +312,23 @@ emitters += [
      "fadeIn": 0.4, "nightOnly": True},   # night mist: unlit, it would be dark smoke by day
 ]
 
-# --- a black hole in the night sky, tearing a stream of dust off the moon ---
+# --- a Kugelblitz eating the moon -------------------------------------------
+# A rogue AI's laser facility on the moon collapsed pure light into a black
+# hole, which sank into the moon and is eating it from the inside: flash,
+# glowing bore-hole and quakes, cracks of light, twin polar jets, then the
+# crust spirals in until only the debris ring is left. "collapse" (0..1)
+# picks the stage; "collapseSpeed" (per minute) lets it progress.
 def _norm(v):
     l = math.sqrt(sum(c * c for c in v)); return [c / l for c in v]
 def _cross(a, b):
     return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
-_moon = _norm(moon)
-_right = _norm(_cross(_moon, [0, 1, 0]))
-_up = _cross(_right, _moon)
-_sep = 0.30                     # the moon sits ~23 degrees below the hole, inside its lensing:
-_offset = [_up[i] * 0.8 + _right[i] * 0.6 for i in range(3)]   # bent, with a faint second image above it
-hole_dir = _norm([_moon[i] * math.cos(_sep) + _offset[i] * math.sin(_sep) for i in range(3)])
-# a long thin disk, nearly edge-on (7 degrees), rolled a little
-_h = hole_dir
-_level = _norm([[0, 1, 0][i] - _h[i] * _h[1] for i in range(3)])
-_n = _norm([_level[i] * math.cos(math.radians(7)) - _h[i] * math.sin(math.radians(7)) for i in range(3)])
-# rolled a little on the sky, like Gargantua's diagonal disk
-_roll = math.radians(9)
-_hxn = _cross(_h, _n)
-_n = _norm([_n[i] * math.cos(_roll) + _hxn[i] * math.sin(_roll) for i in range(3)])
-# BlackHole::diskNormal(): n = (-sin b, cos b cos a, cos b sin a) for diskTilt [a, b]
-_tilt_b = math.degrees(-math.asin(_n[0]))
-_tilt_a = math.degrees(math.atan2(_n[2], _n[1]))
-black_holes = [{"sky": True, "direction": [round(c, 4) for c in hole_dir], "angularRadius": 0.03,
-                # restrained: a small black void, a thin dim disk, lensing that
-                # only bends the sky close to it
+_h = _norm(moon)                # the hole sits in the moon
+black_holes = [{"sky": True, "direction": [round(c, 4) for c in _h], "angularRadius": 0.03,
+                "kugelblitz": True, "collapse": 0.62, "collapseSpeed": 1.0, "collapseDelay": 3.0, "collapseSite": [0.36, 0.77],
+                # ends as the lagoon_bh sky hole: a long thin Gargantua disk
                 "lensing": 0.8, "influence": 11, "colorShift": 0.7, "diskInner": 3.0, "diskOuter": 16.0,
-                "diskColor": [1.0, 0.55, 0.26], "diskBrightness": 2.0, "diskOpacity": 0.55, "diskSpeed": 0.8,
-                "diskTilt": [round(_tilt_a, 2), round(_tilt_b, 2)], "glow": 0.0, "moonStream": 1.0,
+                "diskColor": [1.0, 0.55, 0.26], "diskBrightness": 5.0, "diskOpacity": 0.55, "diskSpeed": 0.8,
+                "diskTilt": [41.54, -21.34], "glow": 0.0, "moonStream": 0.0,
                 "cloudClear": 0.7}]   # clouds pass in front of it, thinning out around it
 
 game = {

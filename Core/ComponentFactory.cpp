@@ -179,7 +179,11 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             shouldUpdate = itr->value["shouldUpdate"].GetBool();
         }
 
-        return new PhysicsComponent(type, scale, mass, shouldUpdate, mesh);
+        PhysicsComponent *physics = new PhysicsComponent(type, scale, mass, shouldUpdate, mesh);
+        if (type == PhysicsComponent::BoundingBodyType::MESH) {
+            physics->setMeshPath(itr->value["BoundingBodyType"].GetArray()[1].GetString());
+        }
+        return physics;
     } else if (strcmp (itr->name.GetString(), "GrabComponent") == 0) {
 
         return new GrabComponent(itr->value["radius"].GetFloat());

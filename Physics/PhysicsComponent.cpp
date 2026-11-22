@@ -201,6 +201,8 @@ std::string PhysicsComponent::jsonify() {
         res += "[\"sphere\"],";
     } else if (type == BoundingBodyType::CAPSULE) {
         res += "[\"capsule\"],";
+    } else if (type == BoundingBodyType::MESH) {
+        res += "[\"mesh\",\"" + m_meshPath + "\"],";
     }
     res += "\"scale\":[" + std::to_string(boundingBodyScale.x) + ","
             + std::to_string(boundingBodyScale.y) + "," + std::to_string(boundingBodyScale.z) + "],";

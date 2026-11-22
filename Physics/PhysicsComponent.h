@@ -33,6 +33,8 @@ class PhysicsComponent : public Component
         const glm::vec3 &getBoundingBodyScale();
 
         std::string jsonify() override;
+        /* mesh bodies: the mesh file they were built from (for saving) */
+        void setMeshPath(const std::string &path) { m_meshPath = path; }
 
         virtual ~PhysicsComponent();
 
@@ -40,6 +42,7 @@ class PhysicsComponent : public Component
 
     private:
         BoundingBodyType type;
+        std::string m_meshPath;
         glm::vec3 boundingBodyScale;
         float bodyMass;
 

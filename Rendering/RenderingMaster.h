@@ -279,6 +279,7 @@ class RenderingMaster
         void renderLensSky(const BlackHole &hole);
         void renderBlackHoles(FrameBuffer &target);
         bool m_skyCloudCut = false;   /* a sky black hole with clouds: split the cloud layer */
+        float m_lastCollapseTime = -1.0f;
         void blackHoleGUI();
 };
 

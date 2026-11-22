@@ -142,11 +142,19 @@
   {
    "sky": true,
    "direction": [
-    -0.0081,
-    0.7668,
-    -0.6418
+    -0.2295,
+    0.6058,
+    -0.7618
    ],
    "angularRadius": 0.03,
+   "kugelblitz": true,
+   "collapse": 0.62,
+   "collapseSpeed": 1.0,
+   "collapseDelay": 3.0,
+   "collapseSite": [
+    0.36,
+    0.77
+   ],
    "lensing": 0.8,
    "influence": 11,
    "colorShift": 0.7,
@@ -157,15 +165,15 @@
     0.55,
     0.26
    ],
-   "diskBrightness": 2.0,
+   "diskBrightness": 5.0,
    "diskOpacity": 0.55,
    "diskSpeed": 0.8,
    "diskTilt": [
-    57.01,
-    -9.54
+    41.54,
+    -21.34
    ],
    "glow": 0.0,
-   "moonStream": 1.0,
+   "moonStream": 0.0,
    "cloudClear": 0.7
   }
  ],

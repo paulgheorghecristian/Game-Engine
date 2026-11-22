@@ -45,6 +45,16 @@ BlackHole::BlackHole(const rapidjson::Value &json) :
     angularRadius = jsonFloat(json, "angularRadius", angularRadius);
     moonStream = jsonFloat(json, "moonStream", moonStream);
     cloudClear = jsonFloat(json, "cloudClear", cloudClear);
+    kugelblitz = json.HasMember("kugelblitz") && json["kugelblitz"].IsBool() && json["kugelblitz"].GetBool();
+    collapse = jsonFloat(json, "collapse", collapse);
+    collapseSpeed = jsonFloat(json, "collapseSpeed", collapseSpeed);
+    collapseDelay = jsonFloat(json, "collapseDelay", collapseDelay);
+    autoPlay = json.HasMember("autoPlay") && json["autoPlay"].IsBool() && json["autoPlay"].GetBool();
+    if (autoPlay && kugelblitz) {
+        collapse = 0.0f;
+        playing = true;
+    }
+    collapseSite = jsonVec2(json, "collapseSite", collapseSite);
     updateLight();
 }
 
@@ -119,6 +129,14 @@ bool BlackHole::skyMayBeVisible(const glm::vec3 &forward, const glm::mat4 &proje
     return glm::dot(glm::normalize(forward), glm::normalize(direction)) > std::cos(limit);
 }
 
+float BlackHole::kugelblitzGrowth() const
+{
+    if (!kugelblitz) return 1.0f;
+    /* it shows once the middle of the crust has fallen in */
+    float t = glm::clamp((collapse - 0.62f) / 0.38f, 0.0f, 1.0f);
+    return t * t * (3.0f - 2.0f * t);
+}
+
 void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height,
                        GLuint lensSky)
 {
@@ -131,7 +149,13 @@ void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube
         /* far away in a fixed direction from the camera, like the moon */
         const float SKY_DISTANCE = 20000.0f;
         position = eye + glm::normalize(direction) * SKY_DISTANCE;
-        radius = SKY_DISTANCE * std::tan(angularRadius);
+        /* a Kugelblitz is smaller than an atom inside the moon at first, and
+         * grows as it eats: nothing to draw until the crust breaks up */
+        float growth = sky && kugelblitz ? kugelblitzGrowth() : 1.0f;
+        if (growth < 0.02f) {
+            return;
+        }
+        radius = SKY_DISTANCE * std::tan(angularRadius * growth);
     }
     /* rays are marched inside a sphere that holds the whole disk; the
      * bending itself only reaches `influence` radii (a long disk does not
@@ -143,27 +167,41 @@ void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube
         lensReach = std::min(lensReach, reach);
     }
 
-    /* only the pixels the sphere of influence can cover (scissor) */
+    /* only the pixels the sphere it bends can cover (scissor). Bounded by
+     * projecting the corners of a box around the sphere: near the screen
+     * edges perspective stretches the sphere's footprint, so a circle round
+     * its projected centre would cut the effect off with a hard edge */
     glm::vec3 toHole = position - eye;
     float distance = glm::length(toHole);
     int x0 = 0, y0 = 0, x1 = width, y1 = height;
     if (distance > reach * 1.05f) {
-        glm::vec4 clip = projection * view * glm::vec4(position, 1.0f);
-        if (clip.w <= 0.0f && glm::dot(toHole, camera->getForward()) < -reach) {
-            return;   /* well behind the camera */
+        glm::mat4 viewProjection = projection * view;
+        glm::vec2 lo(1e9f), hi(-1e9f);
+        int behind = 0;
+        for (int corner = 0; corner < 8; corner++) {
+            glm::vec3 offset((corner & 1) ? reach : -reach, (corner & 2) ? reach : -reach, (corner & 4) ? reach : -reach);
+            glm::vec4 clip = viewProjection * glm::vec4(position + offset, 1.0f);
+            if (clip.w <= 1e-3f) {
+                behind++;
+                continue;
+            }
+            glm::vec2 ndc = glm::vec2(clip) / clip.w;
+            lo = glm::min(lo, ndc);
+            hi = glm::max(hi, ndc);
         }
-        if (clip.w > 0.0f) {
-            glm::vec2 centre = (glm::vec2(clip) / clip.w * 0.5f + 0.5f) * glm::vec2(width, height);
-            float angular = std::asin(std::min(reach / distance, 1.0f));
-            float pixels = std::tan(angular) * projection[1][1] * 0.5f * height * 1.3f + 2.0f;
-            x0 = std::max(0, (int) (centre.x - pixels));
-            y0 = std::max(0, (int) (centre.y - pixels));
-            x1 = std::min(width, (int) (centre.x + pixels));
-            y1 = std::min(height, (int) (centre.y + pixels));
+        if (behind == 8) {
+            return;   /* entirely behind the camera */
+        }
+        if (behind == 0) {
+            x0 = std::max(0, (int) std::floor((lo.x * 0.5f + 0.5f) * width) - 2);
+            y0 = std::max(0, (int) std::floor((lo.y * 0.5f + 0.5f) * height) - 2);
+            x1 = std::min(width, (int) std::ceil((hi.x * 0.5f + 0.5f) * width) + 2);
+            y1 = std::min(height, (int) std::ceil((hi.y * 0.5f + 0.5f) * height) + 2);
             if (x0 >= x1 || y0 >= y1) {
                 return;
             }
         }
+        /* some corners behind the camera: the whole screen, to be safe */
     }
 
     Shader &s = getShader();
@@ -184,14 +222,19 @@ void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube
     s.updateUniform("cameraPosition", (void *) &eye);
     s.updateUniform("holePosition", (void *) &position);
     s.updateUniform("holeRadius", radius);
-    s.updateUniform("lensing", lensing);
+    /* a Kugelblitz bends light more as it grows (at full strength from the
+     * start, the moon around it would already be a ring before it falls in) */
+    float bending = sky && kugelblitz ? lensing * kugelblitzGrowth() : lensing;
+    s.updateUniform("lensing", bending);
     s.updateUniform("influenceRadius", lensReach);
     s.updateUniform("boundRadius", reach);
     s.updateUniform("diskNormal", (void *) &normal);
     s.updateUniform("diskInner", diskInner);
     s.updateUniform("diskOuter", diskOuter);
     s.updateUniform("diskColor", (void *) &diskColor);
-    s.updateUniform("diskBrightness", diskBrightness);
+    /* the debris ring brightens as the moon pours into it */
+    float brightness = sky && kugelblitz ? diskBrightness * glm::smoothstep(0.62f, 0.95f, collapse) : diskBrightness;
+    s.updateUniform("diskBrightness", brightness);
     s.updateUniform("diskOpacity", diskOpacity);
     s.updateUniform("diskSpeed", diskSpeed);
     s.updateUniform("colorShift", colorShift);
@@ -237,7 +280,43 @@ bool BlackHole::renderGUI(int index)
                 if (glm::length(direction) < 1e-3f) direction = glm::vec3(0, 1, 0);
             }
             ImGui::SliderFloat("Angular radius", &angularRadius, 0.005f, 0.2f, "%.3f rad");
-            ImGui::SliderFloat("Moon stream", &moonStream, 0.0f, 3.0f, "%.2f");
+            ImGui::Checkbox("Kugelblitz (eating the moon)", &kugelblitz);
+            if (kugelblitz) {
+                /* playback */
+                if (ImGui::Button(playing ? "Pause" : "Play")) {
+                    if (!playing) {
+                        if (collapse >= 1.0f) collapse = 0.0f;          /* finished: from the start */
+                        if (collapse <= 0.0f) delayElapsed = 0.0f;
+                        if (collapseSpeed <= 0.0f) collapseSpeed = 1.0f;
+                    }
+                    playing = !playing;
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Restart")) {
+                    collapse = 0.0f;
+                    delayElapsed = 0.0f;
+                    if (collapseSpeed <= 0.0f) collapseSpeed = 1.0f;
+                    playing = true;
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Reset")) {
+                    collapse = 0.0f;
+                    delayElapsed = 0.0f;
+                    playing = false;
+                }
+                ImGui::SameLine();
+                if (playing && collapse <= 0.0f && delayElapsed < collapseDelay) {
+                    ImGui::Text("waiting %.1f s", collapseDelay - delayElapsed);
+                } else {
+                    ImGui::Text("%s", playing ? "playing" : (collapse >= 1.0f ? "finished" : "paused"));
+                }
+                ImGui::SliderFloat("Collapse", &collapse, 0.0f, 1.0f, "%.3f");
+                ImGui::SliderFloat("Collapse speed (/min)", &collapseSpeed, 0.0f, 5.0f, "%.3f", 3.0f);   /* curved: fine control of slow speeds */
+                ImGui::SliderFloat("Start delay (s)", &collapseDelay, 0.0f, 120.0f, "%.0f");
+                ImGui::DragFloat2("Facility (on the moon)", &collapseSite.x, 0.01f, -0.9f, 0.9f);
+            } else {
+                ImGui::SliderFloat("Moon stream", &moonStream, 0.0f, 3.0f, "%.2f");
+            }
             ImGui::SliderFloat("Cloud clearing", &cloudClear, 0.0f, 1.0f, "%.2f");
         } else {
             changed |= ImGui::DragFloat3("Position", &position.x, 1.0f);
@@ -282,6 +361,16 @@ void BlackHole::save(rapidjson::Value &json, rapidjson::Document::AllocatorType 
         json.AddMember("angularRadius", angularRadius, allocator);
         json.AddMember("moonStream", moonStream, allocator);
         json.AddMember("cloudClear", cloudClear, allocator);
+        if (kugelblitz) {
+            json.AddMember("kugelblitz", true, allocator);
+            json.AddMember("collapse", collapse, allocator);
+            json.AddMember("collapseSpeed", collapseSpeed, allocator);
+            json.AddMember("collapseDelay", collapseDelay, allocator);
+            if (autoPlay) json.AddMember("autoPlay", true, allocator);
+            rapidjson::Value site(rapidjson::kArrayType);
+            site.PushBack(collapseSite.x, allocator).PushBack(collapseSite.y, allocator);
+            json.AddMember("collapseSite", site, allocator);
+        }
     } else {
         writeVec3(json, "position", position, allocator);
         json.AddMember("radius", radius, allocator);

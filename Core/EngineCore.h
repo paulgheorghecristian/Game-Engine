@@ -1,6 +1,7 @@
 #ifndef ENGINECORE_H
 #define ENGINECORE_H
 
+#include "FrameRecorder.h"
 #include "Display.h"
 #include "Input.h"
 #include "Entity.h"
@@ -60,6 +61,7 @@ class EngineCore
         virtual ~EngineCore();
 
         std::string dumpJson();
+        std::string mapJson();
 
     protected:
 
@@ -74,6 +76,8 @@ class EngineCore
         /* F1: play mode, no overlays (profiler, FPS, ImGui) and no cursor */
         bool m_playMode = false;
         bool m_warpBeforePlayMode = false;
+        /* F12: record what is rendered to ~/Videos (MP4, without overlays) */
+        FrameRecorder m_recorder;
         int outputType;
 
         void constructPlayer();

@@ -17,6 +17,7 @@
 #include "ParticleEmitter.h"
 #include "GrassRenderer.h"
 #include "BlackHole.h"
+#include "imgui.h"
 #include "ParticleEmitterComponent.h"
 #include "WaterRenderer.h"
 #include "rapidjson/prettywriter.h"
@@ -605,6 +606,15 @@ void EngineCore::input() {
         }
     }
 
+    if (inputManager.getKeyDown(SDLK_F12)) {
+        if (m_recorder.isRecording()) {
+            m_recorder.stop();
+        } else {
+            Display *display = RenderingMaster::getInstance()->getDisplay();
+            m_recorder.start(display->getWidth(), display->getHeight());
+        }
+    }
+
     if (inputManager.getKeyDown(SDLK_F5)) {
         saveMap(m_savePath);
     }
@@ -905,6 +915,15 @@ void EngineCore::render(float alpha) {
     PT_FromHere("buffersDraw");
     RenderingMaster::getInstance()->drawDeferredShadingBuffers();
     PT_ToHere ("buffersDraw");
+    /* the finished image, before any overlay. GE_RECORD=1 records from the
+     * first frame (scripted captures) */
+    static bool autoRecord = std::getenv("GE_RECORD") != NULL;
+    if (autoRecord) {
+        autoRecord = false;
+        Display *display = RenderingMaster::getInstance()->getDisplay();
+        m_recorder.start(display->getWidth(), display->getHeight());
+    }
+    m_recorder.captureFrame();
 
     /* GE_CLEAN_SHOTS=1: no profiler bars, FPS text or ImGui windows (clean
      * screenshots, e.g. tools/visual_tour.py); F1 does the same while playing */
@@ -924,6 +943,15 @@ void EngineCore::render(float alpha) {
         light->renderGUI();
     }
     RenderingMaster::getInstance()->imguiDrawCalls();
+    if (m_recorder.isRecording()) {
+        /* not in the video: it is captured before the overlays */
+        int seconds = (int) m_recorder.elapsedSeconds();
+        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, 8.0f), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
+        ImGui::Begin("Recording", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+                                           ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings);
+        ImGui::TextColored(ImVec4(1.0f, 0.25f, 0.2f, 1.0f), "REC %02d:%02d  (F12 to stop)", seconds / 60, seconds % 60);
+        ImGui::End();
+    }
     RenderingMaster::getInstance()->renderIMGUI();
     }
 
@@ -1399,6 +1427,21 @@ static void writeTransform(rapidjson::Value &object, const Transform &transform,
 }
 
 bool EngineCore::saveMap(const std::string &path) {
+    std::string json = mapJson();
+    FILE *file = fopen(path.c_str(), "w");
+    if (file == NULL) {
+        std::cout << "Could not save the map to " << path << std::endl;
+        return false;
+    }
+    fputs(json.c_str(), file);
+    fclose(file);
+    std::cout << "Map saved to " << path << std::endl;
+    return true;
+}
+
+/* the whole map as it is now, loadable as a map file (F5 saves it, Escape
+ * prints it) */
+std::string EngineCore::mapJson() {
     rapidjson::Document doc;
     doc.SetObject();
     auto &allocator = doc.GetAllocator();
@@ -1489,15 +1532,7 @@ bool EngineCore::saveMap(const std::string &path) {
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     writer.SetIndent(' ', 1);
     doc.Accept(writer);
-    FILE *file = fopen(path.c_str(), "w");
-    if (file == NULL) {
-        std::cout << "Could not save the map to " << path << std::endl;
-        return false;
-    }
-    fputs(buffer.GetString(), file);
-    fclose(file);
-    std::cout << "Map saved to " << path << std::endl;
-    return true;
+    return buffer.GetString();
 }
 
 void EngineCore::reloadMap(const std::string &path) {
@@ -1523,37 +1558,7 @@ void EngineCore::reloadMap(const std::string &path) {
 }
 
 std::string EngineCore::dumpJson() {
-    std::vector<Light *> &lights = RenderingMaster::getInstance()->getLights();
-    std::string res("");
-
-    res += "{";
-    res += "\"ConfigFilePath\":\"" + m_configFilePath;
-    res += "\",\"gravity\":" + std::to_string(m_gravity);
-
-    res += ",\"Entities\":[";
-    for (auto& it: entities) {
-        std::string jsonRes = it->jsonify();
-
-        if (jsonRes.size() == 0) {
-            continue;
-        }
-        res += "{";
-        res += jsonRes;
-        res += "},";
-    }
-    res.pop_back();
-    res += "],";
-
-    res += "\"Lights\":[";
-    for (auto& it: lights) {
-        res += "{";
-        res += it->jsonify();
-        res += "},";
-    }
-    res.pop_back();
-    res += "]}";
-
-    return res;
+    return mapJson();
 }
 
 void EngineCore::findPathToPlayer() {
