@@ -52,7 +52,7 @@ STAGE_W, STAGE_D, STAGE_H = 150.0, 90.0, 6.0
 POND = (250.0, 170.0)                             # the flooded low end
 POND_R = (170.0, 120.0)
 WATER_Y = -0.6
-SPAWN = (-20.0, 300.0)
+SPAWN = (0.0, 300.0)                              # on the stage axis
 
 X0, X1, Z0, Z1, STEP = -1500.0, 1500.0, -1500.0, 1500.0, 12.0
 
@@ -243,7 +243,7 @@ for part, material in (("body", LATEX), ("mask", PORCELAIN)):
 # the giant mask, hung on a black frame behind the stage
 MASK_SCALE = 30.0
 mask_pos = (STAGE[0], stage_top + 52, STAGE[1] - STAGE_D / 2 - 14)
-entities.append(entity("res/models/mask_simp.obj", mask_pos, MASK_SCALE, (-90, 180, 0), PORCELAIN))
+entities.append(entity("res/models/mask_simp.obj", mask_pos, MASK_SCALE, (-90, 0, 0), PORCELAIN))
 for side in (-1, 1):
     x = STAGE[0] + side * 46
     entities.append(entity("res/models/cube4.obj", (x, sg + 60, mask_pos[2] - 12), (5, 120, 5), material=LAMP_BODY))
@@ -260,9 +260,12 @@ lights.append(light(up, (0.75, 0.82, 1.0), "SPOT", (220, 220, 160), rot=aim(up, 
 # --------------------------------------------------------------------------
 TRIPOD_SCALE = 1.9                  # tripod_light.obj: 24.3 tall -> ~46
 # in the model the lamp's front (lens, barn doors) faces -z; its pole stands
-# at (-0.9, 3) and the lens centre is at (-0.5, 22, 0.2), model units
+# at (-0.9, 3); the housing's axis runs through x -1.0, y 21.6 and its front
+# housing's front face is at z ~1.75, with the barn doors standing out in
+# front of it (z 0..1): the lens is a thin disc flush on that face, framed
+# and hidden from the side by the doors (model units)
 TRIPOD_POLE = (-0.9, 3.0)
-TRIPOD_LENS = (-0.5, 22.0, 0.2)
+TRIPOD_LENS = (-1.0, 21.6, 1.68)
 target = (MAN[0], stage_top + 20, MAN[1])
 
 def turn(local_x, local_z, yaw):
@@ -270,7 +273,7 @@ def turn(local_x, local_z, yaw):
     a = math.radians(yaw)
     return (local_x * math.cos(a) + local_z * math.sin(a), -local_x * math.sin(a) + local_z * math.cos(a))
 
-for k, (x, z, volumetric) in enumerate(((-95, STAGE[1] + 110, True), (100, STAGE[1] + 95, True), (-15, STAGE[1] + 150, False))):
+for k, (x, z, volumetric) in enumerate(((-95, STAGE[1] + 110, True), (100, STAGE[1] + 95, True), (-15, STAGE[1] + 150, True))):
     g = ground(x, z)
     # yaw turning the model's -z front at the man (the same convention as aim())
     yaw = math.degrees(math.atan2(-(MAN[0] - x), -(MAN[1] - z)))
@@ -285,6 +288,10 @@ for k, (x, z, volumetric) in enumerate(((-95, STAGE[1] + 110, True), (100, STAGE
         attrs.update(volumetric=True, numSamplePoints=40, coef1=0.8, coef2=0.02, beamDensity=0.018,
                      beamFalloff=220, beamHaze=0.5)
     lights.append(light(head, (1.0, 0.96, 0.9), "SPOT", (300, 300, 340), rot=aim(head, target), **attrs))
+    # the glowing lens: a flat bright disc centred in the lamp's opening,
+    # facing out the way the lamp faces (emissive: it blooms like the sodium globes)
+    entities.append(entity("res/models/sphere.obj", head, (2.2, 2.2, 0.06), (0, round(yaw, 2), 0), LAMP_LENS,
+                           cast_shadow=False))
 
 # --------------------------------------------------------------------------
 # the audience: mannequins in rows, facing the stage (a few turned round)
@@ -324,9 +331,38 @@ for (x, z) in ((-410, -370), (410, -370), (-410, 370), (410, 300), (SPAWN[0] + 7
                         shadowMapSize=512, diffuse_attenuation=[260, 4, 0.9], specular_attenuation=[200, 4, 1.4],
                         flicker=0.06 if x > 0 else 0.0, flickerSpeed=7))
 
-# the moon (behind the clouds): the scene's directional light, with shadows
+# a faint cold key light from the overcast sky (the map has no moon; with a
+# fixed time of day this light keeps its color), with shadows
 lights.append(light((0, 0, 0), (0.3, 0.33, 0.42), "DIR", (0, 0, 0), dir=[0.45, 0.55, -0.7], cast_shadow=True,
                     diffuse_attenuation=[0, 0, 0], specular_attenuation=[0, 0, 0]))
+
+# fire in steel bins among the audience: warm flickering light on the
+# mannequins, their shadows dancing (one between them and the gate, so
+# you see them lit as you come in)
+FIRES = ((-150.0, 10.0), (155.0, 30.0), (15.0, 118.0))
+fire_sounds = []
+for (x, z) in FIRES:
+    g = ground(x, z)
+    entities.append(entity("res/models/cube4.obj", (x, g + 6.0, z), (11, 13, 11), (0, random.uniform(0, 45), 0),
+                           RUST_PLATE, physics=box_physics((11, 13, 11))))
+    top = g + 12.5
+    lights.append(light((x, top + 14, z), (1.0, 0.45, 0.12), "POINT", (300, 300, 300), cast_shadow=True,
+                        shadowMapSize=1024, diffuse_attenuation=[900, 14, 4.5], specular_attenuation=[260, 14, 4],
+                        flicker=0.35, flickerSpeed=11))
+    emitters += [
+        {"type": "smoke", "texture": "res/textures/fire-texture-atlas.jpg", "atlas": [4, 4], "atlasTopDown": True,
+         "count": 40, "lifetimeMs": 850, "position": [x, top, z], "radius": 4, "direction": [0, 1, 0], "spread": 0.15,
+         "speed": [14, 24], "gravity": 0, "buoyancy": 0.4, "startScale": 13, "growth": -6, "blend": "additive",
+         "tint": [1.0, 0.85, 0.7], "brightness": 0.0},
+        {"type": "spray", "texture": "res/textures/glowWhite.png", "count": 50, "lifetimeMs": 2200,
+         "position": [x, top + 3, z], "radius": 3, "direction": [0, 1, 0], "spread": 0.45, "speed": [25, 60],
+         "gravity": -8, "startScale": 1.5, "blend": "additive", "tint": [1.0, 0.55, 0.2]},
+        {"type": "smoke", "texture": "res/textures/smoke.png", "atlas": [8, 5], "count": 30, "lifetimeMs": 4500,
+         "position": [x, top + 26, z], "radius": 3, "direction": [0.15, 1, 0], "spread": 0.2, "speed": [12, 20],
+         "gravity": -2, "buoyancy": 0.5, "startScale": 14, "growth": 16, "blend": "alpha", "tint": [0.4, 0.3, 0.24],
+         "brightness": 0.4, "fadeIn": 0.35},
+    ]
+    fire_sounds.append({"sound": "fire_loop", "position": [x, top, z], "volume": 0.9, "radius": 380})
 
 # a crate stack and a concrete block by the stage
 for (x, z, s) in ((-150, -230, 14), (-128, -238, 10), (-146, -208, 9), (170, -120, 16)):
@@ -346,14 +382,30 @@ emitters += [
 ]
 
 # --------------------------------------------------------------------------
+# a black hole in the sky (as in lagoon_bh.json, without the moon), centred
+# over the stage and the mask as seen from the gate
+# --------------------------------------------------------------------------
+EYE_Y = ground(*SPAWN) + 27.0
+mask_top = mask_pos[1] + 0.5 * 2.87 * MASK_SCALE
+mask_angle = math.atan2(mask_top - EYE_Y, SPAWN[1] - mask_pos[2])
+hole_angle = mask_angle + math.radians(12)
+HOLE_DIR = [0.0, round(math.sin(hole_angle), 4), round(-math.cos(hole_angle), 4)]
+START_PITCH = round(math.degrees(hole_angle) * 0.45, 1)
+black_holes = [{"sky": True, "direction": HOLE_DIR, "angularRadius": 0.03, "lensing": 0.8, "influence": 11,
+                "colorShift": 0.7, "diskInner": 3.0, "diskOuter": 16.0, "diskColor": [1.0, 0.55, 0.26],
+                "diskBrightness": 2.0, "diskOpacity": 0.55, "diskSpeed": 0.8, "diskTilt": [57.01, -9.54],
+                "glow": 0.0, "moonStream": 0.0, "cloudClear": 0.7}]
+
+# --------------------------------------------------------------------------
 game = {
     "ConfigFilePath": "res/configs/config.json",
     "gravity": -10.0,
-    "PlayerStart": {"position": [SPAWN[0], ground(*SPAWN) + 25, SPAWN[1]], "yaw": 0, "pitch": 0},
+    "PlayerStart": {"position": [SPAWN[0], ground(*SPAWN) + 25, SPAWN[1]], "yaw": 0, "pitch": START_PITCH},
     "Environment": {"sky": "night", "zenithColor": [0.004, 0.005, 0.01], "horizonColor": [0.035, 0.035, 0.045],
-                    # a dim moon behind the overcast: a faint cold key light
+                    # no moon (the black hole owns the sky); the faint cold key
+                    # light is the directional light in "Lights"
                     "starIntensity": 0.15, "moonDirection": [0.45, 0.55, -0.7], "moonColor": [0.42, 0.46, 0.58],
-                    "moonSize": 0.02,
+                    "moonSize": 0.02, "moon": False,
                     "fogColor": [0.045, 0.045, 0.055], "fogDensity": 0.0016, "fogHeightFalloff": 0.006,
                     "fogBaseHeight": -10.0, "fogMoonGlow": 0.0, "fogStart": 150, "fogEnd": 1600,
                     "cloudCoverage": 0.85, "cloudSpeed": 6, "wind": 0.6,
@@ -365,13 +417,14 @@ game = {
               "tiling": 10, "waveStrength": 0.004, "waveSpeed": 0.015, "waveHeight": 0.08,
               "shallowColor": [0.25, 0.24, 0.22], "deepColor": [0.01, 0.01, 0.012],
               "murkDepth": 3, "softEdge": 1.2, "reflectivity": 1.0, "reflectionGlow": 1.6},
-    "Audio": {"wind": 0.3, "crickets": 0.12},
+    "Audio": {"wind": 0.3, "crickets": 0.12, "sources": fire_sounds},
     "Footsteps": {"sound": "step_sand", "variants": 6, "volume": 0.9, "dustPerStep": 4,
                   "dust": {"type": "spray", "burst": True, "texture": "res/textures/smoke.png", "atlas": [8, 5],
                            "count": 60, "lifetimeMs": 900, "position": [0, 0, 0], "radius": 4,
                            "direction": [0, 1, 0], "spread": 0.9, "speed": [8, 22], "gravity": -22,
                            "startScale": 6, "growth": 18, "scaleJitter": 0.5, "blend": "alpha",
                            "tint": [0.3, 0.27, 0.24], "brightness": 0.5, "fadeIn": 0.1}},
+    "BlackHoles": black_holes,
     "Entities": entities,
     "Lights": lights,
     "ParticleEmitters": emitters,

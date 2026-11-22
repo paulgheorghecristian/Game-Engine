@@ -282,8 +282,13 @@ vec3 lensSky(vec3 d) {
 vec3 skyBehind(vec3 view, vec3 bent, vec3 scene) {
     vec3 lensed = lensSky(bent);
     vec3 here = lensSky(view);
-    float k = smoothstep(0.08, 0.35, length(bent - view));
-    return mix(max(scene + lensed - here, vec3(0.0)), lensed, k);
+    /* what is in front, as a filter and a glow: where the real pixel is darker
+     * than the clean sky (overcast cloud) the bent sky is dimmed as much;
+     * where it is brighter (haze, sunset glow, particles) the excess is added.
+     * Holds however far the light is bent, on clear and overcast skies alike */
+    vec3 dim = clamp(scene / max(here, vec3(1e-3)), 0.0, 1.0);
+    vec3 glow = max(scene - here, vec3(0.0));
+    return lensed * dim + glow;
 }
 
 void main() {
@@ -409,6 +414,13 @@ void main() {
      * rim). Real images show it dark, apart from the disk's light, which is
      * kept: fade what is behind over a thin band outside the shadow */
     float rim = smoothstep(captureEdge * 1.02, captureEdge * 1.45, closest);
+    /* a sky hole's grazing rays (bent ~90 degrees and more) see the sky near
+     * the horizon, which the clean lens sky shows bright: under an overcast or
+     * foggy night it is dark (cloud, fog, the land), and a pale ring hugged
+     * the shadow. Fade them over a wider band */
+    if (!worldHole) {
+        rim *= smoothstep(captureEdge * 1.05, captureEdge * 1.9, closest);
+    }
     /* a world hole's rays turned past ~90 degrees head back behind the
      * viewer, where the screen has nothing to show (they fell back to a flat
      * ground color: a mottled grey-green band round the shadow); dark there */

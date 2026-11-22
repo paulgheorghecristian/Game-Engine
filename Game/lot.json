@@ -3,12 +3,12 @@
  "gravity": -10.0,
  "PlayerStart": {
   "position": [
-   -20.0,
-   24.667087879815245,
+   0.0,
+   24.446830399686085,
    300.0
   ],
   "yaw": 0,
-  "pitch": 0
+  "pitch": 9.0
  },
  "Environment": {
   "sky": "night",
@@ -34,6 +34,7 @@
    0.58
   ],
   "moonSize": 0.02,
+  "moon": false,
   "fogColor": [
    0.045,
    0.045,
@@ -101,7 +102,39 @@
  },
  "Audio": {
   "wind": 0.3,
-  "crickets": 0.12
+  "crickets": 0.12,
+  "sources": [
+   {
+    "sound": "fire_loop",
+    "position": [
+     -150.0,
+     12.723124005871489,
+     10.0
+    ],
+    "volume": 0.9,
+    "radius": 380
+   },
+   {
+    "sound": "fire_loop",
+    "position": [
+     155.0,
+     11.93713011348659,
+     30.0
+    ],
+    "volume": 0.9,
+    "radius": 380
+   },
+   {
+    "sound": "fire_loop",
+    "position": [
+     15.0,
+     12.709028379120637,
+     118.0
+    ],
+    "volume": 0.9,
+    "radius": 380
+   }
+  ]
  },
  "Footsteps": {
   "sound": "step_sand",
@@ -148,6 +181,37 @@
    "fadeIn": 0.1
   }
  },
+ "BlackHoles": [
+  {
+   "sky": true,
+   "direction": [
+    0.0,
+    0.3438,
+    -0.939
+   ],
+   "angularRadius": 0.03,
+   "lensing": 0.8,
+   "influence": 11,
+   "colorShift": 0.7,
+   "diskInner": 3.0,
+   "diskOuter": 16.0,
+   "diskColor": [
+    1.0,
+    0.55,
+    0.26
+   ],
+   "diskBrightness": 2.0,
+   "diskOpacity": 0.55,
+   "diskSpeed": 0.8,
+   "diskTilt": [
+    57.01,
+    -9.54
+   ],
+   "glow": 0.0,
+   "moonStream": 0.0,
+   "cloudClear": 0.7
+  }
+ ],
  "Entities": [
   {
    "Transform": {
@@ -1114,7 +1178,7 @@
   {
    "Transform": {
     "position": [
-     -270.0,
+     -260.0,
      30,
      420.0
     ],
@@ -1124,7 +1188,7 @@
      0
     ],
     "scale": [
-     380.0,
+     400.0,
      80,
      4
     ]
@@ -1135,7 +1199,7 @@
       "cube"
      ],
      "scale": [
-      380.0,
+      400.0,
       80,
       4
      ],
@@ -1146,7 +1210,7 @@
   {
    "Transform": {
     "position": [
-     250.0,
+     260.0,
      30,
      420.0
     ],
@@ -1156,7 +1220,7 @@
      0
     ],
     "scale": [
-     420.0,
+     400.0,
      80,
      4
     ]
@@ -1167,7 +1231,7 @@
       "cube"
      ],
      "scale": [
-      420.0,
+      400.0,
       80,
       4
      ],
@@ -1446,7 +1510,7 @@
     ],
     "rotation": [
      -90,
-     180,
+     0,
      0
     ],
     "scale": [
@@ -1660,6 +1724,51 @@
   {
    "Transform": {
     "position": [
+     -93.43,
+     40.79,
+     -61.96
+    ],
+    "rotation": [
+     0,
+     -42.96,
+     0
+    ],
+    "scale": [
+     2.2,
+     2.2,
+     0.06
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/sphere.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       1.0,
+       0.97,
+       0.9
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "emissive": 1.0,
+      "emissiveNightOnly": false
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
      96.82,
      0.52,
      -80.03
@@ -1704,6 +1813,51 @@
   {
    "Transform": {
     "position": [
+     97.98,
+     41.56,
+     -76.5
+    ],
+    "rotation": [
+     0,
+     48.98,
+     0
+    ],
+    "scale": [
+     2.2,
+     2.2,
+     0.06
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/sphere.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       1.0,
+       0.97,
+       0.9
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "emissive": 1.0,
+      "emissiveNightOnly": false
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
      -12.7,
      0.31,
      -25.49
@@ -1741,6 +1895,51 @@
       "shininess": 60,
       "metallic": 0.5,
       "roughness": 0.4
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -14.93,
+     41.35,
+     -22.51
+    ],
+    "rotation": [
+     0,
+     -6.03,
+     0
+    ],
+    "scale": [
+     2.2,
+     2.2,
+     0.06
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/sphere.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       1.0,
+       0.97,
+       0.9
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "emissive": 1.0,
+      "emissiveNightOnly": false
      }
     }
    }
@@ -2495,7 +2694,7 @@
   {
    "Transform": {
     "position": [
-     -12.0,
+     8.0,
      0.94,
      230.0
     ],
@@ -2935,8 +3134,8 @@
   {
    "Transform": {
     "position": [
-     55.0,
-     45.19,
+     75.0,
+     44.9,
      400.0
     ],
     "rotation": [
@@ -2990,8 +3189,8 @@
   {
    "Transform": {
     "position": [
-     55.0,
-     92.19,
+     75.0,
+     91.9,
      400.0
     ],
     "rotation": [
@@ -3232,13 +3431,187 @@
   {
    "Transform": {
     "position": [
+     -150.0,
+     6.22,
+     10.0
+    ],
+    "rotation": [
+     0,
+     10.69,
+     0
+    ],
+    "scale": [
+     11,
+     13,
+     11
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.85,
+       0.8,
+       0.75
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/158.JPG",
+      "NormalMapTexture": "res/textures/158_norm.JPG",
+      "roughness": 0.65,
+      "metallic": 0.3,
+      "specularStrength": 0.5
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      11,
+      13,
+      11
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     155.0,
+     5.44,
+     30.0
+    ],
+    "rotation": [
+     0,
+     13.55,
+     0
+    ],
+    "scale": [
+     11,
+     13,
+     11
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.85,
+       0.8,
+       0.75
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/158.JPG",
+      "NormalMapTexture": "res/textures/158_norm.JPG",
+      "roughness": 0.65,
+      "metallic": 0.3,
+      "specularStrength": 0.5
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      11,
+      13,
+      11
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     15.0,
+     6.21,
+     118.0
+    ],
+    "rotation": [
+     0,
+     44.0,
+     0
+    ],
+    "scale": [
+     11,
+     13,
+     11
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.85,
+       0.8,
+       0.75
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/158.JPG",
+      "NormalMapTexture": "res/textures/158_norm.JPG",
+      "roughness": 0.65,
+      "metallic": 0.3,
+      "specularStrength": 0.5
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      11,
+      13,
+      11
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
      -150,
      6.38,
      -230
     ],
     "rotation": [
      0,
-     9.51,
+     20.85,
      0
     ],
     "scale": [
@@ -3295,7 +3668,7 @@
     ],
     "rotation": [
      0,
-     12.04,
+     21.94,
      0
     ],
     "scale": [
@@ -3352,7 +3725,7 @@
     ],
     "rotation": [
      0,
-     39.11,
+     0.46,
      0
     ],
     "scale": [
@@ -3409,7 +3782,7 @@
     ],
     "rotation": [
      0,
-     20.85,
+     16.61,
      0
     ],
     "scale": [
@@ -3501,13 +3874,13 @@
   {
    "Transform": {
     "position": [
-     -90.82,
-     41.55,
-     -63.38
+     -93.43,
+     40.79,
+     -61.96
     ],
     "rotation": [
-     -6.29,
-     -42.64,
+     -5.85,
+     -43.04,
      0
     ],
     "scale": [
@@ -3548,13 +3921,13 @@
   {
    "Transform": {
     "position": [
-     96.49,
-     42.32,
-     -79.07
+     97.98,
+     41.56,
+     -76.5
     ],
     "rotation": [
-     -6.97,
-     49.32,
+     -6.49,
+     48.89,
      0
     ],
     "scale": [
@@ -3595,13 +3968,13 @@
   {
    "Transform": {
     "position": [
-     -13.69,
-     42.11,
-     -25.21
+     -14.93,
+     41.35,
+     -22.51
     ],
     "rotation": [
-     -6.37,
-     -5.71,
+     -5.93,
+     -6.11,
      0
     ],
     "scale": [
@@ -3629,7 +4002,14 @@
      380,
      2,
      0.4
-    ]
+    ],
+    "volumetric": true,
+    "numSamplePoints": 40,
+    "coef1": 0.8,
+    "coef2": 0.02,
+    "beamDensity": 0.018,
+    "beamFalloff": 220,
+    "beamHaze": 0.5
    }
   },
   {
@@ -3799,8 +4179,8 @@
   {
    "Transform": {
     "position": [
-     55.0,
-     88.19,
+     75.0,
+     87.9,
      400.0
     ],
     "rotation": [
@@ -3961,9 +4341,450 @@
      0
     ]
    }
+  },
+  {
+   "Transform": {
+    "position": [
+     -150.0,
+     26.72,
+     10.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     300,
+     300,
+     300
+    ]
+   },
+   "Attributes": {
+    "color": [
+     1.0,
+     0.45,
+     0.12
+    ],
+    "type": "POINT",
+    "cast_shadow": true,
+    "shadowMapSize": 1024,
+    "diffuse_attenuation": [
+     900,
+     14,
+     4.5
+    ],
+    "specular_attenuation": [
+     260,
+     14,
+     4
+    ],
+    "flicker": 0.35,
+    "flickerSpeed": 11
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     155.0,
+     25.94,
+     30.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     300,
+     300,
+     300
+    ]
+   },
+   "Attributes": {
+    "color": [
+     1.0,
+     0.45,
+     0.12
+    ],
+    "type": "POINT",
+    "cast_shadow": true,
+    "shadowMapSize": 1024,
+    "diffuse_attenuation": [
+     900,
+     14,
+     4.5
+    ],
+    "specular_attenuation": [
+     260,
+     14,
+     4
+    ],
+    "flicker": 0.35,
+    "flickerSpeed": 11
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     15.0,
+     26.71,
+     118.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     300,
+     300,
+     300
+    ]
+   },
+   "Attributes": {
+    "color": [
+     1.0,
+     0.45,
+     0.12
+    ],
+    "type": "POINT",
+    "cast_shadow": true,
+    "shadowMapSize": 1024,
+    "diffuse_attenuation": [
+     900,
+     14,
+     4.5
+    ],
+    "specular_attenuation": [
+     260,
+     14,
+     4
+    ],
+    "flicker": 0.35,
+    "flickerSpeed": 11
+   }
   }
  ],
  "ParticleEmitters": [
+  {
+   "type": "smoke",
+   "texture": "res/textures/fire-texture-atlas.jpg",
+   "atlas": [
+    4,
+    4
+   ],
+   "atlasTopDown": true,
+   "count": 40,
+   "lifetimeMs": 850,
+   "position": [
+    -150.0,
+    12.723124005871489,
+    10.0
+   ],
+   "radius": 4,
+   "direction": [
+    0,
+    1,
+    0
+   ],
+   "spread": 0.15,
+   "speed": [
+    14,
+    24
+   ],
+   "gravity": 0,
+   "buoyancy": 0.4,
+   "startScale": 13,
+   "growth": -6,
+   "blend": "additive",
+   "tint": [
+    1.0,
+    0.85,
+    0.7
+   ],
+   "brightness": 0.0
+  },
+  {
+   "type": "spray",
+   "texture": "res/textures/glowWhite.png",
+   "count": 50,
+   "lifetimeMs": 2200,
+   "position": [
+    -150.0,
+    15.723124005871489,
+    10.0
+   ],
+   "radius": 3,
+   "direction": [
+    0,
+    1,
+    0
+   ],
+   "spread": 0.45,
+   "speed": [
+    25,
+    60
+   ],
+   "gravity": -8,
+   "startScale": 1.5,
+   "blend": "additive",
+   "tint": [
+    1.0,
+    0.55,
+    0.2
+   ]
+  },
+  {
+   "type": "smoke",
+   "texture": "res/textures/smoke.png",
+   "atlas": [
+    8,
+    5
+   ],
+   "count": 30,
+   "lifetimeMs": 4500,
+   "position": [
+    -150.0,
+    38.72312400587149,
+    10.0
+   ],
+   "radius": 3,
+   "direction": [
+    0.15,
+    1,
+    0
+   ],
+   "spread": 0.2,
+   "speed": [
+    12,
+    20
+   ],
+   "gravity": -2,
+   "buoyancy": 0.5,
+   "startScale": 14,
+   "growth": 16,
+   "blend": "alpha",
+   "tint": [
+    0.4,
+    0.3,
+    0.24
+   ],
+   "brightness": 0.4,
+   "fadeIn": 0.35
+  },
+  {
+   "type": "smoke",
+   "texture": "res/textures/fire-texture-atlas.jpg",
+   "atlas": [
+    4,
+    4
+   ],
+   "atlasTopDown": true,
+   "count": 40,
+   "lifetimeMs": 850,
+   "position": [
+    155.0,
+    11.93713011348659,
+    30.0
+   ],
+   "radius": 4,
+   "direction": [
+    0,
+    1,
+    0
+   ],
+   "spread": 0.15,
+   "speed": [
+    14,
+    24
+   ],
+   "gravity": 0,
+   "buoyancy": 0.4,
+   "startScale": 13,
+   "growth": -6,
+   "blend": "additive",
+   "tint": [
+    1.0,
+    0.85,
+    0.7
+   ],
+   "brightness": 0.0
+  },
+  {
+   "type": "spray",
+   "texture": "res/textures/glowWhite.png",
+   "count": 50,
+   "lifetimeMs": 2200,
+   "position": [
+    155.0,
+    14.93713011348659,
+    30.0
+   ],
+   "radius": 3,
+   "direction": [
+    0,
+    1,
+    0
+   ],
+   "spread": 0.45,
+   "speed": [
+    25,
+    60
+   ],
+   "gravity": -8,
+   "startScale": 1.5,
+   "blend": "additive",
+   "tint": [
+    1.0,
+    0.55,
+    0.2
+   ]
+  },
+  {
+   "type": "smoke",
+   "texture": "res/textures/smoke.png",
+   "atlas": [
+    8,
+    5
+   ],
+   "count": 30,
+   "lifetimeMs": 4500,
+   "position": [
+    155.0,
+    37.93713011348659,
+    30.0
+   ],
+   "radius": 3,
+   "direction": [
+    0.15,
+    1,
+    0
+   ],
+   "spread": 0.2,
+   "speed": [
+    12,
+    20
+   ],
+   "gravity": -2,
+   "buoyancy": 0.5,
+   "startScale": 14,
+   "growth": 16,
+   "blend": "alpha",
+   "tint": [
+    0.4,
+    0.3,
+    0.24
+   ],
+   "brightness": 0.4,
+   "fadeIn": 0.35
+  },
+  {
+   "type": "smoke",
+   "texture": "res/textures/fire-texture-atlas.jpg",
+   "atlas": [
+    4,
+    4
+   ],
+   "atlasTopDown": true,
+   "count": 40,
+   "lifetimeMs": 850,
+   "position": [
+    15.0,
+    12.709028379120637,
+    118.0
+   ],
+   "radius": 4,
+   "direction": [
+    0,
+    1,
+    0
+   ],
+   "spread": 0.15,
+   "speed": [
+    14,
+    24
+   ],
+   "gravity": 0,
+   "buoyancy": 0.4,
+   "startScale": 13,
+   "growth": -6,
+   "blend": "additive",
+   "tint": [
+    1.0,
+    0.85,
+    0.7
+   ],
+   "brightness": 0.0
+  },
+  {
+   "type": "spray",
+   "texture": "res/textures/glowWhite.png",
+   "count": 50,
+   "lifetimeMs": 2200,
+   "position": [
+    15.0,
+    15.709028379120637,
+    118.0
+   ],
+   "radius": 3,
+   "direction": [
+    0,
+    1,
+    0
+   ],
+   "spread": 0.45,
+   "speed": [
+    25,
+    60
+   ],
+   "gravity": -8,
+   "startScale": 1.5,
+   "blend": "additive",
+   "tint": [
+    1.0,
+    0.55,
+    0.2
+   ]
+  },
+  {
+   "type": "smoke",
+   "texture": "res/textures/smoke.png",
+   "atlas": [
+    8,
+    5
+   ],
+   "count": 30,
+   "lifetimeMs": 4500,
+   "position": [
+    15.0,
+    38.70902837912064,
+    118.0
+   ],
+   "radius": 3,
+   "direction": [
+    0.15,
+    1,
+    0
+   ],
+   "spread": 0.2,
+   "speed": [
+    12,
+    20
+   ],
+   "gravity": -2,
+   "buoyancy": 0.5,
+   "startScale": 14,
+   "growth": 16,
+   "blend": "alpha",
+   "tint": [
+    0.4,
+    0.3,
+    0.24
+   ],
+   "brightness": 0.4,
+   "fadeIn": 0.35
+  },
   {
    "type": "drift",
    "texture": "res/textures/smoke.png",
