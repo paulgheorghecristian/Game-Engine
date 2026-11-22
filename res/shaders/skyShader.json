@@ -16,6 +16,7 @@
                     "sunColor" : "VEC3",
                     "sunVisibility" : "FLOAT",
                     "sunsetColor" : "VEC3",
-                    "sunsetStrength" : "FLOAT"
+                    "sunsetStrength" : "FLOAT",
+                    "reflectionPass" : "BOOL"
                  }
 }

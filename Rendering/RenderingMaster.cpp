@@ -236,6 +236,8 @@ RenderingMaster::~RenderingMaster()
     delete flarePostProcess;
     delete smokeRenderer;
     delete m_sunDisc;
+    if (m_skyCube != 0) glDeleteTextures(1, &m_skyCube);
+    if (m_skyCubeFbo != 0) glDeleteFramebuffers(1, &m_skyCubeFbo);
     delete m_ssaoFB; delete m_ssaoBlurFB; delete m_hdrFB;
     delete m_bloomHalfA; delete m_bloomHalfB; delete m_bloomQuarterA; delete m_bloomQuarterB;
     delete m_ssaoShader; delete m_ssaoBlurShader; delete m_bloomBrightShader; delete m_blurShader; delete m_tonemapShader;
@@ -347,6 +349,14 @@ void RenderingMaster::drawDeferredShadingBuffers()
     }
 
     const bool hdr = m_environment.hdr;
+    const bool skyReflections = m_environment.pbr;
+    if (skyReflections) {
+        renderSkyCube();
+    }
+    float skyMaxLod = std::log2((float) SKY_CUBE_SIZE);
+    deferredShading_BufferCombinationShader.updateUniform("skyReflections", skyReflections);
+    deferredShading_BufferCombinationShader.updateUniform("skyCube", 14);
+    deferredShading_BufferCombinationShader.updateUniform("skyCubeMaxLod", skyMaxLod);
     int aoUnit = 13;
     float aoStrength = 0.0f;
     if (m_environment.aoStrength > 0.0f) {
@@ -368,6 +378,10 @@ void RenderingMaster::drawDeferredShadingBuffers()
         fxaaFrameBuffer.bindSingleRenderTarget(0);
     }
     deferredShading_BufferCombinationShader.bind();
+    if (skyReflections) {
+        glActiveTexture(GL_TEXTURE14);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyCube);
+    }
     if (aoStrength > 0.0f) {
         glActiveTexture(GL_TEXTURE0 + aoUnit);
         glBindTexture(GL_TEXTURE_2D, m_ssaoBlurFB->getRenderTargets()[0]);
@@ -920,6 +934,56 @@ void RenderingMaster::drawSunFlareSource()
 static void bindTexture(int unit, GLuint texture) {
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, texture);
+}
+
+void RenderingMaster::renderSkyCube()
+{
+    if (m_skyCube == 0) {
+        glGenTextures(1, &m_skyCube);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyCube);
+        for (int face = 0; face < 6; face++) {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, GL_RGBA16F, SKY_CUBE_SIZE, SKY_CUBE_SIZE, 0,
+                         GL_RGBA, GL_FLOAT, NULL);
+        }
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+        glGenFramebuffers(1, &m_skyCubeFbo);
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    }
+
+    static const glm::vec3 directions[6] = { {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1} };
+    static const glm::vec3 ups[6] = { {0, -1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}, {0, -1, 0}, {0, -1, 0} };
+    glm::mat4 cubeProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 200.0f);
+
+    /* below the horizon: a dim ground color (no terrain in the reflection) */
+    glm::vec3 ground = m_environment.ambientGround * 0.8f + m_environment.horizonColor * 0.2f;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, m_skyCubeFbo);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glViewport(0, 0, SKY_CUBE_SIZE, SKY_CUBE_SIZE);
+    skyShader->updateUniform("reflectionPass", true);
+    skyShader->updateUniform("projectionMatrix", (void *) &cubeProjection);
+    for (int face = 0; face < 6; face++) {
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, m_skyCube, 0);
+        glClearColor(ground.x, ground.y, ground.z, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glm::mat4 view = glm::lookAt(glm::vec3(0.0f), directions[face], ups[face]);
+        skyShader->updateUniform("viewMatrix", (void *) &view);
+        drawSky();
+    }
+    skyShader->updateUniform("reflectionPass", false);
+    skyShader->updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    glm::mat4 cameraView = camera->getViewMatrix();
+    skyShader->updateUniform("viewMatrix", (void *) &cameraView);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyCube);
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
 void RenderingMaster::renderSSAO()

@@ -14,6 +14,8 @@ uniform float time;
 uniform vec3 sunDirection, sunColor, sunsetColor;
 uniform float sunVisibility;   /* 0 at night */
 uniform float sunsetStrength;  /* horizon glow around sunrise / sunset */
+uniform bool reflectionPass;   /* rendering the reflection cube: no sun / moon discs
+                                * (their highlights come from the direct light) */
 
 float hash13(vec3 p) {
     p = fract(p * 0.1031);
@@ -55,15 +57,16 @@ vec3 nightSky(vec3 dir) {
 
     /* sun disc and glow */
     float s = dot(dir, normalize(sunDirection));
-    color += sunColor * sunVisibility * (smoothstep(0.9993, 0.9996, s) * 4.0 +
-                                         pow(max(s, 0.0), 500.0) * 1.2 +
+    float discs = reflectionPass ? 0.0 : 1.0;
+    color += sunColor * sunVisibility * (smoothstep(0.9993, 0.9996, s) * 4.0 * discs +
+                                         pow(max(s, 0.0), 500.0) * 1.2 * discs +
                                          pow(max(s, 0.0), 24.0) * 0.18 +
                                          pow(max(s, 0.0), 4.0) * 0.12); /* broad scattering glow */
 
     /* moon disc, halo and a wide glow */
     float m = dot(dir, normalize(moonDirection));
-    color += moonColor * (smoothstep(0.99935, 0.9996, m) * 1.6 +
-                          pow(max(m, 0.0), 300.0) * 0.6 +
+    color += moonColor * (smoothstep(0.99935, 0.9996, m) * 1.6 * discs +
+                          pow(max(m, 0.0), 300.0) * 0.6 * discs +
                           pow(max(m, 0.0), 12.0) * 0.12);
     return color;
 }

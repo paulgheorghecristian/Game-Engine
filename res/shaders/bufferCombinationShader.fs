@@ -26,6 +26,9 @@ uniform sampler2D aoSampler;     /* screen-space ambient occlusion (1 = open) */
 uniform float aoStrength;        /* 0 = off */
 uniform bool hdrEnabled;         /* false: light is clamped at 1.0 like the old 8-bit buffer */
 uniform bool pbrEnabled;         /* light buffer already includes albedo; roughness target = (roughness, metallic) */
+uniform bool skyReflections;     /* reflect the sky cube (blurrier for rougher surfaces) */
+uniform samplerCube skyCube;
+uniform float skyCubeMaxLod;
 
 
 uniform float emissiveStrength;
@@ -62,7 +65,17 @@ vec3 pbrComposite(vec3 albedo) {
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
     vec3 F = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - NdotV, 5.0);
     vec3 diffuseAmbient = (1.0 - F) * (1.0 - metallic) * albedo * hemisphere;
-    vec3 specularAmbient = F * ambientSky * (1.0 - 0.6 * roughness);
+    vec3 specularAmbient;
+    if (skyReflections) {
+        vec3 worldV = normalize(mat3(inverseViewMatrix) * V);
+        vec3 R = reflect(-worldV, worldN);
+        /* reflections pointing into the surface would be the ground: fade them */
+        float horizon = clamp(1.0 + dot(R, worldN), 0.0, 1.0);
+        vec3 sky = textureLod(skyCube, R, roughness * (skyCubeMaxLod - 1.0)).rgb;
+        specularAmbient = F * sky * horizon * horizon;
+    } else {
+        specularAmbient = F * ambientSky * (1.0 - 0.6 * roughness);
+    }
     return direct + (diffuseAmbient + specularAmbient) * occlusion;
 }
 

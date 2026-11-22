@@ -42,15 +42,18 @@ float beamHash3(vec3 p) {
     return fract((p.x + p.y) * p.z);
 }
 
-/* drifting droplets in world space, lit only where the beam passes */
-float droplets(vec3 world) {
-    const float cellSize = 6.0;
+/* drifting droplets in world space, lit only where the beam passes. Their
+ * radius grows with the distance to the camera so they stay pin-pricks of
+ * about the same size on screen, near or far. */
+float droplets(vec3 world, float distanceToCamera) {
+    const float cellSize = 3.0;
     vec3 p = world + vec3(0.0, time * 9.0, 0.0);   /* slowly falling */
     vec3 cell = floor(p / cellSize);
     float h = beamHash3(cell);
-    if (h < 0.93) return 0.0;
+    if (h < 0.9) return 0.0;
     vec3 center = (cell + 0.25 + 0.5 * vec3(beamHash3(cell + 3.1), beamHash3(cell + 7.7), beamHash3(cell + 1.3))) * cellSize;
-    return smoothstep(1.6, 0.0, length(p - center)) * (0.5 + 0.5 * (h - 0.93) / 0.07);
+    float radius = clamp(distanceToCamera * 0.0015, 0.08, cellSize * 0.25);
+    return smoothstep(radius, 0.0, length(p - center)) * (0.5 + 0.5 * (h - 0.9) / 0.1);
 }
 uniform float secondFraction;
 
@@ -269,7 +272,7 @@ void main() {
                 pointsNotInShadow += radial * streaks;
                 beamDistanceSum += radial * streaks * len;
                 if (beamSparkle > 0.0) {
-                    sparkle += droplets(worldPosition.xyz) * radial * exp(-len / beamFalloff);
+                    sparkle += droplets(worldPosition.xyz, length(worldPosition.xyz - cameraPosition)) * radial * exp(-len / beamFalloff);
                 }
             } else {
                 pointsNotInShadow += sm1 * sm2;

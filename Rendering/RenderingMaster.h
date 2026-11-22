@@ -209,6 +209,11 @@ class RenderingMaster
         Shader *m_ssaoShader = nullptr, *m_ssaoBlurShader = nullptr;
         Shader *m_bloomBrightShader = nullptr, *m_blurShader = nullptr, *m_tonemapShader = nullptr;
         void renderSSAO();
+        /* PBR sky reflections: the sky rendered into a small cube map (with
+         * mipmaps standing in for roughness blur), refreshed every frame */
+        GLuint m_skyCube = 0, m_skyCubeFbo = 0;
+        static const int SKY_CUBE_SIZE = 128;
+        void renderSkyCube();
         void renderBloomAndToneMap();
         void blurPass(FrameBuffer &source, FrameBuffer &target, const glm::vec2 &direction);
         float m_time = 0.0f;
