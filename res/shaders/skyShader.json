@@ -4,6 +4,18 @@
     "Uniforms" : {
                     "modelMatrix" : "MAT4",
                     "viewMatrix" : "MAT4",
-                    "projectionMatrix" : "MAT4"
+                    "projectionMatrix" : "MAT4",
+                    "skyMode" : "INT",
+                    "zenithColor" : "VEC3",
+                    "horizonColor" : "VEC3",
+                    "starIntensity" : "FLOAT",
+                    "moonDirection" : "VEC3",
+                    "moonColor" : "VEC3",
+                    "time" : "FLOAT",
+                    "sunDirection" : "VEC3",
+                    "sunColor" : "VEC3",
+                    "sunVisibility" : "FLOAT",
+                    "sunsetColor" : "VEC3",
+                    "sunsetStrength" : "FLOAT"
                  }
 }

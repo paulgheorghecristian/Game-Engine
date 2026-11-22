@@ -17,7 +17,7 @@ public:
             const std::function<void(Button *)> &onHoverF,
             const std::function<void(Button *)> &onUnhoverF,
             const std::function<void(Button *)> &onHoldF,
-            std::size_t size = 20);
+            std::size_t size = 21);
 
     void onPress();
     void onRelease();
@@ -32,6 +32,8 @@ public:
     inline Text &getText() { return m_slideText; }
     float getValue() { return m_value; }
     void setValue(float value) { m_value = value; }
+
+    void setFontIndex(std::size_t index);
 
     const glm::vec2 &getCurrentMouseDelta() { return currentMouseDelta; }
     const glm::vec2 &getCurrentMousePos() { return currentMousePos; }

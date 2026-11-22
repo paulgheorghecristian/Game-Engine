@@ -81,10 +81,14 @@ class ProfilingTimer
         static void updateGPUTimers();
 
         static ProfilingTimer &getTimer(const std::string &name);
+        static void resetAll();
+        static void printAll();
+        /* when true, CPU timers glFinish() at begin/end so they include GPU time */
+        static bool syncGPU;
     protected:
     private:
-        unsigned int total, numOfCalls, maxTime;
-        unsigned int passedTime;
+        double total, maxTime, passedTime; /* milliseconds */
+        unsigned int numOfCalls;
         std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
         std::unique_ptr<BarGUI> uptr_barGUI;
         Type m_type;

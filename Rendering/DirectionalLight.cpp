@@ -99,6 +99,10 @@ void DirectionalLight::recomputeShadowMapProjectionMatrix()
 
 void DirectionalLight::prepareOpenGLForLightPass()
 {
+    /* full-screen pass: must not inherit front-face culling from a preceding
+     * point/spot light (that culled the whole quad, so a directional light
+     * listed after them never lit anything) */
+    glDisable(GL_CULL_FACE);
     glDisable(GL_STENCIL_TEST);
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);

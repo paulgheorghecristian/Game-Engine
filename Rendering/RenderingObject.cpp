@@ -5,6 +5,8 @@
 #include "Skeleton.hpp"
 
 #include <iostream>
+#include <limits>
+#include <unordered_map>
 
 RenderingObject::RenderingObject() {
     m_skeleton = NULL;
@@ -17,7 +19,7 @@ RenderingObject::RenderingObject(const std::string &objectFilePath, bool addMate
 
 RenderingObject::~RenderingObject() {
     for (unsigned int i = 0; i < m_meshes.size(); i++) {
-        delete m_meshes[i];
+        Mesh::release(m_meshes[i]);
         m_meshes[i] = NULL;
     }
 
@@ -32,6 +34,31 @@ RenderingObject::~RenderingObject() {
 
 void RenderingObject::addMesh(Mesh *mesh) {
     m_meshes.push_back(mesh);
+    m_boundsValid = false;
+}
+
+void RenderingObject::getBoundingSphere(glm::vec3 &center, float &radius) {
+    if (!m_boundsValid) {
+        glm::vec3 mn(std::numeric_limits<float>::max()), mx(-std::numeric_limits<float>::max());
+        bool any = false;
+        for (Mesh *mesh : m_meshes) {
+            for (const Vertex &v : mesh->getVertices()) {
+                mn = glm::min(mn, v.positionCoords);
+                mx = glm::max(mx, v.positionCoords);
+                any = true;
+            }
+        }
+        m_boundsCenter = any ? (mn + mx) * 0.5f : glm::vec3(0.0f);
+        m_boundsRadius = 0.0f;
+        for (Mesh *mesh : m_meshes) {
+            for (const Vertex &v : mesh->getVertices()) {
+                m_boundsRadius = glm::max(m_boundsRadius, glm::length(v.positionCoords - m_boundsCenter));
+            }
+        }
+        m_boundsValid = true;
+    }
+    center = m_boundsCenter;
+    radius = m_boundsRadius;
 }
 
 void RenderingObject::addMaterial(Material *material) {
@@ -41,7 +68,7 @@ void RenderingObject::addMaterial(Material *material) {
 RenderingObject &RenderingObject::operator=(RenderingObject &&otherRenderingObject) {
     if (this != &otherRenderingObject) {
         for (unsigned int i = 0; i < m_meshes.size(); i++) {
-            delete m_meshes[i];
+            Mesh::release(m_meshes[i]);
             m_meshes[i] = NULL;
         }
         for (unsigned int i = 0; i < m_materials.size(); i++) {
@@ -75,7 +102,40 @@ RenderingObject::RenderingObject(RenderingObject &&otherRenderingObject) {
     otherRenderingObject.m_skeleton = NULL;
 }
 
+/* Model files are parsed and uploaded once. The cache keeps a prototype per
+ * (file, prepare, addMaterials); later loads share its meshes and get their
+ * own copies of its materials (entities may change those independently).
+ * Skinned models are not cached: their meshes carry per-instance bone data. */
+static std::unordered_map<std::string, RenderingObject *> &objectCache() {
+    static std::unordered_map<std::string, RenderingObject *> cache;
+    return cache;
+}
+
+static RenderingObject *shareObject(RenderingObject &source, const std::string &filename, bool addMaterials) {
+    RenderingObject *copy = new RenderingObject(filename, addMaterials);
+    for (Mesh *mesh : source.getMeshes()) {
+        mesh->retain();
+        copy->addMesh(mesh);
+    }
+    for (Material *material : source.getMaterials()) {
+        copy->addMaterial(material->clone());
+    }
+    return copy;
+}
+
 RenderingObject RenderingObject::loadObject(const std::string &filename, bool prepare, bool addMaterials) {
+    const bool cacheable = filename.compare(0, 2, "__") != 0;
+    const std::string cacheKey = filename + (prepare ? "|gpu" : "|cpu") + (addMaterials ? "|mtl" : "|nomtl");
+    if (cacheable) {
+        auto cached = objectCache().find(cacheKey);
+        if (cached != objectCache().end()) {
+            RenderingObject *copy = shareObject(*cached->second, filename, addMaterials);
+            RenderingObject result(std::move(*copy));
+            delete copy;
+            return result;
+        }
+    }
+
     RenderingObject renderingObject(filename, addMaterials);
 
     if (filename.compare("__circle__") == 0) {
@@ -128,6 +188,10 @@ RenderingObject RenderingObject::loadObject(const std::string &filename, bool pr
     }
 
     AnimationLoader::destroy();
+
+    if (cacheable && renderingObject.getSkeleton() == NULL) {
+        objectCache()[cacheKey] = shareObject(renderingObject, filename, addMaterials);
+    }
 
     return renderingObject;
 }

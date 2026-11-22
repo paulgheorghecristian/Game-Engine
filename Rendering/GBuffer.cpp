@@ -48,33 +48,24 @@ void GBuffer::generate (unsigned int width, unsigned int height){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 
-    //genereaza textura de adancime, format DEPTH (un singur canal), FARA date, fara filtrare
+    // Packed depth+stencil texture. Separate DEPTH_COMPONENT24 + STENCIL_INDEX8
+    // attachments are rejected as GL_FRAMEBUFFER_UNSUPPORTED by Mesa (and are
+    // not guaranteed by the spec), so use a single DEPTH24_STENCIL8 texture.
+    // Sampling it still returns depth (DEPTH_STENCIL_TEXTURE_MODE defaults to depth).
     glGenTextures(1, &textureDepth);
     glBindTexture(GL_TEXTURE_2D, textureDepth);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0,  GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-
-    glGenTextures(1, &textureStencil);
-    glBindTexture(GL_TEXTURE_2D, textureStencil);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_STENCIL_INDEX8, width, height, 0, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
 
     //leaga texturi la framebuffer , 0 de la sfarsit se refera la ce nivel din mipmap, 0 fiind cel mai de sus/mare.
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+0, textureColor, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+1, textureNormal, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+2, textureRoughness, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+3, textureLightAccumulation, 0);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, textureDepth, 0);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, textureStencil, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, textureDepth, 0);
 
     //verifica stare
     if (glCheckFramebufferStatus (GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -93,7 +84,6 @@ void GBuffer::destroy(){
     glDeleteTextures(1, &textureLightAccumulation);
     glDeleteTextures(1, &textureDepth);
     glDeleteTextures(1, &textureRoughness);
-    glDeleteTextures(1, &textureStencil);
     glDeleteFramebuffers(1, &frameBufferObject);
 }
 
@@ -124,6 +114,7 @@ void GBuffer::bindForScene(){
 
     glBindFramebuffer (GL_FRAMEBUFFER, frameBufferObject);
     glDrawBuffers(3, buffersGeometry);
+    glViewport(0, 0, width, height);
 }
 
 void GBuffer::bindForLights() {
@@ -131,11 +122,13 @@ void GBuffer::bindForLights() {
 
     glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
     glDrawBuffers(1, buffersGeometry);
+    glViewport(0, 0, width, height);
 }
 
 void GBuffer::bindForStencil() {
     glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
     glDrawBuffer(GL_NONE);
+    glViewport(0, 0, width, height);
 }
 
 void GBuffer::unbind() {

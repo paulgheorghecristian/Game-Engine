@@ -1,0 +1,14 @@
+{
+    "VSPath" : "res/shaders/pointShadow.vs",
+    "FSPath" : "res/shaders/pointShadow.fs",
+    "Uniforms" : {
+                    "modelMatrix" : "MAT4",
+                    "viewProjection" : "MAT4",
+                    "instanced" : "BOOL",
+                    "lightPosition" : "VEC3",
+                    "farPlane" : "FLOAT",
+                    "textureSampler" : "INT",
+                    "hasTexture" : "BOOL",
+                    "material.isBlackAlpha" : "BOOL"
+                 }
+}

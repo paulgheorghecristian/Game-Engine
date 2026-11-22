@@ -1,6 +1,7 @@
 #include "ComponentFactory.h"
 
 #include "RenderingObject.hpp"
+#include "ParticleEmitterComponent.h"
 
 std::function<void(bool start, Entity *entity)> ComponentFactory::y_90_rotation =
 [rot=float(0.0f)](bool start, Entity *entity) mutable {
@@ -51,6 +52,34 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             if (itr->value["Material"].HasMember("normalMapStrength")) {
                 material->setNormalMapStrength(itr->value["Material"]["normalMapStrength"].GetFloat());
             }
+            if (itr->value["Material"].HasMember("emissive")) {
+                material->setEmissive(itr->value["Material"]["emissive"].GetFloat());
+            }
+            if (itr->value["Material"].HasMember("specularStrength")) {
+                material->setSpecularStrength(itr->value["Material"]["specularStrength"].GetFloat());
+            }
+            if (itr->value["Material"].HasMember("Terrain")) {
+                const auto &t = itr->value["Material"]["Terrain"];
+                TerrainLayers *terrain = new TerrainLayers();
+                auto layer = [&](const char *key, int unit) -> Texture * {
+                    return t.HasMember(key) ? new Texture(t[key].GetString(), unit) : nullptr;
+                };
+                terrain->grass = layer("grass", 3);
+                terrain->grass2 = layer("grass2", 4);
+                terrain->rock = layer("rock", 5);
+                terrain->rockNormal = layer("rockNormal", 6);
+                terrain->dirt = layer("dirt", 7);
+                terrain->soil = layer("soil", 8);
+                if (t.HasMember("tileSize")) terrain->tileSize = t["tileSize"].GetFloat();
+                if (t.HasMember("shoreHeight")) terrain->shoreHeight = t["shoreHeight"].GetFloat();
+                material->setTerrain(terrain);
+            }
+            if (itr->value["Material"].HasMember("isBlackAlpha")) {
+                material->setIsBlackAlpha(itr->value["Material"]["isBlackAlpha"].GetBool());
+            }
+            if (itr->value["Material"].HasMember("disableCulling")) {
+                material->setDisableCulling(itr->value["Material"]["disableCulling"].GetBool());
+            }
             if (itr->value["Material"].HasMember("Texture")) {
                 texture = new Texture(itr->value["Material"]["Texture"].GetString(), 0);
                 material->setDiffuseTexture(texture);
@@ -70,7 +99,11 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
         if (material != NULL) {
             renderingObject.addMaterial(material);
         }
-        return new RenderComponent(std::move(renderingObject));
+        RenderComponent *renderComponent = new RenderComponent(std::move(renderingObject));
+        if (itr->value.HasMember("castShadow")) {
+            renderComponent->setCastsShadow(itr->value["castShadow"].GetBool());
+        }
+        return renderComponent;
     } else if (strcmp (itr->name.GetString(), "TempAnimationComponent") == 0) {
         glm::vec3 addPosition(0), addRotation(0), addScale(0);
         if (itr->value.HasMember("addPosition")) {
@@ -96,6 +129,8 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
         float mass;
         const char *bodyType;
         bool shouldUpdate = true;
+        Mesh *mesh = nullptr;
+        RenderingObject obj;
 
         if (!itr->value.HasMember ("BoundingBodyType") ||
             !itr->value.HasMember ("scale") ||
@@ -110,11 +145,14 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             type = PhysicsComponent::BoundingBodyType::SPHERE;
         } else if (strcmp (bodyType, "capsule") == 0) {
             type = PhysicsComponent::BoundingBodyType::CAPSULE;
-        } else if (strcmp (bodyType, "simplified mesh") == 0) {
-            //TODO NOT YET SUPPORTED
+        } else if (strcmp (bodyType, "mesh") == 0) {
             const char *meshPath = itr->value["BoundingBodyType"].GetArray()[1].GetString();
+            obj = RenderingObject::loadObject(meshPath, true, false);
 
-            assert (false);
+            type = PhysicsComponent::BoundingBodyType::MESH;
+
+            if (obj.getMeshes().size() > 0)
+                mesh = obj.getMeshes()[0];
         }
 
         scale = glm::vec3 (itr->value["scale"].GetArray()[0].GetFloat(),
@@ -126,7 +164,7 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             shouldUpdate = itr->value["shouldUpdate"].GetBool();
         }
 
-        return new PhysicsComponent(type, scale, mass, shouldUpdate);
+        return new PhysicsComponent(type, scale, mass, shouldUpdate, mesh);
     } else if (strcmp (itr->name.GetString(), "GrabComponent") == 0) {
 
         return new GrabComponent(itr->value["radius"].GetFloat());
@@ -136,6 +174,8 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
         } else {
             return NULL;
         }
+    } else if (strcmp(itr->name.GetString(), "ParticleEmitterComponent") == 0) {
+        return new ParticleEmitterComponent(itr->value);
     } else if (strcmp(itr->name.GetString(), "BillboardComponent") == 0) {
         return new BillboardComponent();
     } else if (strcmp(itr->name.GetString(), "InstanceRenderComponent") == 0) {
@@ -168,6 +208,34 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             material->setShininess(itr->value["Material"]["shininess"].GetFloat());
             if (itr->value["Material"].HasMember("normalMapStrength")) {
                 material->setNormalMapStrength(itr->value["Material"]["normalMapStrength"].GetFloat());
+            }
+            if (itr->value["Material"].HasMember("emissive")) {
+                material->setEmissive(itr->value["Material"]["emissive"].GetFloat());
+            }
+            if (itr->value["Material"].HasMember("specularStrength")) {
+                material->setSpecularStrength(itr->value["Material"]["specularStrength"].GetFloat());
+            }
+            if (itr->value["Material"].HasMember("Terrain")) {
+                const auto &t = itr->value["Material"]["Terrain"];
+                TerrainLayers *terrain = new TerrainLayers();
+                auto layer = [&](const char *key, int unit) -> Texture * {
+                    return t.HasMember(key) ? new Texture(t[key].GetString(), unit) : nullptr;
+                };
+                terrain->grass = layer("grass", 3);
+                terrain->grass2 = layer("grass2", 4);
+                terrain->rock = layer("rock", 5);
+                terrain->rockNormal = layer("rockNormal", 6);
+                terrain->dirt = layer("dirt", 7);
+                terrain->soil = layer("soil", 8);
+                if (t.HasMember("tileSize")) terrain->tileSize = t["tileSize"].GetFloat();
+                if (t.HasMember("shoreHeight")) terrain->shoreHeight = t["shoreHeight"].GetFloat();
+                material->setTerrain(terrain);
+            }
+            if (itr->value["Material"].HasMember("isBlackAlpha")) {
+                material->setIsBlackAlpha(itr->value["Material"]["isBlackAlpha"].GetBool());
+            }
+            if (itr->value["Material"].HasMember("disableCulling")) {
+                material->setDisableCulling(itr->value["Material"]["disableCulling"].GetBool());
             }
 
             if (itr->value["Material"].HasMember("Texture")) {
@@ -240,6 +308,34 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             material->setShininess(itr->value["Material"]["shininess"].GetFloat());
             if (itr->value["Material"].HasMember("normalMapStrength")) {
                 material->setNormalMapStrength(itr->value["Material"]["normalMapStrength"].GetFloat());
+            }
+            if (itr->value["Material"].HasMember("emissive")) {
+                material->setEmissive(itr->value["Material"]["emissive"].GetFloat());
+            }
+            if (itr->value["Material"].HasMember("specularStrength")) {
+                material->setSpecularStrength(itr->value["Material"]["specularStrength"].GetFloat());
+            }
+            if (itr->value["Material"].HasMember("Terrain")) {
+                const auto &t = itr->value["Material"]["Terrain"];
+                TerrainLayers *terrain = new TerrainLayers();
+                auto layer = [&](const char *key, int unit) -> Texture * {
+                    return t.HasMember(key) ? new Texture(t[key].GetString(), unit) : nullptr;
+                };
+                terrain->grass = layer("grass", 3);
+                terrain->grass2 = layer("grass2", 4);
+                terrain->rock = layer("rock", 5);
+                terrain->rockNormal = layer("rockNormal", 6);
+                terrain->dirt = layer("dirt", 7);
+                terrain->soil = layer("soil", 8);
+                if (t.HasMember("tileSize")) terrain->tileSize = t["tileSize"].GetFloat();
+                if (t.HasMember("shoreHeight")) terrain->shoreHeight = t["shoreHeight"].GetFloat();
+                material->setTerrain(terrain);
+            }
+            if (itr->value["Material"].HasMember("isBlackAlpha")) {
+                material->setIsBlackAlpha(itr->value["Material"]["isBlackAlpha"].GetBool());
+            }
+            if (itr->value["Material"].HasMember("disableCulling")) {
+                material->setDisableCulling(itr->value["Material"]["disableCulling"].GetBool());
             }
             if (itr->value["Material"].HasMember("Texture")) {
                 texture = new Texture(itr->value["Material"]["Texture"].GetString(), 0);

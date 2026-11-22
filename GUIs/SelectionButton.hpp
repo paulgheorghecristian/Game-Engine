@@ -13,6 +13,7 @@ public:
                     const std::string &text,
                     const glm::vec3 &color,
                     const std::vector<std::string> &selectionTexts);
+    ~SelectionButton();
 
     void input(Input &input);
     void update();

@@ -19,6 +19,8 @@ class ParticleFactory
 
         static const glm::mat4 &getGlobalProjectionMatrix();
         static Display *getDisplay();
+        static int getRenderWidth();
+        static int getRenderHeight();
 };
 
 template <typename P>
@@ -33,8 +35,8 @@ ParticleRenderer<P> *ParticleFactory::createParticleRenderer(std::string &&json)
     }
 
     return new ParticleRenderer<P> (getGlobalProjectionMatrix(),
-                                    getDisplay()->getWidth(),
-                                    getDisplay()->getHeight(),
+                                    getRenderWidth(),
+                                    getRenderHeight(),
                                     doc);
 }
 

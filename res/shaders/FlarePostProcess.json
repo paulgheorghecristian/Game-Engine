@@ -11,6 +11,8 @@
                     "exposure" : "FLOAT",
                     "weight" : "FLOAT",
                     "decay" : "FLOAT",
-                    "illuminationDecay" : "FLOAT"
+                    "illuminationDecay" : "FLOAT",
+                    "sunMode" : "INT",
+                    "sunScreenPosition" : "VEC2"
                  }
 }

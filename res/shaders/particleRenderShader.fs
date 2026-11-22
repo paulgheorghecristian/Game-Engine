@@ -12,6 +12,11 @@ uniform sampler2D depthSampler;
 uniform mat3 fromTangentToModelSpace;
 uniform int screenWidth, screenHeight;
 
+uniform vec3 tint;           /* color multiplier */
+uniform float brightnessAdd; /* added to the texture color (smoke: 0.25) */
+uniform int additive;        /* 1: additive glow (fire, fireflies) */
+uniform float fadeIn;        /* fraction of the lifetime spent fading in */
+
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 
@@ -41,7 +46,15 @@ void main(){
         outColor.a *= (dif / EPS);
     }
 
-    outColor.a *= (1.0 - aliveFor);
-    outColor.xyz += vec3(0.5,0.5,0.5) * 0.5;
+    float envelope = 1.0 - aliveFor;
+    if (fadeIn > 0.0) {
+        envelope *= clamp(aliveFor / fadeIn, 0.0, 1.0);
+    }
+    outColor.a *= envelope;
+    outColor.xyz = (outColor.xyz + vec3(brightnessAdd)) * tint;
     outColor.xyz *= outColor.a;
+    /* premultiplied: alpha 0 means "add, don't occlude" in the composite */
+    if (additive != 0) {
+        outColor.a = 0.0;
+    }
 }

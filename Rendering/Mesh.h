@@ -69,14 +69,27 @@ class Mesh
         static Mesh *getArrowMesh();
         static Mesh *getDome(int widthPoints, int heightPoints);
         static Mesh &getRectangleStatic();
+        static Mesh &getCircleStatic();
 
         virtual ~Mesh();
 
         inline bool getIsGPUPrepared() { return m_isGPUPrepared; }
 
+        /* meshes loaded from the same file are shared between objects */
+        inline void retain() { m_references++; }
+        /* drops one reference; deletes the mesh when it was the last */
+        static void release(Mesh *mesh) {
+            if (mesh != NULL && --mesh->m_references <= 0) {
+                delete mesh;
+            }
+        }
+
         void update(const std::vector<Vertex> &vertices,
                     const std::vector<unsigned int> &indices,
                     bool willBeUpdated = false);
+
+        static std::vector<Vertex> gCircleVertices;
+        static std::vector<unsigned int> gCircleIndices;
 
     protected:
     private:
@@ -91,6 +104,7 @@ class Mesh
         std::vector<unsigned int> m_indices;
         bool m_willBeUpdated;
         bool m_isGPUPrepared;
+        int m_references = 1;
 };
 
 #endif // MESH_H

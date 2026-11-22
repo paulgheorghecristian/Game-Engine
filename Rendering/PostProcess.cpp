@@ -66,6 +66,16 @@ void PostProcess::process(std::initializer_list<Texture *> txtList) {
     postProcessShader.unbind();
 }
 
+void PostProcess::processToScreen(int viewportWidth, int viewportHeight) {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, viewportWidth, viewportHeight);
+
+    postProcessShader.bind();
+    inputTexture.use();
+    renderingQuad->draw();
+    postProcessShader.unbind();
+}
+
 Texture &PostProcess::getResultingTexture() {
     return resultingTexture;
 }

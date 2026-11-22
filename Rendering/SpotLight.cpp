@@ -1,5 +1,6 @@
 #include "SpotLight.h"
 #include "Shader.h"
+#include "RenderingMaster.h"
 
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
@@ -13,10 +14,11 @@ RenderingObject SpotLight::g_lightMesh;
 SpotLight::SpotLight(const Transform &transform,
                      const glm::vec3 &color,
                      bool casts_shadow,
-                     bool volumetric) : Light(transform,
+                     bool volumetric,
+                     int shadowMapSize) : Light(transform,
                                                 color,
-                                                SHADOW_MAP_WIDTH,
-                                                SHADOW_MAP_HEIGHT,
+                                                shadowMapSize,
+                                                shadowMapSize,
                                                 casts_shadow, false, true), m_volumetric(volumetric)
 {
     float near = 1.0f;
@@ -65,6 +67,9 @@ void SpotLight::render()
 
     shader.updateUniform("spotLightProjectionMatrix", (void *) &m_shadowMapProjectionMatrix);
     shader.updateUniform("spotLightViewMatrix", (void *) &m_shadowMapViewMatrix);
+    glm::mat4 eyeToSpotLightClip = m_shadowMapProjectionMatrix * m_shadowMapViewMatrix *
+                                   RenderingMaster::getInstance()->getInverseViewMatrix();
+    shader.updateUniform("eyeToSpotLightClip", (void *) &eyeToSpotLightClip);
     shader.updateUniform("modelMatrix", (void *) &m_transform.getModelMatrix());
     shader.updateUniform("lightColor", (void *) &m_lightColor);
     shader.updateUniform("lightPosition", (void *) &m_transform.getPosition());
@@ -116,8 +121,15 @@ void SpotLight::prepareOpenGLForLightPass()
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
 
-    glDisable(GL_DEPTH_TEST);
+    /* Draw the volume's back faces with depth test GEQUAL: only pixels whose
+     * scene geometry lies in front of the back of the (convex) volume can be
+     * lit, so sky / far geometry behind the light gets rejected by early-Z
+     * instead of running the lighting shader. Depth clamp keeps back faces
+     * that cross the near/far planes from being clipped away. */
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_GEQUAL);
     glDepthMask(GL_FALSE);
+    glEnable(GL_DEPTH_CLAMP);
 
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
@@ -133,7 +145,9 @@ void SpotLight::prepareOpenGLForStencilPass()
     glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
 
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
     glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_CLAMP);
 
     glDisable(GL_CULL_FACE);
 }
@@ -190,6 +204,10 @@ std::string SpotLight::jsonifyAttribs() {
     res += ",\"numSamplePoints\":" + std::to_string(numSamplePoints);
     res += ",\"coef1\":" + std::to_string(coef1);
     res += ",\"coef2\":" + std::to_string(coef2);
+    if (m_beamDensity > 0.0f) {
+        res += ",\"beamDensity\":" + std::to_string(m_beamDensity);
+        res += ",\"beamFalloff\":" + std::to_string(m_beamFalloff);
+    }
 
     return res;
 }

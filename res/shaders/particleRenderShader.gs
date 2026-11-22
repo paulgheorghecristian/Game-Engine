@@ -17,6 +17,22 @@ uniform int liveForInMs;
 uniform int totalNumOfSubTxts;
 uniform int numOfSubTxtsH, numOfSubTxtsW;
 uniform float subWidth, subHeight;
+/* 1: atlas frames are ordered from the top-left of the image (textures are
+ * loaded flipped, so rows are counted from v = 1 downwards) */
+uniform int atlasTopDown;
+
+vec4 cellCoords(float index) {
+    int row = int(floor(index / numOfSubTxtsW));
+    int column = int(index) - row * numOfSubTxtsW;
+    if (atlasTopDown != 0) {
+        /* .y = top edge, .w = bottom edge so the quad's upper vertices get the
+         * top of the cell (upright image) */
+        return vec4(float(column) * subWidth, 1.0 - float(row) * subHeight,
+                    float(column + 1) * subWidth, 1.0 - float(row + 1) * subHeight);
+    }
+    return vec4(float(column) * subWidth, float(row) * subHeight,
+                float(column + 1) * subWidth, float(row + 1) * subHeight);
+}
 
 void main(){
     mat4 PVM = projectionMatrix * viewModelMatrixOut[0];
@@ -33,25 +49,12 @@ void main(){
     blendFactor = modf (normalizedAliveTime, txtIndex);
     int rowOffset, columnOffset;
 
-    rowOffset = int (floor (txtIndex / numOfSubTxtsW));
-    columnOffset = int (txtIndex) - rowOffset * numOfSubTxtsW;
-
-    currentTextCoords.x = float (columnOffset) * subWidth;
-    currentTextCoords.y = float (rowOffset) * subHeight;
-    currentTextCoords.z = float (columnOffset + 1) * subWidth;
-    currentTextCoords.w = float (rowOffset + 1) * subHeight;
+    currentTextCoords = cellCoords(txtIndex);
 
     if (txtIndex == totalNumOfSubTxts - 1) {
         prevTxtCoords = currentTextCoords;
     } else {
-        txtIndex++;
-        rowOffset = int (floor (txtIndex / numOfSubTxtsW));
-        columnOffset = int (txtIndex) - rowOffset * numOfSubTxtsW;
-
-    	prevTxtCoords.x = float (columnOffset) * subWidth;
-    	prevTxtCoords.y = float (rowOffset) * subHeight;
-        prevTxtCoords.z = float (columnOffset + 1) * subWidth;
-    	prevTxtCoords.w = float (rowOffset + 1) * subHeight;
+        prevTxtCoords = cellCoords(txtIndex + 1.0);
     }
 
     gl_Position = ul;

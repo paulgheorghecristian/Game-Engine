@@ -7,6 +7,51 @@
 #include "imgui_impl_opengl3.h"
 
 unsigned int Light::g_num_of_instances = 0;
+float Light::s_tickSeconds = 1.0f / 60.0f;
+float Light::s_nightFactor = 1.0f;
+
+void Light::setAnimation(const Animation &animation)
+{
+    m_animation = animation;
+    m_animated = animation.flicker > 0.0f || animation.orbit || animation.spin != 0.0f || animation.nightOnly;
+    m_baseColor = m_lightColor;
+    m_baseRotation = m_transform.getRotation();
+    m_animationTime = 0.0f;
+}
+
+void Light::animate()
+{
+    m_animationTime += s_tickSeconds;
+    const float t = m_animationTime;
+
+    if (m_animation.flicker > 0.0f) {
+        /* layered sines at unrelated rates read as an irregular flame */
+        float s = m_animation.flickerSpeed;
+        float n = 0.5f * glm::sin(t * s * 1.0f) +
+                  0.3f * glm::sin(t * s * 2.31f + 1.3f) +
+                  0.2f * glm::sin(t * s * 5.73f + 2.1f);
+        m_lightColor = m_baseColor * glm::max(0.0f, 1.0f + m_animation.flicker * n);
+    } else {
+        m_lightColor = m_baseColor;
+    }
+    if (m_animation.nightOnly) {
+        m_lightColor *= s_nightFactor;
+    }
+
+    if (m_animation.orbit) {
+        float a = glm::radians(m_animation.orbitPhase + t * m_animation.orbitSpeed);
+        glm::vec3 p = m_animation.orbitCenter +
+                      glm::vec3(glm::cos(a) * m_animation.orbitRadius,
+                                glm::sin(a * 2.3f) * m_animation.orbitBob,
+                                glm::sin(a) * m_animation.orbitRadius);
+        m_transform.setPosition(p);
+    }
+
+    if (m_animation.spin != 0.0f) {
+        glm::quat spin = glm::angleAxis(glm::radians(t * m_animation.spin), glm::vec3(0, 1, 0));
+        m_transform.setRotation(glm::normalize(spin * m_baseRotation));
+    }
+}
 
 Light::Light(const Transform &transform,
              const glm::vec3 &color,
@@ -86,6 +131,10 @@ Texture &Light::getShadowMapTexture()
 
 void Light::update()
 {
+    if (m_animated) {
+        animate();
+    }
+
     if (m_can_be_grabbed) {
         btTransform transform = m_ghostObj->getWorldTransform();
         btVector3 origin = transform.getOrigin();
@@ -200,8 +249,9 @@ std::string Light::jsonify() {
 std::string Light::jsonifyAttribs() {
     std::string res;
 
-    res += "\"color\":[" + std::to_string(m_lightColor.x) + ","
-        + std::to_string(m_lightColor.y) + "," + std::to_string(m_lightColor.z) + "]";
+    const glm::vec3 &color = m_animated ? m_baseColor : m_lightColor;
+    res += "\"color\":[" + std::to_string(color.x) + ","
+        + std::to_string(color.y) + "," + std::to_string(color.z) + "]";
     if (m_casts_shadow == true) {
         res += ",\"cast_shadow\": true";
     } else if (m_casts_shadow == false) {
@@ -211,6 +261,24 @@ std::string Light::jsonifyAttribs() {
         + std::to_string(m_att_diffuse.y) + "," + std::to_string(m_att_diffuse.z) + "]";
     res += ",\"specular_attenuation\":[" + std::to_string(m_att_specular.x) + ","
         + std::to_string(m_att_specular.y) + "," + std::to_string(m_att_specular.z) + "]";
+    if (m_animation.flicker > 0.0f) {
+        res += ",\"flicker\":" + std::to_string(m_animation.flicker);
+        res += ",\"flickerSpeed\":" + std::to_string(m_animation.flickerSpeed);
+    }
+    if (m_animation.orbit) {
+        res += ",\"orbit\":{\"center\":[" + std::to_string(m_animation.orbitCenter.x) + "," +
+               std::to_string(m_animation.orbitCenter.y) + "," + std::to_string(m_animation.orbitCenter.z) +
+               "],\"radius\":" + std::to_string(m_animation.orbitRadius) +
+               ",\"speed\":" + std::to_string(m_animation.orbitSpeed) +
+               ",\"bob\":" + std::to_string(m_animation.orbitBob) +
+               ",\"phase\":" + std::to_string(m_animation.orbitPhase) + "}";
+    }
+    if (m_animation.spin != 0.0f) {
+        res += ",\"spin\":" + std::to_string(m_animation.spin);
+    }
+    if (m_animation.nightOnly) {
+        res += ",\"nightOnly\": true";
+    }
 
     return res;
 }

@@ -13,6 +13,8 @@
 #include "RenderingObject.hpp"
 #include "Button.hpp"
 #include "Font.h"
+#include "ParticleEmitter.h"
+#include "WaterRenderer.h"
 
 #include <typeinfo>
 
@@ -22,18 +24,32 @@
 
 
 RenderingMaster *RenderingMaster::m_instance = NULL;
+
+/* Volumetric light is ray-marched at (render size / divisor). 2 keeps beam
+ * edges clean where geometry cuts through them; 4 is the old, cheaper setting.
+ * Override with GE_VOLUMETRIC_DIV. */
+static int volumetricDivisor() {
+    static int divisor = -1;
+    if (divisor < 0) {
+        const char *env = std::getenv("GE_VOLUMETRIC_DIV");
+        divisor = env ? std::max(1, std::atoi(env)) : 2;
+    }
+    return divisor;
+}
 Shader RenderingMaster::simpleTextShader;
 glm::mat4 RenderingMaster::orthoProjectionMatrix;
 
 RenderingMaster::RenderingMaster(Display *display,
                                  Camera *camera,
-                                 glm::mat4 projectionMatrix) :  particleForwardRenderFramebuffer (display->getWidth()/2, display->getHeight()/2, 1),
+                                 glm::mat4 projectionMatrix,
+                                 int rw, int rh) :  renderWidth(rw), renderHeight(rh),
+                                                                particleForwardRenderFramebuffer (rw/2, rh/2, 1),
                                                                 particlesRTTexture (particleForwardRenderFramebuffer.getRenderTargets ()[0], 6),
-                                                                volumetricLightFB (display->getWidth()/4, display->getHeight()/4, 1),
+                                                                volumetricLightFB (rw/volumetricDivisor(), rh/volumetricDivisor(), 1),
                                                                 volumetricLightTxt (volumetricLightFB.getRenderTargets()[0], 9),
-                                                                spotLightFlares(display->getWidth(), display->getHeight(), 1),
+                                                                spotLightFlares(rw, rh, 1),
                                                                 spotLightFlaresTxt(spotLightFlares.getRenderTargets()[0], 10),
-                                                                fxaaFrameBuffer(display->getWidth(), display->getHeight(), 1)
+                                                                fxaaFrameBuffer(rw, rh, 1)
 {
     int albedoTextureUnit = 0, normalTextureUnit = 1, lightAccumulationTextureUnit = 2;
     int depthTextureUnit = 3, outputType = 1, blurredLightAccUnit = 4, spotLightDepthMapUnit = 5;
@@ -45,7 +61,7 @@ RenderingMaster::RenderingMaster(Display *display,
 
     updateDt = display->getFrameTimeInMs();
 
-    gBuffer.generate (display->getWidth(), display->getHeight());
+    gBuffer.generate (renderWidth, renderHeight);
 
     deferredShading_SceneShader.construct ("res/shaders/deferredShadingSceneShader.json");
     result &= deferredShading_SceneShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
@@ -78,8 +94,8 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= SpotLight::getLightAccumulationShader().updateUniform("spotLightDepthSampler", 0);
     result &= SpotLight::getLightAccumulationShader().updateUniform("eyeSpaceNormalSampler", 1);
     result &= SpotLight::getLightAccumulationShader().updateUniform("depthSampler", 2);
-    result &= SpotLight::getLightAccumulationShader().updateUniform("screenWidth", display->getWidth());
-    result &= SpotLight::getLightAccumulationShader().updateUniform("screenHeight", display->getHeight());
+    result &= SpotLight::getLightAccumulationShader().updateUniform("screenWidth", renderWidth);
+    result &= SpotLight::getLightAccumulationShader().updateUniform("screenHeight", renderHeight);
     result &= SpotLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= SpotLight::getLightAccumulationShader().updateUniform("roughnessSampler", 3);
     result &= SpotLight::getLightAccumulationShader().updateUniform("blueNoiseSampler", 4);
@@ -88,8 +104,8 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("dirLightDepthSampler", 0);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("eyeSpaceNormalSampler", 1);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("depthSampler", 2);
-    result &= DirectionalLight::getLightAccumulationShader().updateUniform("screenWidth", display->getWidth());
-    result &= DirectionalLight::getLightAccumulationShader().updateUniform("screenHeight", display->getHeight());
+    result &= DirectionalLight::getLightAccumulationShader().updateUniform("screenWidth", renderWidth);
+    result &= DirectionalLight::getLightAccumulationShader().updateUniform("screenHeight", renderHeight);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("roughnessSampler", 3);
     result &= DirectionalLight::getLightAccumulationShader().updateUniform("blueNoiseSampler", 4);
@@ -97,8 +113,8 @@ RenderingMaster::RenderingMaster(Display *display,
 
     result &= PointLight::getLightAccumulationShader().updateUniform("eyeSpaceNormalSampler", 1);
     result &= PointLight::getLightAccumulationShader().updateUniform("depthSampler", 2);
-    result &= PointLight::getLightAccumulationShader().updateUniform("screenWidth", display->getWidth());
-    result &= PointLight::getLightAccumulationShader().updateUniform("screenHeight", display->getHeight());
+    result &= PointLight::getLightAccumulationShader().updateUniform("screenWidth", renderWidth);
+    result &= PointLight::getLightAccumulationShader().updateUniform("screenHeight", renderHeight);
     result &= PointLight::getLightAccumulationShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= PointLight::getLightAccumulationShader().updateUniform("roughnessSampler", 3);
     assert(result);
@@ -114,15 +130,16 @@ RenderingMaster::RenderingMaster(Display *display,
     result &= volumetricLightShader.updateUniform("volumetricLightDepthSampler", 0);
     result &= volumetricLightShader.updateUniform("depthSampler", 1);
     result &= volumetricLightShader.updateUniform("blueNoiseSampler", 2);
-    result &= volumetricLightShader.updateUniform("screenWidth", display->getWidth());
-    result &= volumetricLightShader.updateUniform("screenHeight", display->getHeight());
+    result &= volumetricLightShader.updateUniform("screenWidth", renderWidth);
+    result &= volumetricLightShader.updateUniform("screenHeight", renderHeight);
+    volumetricLightShader.updateUniform("volumetricDivisor", volumetricDivisor());
     result &= volumetricLightShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     assert(result);
 
     flareShader.construct("res/shaders/FlareShader.json");
     result &= flareShader.updateUniform("depthSampler", 0);
-    result &= flareShader.updateUniform("screenWidth", display->getWidth());
-    result &= flareShader.updateUniform("screenHeight", display->getHeight());
+    result &= flareShader.updateUniform("screenWidth", renderWidth);
+    result &= flareShader.updateUniform("screenHeight", renderHeight);
     result &= flareShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     assert(result);
 
@@ -140,22 +157,22 @@ RenderingMaster::RenderingMaster(Display *display,
     depthTexture = new Texture (gBuffer.getDepthTexture(), depthTextureUnit);
     roughnessTexture = new Texture(gBuffer.getRoughnessTexture(), 12);
 
-    hBlurPostProcess = new PostProcess (display->getWidth()/4, display->getHeight()/4,
+    hBlurPostProcess = new PostProcess (renderWidth/4, renderHeight/4,
                                         spotLightFlaresTxt.getTextureId(),
                                         "res/shaders/hBlurPostProcess.json");
 
-    wBlurPostProcess = new PostProcess (display->getWidth()/4, display->getHeight()/4,
+    wBlurPostProcess = new PostProcess (renderWidth/4, renderHeight/4,
                                         hBlurPostProcess->getResultingTextureId(),
                                         "res/shaders/wBlurPostProcess.json");
 
-    flarePostProcess = new PostProcess(display->getWidth()/4, display->getHeight()/4,
+    flarePostProcess = new PostProcess(renderWidth/4, renderHeight/4,
                                         wBlurPostProcess->getResultingTextureId(),
                                         "res/shaders/FlarePostProcess.json");
     flarePostProcess->getShader().updateUniform("lensFlareColorSampler", 1);
     lensFlareColorTxt = new Texture("res/textures/lenscolor.bmp", 1);
     blueNoiseTexture = new Texture("res/textures/BlueNoise64Tiled.png", 2);
 
-    fxaaPostProcess = new PostProcess(display->getWidth(), display->getHeight(),
+    fxaaPostProcess = new PostProcess(renderWidth, renderHeight,
                                         fxaaFrameBuffer.getRenderTargets()[0],
                                         "res/shaders/fxaa.json");
 
@@ -188,8 +205,14 @@ RenderingMaster::RenderingMaster(Display *display,
     orthoProjectionMatrix = glm::ortho(0.0f, (float) display->getWidth(), 0.0f, (float) display->getHeight(), 1.0f, 1000.0f);
     Button::getButtonShader().updateUniform("projectionMatrix", (void *) &orthoProjectionMatrix);
 
+    smokeRenderer = NULL;
+    setEnvironment(Environment());
+    glm::mat4 inverseProjection = glm::inverse(projectionMatrix);
+    deferredShading_BufferCombinationShader.updateUniform("inverseProjectionMatrix", (void *) &inverseProjection);
+
     Font::addFontToCache("res/fonts/normalFont");
     Font::addFontToCache("res/fonts/horror");
+    Font::addFontToCache("res/fonts/horror3");
 }
 
 RenderingMaster::~RenderingMaster()
@@ -208,6 +231,11 @@ RenderingMaster::~RenderingMaster()
     delete wBlurPostProcess;
     delete flarePostProcess;
     delete smokeRenderer;
+    delete m_sunDisc;
+    delete water;
+    for (ParticleEmitter *emitter : particleEmitters) {
+        delete emitter;
+    }
 
     display->close();
     delete display;
@@ -219,10 +247,14 @@ RenderingMaster::~RenderingMaster()
 
 void RenderingMaster::init(Display *display,
                            Camera *camera,
-                           glm::mat4 projectionMatrix)
+                           glm::mat4 projectionMatrix,
+                           float renderScale)
 {
     if (m_instance == NULL) {
-        m_instance = new RenderingMaster (display, camera, projectionMatrix);
+        renderScale = glm::clamp(renderScale, 0.25f, 1.0f);
+        int rw = std::max(16, (int) (display->getWidth() * renderScale + 0.5f));
+        int rh = std::max(16, (int) (display->getHeight() * renderScale + 0.5f));
+        m_instance = new RenderingMaster (display, camera, projectionMatrix, rw, rh);
     }
 }
 
@@ -291,14 +323,21 @@ void RenderingMaster::drawDeferredShadingBuffers()
     gBuffer.unbind();
     clearScreen(1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    hBlurPostProcess->bind();
-    hBlurPostProcess->process();
+    if (flaresNeeded()) {
+        glm::vec2 sunUV(0.5f);
+        int sunMode = (isSunFlareVisible() && sunScreenPosition(sunUV)) ? 1 : 0;
+        flarePostProcess->getShader().updateUniform("sunMode", sunMode);
+        flarePostProcess->getShader().updateUniform("sunScreenPosition", (void *) &sunUV);
 
-    wBlurPostProcess->bind();
-    wBlurPostProcess->process();
+        hBlurPostProcess->bind();
+        hBlurPostProcess->process();
 
-    flarePostProcess->bind();
-    flarePostProcess->process({lensFlareColorTxt});
+        wBlurPostProcess->bind();
+        wBlurPostProcess->process();
+
+        flarePostProcess->bind();
+        flarePostProcess->process({lensFlareColorTxt});
+    }
 
     //START FXAA
     fxaaFrameBuffer.bindSingleRenderTarget(0);
@@ -310,9 +349,12 @@ void RenderingMaster::drawDeferredShadingBuffers()
     depthTexture->use();
     roughnessTexture->use(12);
     particlesRTTexture.use ();
+    /* debug view 8 shows the directional light's shadow map (point lights have none) */
     for (Light *light : lights) {
-        light->getShadowMapTexture().use(8);
-        break;
+        if (dynamic_cast<DirectionalLight *>(light) != NULL) {
+            light->getShadowMapTexture().use(8);
+            break;
+        }
     }
     volumetricLightTxt.use(9);
     flarePostProcess->getResultingTexture().use(10);
@@ -321,25 +363,75 @@ void RenderingMaster::drawDeferredShadingBuffers()
     screenSizeRectangle->draw();
 
     deferredShading_BufferCombinationShader.unbind();
+    if (water != NULL) {
+        water->render(fxaaFrameBuffer);
+    }
     fxaaFrameBuffer.unbind();
     //END FXAA
 
-    fxaaPostProcess->bind();
-    fxaaPostProcess->process();
-
-    lastStageShader.bind();
-    fxaaPostProcess->getResultingTexture().use(0);
-    screenSizeRectangle->draw();
-    lastStageShader.unbind();
+    /* FXAA writes the final image directly to the screen (it used to go to an
+     * offscreen target followed by a full-screen copy pass) */
+    fxaaPostProcess->processToScreen(display->getWidth(), display->getHeight());
 }
 
 void RenderingMaster::update() {
+    m_time += updateDt / 1000.0f;
+
+    if (m_baseEnvironment.dayLength > 0.0f) {
+        float speed = m_timePaused ? 0.0f : m_timeScale;
+        float t = m_environment.timeOfDay + (float) (updateDt / 1000.0) * speed / m_baseEnvironment.dayLength;
+        applyEnvironment(Environment::atTimeOfDay(m_baseEnvironment, t));
+
+        /* the scene's directional light follows the sun by day, the moon by night */
+        for (Light *light : lights) {
+            if (DirectionalLight *dir = dynamic_cast<DirectionalLight *>(light)) {
+                if (!m_dirLightBaseCaptured) {
+                    m_dirLightBaseColor = dir->getLightColor();
+                    m_dirLightBaseCaptured = true;
+                }
+                const Environment &e = m_environment;
+                bool sunUp = e.sunDirection.y > -0.02f;
+                float moonUp = glm::smoothstep(-0.02f, 0.3f, e.moonDirection.y);
+                dir->setLightDirection(e.lightDirection);
+                dir->setLightColor(sunUp ? e.lightColor * 0.9f : m_dirLightBaseColor * moonUp);
+                break;
+            }
+        }
+    }
+    Light::s_nightFactor = getNightFactor();
+
+    if (smokeRenderer != NULL) {
+        smokeRenderer->update(*camera, updateDt);
+    }
+    for (ParticleEmitter *emitter : particleEmitters) {
+        emitter->update(*camera, updateDt);
+    }
+
+    flarePostProcess->getShader().updateUniform("uGhostDispersal", data_f[0]);
+    flarePostProcess->getShader().updateUniform("density", data_f[1]);
+    flarePostProcess->getShader().updateUniform("exposure", data_f[2]);
+    flarePostProcess->getShader().updateUniform("weight", data_f[3]);
+    flarePostProcess->getShader().updateUniform("decay", data_f[4]);
+    flarePostProcess->getShader().updateUniform("illuminationDecay", data_f[5]);
+}
+
+void RenderingMaster::prepareFrame(float alpha) {
+    m_renderAlpha = glm::clamp(alpha, 0.0f, 1.0f);
+    m_renderTime = m_time - (1.0f - m_renderAlpha) * (float) (updateDt / 1000.0);
+
     glm::vec3 forwardVectorInEyeSpace;
     glm::vec3 cameraForward = glm::normalize(camera->getForward());
     glm::mat4 cameraViewMatrix;
 
     cameraViewMatrix = camera->getViewMatrix ();
     forwardVectorInEyeSpace = glm::mat3 (cameraViewMatrix) * cameraForward;
+    inverseViewMatrix = glm::inverse(cameraViewMatrix);
+    skyShader->updateUniform("time", m_renderTime);
+    DirectionalLight::getLightAccumulationShader().updateUniform("inverseViewMatrix", (void *) &inverseViewMatrix);
+    PointLight::getLightAccumulationShader().updateUniform("inverseViewMatrix", (void *) &inverseViewMatrix);
+    deferredShading_BufferCombinationShader.updateUniform("inverseViewMatrix", (void *) &inverseViewMatrix);
+    SpotLight::getLightAccumulationShader().updateUniform("inverseViewMatrix", (void *) &inverseViewMatrix);
+    volumetricLightShader.updateUniform("inverseViewMatrix", (void *) &inverseViewMatrix);
 
     DirectionalLight::getLightAccumulationShader().updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     DirectionalLight::getLightAccumulationShader().updateUniform("cameraForwardVectorEyeSpace", (void *) &forwardVectorInEyeSpace);
@@ -362,7 +454,10 @@ void RenderingMaster::update() {
     flareShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
     DebugRenderer::lineShader.updateUniform("viewMatrix", (void *) &cameraViewMatrix);
 
-    smokeRenderer->update(*camera, updateDt);
+    if (smokeRenderer != NULL) {
+        smokeRenderer->getRenderingShader().updateUniform("viewMatrix", (void *) &cameraViewMatrix);
+        smokeRenderer->getRenderingShader().updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    }
 
     for (Light *light : lights) {
         if (light->isCastingShadow()) {
@@ -370,13 +465,6 @@ void RenderingMaster::update() {
             light->recomputeShadowMapProjectionMatrix();
         }
     }
-
-    flarePostProcess->getShader().updateUniform("uGhostDispersal", data_f[0]);
-    flarePostProcess->getShader().updateUniform("density", data_f[1]);
-    flarePostProcess->getShader().updateUniform("exposure", data_f[2]);
-    flarePostProcess->getShader().updateUniform("weight", data_f[3]);
-    flarePostProcess->getShader().updateUniform("decay", data_f[4]);
-    flarePostProcess->getShader().updateUniform("illuminationDecay", data_f[5]);
 }
 
 void RenderingMaster::computeStencilBufferForLight(Light *light)
@@ -420,6 +508,7 @@ void RenderingMaster::createLightAccumulationBuffer()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glDepthMask(GL_TRUE);
+    glDisable(GL_DEPTH_CLAMP);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glDisable(GL_STENCIL_TEST);
@@ -499,6 +588,8 @@ void RenderingMaster::renderVolumetricLight()
             glBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
             volumetricLightShader.updateUniform("volumetricLightProjectionMatrix", (void *) &lights[i]->getShadowMapProjectionMatrix());
             volumetricLightShader.updateUniform("volumetricLightViewMatrix", (void *) &lights[i]->getShadowMapViewMatrix());
+            glm::mat4 volumetricLightViewProj = lights[i]->getShadowMapProjectionMatrix() * lights[i]->getShadowMapViewMatrix();
+            volumetricLightShader.updateUniform("volumetricLightViewProj", (void *) &volumetricLightViewProj);
             volumetricLightShader.updateUniform("lightColor", (void *) &lights[i]->getLightColor());
             volumetricLightShader.updateUniform("lightPosition", (void *) &lights[i]->getTransform().getPosition());
             volumetricLightShader.updateUniform("modelMatrix", (void *) &lights[i]->getTransform().getModelMatrix());
@@ -508,6 +599,8 @@ void RenderingMaster::renderVolumetricLight()
             volumetricLightShader.updateUniform("numSamplePoints", spot->getNumSamplePoints());
             volumetricLightShader.updateUniform("coef1", spot->getCoef1());
             volumetricLightShader.updateUniform("coef2", spot->getCoef2());
+            volumetricLightShader.updateUniform("beamDensity", spot->getBeamDensity());
+            volumetricLightShader.updateUniform("beamFalloff", spot->getBeamFalloff());
             volumetricLightShader.updateUniform("secondFraction", secondFraction);
             lights[i]->render(volumetricLightShader);
             glEnable(GL_DEPTH_TEST);
@@ -527,6 +620,7 @@ void RenderingMaster::startIMGUIFrame() {
 }
 
 void RenderingMaster::imguiDrawCalls() {
+    environmentGUI();
     {
         ImGui::Begin("GUI!");
 
@@ -582,5 +676,184 @@ void RenderingMaster::setFOV(float fov) {
     result &= flareShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= skyShader->updateUniform("projectionMatrix", (void *) &projectionMatrix);
 
+    glm::mat4 inverseProjection = glm::inverse(projectionMatrix);
+    deferredShading_BufferCombinationShader.updateUniform("inverseProjectionMatrix", (void *) &inverseProjection);
+
     assert(result);
+}
+
+void RenderingMaster::setEnvironment(const Environment &environment)
+{
+    m_baseEnvironment = environment;
+    m_dirLightBaseCaptured = false;
+    applyEnvironment(environment.dayLength > 0.0f ?
+                     Environment::atTimeOfDay(environment, environment.timeOfDay) : environment);
+}
+
+void RenderingMaster::setTimeOfDay(float timeOfDay)
+{
+    if (m_baseEnvironment.dayLength > 0.0f) {
+        applyEnvironment(Environment::atTimeOfDay(m_baseEnvironment, timeOfDay));
+    }
+}
+
+/* ImGui window to change the time of day and the atmosphere while running
+ * (press M to free the mouse cursor to use it) */
+void RenderingMaster::environmentGUI()
+{
+    ImGui::SetNextWindowPos(ImVec2(display->getWidth() - 430.0f, 20.0f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(410.0f, 0.0f), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Time & Atmosphere");
+
+    bool changed = false;
+    if (m_baseEnvironment.dayLength > 0.0f) {
+        float t = m_environment.timeOfDay;
+        int minutes = (int) (t * 24.0f * 60.0f) % (24 * 60);
+        ImGui::Text("Clock  %02d:%02d", minutes / 60, minutes % 60);
+        if (ImGui::SliderFloat("Time of day", &t, 0.0f, 1.0f, "%.3f")) {
+            setTimeOfDay(t);
+        }
+        if (ImGui::Button("Midnight")) setTimeOfDay(0.0f);
+        ImGui::SameLine();
+        if (ImGui::Button("Dawn")) setTimeOfDay(0.26f);
+        ImGui::SameLine();
+        if (ImGui::Button("Noon")) setTimeOfDay(0.5f);
+        ImGui::SameLine();
+        if (ImGui::Button("Dusk")) setTimeOfDay(0.74f);
+
+        ImGui::Checkbox("Pause time", &m_timePaused);
+        ImGui::SliderFloat("Time speed", &m_timeScale, 0.0f, 120.0f, "%.1fx");
+        ImGui::SliderFloat("Day length (s)", &m_baseEnvironment.dayLength, 10.0f, 3600.0f, "%.0f");
+    } else {
+        ImGui::TextWrapped("No day-night cycle on this map (set Environment.dayLength in the map JSON).");
+    }
+
+    ImGui::Separator();
+    changed |= ImGui::SliderFloat("Fog density", &m_baseEnvironment.fogDensity, 0.0f, 0.01f, "%.4f");
+    changed |= ImGui::SliderFloat("Fog height falloff", &m_baseEnvironment.fogHeightFalloff, 0.0f, 0.03f, "%.4f");
+    changed |= ImGui::SliderFloat("Haze glow", &m_baseEnvironment.fogMoonGlow, 0.0f, 1.0f);
+    changed |= ImGui::SliderFloat("Ambient (night)", &m_baseEnvironment.ambient, 0.0f, 0.5f);
+    if (m_baseEnvironment.dayLength > 0.0f) {
+        changed |= ImGui::SliderFloat("Ambient (day)", &m_baseEnvironment.dayAmbient, 0.0f, 0.8f);
+        changed |= ImGui::SliderFloat("Stars", &m_baseEnvironment.starIntensity, 0.0f, 3.0f);
+    }
+    if (changed) {
+        applyEnvironment(m_baseEnvironment.dayLength > 0.0f ?
+                         Environment::atTimeOfDay(m_baseEnvironment, m_environment.timeOfDay) : m_baseEnvironment);
+    }
+
+    ImGui::End();
+}
+
+void RenderingMaster::cycleTimeScale()
+{
+    m_timeScale = m_timeScale < 2.0f ? 10.0f : (m_timeScale < 20.0f ? 60.0f : 1.0f);
+    std::cout << "Time of day speed: " << m_timeScale << "x" << std::endl;
+}
+
+float RenderingMaster::getNightFactor() const
+{
+    if (m_baseEnvironment.dayLength <= 0.0f) {
+        return 1.0f;
+    }
+    return 1.0f - m_environment.sunVisibility;
+}
+
+void RenderingMaster::applyEnvironment(const Environment &environment)
+{
+    m_environment = environment;
+    const Environment &e = m_environment;
+
+    skyShader->updateUniform("skyMode", e.skyMode);
+    skyShader->updateUniform("zenithColor", (void *) &e.zenithColor);
+    skyShader->updateUniform("horizonColor", (void *) &e.horizonColor);
+    skyShader->updateUniform("starIntensity", e.starIntensity);
+    skyShader->updateUniform("moonDirection", (void *) &e.moonDirection);
+    skyShader->updateUniform("moonColor", (void *) &e.moonColor);
+
+    Shader &c = deferredShading_BufferCombinationShader;
+    c.updateUniform("ambient", e.ambient);
+    c.updateUniform("emissiveStrength", e.emissiveStrength);
+    c.updateUniform("fogColor", (void *) &e.fogColor);
+    c.updateUniform("fogDensity", e.fogDensity);
+    c.updateUniform("fogHeightFalloff", e.fogHeightFalloff);
+    c.updateUniform("fogBaseHeight", e.fogBaseHeight);
+    c.updateUniform("fogMoonGlow", e.fogMoonGlow);
+    /* haze glows toward the dominant sky light (sun by day, moon by night) */
+    c.updateUniform("moonDirection", (void *) &e.lightDirection);
+    c.updateUniform("moonColor", (void *) &e.lightColor);
+
+    float sunVisibility = e.sunVisibility;
+    float sunsetStrength = e.sunsetStrength;
+    skyShader->updateUniform("sunDirection", (void *) &e.sunDirection);
+    skyShader->updateUniform("sunColor", (void *) &e.sunColor);
+    skyShader->updateUniform("sunVisibility", sunVisibility);
+    skyShader->updateUniform("sunsetColor", (void *) &e.sunsetColor);
+    skyShader->updateUniform("sunsetStrength", sunsetStrength);
+}
+
+Texture &RenderingMaster::getFlareTexture()
+{
+    return flarePostProcess->getResultingTexture();
+}
+
+void RenderingMaster::setFlareSourceCount(int count)
+{
+    /* keep running the passes for one extra frame after the last flare source
+     * disappears so the flare buffers end up black */
+    m_framesWithoutFlares = count > 0 ? 0 : std::min(m_framesWithoutFlares + 1, 2);
+}
+
+static const float SUN_DISTANCE = 3000.0f;
+
+bool RenderingMaster::sunScreenPosition(glm::vec2 &uv)
+{
+    glm::vec4 clip = projectionMatrix * camera->getViewMatrix() *
+                     glm::vec4(camera->getPosition() + m_environment.sunDirection * SUN_DISTANCE, 1.0f);
+    if (clip.w <= 0.0f) {
+        return false;
+    }
+    uv = glm::vec2(clip) / clip.w * 0.5f + 0.5f;
+    return uv.x > -0.25f && uv.x < 1.25f && uv.y > -0.25f && uv.y < 1.25f;
+}
+
+bool RenderingMaster::isSunFlareVisible()
+{
+    glm::vec2 uv;
+    return m_baseEnvironment.dayLength > 0.0f && m_environment.sunVisibility > 0.01f && sunScreenPosition(uv);
+}
+
+void RenderingMaster::drawSunFlareSource()
+{
+    if (!isSunFlareVisible()) {
+        return;
+    }
+    if (m_sunDisc == NULL) {
+        m_sunDisc = Mesh::getCircle(0, 0, 1.0f, 32);
+    }
+    /* camera-facing disc far along the sun direction; the flare shader drops
+     * the pixels where scene geometry is in front of it */
+    glm::mat4 rotation = glm::transpose(glm::mat4(glm::mat3(camera->getViewMatrix())));
+    float radius = SUN_DISTANCE * glm::tan(glm::radians(1.3f));
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), camera->getPosition() + m_environment.sunDirection * SUN_DISTANCE) *
+                      rotation * glm::scale(glm::mat4(1.0f), glm::vec3(radius));
+    glm::vec3 color = m_environment.sunColor * m_environment.sunVisibility;
+    flareShader.updateUniform("modelMatrix", (void *) &model);
+    flareShader.updateUniform("material.diffuse", (void *) &color);
+    flareShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    flareShader.bind();
+    glDisable(GL_CULL_FACE);
+    m_sunDisc->draw();
+    glEnable(GL_CULL_FACE);
+}
+
+void RenderingMaster::drawParticles()
+{
+    if (smokeRenderer != NULL) {
+        smokeRenderer->draw();
+    }
+    const glm::mat4 &view = camera->getViewMatrix();
+    for (ParticleEmitter *emitter : particleEmitters) {
+        emitter->draw(projectionMatrix, view, renderWidth, renderHeight, m_renderAlpha);
+    }
 }

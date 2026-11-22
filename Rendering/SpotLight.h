@@ -10,7 +10,8 @@ class SpotLight : public Light
         SpotLight(const Transform &transform,
                   const glm::vec3 &color,
                   bool casts_shadow = true,
-                  bool volumetric = false);
+                  bool volumetric = false,
+                  int shadowMapSize = 2048);
         ~SpotLight();
 
         void update() override;
@@ -29,6 +30,14 @@ class SpotLight : public Light
         int getNumSamplePoints() { return numSamplePoints; }
         float getCoef1() { return coef1; }
         float getCoef2() { return coef2; }
+        /* Beam model for volumetric spots. beamDensity > 0 switches from the
+         * original solid look to a beam whose density falls off exponentially
+         * along its length (beamFalloff = distance over which it drops by e),
+         * integrated along the view ray. */
+        float getBeamDensity() const { return m_beamDensity; }
+        float getBeamFalloff() const { return m_beamFalloff; }
+        void setBeamDensity(float d) { m_beamDensity = d; }
+        void setBeamFalloff(float f) { m_beamFalloff = f; }
 
         void setNumSamplePoints(int num) { numSamplePoints = num; }
         void setCoef1(float coef) { coef1 = coef; }
@@ -46,6 +55,7 @@ class SpotLight : public Light
         glm::vec3 worldRot;
 
         int numSamplePoints;
+        float m_beamDensity = 0.0f, m_beamFalloff = 250.0f;
         float coef1;
         float coef2;
 

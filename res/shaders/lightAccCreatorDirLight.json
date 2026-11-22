@@ -12,6 +12,7 @@
                     "roughnessSampler" : "INT",
                     "projectionMatrix" : "MAT4",
                     "viewMatrix" : "MAT4",
+                    "inverseViewMatrix" : "MAT4",
                     "dirLightProjMatrix" : "MAT4",
                     "dirLightViewMatrix" : "MAT4",
                     "cameraForwardVectorEyeSpace" : "VEC3",

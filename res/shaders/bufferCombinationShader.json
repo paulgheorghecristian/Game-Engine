@@ -14,6 +14,17 @@
                     "volumetricLightSampler" : "INT",
                     "flareSampler" : "INT",
                     "flareBlurSampler" : "INT",
-                    "roughnessSampler" : "INT"
+                    "roughnessSampler" : "INT",
+                    "ambient" : "FLOAT",
+                    "emissiveStrength" : "FLOAT",
+                    "fogColor" : "VEC3",
+                    "fogDensity" : "FLOAT",
+                    "fogHeightFalloff" : "FLOAT",
+                    "fogBaseHeight" : "FLOAT",
+                    "fogMoonGlow" : "FLOAT",
+                    "moonDirection" : "VEC3",
+                    "moonColor" : "VEC3",
+                    "inverseProjectionMatrix" : "MAT4",
+                    "inverseViewMatrix" : "MAT4"
                  }
 }

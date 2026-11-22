@@ -11,6 +11,18 @@ using uchar = unsigned char;
 #include "stb_image.h"
 #include "stb_image_write.h"
 
+#include <unordered_map>
+
+struct SharedTexture {
+    GLuint id;
+    int references;
+};
+
+static std::unordered_map<std::string, SharedTexture> &textureCache() {
+    static std::unordered_map<std::string, SharedTexture> cache;
+    return cache;
+}
+
 const static GLint pixelFormat[5] = { 0, GL_RED, GL_RG, GL_RGB, GL_RGBA };
 const static GLint internalFormat[][5] = {
                                             { 0, GL_R8, GL_RG8, GL_RGB8, GL_RGBA8 },
@@ -42,6 +54,26 @@ ErrorCode Texture::init(const std::string &filename,
                        int numOfSubTxtsW,
                        int numOfSubTxtsH)
 {
+    this->textureUnit = textureUnit;
+    this->numOfSubTxtsH = numOfSubTxtsH;
+    this->numOfSubTxtsW = numOfSubTxtsW;
+    this->totalNumOfSubTxts = numOfSubTxtsH * numOfSubTxtsW;
+    if (numOfSubTxtsH < numOfSubTxtsW) {
+        subWidth = 1.0f / numOfSubTxtsW;
+        subHeight = 1.0f / numOfSubTxtsW;
+    } else {
+        subWidth = 1.0f / numOfSubTxtsH;
+        subHeight = 1.0f / numOfSubTxtsH;
+    }
+
+    auto cached = textureCache().find(filename);
+    if (cached != textureCache().end()) {
+        cached->second.references++;
+        textureId = cached->second.id;
+        m_shared = true;
+        return NO_ERROR;
+    }
+
     stbi_set_flip_vertically_on_load(true);
 
     int width, height, chn;
@@ -91,6 +123,9 @@ ErrorCode Texture::init(const std::string &filename,
     glBindTexture(GL_TEXTURE_2D, 0);
     stbi_image_free(data);
 
+    textureCache()[filename] = SharedTexture{textureId, 1};
+    m_shared = true;
+
     print_error(NO_ERROR, "Loading", filename.c_str());
     return NO_ERROR;
 }
@@ -111,6 +146,15 @@ ErrorCode Texture::init(GLuint textureId,
 
 Texture::~Texture()
 {
+    if (m_shared) {
+        auto cached = textureCache().find(filePath);
+        if (cached != textureCache().end() && --cached->second.references > 0) {
+            return; /* still used by other Texture objects */
+        }
+        if (cached != textureCache().end()) {
+            textureCache().erase(cached);
+        }
+    }
     glBindTexture(GL_TEXTURE_2D, 0);
     glDeleteTextures(1, &textureId);
 }
@@ -150,7 +194,8 @@ void Texture::use()
 
 void Texture::use(int etextureUnit)
 {
+    /* (glEnable(GL_TEXTURE_2D) removed: fixed-function state that shaders
+     * ignore, and an invalid enum in core profiles) */
     glActiveTexture(GL_TEXTURE0 + etextureUnit);
-    glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textureId);
 }

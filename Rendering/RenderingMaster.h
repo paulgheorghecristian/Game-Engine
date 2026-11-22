@@ -13,11 +13,15 @@
 #include "PostProcess.h"
 #include "SmokeParticle.h"
 #include "DebugRenderer.hpp"
+#include "Environment.h"
 
 #include <vector>
+#include <algorithm>
 
 template<typename P>
 class ParticleRenderer;
+class ParticleEmitter;
+class WaterRenderer;
 
 enum GUIVarsEnum_f {
     VAR1_f = 0,
@@ -45,14 +49,20 @@ class RenderingMaster
     public:
         static void init (Display *display,
                           Camera *camera,
-                          glm::mat4 projectionMatrix);
+                          glm::mat4 projectionMatrix,
+                          float renderScale = 1.0f);
         static RenderingMaster *getInstance();
         static void destroy ();
         static Shader simpleTextShader;
 
         void clearScreen(float r, float g, float b, float a, GLbitfield field);
         void swapBuffers();
+        /* game tick: simulation time, particles */
         void update();
+        /* every rendered frame: camera-dependent uniforms, shadow matrices and
+         * the render time; alpha = how far the frame is between the previous
+         * and the current tick (0..1) */
+        void prepareFrame(float alpha);
         void moveCameraForward(float distance);
         void moveCameraSideways(float distance);
         void rotateCameraX(float rotX);
@@ -60,7 +70,13 @@ class RenderingMaster
         Display *getDisplay();
         Camera *getCamera();
         const glm::mat4 &getProjectionMatrix();
+        inline const glm::mat4 &getInverseViewMatrix() { return inverseViewMatrix; }
         GBuffer &getGBuffer();
+
+        /* The 3D scene is rendered at renderScale * window size and upscaled
+         * by the final (FXAA) pass; GUI/ImGui are drawn at window resolution. */
+        inline int getRenderWidth() const { return renderWidth; }
+        inline int getRenderHeight() const { return renderHeight; }
 
         void setFOV(float fov);
 
@@ -89,6 +105,41 @@ class RenderingMaster
         void imguiDrawCalls();
 
         std::vector<Light *> &getLights();
+
+        /* per-map atmosphere (sky, fog, ambient, emissive); defaults = original look */
+        void setEnvironment(const Environment &environment);
+        /* day-night: speed multiplier for the cycle (T key cycles 1x/10x/60x) */
+        void cycleTimeScale();
+        void setTimeOfDay(float timeOfDay);
+        /* 1 at night, 0 by day ("nightOnly" lights fade with it) */
+        float getNightFactor() const;
+        inline const Environment &getEnvironment() const { return m_environment; }
+        /* seconds of simulated time, interpolated for the frame being rendered */
+        inline float getTime() const { return m_renderTime; }
+        inline float getRenderAlpha() const { return m_renderAlpha; }
+
+        Texture &getVolumetricLightTexture() { return volumetricLightTxt; }
+        Texture &getFlareTexture();
+
+        /* optional per-map features; owned by RenderingMaster */
+        WaterRenderer *water = NULL;
+        std::vector<ParticleEmitter *> particleEmitters;
+        void drawParticles();
+        void addParticleEmitter(ParticleEmitter *emitter) { particleEmitters.push_back(emitter); }
+        void removeParticleEmitter(ParticleEmitter *emitter) {
+            particleEmitters.erase(std::remove(particleEmitters.begin(), particleEmitters.end(), emitter),
+                                   particleEmitters.end());
+        }
+
+        /* Lens flares only come from billboard entities. With none in the
+         * scene the flare buffers are cleared once and their passes skipped. */
+        void setFlareSourceCount(int count);
+        /* Sun lens flare (day-night maps): the sun disc is drawn into the
+         * flare buffer, occluded by the scene, and the flare pass turns it into
+         * god rays, ghosts and a halo (ported from World2's sun post-process). */
+        bool isSunFlareVisible();
+        void drawSunFlareSource();
+        inline bool flaresNeeded() const { return m_framesWithoutFlares < 2; }
         const glm::vec3 &getWorldPosRay();
         /* TODO make these private */
         ParticleRenderer<SmokeParticle> *smokeRenderer;
@@ -113,13 +164,31 @@ class RenderingMaster
     private:
         RenderingMaster(Display *display,
                          Camera *camera,
-                         glm::mat4 projectionMatrix);
+                         glm::mat4 projectionMatrix,
+                         int renderWidth, int renderHeight);
+        int renderWidth, renderHeight;
         ~RenderingMaster();
         static RenderingMaster *m_instance;
 
         Display *display;
         Camera *camera;
         glm::mat4 projectionMatrix;
+        glm::mat4 inverseViewMatrix = glm::mat4(1.0f);
+        Environment m_environment;      /* current (time of day applied) */
+        Environment m_baseEnvironment;  /* as configured by the map */
+        float m_timeScale = 1.0f;
+        bool m_timePaused = false;
+        void environmentGUI();
+        bool m_dirLightBaseCaptured = false;
+        glm::vec3 m_dirLightBaseColor = glm::vec3(0.0f);
+        glm::vec3 m_dirLightBaseDirection = glm::vec3(0.0f, 1.0f, 0.0f);
+        void applyEnvironment(const Environment &environment);
+        float m_time = 0.0f;
+        float m_renderTime = 0.0f;
+        float m_renderAlpha = 1.0f;
+        int m_framesWithoutFlares = 0;
+        Mesh *m_sunDisc = NULL;
+        bool sunScreenPosition(glm::vec2 &uv);
         GBuffer gBuffer;
 
         Texture *albedoTexture, *normalTexture, *lightAccumulationTexture;\

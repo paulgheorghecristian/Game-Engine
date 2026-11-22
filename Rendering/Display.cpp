@@ -54,6 +54,10 @@ Display::Display(const int WIDTH,
     gl_context = SDL_GL_CreateContext (window);
     SDL_GL_MakeCurrent(window, gl_context);
 
+    /* The window manager / HiDPI may give us a different size than requested;
+     * render targets must match the real drawable or the image gets cropped. */
+    SDL_GL_GetDrawableSize(window, &this->width, &this->height);
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -84,6 +88,8 @@ Display::Display(const int WIDTH,
     if (status != GLEW_OK) {
         std::cerr << "Glew failed to initialize !" << std::endl;
     }
+    std::cout << "OpenGL renderer: " << glGetString(GL_RENDERER)
+              << " (" << glGetString(GL_VERSION) << ")" << std::endl;
 
     isWindowClosed = false;
     glEnable (GL_DEPTH_TEST);

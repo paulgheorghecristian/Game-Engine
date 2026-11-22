@@ -12,6 +12,7 @@
 std::unordered_map<std::string, ProfilingTimer> ProfilingTimer::timers;
 glm::vec2 ProfilingTimer::lastPositionGPU(GPU_START_X, GPU_START_Y);
 glm::vec2 ProfilingTimer::lastPositionCPU(CPU_START_X, CPU_START_Y);
+bool ProfilingTimer::syncGPU = false;
 
 ProfilingTimer::ProfilingTimer(BarGUI *barGUI, Type type) : total(0),
                                                   maxTime(0),
@@ -32,6 +33,7 @@ ProfilingTimer::ProfilingTimer(BarGUI *barGUI, Type type) : total(0),
 void ProfilingTimer::begin() {
     if (m_type == CPU) {
         numOfCalls++;
+        if (syncGPU) glFinish();
         startTime = HighResolutionClock::now();
     } else if (m_type == GPU) {
         glBeginQuery(GL_TIME_ELAPSED, m_timerQuery);
@@ -43,8 +45,9 @@ void ProfilingTimer::begin() {
 void ProfilingTimer::end() {
 
     if (m_type == CPU) {
+        if (syncGPU) glFinish();
         auto endTime = HighResolutionClock::now();
-        passedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+        passedTime = std::chrono::duration<double, std::milli>(endTime - startTime).count();
 
         total += passedTime;
 
@@ -78,7 +81,7 @@ double ProfilingTimer::getPassedTimeAvg() {
         if (numOfCalls == 0 || total == 0) {
             return 0;
         }
-        return (double) total / numOfCalls;
+        return total / numOfCalls;
     } else if (m_type == GPU) {
         GLuint64 nanoseconds = 0;
         double milliseconds = 0;
@@ -178,6 +181,21 @@ void ProfilingTimer::updateGPUTimers() {
     }
 }
 
+void ProfilingTimer::resetAll() {
+    for (auto &it : timers) {
+        it.second.reset();
+    }
+}
+
+void ProfilingTimer::printAll() {
+    for (auto &it : timers) {
+        if (it.second.getType() == CPU && it.second.numOfCalls > 0) {
+            printf("  %-28s avg=%7.3fms max=%7.3fms\n", it.first.c_str(),
+                   it.second.total / it.second.numOfCalls, it.second.maxTime);
+        }
+    }
+}
+
 ProfilingTimer &ProfilingTimer::getTimer(const std::string &name)
 {
     auto search = timers.find(name);
@@ -210,11 +228,12 @@ ProfilingTimer::ProfilingTimer(ProfilingTimer &&otherTimer)
     uptr_barGUI = std::move(otherTimer.uptr_barGUI);
     m_type = otherTimer.m_type;
 
-    total = 0;
-    maxTime = 0;
-    numOfCalls = 0;
-    passedTime = 0;
-    m_timerQuery = 0;
+    total = otherTimer.total;
+    maxTime = otherTimer.maxTime;
+    numOfCalls = otherTimer.numOfCalls;
+    passedTime = otherTimer.passedTime;
+    startTime = otherTimer.startTime;
+    m_timerQuery = (otherTimer.m_timerQuery == otherTimer.m_timerQuery2) ? m_timerQuery2 : m_timerQuery1;
 }
 
 ProfilingTimer::~ProfilingTimer()

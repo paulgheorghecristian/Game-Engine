@@ -72,6 +72,51 @@ bool Material::getDisableCulling() const {
     return m_disableCulling;
 }
 
+TerrainLayers::~TerrainLayers() {
+    delete grass;
+    delete grass2;
+    delete rock;
+    delete rockNormal;
+    delete dirt;
+    delete soil;
+}
+
+static Texture *cloneTexture(Texture *texture) {
+    if (texture == NULL || texture->getFilePath().empty()) {
+        return NULL;
+    }
+    return new Texture(texture->getFilePath(), texture->getTextureUnit());
+}
+
+Material *Material::clone() const {
+    Material *copy = new Material();
+    copy->m_ambient = m_ambient;
+    copy->m_diffuse = m_diffuse;
+    copy->m_specular = m_specular;
+    copy->m_shininess = m_shininess;
+    copy->m_normalMapStrength = m_normalMapStrength;
+    copy->m_isBlackAlpha = m_isBlackAlpha;
+    copy->m_disableCulling = m_disableCulling;
+    copy->m_emissive = m_emissive;
+    copy->m_specularStrength = m_specularStrength;
+    copy->m_diffuseTexture = cloneTexture(m_diffuseTexture);
+    copy->m_normalTexture = cloneTexture(m_normalTexture);
+    copy->m_roughnessTexture = cloneTexture(m_roughnessTexture);
+    if (m_terrain != nullptr) {
+        TerrainLayers *t = new TerrainLayers();
+        t->grass = cloneTexture(m_terrain->grass);
+        t->grass2 = cloneTexture(m_terrain->grass2);
+        t->rock = cloneTexture(m_terrain->rock);
+        t->rockNormal = cloneTexture(m_terrain->rockNormal);
+        t->dirt = cloneTexture(m_terrain->dirt);
+        t->soil = cloneTexture(m_terrain->soil);
+        t->tileSize = m_terrain->tileSize;
+        t->shoreHeight = m_terrain->shoreHeight;
+        copy->m_terrain = t;
+    }
+    return copy;
+}
+
 Material &Material::operator=(Material &&otherMaterial) {
     if (this != &otherMaterial) {
         m_ambient = otherMaterial.m_ambient;
@@ -115,6 +160,9 @@ Material::Material(Material &&otherMaterial) {
 }
 
 Material::~Material() {
+    delete m_terrain;
+    m_terrain = nullptr;
+
     delete m_diffuseTexture;
     m_diffuseTexture = NULL;
 

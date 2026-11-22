@@ -1,3 +1,6 @@
 obj/*
 bin/*
 res/libraries/*
+# build output and per-user runtime state
+ge
+imgui.ini

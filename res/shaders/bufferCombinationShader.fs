@@ -19,6 +19,31 @@ uniform sampler2D roughnessSampler;
 
 uniform int outputType;
 
+uniform float ambient;           /* engine default 0.1 */
+uniform float emissiveStrength;
+uniform vec3 fogColor;
+uniform float fogDensity;        /* 0: no fog */
+uniform float fogHeightFalloff;
+uniform float fogBaseHeight;
+uniform mat4 inverseProjectionMatrix;
+uniform mat4 inverseViewMatrix;
+uniform float fogMoonGlow;
+uniform vec3 moonDirection, moonColor;
+
+/* fog factor for the pixel at textureCoords with depth buffer value d;
+ * also returns the fog color, brightened toward the moon */
+float fogAmount(float d, out vec3 color) {
+    color = fogColor;
+    if (fogDensity <= 0.0) return 0.0;
+    vec4 view = inverseProjectionMatrix * vec4(textureCoords * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);
+    view /= view.w;
+    vec3 world = (inverseViewMatrix * view).xyz;
+    vec3 rayDir = normalize(mat3(inverseViewMatrix) * view.xyz);
+    color += moonColor * fogMoonGlow * pow(max(dot(rayDir, moonDirection), 0.0), 6.0);
+    float heightFactor = exp(-max(world.y - fogBaseHeight, 0.0) * fogHeightFalloff);
+    return clamp((1.0 - exp(-length(view.xyz) * fogDensity)) * heightFactor, 0.0, 1.0);
+}
+
 vec4 volumetrics() {
     return texture(volumetricLightSampler, textureCoords);
 }
@@ -45,7 +70,7 @@ vec3 worldNormal() {
 }
 vec3 lightAccumulation() {
     vec3 lightAcc = texture (lightAccumulationSampler, textureCoords).xyz;
-    return lightAcc + vec3(0.2);	//diffuse + specular + ambiental
+    return lightAcc + vec3(ambient);	//diffuse + specular + ambiental
 }
 
 vec3 dirLightDepthMap() {
@@ -81,11 +106,16 @@ void main() {
         vec3 mapped = vec3(1.0) - exp(-lightAcc * exposure);
 
         if (depthVal.x != 1) {
-            vec3 finalColor = albedoPixel * lightAccumulation();
+            vec4 albedoEmissive = texture(colorSampler, textureCoords);
+            float emissive = 1.0 - albedoEmissive.a;
+            vec3 finalColor = albedoPixel * lightAccumulation() + albedoPixel * emissive * emissiveStrength;
+            vec3 hazeColor;
+            float haze = fogAmount(texture(depthSampler, textureCoords).x, hazeColor);
+            finalColor = mix(finalColor, hazeColor, haze);
             finalColor = particlesPixel.xyz + finalColor * (1.0 - particlesPixel.a);
             finalColor = volumetricPixel.xyz + finalColor * (1.0 - volumetricPixel.a);
             finalColor = flarePixel.xyz * flarePixel.a + finalColor;
-            outColor = finalColor;
+            outColor = finalColor;// * max(0.3, (1.0 - depthVal.x));
         } else {
             vec3 finalColor = particlesPixel.xyz + albedoPixel * (1.0 - particlesPixel.a);
             finalColor = volumetricPixel.xyz + finalColor * (1.0 - volumetricPixel.a);
@@ -96,6 +126,7 @@ void main() {
         //float gamma = 1.0f / 2.2f;
         //outColor.rgb = pow(outColor.rgb, vec3(gamma));
     }
+    if (outputType == 6) outColor = lightAccumulation();
     if (outputType == 7) outColor = spotLightDepth();
     if (outputType == 8) outColor = dirLightDepthMap();
     //if (outputType == 9) outColor = volumetrics();

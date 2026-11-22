@@ -13,6 +13,8 @@ class DirectionalLight : public Light
         ~DirectionalLight();
 
         void update();
+        inline const glm::vec3 &getLightDirection() const { return m_lightDirection; }
+        inline void setLightDirection(const glm::vec3 &direction) { m_lightDirection = glm::normalize(direction); }
 
         void render(Shader &shader) override;
         void render() override;

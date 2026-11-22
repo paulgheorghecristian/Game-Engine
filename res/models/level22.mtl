@@ -1,0 +1,28 @@
+# Blender MTL File: 'level2.blend'
+# Material Count: 2
+
+newmtl Material.001
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump -bm 1.100000 res/textures/brick_wall_normal2.jpg
+map_Kd res/textures/brick_wall2.jpg
+map_Ks res/textures/brick_wall_rough3.jpg
+
+newmtl Material.002
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd res/textures/182.bmp
+map_Bump -bm 0.600000 res/textures/182_norm.bmp
+map_Ks res/textures/182_SPEC.jpg

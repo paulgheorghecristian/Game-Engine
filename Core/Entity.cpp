@@ -15,7 +15,7 @@ Entity *Entity::addComponent(Component *component) {
         return this;
     }
     assert (component->getEntity() == NULL);
-    assert (components[component->getFlag()] == NULL);
+    assert (getComponent(component->getFlag()) == NULL);
 
     component->setEntity (this);
     components[component->getFlag()] = component;
@@ -86,7 +86,10 @@ void Entity::setTransform(const Transform &transform) {
 }
 
 Component *Entity::getComponent (const unsigned int flag) {
-    return components[flag];
+    /* find() instead of operator[]: lookups for missing components (the
+     * common case in render loops) must not insert null entries */
+    auto it = components.find(flag);
+    return it == components.end() ? NULL : it->second;
 }
 
 std::string Entity::jsonify() {

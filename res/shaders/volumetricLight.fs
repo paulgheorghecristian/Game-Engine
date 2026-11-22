@@ -8,11 +8,14 @@ uniform sampler2D blueNoiseSampler;
 
 uniform mat4 volumetricLightProjectionMatrix;
 uniform mat4 volumetricLightViewMatrix;
+uniform mat4 volumetricLightViewProj; /* projection * view, computed on the CPU */
+uniform mat4 inverseViewMatrix;       /* inverse(viewMatrix), computed on the CPU */
 
 uniform vec3 lightColor;
 uniform vec3 lightPosition;
 
 uniform int screenWidth, screenHeight;
+uniform int volumetricDivisor; /* this pass renders at (screen size / volumetricDivisor) */
 uniform vec3 cameraPosition;
 
 uniform mat4 modelMatrix;
@@ -28,6 +31,8 @@ uniform float alpha;
 uniform int numSamplePoints;
 uniform float coef1;
 uniform float coef2;
+uniform float beamDensity; /* 0: original model; > 0: beam fading exponentially along its length */
+uniform float beamFalloff; /* distance over which the beam density drops by e */
 uniform float secondFraction;
 
 in vec3 positionModelSpace;
@@ -138,7 +143,7 @@ bool spotLightIntersection(vec3 rayDir, inout float tmin, inout float tmax)
 }
 
 void main() {
-    vec2 texCoord = gl_FragCoord.xy / (vec2(screenWidth, screenHeight)/4);
+    vec2 texCoord = gl_FragCoord.xy / (vec2(screenWidth, screenHeight) / float(volumetricDivisor));
     vec3 view = vec3(viewRay.xy/viewRay.z, 1.0);
     float depth = texture(depthSampler, texCoord).x;
 
@@ -147,7 +152,6 @@ void main() {
     float tmin, tmax;
     float pointsNotInShadow = 0;
 
-    mat4 inverseViewMatrix = inverse(viewMatrix); // compute in CPU
 
     vec3 ray = normalize(positionModelSpace - cameraPosition);
 
@@ -187,15 +191,21 @@ void main() {
 
     float begin = (rayLength == 0 ? numSamplePoints : 0);
 
+    /* loop invariants */
+    float offset = texture(blueNoiseSampler, texCoord + vec2(secondFraction*0.005f)).r;
+    vec3 spotDir = normalize(mat3(modelMatrix) * vec3(0,0,-1));
+    float dist1 = virtualSphereDiameter*coef1;
+    float dist2 = virtualSphereDiameter*coef2;
+    float alpha1 = cos(alpha);
+    float alpha2 = cos(0.1);
+
     for (float t = begin; t <= numSamplePoints; t++) {
-        vec3 blueNoise = texture(blueNoiseSampler, texCoord + vec2(secondFraction*0.005f)).rgb;
-        float offset = blueNoise.r;
 
         float currentT = tmin + sampleLength * (t - offset*2.5f);
         vec3 viewPositionLocal = view * currentT;
 
         vec4 worldPosition = vec4(cameraPosition + ray*currentT, 1.0);//inverseViewMatrix * vec4(viewPositionLocal, 1.0));
-        vec4 volumetricLightClip = (volumetricLightProjectionMatrix * volumetricLightViewMatrix * worldPosition);
+        vec4 volumetricLightClip = volumetricLightViewProj * worldPosition;
         vec3 volumetricLightNDC = volumetricLightClip.xyz / volumetricLightClip.w;
         vec3 volumetricLightNDCNormalized = volumetricLightNDC.xyz * 0.5f + 0.5f;
 
@@ -205,22 +215,25 @@ void main() {
         float currentDepth = texture (volumetricLightDepthSampler, volumetricLightNDCNormalized.xy).x;
         float linearEyeZODepthMap = -volumetricLightProjectionMatrix[3][2]/(currentDepth + volumetricLightProjectionMatrix[2][2]);
 
-        float volumetricLightAttCoef = dot(normalize(worldPosition.xyz - lightPosition),
-                                            normalize(mat3(modelMatrix) * vec3(0,0,-1)));
+        float volumetricLightAttCoef = dot(normalize(worldPosition.xyz - lightPosition), spotDir);
 
         vec3 dir = worldPosition.xyz - lightPosition;
         float len = length(dir);
-
-        float dist1 = virtualSphereDiameter*coef1;
-        float dist2 = virtualSphereDiameter*coef2;
-        float alpha1 = cos(alpha);
-        float alpha2 = cos(0.1);
 
         float sm1 = smoothstep(1.0, 0, (len-dist2)/(dist1-dist2));
         float sm2 = smoothstep(1.0, 0, (volumetricLightAttCoef-alpha2)/(alpha1-alpha2));
 
         if (linearEyeZODepthMap < linearObjectDepth) {
-            pointsNotInShadow += sm1 * sm2;
+            if (beamDensity > 0.0) {
+                /* uniform across the cone (only a thin anti-aliased rim), exponential
+                 * decay along the length of the beam */
+                float across = clamp(acos(clamp(volumetricLightAttCoef, -1.0, 1.0)) / alpha, 0.0, 1.0);
+                float radial = 1.0 - smoothstep(0.94, 1.0, across);
+                float along = exp(-len / beamFalloff);
+                pointsNotInShadow += radial * along;
+            } else {
+                pointsNotInShadow += sm1 * sm2;
+            }
         }
     }
 
@@ -228,6 +241,14 @@ void main() {
     //float gamma = 1.0f / 2.2f;
     //outLight.rgb = pow(outLight.rgb, vec3(gamma));
 
-    outLight.a = min(pointsNotInShadow / numSamplePoints, 0.8);
+    if (beamDensity > 0.0) {
+        /* Beer-Lambert: opacity from the density integrated along the view ray */
+        float opticalDepth = pointsNotInShadow * sampleLength * beamDensity;
+        /* a dimmed light (e.g. a nightOnly lamp by day) also scatters less */
+        float brightness = clamp(max(lightColor.r, max(lightColor.g, lightColor.b)), 0.0, 1.0);
+        outLight.a = min(1.0 - exp(-opticalDepth), 0.85) * brightness;
+    } else {
+        outLight.a = min(pointsNotInShadow / numSamplePoints, 0.8);
+    }
     outLight.xyz *= outLight.a;
 }

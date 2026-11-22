@@ -11,6 +11,7 @@ uniform sampler2D roughnessSampler;
 uniform sampler2D blueNoiseSampler;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
+uniform mat4 inverseViewMatrix; /* inverse(viewMatrix), computed on the CPU */
 uniform vec3 cameraForwardVector;
 uniform vec3 cameraForwardVectorEyeSpace;
 
@@ -36,7 +37,6 @@ void main() {
     float eyeZ = projectionMatrix[3][2]/(depth + projectionMatrix[2][2]);
     vec3 viewPosition = view * eyeZ;
     vec3 eyeSpaceNormal = texture (eyeSpaceNormalSampler, texCoord).rgb * 2.0 - vec3(1);
-    mat4 inverseViewMatrix = inverse(viewMatrix);
     bool getLight;
 
     float dotProd = dot(lightDirectionEyeSpace, eyeSpaceNormal);

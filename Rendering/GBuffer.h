@@ -33,7 +33,6 @@ class GBuffer
         GLuint textureLightAccumulation;
         GLuint textureDepth;
         GLuint textureRoughness;
-        GLuint textureStencil;
 };
 
 #endif // GBUFFER_H

@@ -6,7 +6,8 @@ SelectionButton::SelectionButton(int x, int y,
                                 const glm::vec3 &color,
                                 const std::vector<std::string> &selectionTexts):
                                 Button(x, y, 0.0f, 0.0f, text, color),
-                                m_buttonText(Font::getFontFromCache("res/fonts/horror"),
+                                m_buttonText({Font::getFontFromCache("res/fonts/horror"),
+                                            Font::getFontFromCache("res/fonts/horror3")},
                                             glm::vec3 (x, y+40, -10),
                                             color) {
     int lastX = x + text.size() * 17;
@@ -20,29 +21,40 @@ SelectionButton::SelectionButton(int x, int y,
                                                     [&](Button *button) {
                                                         for (auto b : m_selectionButtons) {
                                                             ((TextButton *) b)->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                                            ((TextButton *) b)->setFontIndex(0);
                                                         }
-                                                        ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                                        ((TextButton *) button)->getText().setColor(glm::vec3(0.5, 0.5, 0.5));
+                                                        ((TextButton *) button)->setFontIndex(1);
                                                     },
                                                     [&](Button *button) {
                                                         const glm::vec3 &color = ((TextButton *) button)->getText().getColor();
                                                         if (color == glm::vec3(1.0, 1.0, 1.0)) {
-                                                            ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 0.5, 0.5));
+                                                            ((TextButton *) button)->getText().setColor(glm::vec3(0.7, 0.7, 0.7));
+                                                            ((TextButton *) button)->setFontIndex(1);
                                                         }
                                                     },
                                                     [](Button *button) {
                                                         const glm::vec3 &color = ((TextButton *) button)->getText().getColor();
-                                                        if (color == glm::vec3(1.0, 0.5, 0.5)) {
+                                                        if (color == glm::vec3(0.7, 0.7, 0.7)) {
                                                             ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                                            ((TextButton *) button)->setFontIndex(0);
                                                         }
                                                     },
                                                     15
         ));
     }
 
-    m_buttonText.changeSize(20);
+    m_buttonText.changeSize(21);
     m_buttonText.display(text);
 
     m_buttonType = ButtonType::SELECTION;
+}
+
+
+SelectionButton::~SelectionButton() {
+    for (auto p: m_selectionButtons) {
+        delete p;
+    }
 }
 
 void SelectionButton::input(Input &inputM) {

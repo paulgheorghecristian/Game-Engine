@@ -1,5 +1,15 @@
 #include "Shader.h"
 
+GLuint Shader::currentProgram = 0;
+
+bool Shader::hasDSAUniforms() {
+    static int cached = -1;
+    if (cached < 0) {
+        cached = (GLEW_VERSION_4_1 || GLEW_ARB_separate_shader_objects) ? 1 : 0;
+    }
+    return cached == 1;
+}
+
 Shader::Shader() : program(0)
 {
 
@@ -114,7 +124,7 @@ Shader *Shader::construct (const std::string &jsonPath)
 
         uniformsObject = jsonShaderDocument["Uniforms"];
         for (rapidjson::Value::ConstMemberIterator itr = uniformsObject.MemberBegin (); itr != uniformsObject.MemberEnd (); ++itr) {
-            if (uniforms[itr->name.GetString ()] == NULL) {
+            if (findUniform(itr->name.GetString ()) == NULL) {
                 ShaderUniform * uniform = new ShaderUniform (itr->name.GetString (), itr->value.GetString (), this);
                 uniforms[itr->name.GetString ()] = uniform;
             }
@@ -133,12 +143,9 @@ Shader *Shader::construct (const std::string &jsonPath)
         glDeleteShader (geometryHandle);
 	}
 
-	//std::cout << jsonPath << std::endl;
-	for (auto it : uniforms) {
-        //std::cout << it.first << " " << it.second << std::endl;
-	}
-
-	for (auto it : uniforms) {
+	/* (re)query locations and (re)upload cached values; needed after reload()
+	 * since the new program's uniform locations can differ */
+	for (auto &it : uniforms) {
         it.second->reload ();
 	}
 
@@ -146,17 +153,20 @@ Shader *Shader::construct (const std::string &jsonPath)
 }
 
 void Shader::unbind() {
-    glUseProgram (0);
+    /* Intentionally a no-op: every draw binds its own program first, so
+     * switching to program 0 in between only costs driver validation. */
 }
 
 void Shader::bind() {
-    if (program > 0) {
+    if (program > 0 && program != currentProgram) {
         glUseProgram(program);
+        currentProgram = program;
     }
 }
 
 void Shader::reload() {
     glUseProgram (0);
+    currentProgram = 0;
     if (program > 0) {
         glDeleteProgram (program);
     }
@@ -164,67 +174,64 @@ void Shader::reload() {
     construct (shaderPath);
 }
 
-bool Shader::updateUniform (const std::string &name, void * data) {
-    ShaderUniform *uniform = uniforms[name];
+ShaderUniform *Shader::findUniform(std::string_view name) {
+    auto it = uniforms.find(name);
+    return it == uniforms.end() ? NULL : it->second;
+}
+
+bool Shader::updateUniform (std::string_view name, void * data) {
+    ShaderUniform *uniform = findUniform(name);
 
     if (uniform != NULL) {
         uniform->updateUniform (data);
         return true;
-    } else {
-        return false;
     }
+    return false;
 }
 
-bool Shader::updateUniform (const std::string &name, int data) {
-    ShaderUniform *uniform = uniforms[name];
+bool Shader::updateUniform (std::string_view name, int data) {
+    ShaderUniform *uniform = findUniform(name);
 
     if (uniform != NULL) {
         assert (uniform->getUniformType() == UNIFORM_INT);
         uniform->updateUniform (&data);
         return true;
-    } else {
-        //assert(false);
-        return false;
     }
+    return false;
 }
 
-bool Shader::updateUniform (const std::string &name, float data) {
-    ShaderUniform *uniform = uniforms[name];
+bool Shader::updateUniform (std::string_view name, float data) {
+    ShaderUniform *uniform = findUniform(name);
 
     if (uniform != NULL) {
         assert (uniform->getUniformType() == UNIFORM_FLOAT);
         uniform->updateUniform (&data);
         return true;
-    } else {
-        //assert(false);
-        return false;
     }
+    return false;
 }
 
-bool Shader::updateUniform (const std::string &name, bool data) {
-    ShaderUniform *uniform = uniforms[name];
+bool Shader::updateUniform (std::string_view name, bool data) {
+    ShaderUniform *uniform = findUniform(name);
 
     if (uniform != NULL) {
         assert (uniform->getUniformType() == UNIFORM_BOOLEAN);
         uniform->updateUniform(&data);
         return true;
-    } else {
-        //assert(false);
-        return false;
     }
+    return false;
 }
 
-bool Shader::updateUniform(const std::string &name, const std::vector<glm::mat4> &mats) {
-    ShaderUniform *uniform = uniforms[name];
+bool Shader::updateUniform(std::string_view name, const std::vector<glm::mat4> &mats) {
+    ShaderUniform *uniform = findUniform(name);
 
     if (uniform != NULL) {
         assert(uniform->getUniformType() == UNIFORM_MAT4s);
         uniform->updateUniform(mats);
         return true;
-    } else {
-        assert(false);
-        return false;
     }
+    assert(false);
+    return false;
 }
 
 GLuint Shader::getUniformLocation(const std::string &name) {
@@ -238,6 +245,9 @@ Shader::~Shader()
     }
 
     if (program > 0) {
+        if (currentProgram == program) {
+            currentProgram = 0;
+        }
         glDeleteProgram (program);
     }
 }

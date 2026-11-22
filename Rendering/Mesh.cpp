@@ -2,6 +2,37 @@
 #include <iostream>
 
 #include "RenderingObject.hpp"
+#include "static_block.hpp"
+
+std::vector<Vertex> Mesh::gCircleVertices;
+std::vector<unsigned int> Mesh::gCircleIndices;
+
+static_block {
+    float x = 0.0f;
+    float y = 0.0f;
+    float radius = 1.0f;
+    int numOfTriangles = 36;
+
+    Mesh::gCircleVertices.push_back(Vertex(glm::vec3(x, y, 0)));
+    float step = 360.0f / numOfTriangles;
+
+    int index = 1;
+
+    for(float theta = 0; theta < 360.0f; theta += step){
+        float _x1 = radius * glm::cos(glm::radians(theta)) + x;
+        float _y1 = radius * glm::sin(glm::radians(theta)) + y;
+
+        float _x2 = radius * glm::cos(glm::radians(theta + step)) + x;
+        float _y2 = radius * glm::sin(glm::radians(theta + step)) + y;
+        Mesh::gCircleVertices.push_back(Vertex(glm::vec3(_x1, _y1, 0)));
+        Mesh::gCircleVertices.push_back(Vertex(glm::vec3(_x2, _y2, 0)));
+
+        Mesh::gCircleIndices.push_back(index+1);
+        Mesh::gCircleIndices.push_back(0);
+        Mesh::gCircleIndices.push_back(index);
+        index += 2;
+    }
+};
 
 Mesh::Mesh(const std::vector<Vertex> &vertices,
            const std::vector<unsigned int> &indices,
@@ -346,6 +377,12 @@ Mesh &Mesh::getRectangleStatic() {
                        Vertex(glm::vec3(0.5, -0.5, 0), glm::vec3(0, 1, 0), glm::vec2(1, 0)),
                        Vertex(glm::vec3(0.5, 0.5, 0), glm::vec3(0, 1, 0), glm::vec2(1, 1))},
                       {0,1,3,1,2,3}, true);
+
+    return mesh;
+}
+
+Mesh &Mesh::getCircleStatic(){
+    static Mesh mesh(gCircleVertices, gCircleIndices);
 
     return mesh;
 }

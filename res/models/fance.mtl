@@ -1,0 +1,14 @@
+# Blender MTL File: 'fance.blend'
+# Material Count: 1
+
+newmtl material1
+Ns 19.607843
+Ka 1.000000 1.000000 1.000000
+Kd 0.470400 0.470400 0.470400
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Bump -bm 1.795891 res/textures/metal_normal.jpg
+map_Kd res/textures/metal.jpg

@@ -3,9 +3,11 @@
 	      "width" : 1920,
 	      "height" : 1080,
 	      "title" : "Game engine",
-	      "isFullScreen" : false,
-	      "maxFps" : 60,
-	      "vSync" : true
+	      "isFullScreen" : true,
+	      "maxFps" : 0,
+	      "updateRate" : 60,
+	      "vSync" : true,
+	      "renderScale" : 1.0
 	    },
   "camera" : {
              "near" : 1.0,

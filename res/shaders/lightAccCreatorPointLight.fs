@@ -23,6 +23,28 @@ uniform float cutOff;
 uniform vec3 att_diffuse;
 uniform vec3 att_specular;
 
+uniform vec3 lightPosition;      /* world space */
+uniform int castsShadow;
+uniform float shadowFar;
+uniform samplerCube shadowCube;  /* distance to the light / shadowFar */
+uniform mat4 inverseViewMatrix;
+
+float pointShadow(vec3 viewPosition, float nDotL) {
+    vec3 toFragment = (inverseViewMatrix * vec4(viewPosition, 1.0)).xyz - lightPosition;
+    float d = length(toFragment);
+    /* slope-scaled: surfaces lit at grazing angles need more bias (no acne) */
+    float slope = sqrt(max(1.0 - nDotL * nDotL, 0.0)) / max(nDotL, 0.1);
+    float bias = 0.5 + d * (0.006 + 0.012 * min(slope, 6.0));
+    float disk = d * 0.008;
+    const vec3 offsets[4] = vec3[](vec3(1, 1, 1), vec3(-1, -1, 1), vec3(-1, 1, -1), vec3(1, -1, -1));
+    float lit = 0.0;
+    for (int i = 0; i < 4; i++) {
+        float closest = texture(shadowCube, toFragment + offsets[i] * disk).r * shadowFar;
+        lit += (d - bias <= closest) ? 1.0 : 0.0;
+    }
+    return lit * 0.25;
+}
+
 void main() {
     bool getLight;
     vec2 texCoord = gl_FragCoord.xy / vec2(screenWidth, screenHeight);
@@ -63,5 +85,8 @@ void main() {
     outLight = diffuseLight;
     if (getLight) {
         outLight += specularLight * rough;
+    }
+    if (castsShadow != 0) {
+        outLight *= pointShadow(viewPosition, max(dotProduct, 0.0));
     }
 }

@@ -64,6 +64,8 @@ void InstanceRenderComponent::render(Shader *externShader) {
         result &= externShader->updateUniform ("material.shininess", m_materials[i]->getShininess());
         result &= externShader->updateUniform ("material.normalMapStrength", m_materials[i]->getNormalMapStrength());
         result &= externShader->updateUniform ("material.isBlackAlpha", m_materials[i]->getIsBlackAlpha());
+        externShader->updateUniform ("material.emissive", m_materials[i]->getEmissive());
+        externShader->updateUniform ("material.specularStrength", m_materials[i]->getSpecularStrength());
 
         if (m_materials[i]->getDiffuseTexture() != NULL) {
             result &= externShader->updateUniform ("textureSampler", m_materials[i]->getDiffuseTexture()->getTextureUnit());

@@ -37,6 +37,9 @@ class RenderingObject {
 
         static RenderingObject loadObject(const std::string &filename, bool prepare = true, bool addMaterials = true);
 
+        /* local-space bounding sphere over all meshes (computed on first use) */
+        void getBoundingSphere(glm::vec3 &center, float &radius);
+
         inline void setSkeleton(Skeleton *skeleton) { m_skeleton = skeleton; }
         inline Skeleton *getSkeleton() { return m_skeleton; }
     private:
@@ -46,6 +49,10 @@ class RenderingObject {
         bool m_addMaterials;
 
         Skeleton *m_skeleton;
+
+        bool m_boundsValid = false;
+        glm::vec3 m_boundsCenter = glm::vec3(0.0f);
+        float m_boundsRadius = 0.0f;
 
         static void processNode(aiNode *node, const aiScene *scene, RenderingObject &renderingObject, bool prepare, bool addMaterials);
         static Mesh *processAssimpMesh(aiMesh *mesh, const aiScene *scene, bool prepare, Material *_material);

@@ -14,6 +14,12 @@
 #include "TextButton.hpp"
 #include "SelectionButton.hpp"
 #include "SlideButton.hpp"
+#include "ParticleEmitter.h"
+#include "ParticleEmitterComponent.h"
+#include "WaterRenderer.h"
+#include <algorithm>
+#include <cstdlib>
+#include "stb_image_write.h"
 
 EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     //create renderingmaster, physicsmaster and entities
@@ -23,7 +29,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     int screenWidth, screenHeight;
     const char *screenTitle;
     bool isFullScreen, vSync;
-    float nearPlane, farPlane, fov, aspectRatio;
+    float nearPlane, farPlane, fov, aspectRatio, renderScale;
     unsigned int maxFps;
     Display * display = NULL;
     m_configFilePath = std::string(gameDocument["ConfigFilePath"].GetString());
@@ -48,8 +54,19 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     screenHeight = (configDocument["display"].HasMember("height")) ? configDocument["display"]["height"].GetInt() : 600;
     screenTitle = (configDocument["display"].HasMember("title")) ? configDocument["display"]["title"].GetString() : "No title";
     isFullScreen = (configDocument["display"].HasMember("isFullScreen")) ? configDocument["display"]["isFullScreen"].GetBool() : false;
-    maxFps = (configDocument["display"].HasMember("maxFps")) ? configDocument["display"]["maxFps"].GetInt() : 60;
+    /* "updateRate": game ticks per second (physics, logic, animation).
+     * "maxFps": render cap; 0 = unlimited (vsync still applies). Older configs
+     * only had maxFps, which used to be the tick rate: default the tick rate to
+     * it so those behave as before. */
+    maxFps = (configDocument["display"].HasMember("maxFps")) ? configDocument["display"]["maxFps"].GetInt() : 0;
+    unsigned int updateRate = (configDocument["display"].HasMember("updateRate")) ?
+                              configDocument["display"]["updateRate"].GetInt() : (maxFps > 0 ? maxFps : 60);
+    m_maxRenderFps = maxFps;
     vSync = (configDocument["display"].HasMember("vSync")) ? configDocument["display"]["vSync"].GetBool() : false;
+    renderScale = (configDocument["display"].HasMember("renderScale")) ? configDocument["display"]["renderScale"].GetFloat() : 1.0f;
+    if (const char *rs = std::getenv("GE_RENDER_SCALE")) {
+        renderScale = std::atof(rs);
+    }
 
     nearPlane = (configDocument["camera"].HasMember("near")) ? configDocument["camera"]["near"].GetFloat() : 1.0f;
     farPlane = (configDocument["camera"].HasMember("far")) ? configDocument["camera"]["far"].GetFloat() : 5000.0f;
@@ -60,8 +77,22 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     this->warpMouse = (configDocument["mouse"].HasMember("warpMouse")) ? configDocument["mouse"]["warpMouse"].GetBool() : false;
     this->showMouse = (configDocument["mouse"].HasMember("showMouse")) ? configDocument["mouse"]["showMouse"].GetBool() : true;
 
+    /* Benchmark mode, e.g.: GE_BENCH=600 GE_SIZE=1920x1080 GE_SCREENSHOT=shot.png ./ge */
+    if (const char *bench = std::getenv("GE_BENCH")) {
+        m_benchFrames = std::max(1, std::atoi(bench));
+        isFullScreen = std::getenv("GE_FULLSCREEN") != NULL;
+        vSync = false;
+        this->warpMouse = false;
+        if (const char *size = std::getenv("GE_SIZE")) {
+            std::sscanf(size, "%dx%d", &screenWidth, &screenHeight);
+        }
+        if (const char *shot = std::getenv("GE_SCREENSHOT")) {
+            m_screenshotPath = shot;
+        }
+    }
+
     /* this needs to be called first before doing anything with OpenGL */
-    display = new Display (screenWidth, screenHeight, screenTitle, isFullScreen, maxFps, vSync);
+    display = new Display (screenWidth, screenHeight, screenTitle, isFullScreen, updateRate, vSync);
     aspectRatio = (float) display->getWidth() / (float) display->getHeight();
     inputManager.setWarpMouse (this->warpMouse);
     SDL_ShowCursor(this->showMouse);
@@ -70,8 +101,11 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     PhysicsMaster::init(m_gravity);
     RenderingMaster::init(display,
                             new Camera (glm::vec3(-500, 0, 0), 0, 0, 0),
-                            glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane));
+                            glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane),
+                            renderScale);
 
+    Light::s_tickSeconds = display->getFrameTimeInMs() / 1000.0f;
+    loadMapFeatures(gameDocument);
     loadEntities(gameDocument);
     PhysicsMaster::getInstance()->startGraphCreation();
     PhysicsMaster::getInstance()->endGraphCreation();
@@ -112,18 +146,25 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
     loadLights(gameDocument);
 
     constructPlayer();
-    constructEnemy();
+    // constructEnemy();
 
     outputType = 5;
+    /* GE_OUTPUT_TYPE: start in a debug view (same as keys 1/2/4/5/6/8/0) */
+    if (const char *ot = std::getenv("GE_OUTPUT_TYPE")) {
+        outputType = std::atoi(ot);
+    }
 
-    RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
+    /* maps with their own "ParticleEmitters" replace the default smoke cone */
+    if (!gameDocument.HasMember("ParticleEmitters")) {
+        RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
+    }
     RenderingMaster::getInstance()->skyDomeEntity.addComponent(new RenderComponent(RenderingObject::loadObject("__dome__")));
     RenderingMaster::getInstance()->skyDomeEntity.setTransform(Transform(glm::vec3(0, -10, 0), glm::vec3(0), glm::vec3(100.0f)));
 
     fpsGUI = new BarGUI (glm::vec3(100, 100, 0),
                          glm::vec2(0, 0),
                          glm::vec3(1,0,0),
-                         maxFps,
+                         maxFps > 0 ? maxFps : 240,
                          false,
                          glm::vec2(0),
                          "FPS");
@@ -134,10 +175,14 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                         [](Button *button) {},
                                         [&](Button *button) { isOnStartMenu = false;},
                                         [](Button *button) {
-                                            ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                            TextButton *bt = (TextButton *) button;
+                                            bt->getText().setColor(glm::vec3(0.5, 0.5, 0.5));
+                                            bt->setFontIndex(1);
                                         },
                                         [](Button *button) {
-                                            ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                            TextButton *bt = (TextButton *) button;
+                                            bt->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                            bt->setFontIndex(0);
                                         }
                         ));
     startMenu->addButton(new TextButton(150, 250, "Load Game",
@@ -145,10 +190,14 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                         [](Button *button) {},
                                         [&](Button *button) {},
                                         [](Button *button) {
-                                            ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                            TextButton *bt = (TextButton *) button;
+                                            bt->getText().setColor(glm::vec3(0.5, 0.5, 0.5));
+                                            bt->setFontIndex(1);
                                         },
                                         [](Button *button) {
-                                            ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                            TextButton *bt = (TextButton *) button;
+                                            bt->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                            bt->setFontIndex(0);
                                         }
                         ));
     startMenu->addButton(new TextButton(150, 200, "Options",
@@ -156,10 +205,14 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                     [](Button *button) {},
                                     [&](Button *button) { currentMenu = optionsMenu; },
                                     [](Button *button) {
-                                        ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                        TextButton *bt = (TextButton *) button;
+                                        bt->getText().setColor(glm::vec3(0.5, 0.5, 0.5));
+                                        bt->setFontIndex(1);
                                     },
                                     [](Button *button) {
-                                        ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                        TextButton *bt = (TextButton *) button;
+                                        bt->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                        bt->setFontIndex(0);
                                     }
                     ));
     startMenu->addButton(new TextButton(150, 150, "Exit",
@@ -167,10 +220,14 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                     [](Button *button) {},
                                     [](Button *button) { exit(0); },
                                     [](Button *button) {
-                                        ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                        TextButton *bt = (TextButton *) button;
+                                        bt->getText().setColor(glm::vec3(0.5, 0.5, 0.5));
+                                        bt->setFontIndex(1);
                                     },
                                     [](Button *button) {
-                                        ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                        TextButton *bt = (TextButton *) button;
+                                        bt->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                        bt->setFontIndex(0);
                                     }
                     ));
 
@@ -194,14 +251,17 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                         [](Button *button) {
                                             SlideButton *slideB = (SlideButton *) button;
                                             slideB->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                            slideB->setFontIndex(0);
                                         },
                                         [](Button *button) {
                                             SlideButton *slideB = (SlideButton *) button;
-                                            slideB->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                            slideB->getText().setColor(glm::vec3(0.5, 0.5, 0.5));
+                                            slideB->setFontIndex(1);
                                         },
                                         [](Button *button) {
                                             SlideButton *slideB = (SlideButton *) button;
                                             slideB->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                            slideB->setFontIndex(0);
                                         },
                                         [](Button *button) {
                                             SlideButton *slideB = (SlideButton *) button;
@@ -213,7 +273,8 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                             currPos.x += len * 0.5f;
 
                                             slideB->getSliderTransform().setPosition(currPos);
-                                            slideB->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                            slideB->getText().setColor(glm::vec3(0.5, 0.5, 0.5));
+                                            slideB->setFontIndex(1);
                                         }
                         ));
     optionsMenu->addButton(new SlideButton(150, 260, 0.7, "Sound FX",
@@ -223,14 +284,17 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                         [](Button *button) {
                                             SlideButton *slideB = (SlideButton *) button;
                                             slideB->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                            slideB->setFontIndex(0);
                                         },
                                         [](Button *button) {
                                             SlideButton *slideB = (SlideButton *) button;
-                                            slideB->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                            slideB->getText().setColor(glm::vec3(0.5, 0.5, 0.5));
+                                            slideB->setFontIndex(1);
                                         },
                                         [](Button *button) {
                                             SlideButton *slideB = (SlideButton *) button;
                                             slideB->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                            slideB->setFontIndex(0);
                                         },
                                         [](Button *button) {
                                             SlideButton *slideB = (SlideButton *) button;
@@ -242,7 +306,8 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                             currPos.x += len * 0.5f;
 
                                             slideB->getSliderTransform().setPosition(currPos);
-                                            slideB->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                            slideB->getText().setColor(glm::vec3(0.5, 0.5, 0.5));
+                                            slideB->setFontIndex(1);
                                         }
                         ));
     optionsMenu->addButton(new TextButton(150, 100, "Back",
@@ -250,104 +315,213 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument) {
                                         [](Button *button) {},
                                         [&](Button *button) { currentMenu = startMenu; },
                                         [](Button *button) {
-                                            ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 0.0, 0.0));
+                                            ((TextButton *) button)->getText().setColor(glm::vec3(0.5, 0.5, 0.5));
+                                            ((TextButton *) button)->getText().setFontIndex(1);
                                         },
                                         [](Button *button) {
                                             ((TextButton *) button)->getText().setColor(glm::vec3(1.0, 1.0, 1.0));
+                                            ((TextButton *) button)->getText().setFontIndex(0);
                                         }
                         ));
     currentMenu = startMenu;
 }
 
 void EngineCore::start() {
+    if (m_benchFrames > 0) {
+        runBenchmark(m_benchFrames);
+        return;
+    }
+
+    /* Fixed-timestep game loop with decoupled rendering:
+     *  - input/update run at exactly updateRate ticks per second (time is
+     *    accumulated in double-precision milliseconds)
+     *  - every loop iteration renders a frame, blending the world between the
+     *    previous and the current tick (alpha), so motion is smooth at any
+     *    frame rate (e.g. 165 Hz) instead of being capped to the tick rate
+     *  - events are polled and mouse look is applied every frame */
+    Display *display = RenderingMaster::getInstance()->getDisplay();
+    const double frame_time = display->getFrameTimeInMs();
+    const int maxUpdatesPerFrame = 5; /* avoid a death spiral after a long hitch */
+    double unprocessed_time = 0;
+    double frame_counter = 0;
+    unsigned int FPS = 0, UPS = 0;
+    const bool printFps = std::getenv("GE_PRINT_FPS") != NULL;
+
     isRunning = true;
     auto start_time = HighResolutionClock::now();
-    const double frame_time = RenderingMaster::getInstance()->getDisplay()->getFrameTimeInMs();
-    unsigned int unprocessed_time = 0;
-    unsigned int frame_counter = 0;
-    unsigned int FPS = 0;
-    bool needToRender = false;
-    //std::vector<Transform> old_state, save_state;
 
-    /*old_state.reserve (entities.size()*1000);
-    save_state.reserve (entities.size()*1000);
-    for (Entity *e : entities) {
-        old_state.push_back (e->getTransform());
-    }*/
-
-    while (isRunning) {
+    while (isRunning && !Display::isWindowClosed) {
+        auto frameStart = HighResolutionClock::now();
 
         if (frame_counter >= 1000) {
-            #if 0
-            std::cout << "----------------------" << std::endl;
-            std::cout << "FPS: " << FPS << std::endl;
-            std::cout << ((double) frame_counter / 1000) / FPS << " milliseconds frametime" << std::endl;
-            #endif
             fpsGUI->update((int) FPS);
-            //printf ("FPS=%d\n", (int) FPS);
+            if (printFps) {
+                printf("FPS=%u updates/s=%u lights=%zu\n", FPS, UPS,
+                       RenderingMaster::getInstance()->getLights().size());
+                fflush(stdout);
+            }
             FPS = 0;
-            frame_counter = 0;
-            PT_Reset("input");
-            PT_Reset("update");
-            PT_Reset("render");
-            PT_Reset("renderScene");
-            PT_Reset("lightAcc");
-            PT_Reset("computeDepthTextureForLight");
-            PT_Reset("swapBuffers");
-            PT_Reset("particleDraw");
-            PT_Reset("FlaresDraw");
-            PT_Reset("buffersDraw");
-            #if 0
-            std::cout << "----------------------" << std::endl;
-            #endif
-
+            UPS = 0;
+            frame_counter -= 1000;
+            ProfilingTimer::resetAll();
             secondFraction = 0;
         }
-        auto last_time = HighResolutionClock::now();
-        unsigned int passed_time = std::chrono::duration_cast<std::chrono::milliseconds>(last_time - start_time).count();
 
-        needToRender = false;
-        start_time = last_time;
+        double passed_time = std::chrono::duration<double, std::milli>(frameStart - start_time).count();
+        start_time = frameStart;
 
         unprocessed_time += passed_time;
         frame_counter += passed_time;
-        secondFraction += (float) passed_time / 1000;
+        secondFraction += (float) (passed_time / 1000.0);
 
-        while (unprocessed_time >= frame_time) {
-            /*for (unsigned int i = 0; i < entities.size(); i++) {
-                //old_state[i] = entities[i]->getTransform();
-            }*/
+        inputManager.pollEvents(display);
+        applyMouseLook();
+
+        int updates = 0;
+        while (unprocessed_time >= frame_time && updates < maxUpdatesPerFrame) {
+            capturePreviousState();
             PT_FromHere("input");
             input ();
             PT_ToHere("input");
             PT_FromHere("update");
             update ();
             PT_ToHere("update");
+            inputManager.clearEdges();
             unprocessed_time -= frame_time;
-            needToRender = true;
+            updates++;
+            UPS++;
+        }
+        if (updates == maxUpdatesPerFrame && unprocessed_time >= frame_time) {
+            unprocessed_time = 0; /* drop the backlog instead of falling further behind */
         }
 
-        if (needToRender) {
-            /*float blend_factor = unprocessed_time / frame_time;
-            //std::cout << blend_factor << std::endl;
-            for (unsigned int i = 0; i < entities.size(); i++) {
-                //save_state[i] = entities[i]->getTransform();
+        PT_FromHere ("render");
+        render ((float) (unprocessed_time / frame_time));
+        PT_ToHere ("render");
+        FPS++;
+
+        if (m_maxRenderFps > 0) {
+            double budget = 1000.0 / m_maxRenderFps;
+            double spent = std::chrono::duration<double, std::milli>(HighResolutionClock::now() - frameStart).count();
+            if (budget - spent > 0.5) {
+                std::this_thread::sleep_for(std::chrono::microseconds((long) ((budget - spent) * 1000.0)));
             }
-            for (unsigned int i = 0; i < entities.size(); i++) {
-                //entities[i]->getTransform().interpolateWith(old_state[i], blend_factor);
-            }*/
-            //unprocessed_time = 0;
-            PT_FromHere ("render");
-            render ();
-            PT_ToHere ("render");
-            /*for (unsigned int i = 0; i < entities.size(); i++) {
-                //entities[i]->setTransform (save_state[i]);
-            }*/
-            FPS++;
-        } else {
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
     }
+}
+
+void EngineCore::throwFireball() {
+    static const char *fireJson =
+        "{\"type\":\"spray\",\"texture\":\"res/textures/glowWhite.png\",\"count\":120,\"lifetimeMs\":1100,"
+        "\"radius\":2.0,\"direction\":[0,1,0],\"spread\":0.7,\"speed\":[4,14],\"gravity\":12,"
+        "\"startScale\":6,\"growth\":-4,\"blend\":\"additive\",\"tint\":[1.0,0.42,0.1]}";
+    const float maxFireballs = 12, lifetimeSeconds = 20.0f;
+
+    Camera *camera = RenderingMaster::getInstance()->getCamera();
+    glm::vec3 forward = glm::normalize(camera->getForward());
+    glm::vec3 position = camera->getPosition() + forward * 12.0f;
+
+    RenderingObject sphere = RenderingObject::loadObject("res/models/sphere.obj");
+    for (Material *material : sphere.getMaterials()) {
+        material->setDiffuse(glm::vec3(1.0f, 0.45f, 0.12f));
+        material->setEmissive(1.0f);
+    }
+    RenderComponent *renderComponent = new RenderComponent(std::move(sphere));
+    renderComponent->setCastsShadow(false);
+
+    rapidjson::Document fire;
+    fire.Parse(fireJson);
+
+    Entity *fireball = new Entity();
+    fireball->setTransform(Transform(position, glm::vec3(0), glm::vec3(2.5f)));
+    PhysicsComponent *physics = new PhysicsComponent(PhysicsComponent::BoundingBodyType::SPHERE, glm::vec3(5.0f), 8.0f);
+    fireball->addComponent(renderComponent)
+            ->addComponent(physics)
+            ->addComponent(new ParticleEmitterComponent(fire));
+    glm::vec3 velocity = forward * 140.0f + glm::vec3(0, 25, 0);
+    physics->getRigidBody()->setLinearVelocity(btVector3(velocity.x, velocity.y, velocity.z));
+    physics->getRigidBody()->activate(true);
+    entities.push_back(fireball);
+
+    float now = RenderingMaster::getInstance()->getTime();
+    m_fireballs.push_back(std::make_pair(fireball, now));
+    /* burn out after a while; keep only the most recent ones */
+    while (m_fireballs.size() > maxFireballs) {
+        m_fireballs.front().first->setToBeRemoved(true);
+        m_fireballs.erase(m_fireballs.begin());
+    }
+}
+
+void EngineCore::applyMouseLook() {
+    /* applied every rendered frame so looking around is not limited to the tick rate */
+    glm::vec2 delta = inputManager.consumeMouseDelta();
+    if (inputManager.getWarpMouse()) {
+        RenderingMaster::getInstance()->rotateCameraX(delta.y * this->mouseRotationSpeed);
+        RenderingMaster::getInstance()->rotateCameraY(delta.x * this->mouseRotationSpeed);
+    }
+}
+
+void EngineCore::capturePreviousState() {
+    /* state at the start of the tick = "previous" state for interpolation */
+    m_previousTick.entities.clear();
+    m_previousTick.lights.clear();
+    for (Entity *entity : entities) {
+        /* only things that can move between ticks */
+        if (entity->getComponent(Entity::Flags::DYNAMIC) != NULL) {
+            m_previousTick.entities.emplace(entity, entity->getTransform());
+        }
+    }
+    for (Light *light : RenderingMaster::getInstance()->getLights()) {
+        if (light->isAnimated()) {
+            m_previousTick.lights.emplace(light, light->getTransform());
+        }
+    }
+    m_previousTick.cameraPosition = RenderingMaster::getInstance()->getCamera()->getPosition();
+    m_previousTick.valid = true;
+}
+
+void EngineCore::beginInterpolation(float alpha) {
+    m_stashedEntities.clear();
+    m_stashedLights.clear();
+    Camera *camera = RenderingMaster::getInstance()->getCamera();
+    m_tickCameraPosition = camera->getPosition();
+    if (!m_previousTick.valid) {
+        return;
+    }
+
+    for (Entity *entity : entities) {
+        auto previous = m_previousTick.entities.find(entity);
+        if (previous != m_previousTick.entities.end()) {
+            m_stashedEntities.emplace_back(entity, entity->getTransform());
+            entity->getTransform().interpolateWith(previous->second, alpha);
+        }
+    }
+    for (Light *light : RenderingMaster::getInstance()->getLights()) {
+        auto previous = m_previousTick.lights.find(light);
+        if (previous != m_previousTick.lights.end()) {
+            m_stashedLights.emplace_back(light, light->getTransform());
+            light->getTransform().interpolateWith(previous->second, alpha);
+        }
+    }
+    camera->setPosition(glm::mix(m_previousTick.cameraPosition, m_tickCameraPosition, alpha));
+
+    /* billboards face the camera as it is in this frame */
+    for (Entity *entity : entities) {
+        if (Component *billboard = entity->getComponent(Entity::Flags::BILL)) {
+            billboard->update();
+        }
+    }
+}
+
+void EngineCore::endInterpolation() {
+    /* the simulation continues from the real tick state */
+    for (auto &stashed : m_stashedEntities) {
+        stashed.first->setTransform(stashed.second);
+    }
+    for (auto &stashed : m_stashedLights) {
+        stashed.first->getTransform() = stashed.second;
+    }
+    RenderingMaster::getInstance()->getCamera()->setPosition(m_tickCameraPosition);
 }
 
 void EngineCore::stop() {
@@ -355,11 +529,17 @@ void EngineCore::stop() {
 }
 
 void EngineCore::input() {
-    inputManager.update (RenderingMaster::getInstance()->getDisplay());
-
     if (inputManager.getKeyDown(SDLK_ESCAPE)) {
         std::cout << dumpJson() << std::endl;;
         stop ();
+    }
+
+    if (inputManager.getKeyDown(SDLK_g)) {
+        throwFireball();
+    }
+
+    if (inputManager.getKeyDown(SDLK_t)) {
+        RenderingMaster::getInstance()->cycleTimeScale();
     }
 
     if (inputManager.getKeyDown(SDLK_m)) {
@@ -368,10 +548,6 @@ void EngineCore::input() {
     }
 
     if (inputManager.getWarpMouse()) {
-
-        RenderingMaster::getInstance()->rotateCameraX(inputManager.getMouseDelta().y * this->mouseRotationSpeed);
-        RenderingMaster::getInstance()->rotateCameraY(inputManager.getMouseDelta().x * this->mouseRotationSpeed);
-
         if (inputManager.getMouse(1)) {
             Transform transform(RenderingMaster::getInstance()->getCamera()->getPosition(),
                                 glm::vec3(0),
@@ -396,6 +572,10 @@ void EngineCore::input() {
     }
     if (inputManager.getKeyDown (SDLK_5)) {
         outputType = 5;
+    /* GE_OUTPUT_TYPE: start in a debug view (same as keys 1/2/4/5/6/8/0) */
+    if (const char *ot = std::getenv("GE_OUTPUT_TYPE")) {
+        outputType = std::atoi(ot);
+    }
     }
     if (inputManager.getKeyDown(SDLK_8)) {
         outputType = 8;
@@ -437,11 +617,13 @@ void EngineCore::input() {
         DirectionalLight::getLightAccumulationShader().reload();
 
         //RenderingMaster::getInstance()->resetLights();
-        RenderingMaster::getInstance()->smokeRenderer->getRenderingShader().reload();
+        if (RenderingMaster::getInstance()->smokeRenderer != NULL) {
+            RenderingMaster::getInstance()->smokeRenderer->getRenderingShader().reload();
 
-        delete RenderingMaster::getInstance()->smokeRenderer;
+            delete RenderingMaster::getInstance()->smokeRenderer;
 
-        RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
+            RenderingMaster::getInstance()->smokeRenderer = ParticleFactory::createParticleRenderer<SmokeParticle> ("res/particleVolumes/smokeCone.json");
+        }
     }
 
     // ray intersection
@@ -472,7 +654,19 @@ void EngineCore::input() {
     }
 }
 
-void EngineCore::render() {
+static inline uint64_t fnv1a(uint64_t h, const void *data, size_t size) {
+    const unsigned char *p = (const unsigned char *) data;
+    for (size_t i = 0; i < size; i++) {
+        h ^= p[i];
+        h *= 1099511628211ULL;
+    }
+    return h;
+}
+
+void EngineCore::render(float alpha) {
+    beginInterpolation(alpha);
+    RenderingMaster::getInstance()->prepareFrame(alpha);
+
     /*generate deferred shading buffers*/
     PT_FromHere("renderScene");
     RenderingMaster::getInstance()->getGBuffer().bindForScene();
@@ -506,12 +700,56 @@ void EngineCore::render() {
     PT_ToHere("renderScene");
     /*end generate deferred shading buffers*/
 
+    if (RenderingMaster::getInstance()->water != NULL) {
+        PT_FromHere("waterReflection");
+        RenderingMaster::getInstance()->water->renderReflection(entities);
+        PT_ToHere("waterReflection");
+    }
+
     const std::vector <Light *> &lights = RenderingMaster::getInstance ()->getLights ();
     PT_FromHere("computeDepthTextureForLight");
+
+    /* Signature of everything drawn into shadow maps. Shadow maps are only
+     * re-rendered when this or the light's own matrices change, so static
+     * lights over a resting scene cost nothing after the first frame. */
+    uint64_t casterSignature = 14695981039346656037ULL;
+    for (auto entity : entities) {
+        if (entity->getComponent(Entity::Flags::BILL) != NULL) {
+            continue;
+        }
+        RenderComponent *casterRender = (RenderComponent *) entity->getComponent(Entity::Flags::RENDERABLE);
+        if ((casterRender == NULL || !casterRender->castsShadow()) &&
+            entity->getComponent(Entity::Flags::INSTANCE_RENDERABLE) == NULL) {
+            continue; /* not drawn into shadow maps: moving it must not invalidate them */
+        }
+        const glm::mat4 &model = entity->getTransform().getModelMatrix();
+        casterSignature = fnv1a(casterSignature, &entity, sizeof(entity));
+        casterSignature = fnv1a(casterSignature, &model, sizeof(model));
+    }
 
     /* begin drawing the spot light depth map for each light*/
     for (Light *light : lights) {
         if (light->isCastingShadow()) {
+            PointLight *pointLight = dynamic_cast<PointLight *>(light);
+            uint64_t signature = casterSignature;
+            if (pointLight != NULL) {
+                glm::vec4 positionAndRange(light->getTransform().getPosition(), pointLight->getRange());
+                signature = fnv1a(signature, &positionAndRange, sizeof(positionAndRange));
+            } else {
+                signature = fnv1a(signature, &light->getShadowMapViewMatrix(), sizeof(glm::mat4));
+                signature = fnv1a(signature, &light->getShadowMapProjectionMatrix(), sizeof(glm::mat4));
+            }
+            if (light->m_shadowSignatureValid && light->m_shadowSignature == signature) {
+                continue;
+            }
+            light->m_shadowSignature = signature;
+            light->m_shadowSignatureValid = true;
+
+            if (pointLight != NULL) {
+                pointLight->renderShadowCube(entities);
+                continue;
+            }
+
             RenderingMaster::getInstance()->beginCreateDepthTextureForLight(light);
             for (auto entity : entities) {
                 RenderComponent *renderComponent = NULL;
@@ -521,7 +759,8 @@ void EngineCore::render() {
                 if (entity->getComponent(Entity::Flags::BILL) != NULL)
                     continue;
                 if ((renderComponent =
-                     (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
+                     (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL &&
+                    renderComponent->castsShadow()) {
                     renderComponent->render(&RenderingMaster::getInstance()->depthMapCreator);
                 }
                 if ((instanceRenderComponent =
@@ -544,20 +783,35 @@ void EngineCore::render() {
     PT_FromHere("particleDraw");
     RenderingMaster::getInstance()->particleForwardRenderFramebuffer.bindAllRenderTargets();
     RenderingMaster::getInstance()->depthTexture->use();
-    RenderingMaster::getInstance()->smokeRenderer->draw();
+    RenderingMaster::getInstance()->drawParticles();
     RenderingMaster::getInstance()->particleForwardRenderFramebuffer.unbind();
     PT_ToHere("particleDraw");
 
     PT_FromHere("FlaresDraw");
-    RenderingMaster::getInstance()->spotLightFlares.bindAllRenderTargets();
-    RenderingMaster::getInstance()->depthTexture->use(0);
-    for (auto entity : entities) {
-        if (entity->getComponent(Entity::Flags::BILL) != NULL) {
-            RenderComponent *renderComponent = (RenderComponent *) (entity->getComponent(Entity::Flags::RENDERABLE));
-            renderComponent->render(&RenderingMaster::getInstance()->flareShader);
+    {
+        int flareSources = 0;
+        for (auto entity : entities) {
+            if (entity->getComponent(Entity::Flags::BILL) != NULL) {
+                flareSources++;
+            }
         }
+        if (RenderingMaster::getInstance()->isSunFlareVisible()) {
+            flareSources++;
+        }
+        RenderingMaster::getInstance()->setFlareSourceCount(flareSources);
     }
-    RenderingMaster::getInstance()->spotLightFlares.unbind();
+    if (RenderingMaster::getInstance()->flaresNeeded()) {
+        RenderingMaster::getInstance()->spotLightFlares.bindAllRenderTargets();
+        RenderingMaster::getInstance()->depthTexture->use(0);
+        for (auto entity : entities) {
+            if (entity->getComponent(Entity::Flags::BILL) != NULL) {
+                RenderComponent *renderComponent = (RenderComponent *) (entity->getComponent(Entity::Flags::RENDERABLE));
+                renderComponent->render(&RenderingMaster::getInstance()->flareShader);
+            }
+        }
+        RenderingMaster::getInstance()->drawSunFlareSource();
+        RenderingMaster::getInstance()->spotLightFlares.unbind();
+    }
     PT_ToHere("FlaresDraw");
 
     PT_FromHere_GPU("volumetric");
@@ -584,20 +838,42 @@ void EngineCore::render() {
     RenderingMaster::getInstance()->imguiDrawCalls();
     RenderingMaster::getInstance()->renderIMGUI();
 
+    if (m_captureBeforeSwap != NULL) {
+        Display *display = RenderingMaster::getInstance()->getDisplay();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glReadBuffer(GL_BACK);
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glReadPixels(0, 0, display->getWidth(), display->getHeight(),
+                     GL_RGBA, GL_UNSIGNED_BYTE, m_captureBeforeSwap->data());
+    }
+
     PT_FromHere("swapBuffers");
     RenderingMaster::getInstance()->swapBuffers();
     PT_ToHere("swapBuffers");
 
     ProfilingTimer::updateGPUTimers();
+    endInterpolation();
 }
 
 void EngineCore::update() {
+    for (auto it = m_fireballs.begin(); it != m_fireballs.end();) {
+        if (RenderingMaster::getInstance()->getTime() - it->second > 20.0f) {
+            it->first->setToBeRemoved(true);
+            it = m_fireballs.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
     std::vector<Light *> &lights = RenderingMaster::getInstance()->getLights();
 
     auto entity = std::begin(entities);
     while (entity != std::end(entities)) {
         (*entity)->update();
         if ((*entity)->isToBeRemoved() == true) {
+            /* delete it too: its components (physics body, emitters) must go away */
+            m_previousTick.entities.erase(*entity);
+            delete *entity;
             entity = entities.erase(entity);
         } else {
             ++entity;
@@ -626,7 +902,8 @@ std::vector<Entity *> &EngineCore::getEntities() {
 }
 
 void EngineCore::constructPlayer() {
-    Transform playerTrans (glm::vec3(200, 10, 0), glm::vec3(0), glm::vec3(10));
+    Transform playerTrans (m_playerStart, glm::vec3(0), glm::vec3(10));
+    RenderingMaster::getInstance()->getCamera()->setRotation(glm::radians(m_playerPitch), glm::radians(m_playerYaw), 0.0f);
     PhysicsComponent *playerPhysicsComponent = new PhysicsComponent (PhysicsComponent::BoundingBodyType::CAPSULE,
                                                                     glm::vec3(5.0, 10.0f, 10.0f),
                                                                     30.0f);
@@ -741,9 +1018,17 @@ void EngineCore::loadLights(rapidjson::Document &gameDocument) {
             }
 
             if (type.compare("SPOT") == 0) {
-                newLight = new SpotLight(trans, color, cast_shadow, volumetric);
+                int shadowMapSize = 2048;
+                if (light.HasMember("Attributes") && light["Attributes"].HasMember("shadowMapSize")) {
+                    shadowMapSize = light["Attributes"]["shadowMapSize"].GetInt();
+                }
+                newLight = new SpotLight(trans, color, cast_shadow, volumetric, shadowMapSize);
             } else if (type.compare("POINT") == 0) {
-                newLight = new PointLight(trans, color);
+                int shadowMapSize = 512;
+                if (light.HasMember("Attributes") && light["Attributes"].HasMember("shadowMapSize")) {
+                    shadowMapSize = light["Attributes"]["shadowMapSize"].GetInt();
+                }
+                newLight = new PointLight(trans, color, cast_shadow, shadowMapSize);
             } else if (type.compare("DIR") == 0) {
                 newLight = new DirectionalLight(trans, color, lightDir, cast_shadow);
             } else {
@@ -765,6 +1050,35 @@ void EngineCore::loadLights(rapidjson::Document &gameDocument) {
                                             attribs["specular_attenuation"].GetArray()[2].GetFloat());
                 }
 
+                Light::Animation animation;
+                if (attribs.HasMember("flicker")) {
+                    animation.flicker = attribs["flicker"].GetFloat();
+                }
+                if (attribs.HasMember("flickerSpeed")) {
+                    animation.flickerSpeed = attribs["flickerSpeed"].GetFloat();
+                }
+                if (attribs.HasMember("spin")) {
+                    animation.spin = attribs["spin"].GetFloat();
+                }
+                if (attribs.HasMember("nightOnly")) {
+                    animation.nightOnly = attribs["nightOnly"].GetBool();
+                }
+                if (attribs.HasMember("orbit") && attribs["orbit"].IsObject()) {
+                    const auto &orbit = attribs["orbit"];
+                    animation.orbit = true;
+                    animation.orbitCenter = trans.getPosition();
+                    if (orbit.HasMember("center")) {
+                        animation.orbitCenter = glm::vec3(orbit["center"][0].GetFloat(),
+                                                          orbit["center"][1].GetFloat(),
+                                                          orbit["center"][2].GetFloat());
+                    }
+                    animation.orbitRadius = orbit.HasMember("radius") ? orbit["radius"].GetFloat() : 50.0f;
+                    animation.orbitSpeed = orbit.HasMember("speed") ? orbit["speed"].GetFloat() : 20.0f;
+                    animation.orbitBob = orbit.HasMember("bob") ? orbit["bob"].GetFloat() : 0.0f;
+                    animation.orbitPhase = orbit.HasMember("phase") ? orbit["phase"].GetFloat() : 0.0f;
+                }
+                newLight->setAnimation(animation);
+
                 if (type.compare("SPOT") == 0) {
                     SpotLight *spot = dynamic_cast<SpotLight *>(newLight);
 
@@ -778,12 +1092,54 @@ void EngineCore::loadLights(rapidjson::Document &gameDocument) {
                         if (attribs.HasMember("coef2")) {
                             spot->setCoef2(attribs["coef2"].GetFloat());
                         }
+                        if (attribs.HasMember("beamDensity")) {
+                            spot->setBeamDensity(attribs["beamDensity"].GetFloat());
+                        }
+                        if (attribs.HasMember("beamFalloff")) {
+                            spot->setBeamFalloff(attribs["beamFalloff"].GetFloat());
+                        }
                     }
                 }
             }
 
             RenderingMaster::getInstance()->addLightToScene(newLight);
         }
+    }
+}
+
+void EngineCore::loadMapFeatures(rapidjson::Document &gameDocument) {
+    RenderingMaster *rm = RenderingMaster::getInstance();
+
+    if (gameDocument.HasMember("Environment")) {
+        Environment environment;
+        environment.load(gameDocument["Environment"]);
+        rm->setEnvironment(environment);
+    }
+
+    if (gameDocument.HasMember("Water") && gameDocument["Water"].IsObject()) {
+        rm->water = new WaterRenderer(gameDocument["Water"], rm->getRenderWidth(), rm->getRenderHeight());
+    }
+
+    if (gameDocument.HasMember("ParticleEmitters") && gameDocument["ParticleEmitters"].IsArray()) {
+        for (auto const &emitter : gameDocument["ParticleEmitters"].GetArray()) {
+            rm->particleEmitters.push_back(new ParticleEmitter(emitter));
+        }
+    }
+
+    if (gameDocument.HasMember("PlayerStart") && gameDocument["PlayerStart"].IsObject()) {
+        const auto &start = gameDocument["PlayerStart"];
+        if (start.HasMember("position")) {
+            m_playerStart = glm::vec3(start["position"][0].GetFloat(),
+                                      start["position"][1].GetFloat(),
+                                      start["position"][2].GetFloat());
+        }
+        m_playerYaw = start.HasMember("yaw") ? start["yaw"].GetFloat() : 0.0f;
+        m_playerPitch = start.HasMember("pitch") ? start["pitch"].GetFloat() : 0.0f;
+    }
+    /* GE_START="x,y,z,yaw,pitch" overrides the spawn (handy for screenshots) */
+    if (const char *start = std::getenv("GE_START")) {
+        std::sscanf(start, "%f,%f,%f,%f,%f", &m_playerStart.x, &m_playerStart.y, &m_playerStart.z,
+                    &m_playerYaw, &m_playerPitch);
     }
 }
 
@@ -916,7 +1272,134 @@ void EngineCore::findPathToPlayer() {
     }
 }
 
+void EngineCore::runBenchmark(int numFrames) {
+    const int warmupFrames = 30;
+    std::vector<double> frameMs;
+    frameMs.reserve(numFrames);
+
+    /* GE_BENCH_SYNC=1: per-phase timings include GPU time (adds sync overhead) */
+    ProfilingTimer::syncGPU = std::getenv("GE_BENCH_SYNC") != NULL;
+
+    /* GE_SCENARIO=walk (default): walk forward while turning, sprint now and then,
+     * drop a point light (Z) every 40 frames and a shadow-casting volumetric spot
+     * light (Q) every 150 frames. GE_SCENARIO=static: camera stands still. */
+    const char *scenarioEnv = std::getenv("GE_SCENARIO");
+    const std::string scenario = scenarioEnv ? scenarioEnv : "walk";
+    const bool walk = scenario == "walk";
+    /* GE_SCENARIO=fireballs: camera stands still and throws a fireball (G) every 25 frames */
+    const bool fireballs = scenario == "fireballs";
+    const int segment = 100;
+    double segmentSum = 0;
+    int segmentStartLights = 0;
+
+    /* benchmarks never react to the real mouse/keyboard (clicks would open light editors) */
+    inputManager.setScripted(true);
+    if (walk) {
+        inputManager.setWarpMouse(true); /* camera-look path; real warping is off when scripted */
+    }
+
+    isRunning = true;
+    auto benchStart = HighResolutionClock::now();
+    for (int i = 0; i < warmupFrames + numFrames && isRunning; i++) {
+        if (i == warmupFrames) {
+            ProfilingTimer::resetAll();
+        }
+        if (fireballs) {
+            inputManager.injectKey(SDLK_g, i % 25 == 5);
+        }
+        if (walk) {
+            inputManager.injectKey(SDLK_w, true);
+            inputManager.injectKey(SDLK_LSHIFT, (i / 200) % 2 == 1);
+            inputManager.injectMouseDelta(glm::vec2(4.0f, 1.5f * glm::sin(i * 0.02f)));
+            if (i % 40 == 20) {
+                inputManager.injectKey(SDLK_z, true);
+            } else {
+                inputManager.injectKey(SDLK_z, false);
+            }
+            if (i % 150 == 75) {
+                inputManager.injectKey(SDLK_q, true);
+            } else {
+                inputManager.injectKey(SDLK_q, false);
+            }
+        }
+        auto t0 = HighResolutionClock::now();
+        inputManager.update(RenderingMaster::getInstance()->getDisplay());
+        applyMouseLook();
+        capturePreviousState();
+        input();
+        update();
+        render(1.0f);
+        glFinish(); /* include the GPU work in the measured frame time */
+        auto t1 = HighResolutionClock::now();
+        if (i >= warmupFrames) {
+            double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
+            frameMs.push_back(ms);
+            segmentSum += ms;
+            int done = i - warmupFrames + 1;
+            if (done % segment == 0) {
+                int lightsNow = RenderingMaster::getInstance()->getLights().size();
+                printf("  frames %4d-%4d lights %2d->%2d avg=%.2fms (%.1f fps)\n",
+                       done - segment, done - 1, segmentStartLights, lightsNow,
+                       segmentSum / segment, 1000.0 * segment / segmentSum);
+                segmentSum = 0;
+                segmentStartLights = lightsNow;
+            }
+        } else {
+            segmentStartLights = RenderingMaster::getInstance()->getLights().size();
+        }
+    }
+    double totalS = std::chrono::duration<double>(HighResolutionClock::now() - benchStart).count();
+
+    if (!m_screenshotPath.empty()) {
+        saveScreenshot(m_screenshotPath);
+    }
+
+    if (frameMs.empty()) {
+        return;
+    }
+    std::vector<double> sorted = frameMs;
+    std::sort(sorted.begin(), sorted.end());
+    double sum = 0;
+    for (double ms : frameMs) sum += ms;
+    double avg = sum / frameMs.size();
+    printf("BENCH scenario=%s lights=%zu frames=%zu size=%dx%d avg=%.3fms (%.1f fps) median=%.3fms p95=%.3fms p99=%.3fms min=%.3fms max=%.3fms total=%.2fs\n",
+           scenario.c_str(), RenderingMaster::getInstance()->getLights().size(),
+           frameMs.size(),
+           RenderingMaster::getInstance()->getDisplay()->getWidth(),
+           RenderingMaster::getInstance()->getDisplay()->getHeight(),
+           avg, 1000.0 / avg,
+           sorted[sorted.size() / 2],
+           sorted[std::min(sorted.size() - 1, sorted.size() * 95 / 100)],
+           sorted[std::min(sorted.size() - 1, sorted.size() * 99 / 100)],
+           sorted.front(), sorted.back(), totalS);
+    printf("Per-phase (%s):\n", ProfilingTimer::syncGPU ? "CPU+GPU, synced" : "CPU submission only");
+    ProfilingTimer::printAll();
+    fflush(stdout);
+}
+
+void EngineCore::saveScreenshot(const std::string &path) {
+    /* Re-render one frame and read it back before the swap. */
+    Display *display = RenderingMaster::getInstance()->getDisplay();
+    int w = display->getWidth(), h = display->getHeight();
+    std::vector<unsigned char> pixels(w * h * 4);
+
+    m_captureBeforeSwap = &pixels;
+    render();
+    m_captureBeforeSwap = NULL;
+
+    /* GL rows are bottom-up; PNG rows are top-down */
+    std::vector<unsigned char> flipped(pixels.size());
+    for (int y = 0; y < h; y++) {
+        memcpy(&flipped[y * w * 4], &pixels[(h - 1 - y) * w * 4], w * 4);
+    }
+    stbi_write_png(path.c_str(), w, h, 4, flipped.data(), w * 4);
+    printf("Screenshot saved to %s\n", path.c_str());
+}
+
 void EngineCore::startMenuLoop() {
+    if (m_benchFrames > 0 || std::getenv("GE_SKIP_MENU") != NULL) {
+        return;
+    }
     const float MENU_FPS = 1000.0f / 200;
     isOnStartMenu = true;
 

@@ -18,7 +18,8 @@ SlideButton::SlideButton(float x, float y, float value,
                         m_onHoverF(onHoverF),
                         m_onUnhoverF(onUnhoverF),
                         m_onHoldF(onHoldF),
-                        m_slideText(Font::getFontFromCache("res/fonts/horror"),
+                        m_slideText({Font::getFontFromCache("res/fonts/horror"),
+                                    Font::getFontFromCache("res/fonts/horror3")},
                                     glm::vec3 (x, y, -10),
                                     color),
                         m_value(value) {
@@ -30,19 +31,19 @@ SlideButton::SlideButton(float x, float y, float value,
 
     m_barTransform.setPosition(glm::vec3(x+m_width+120.0f, y-m_height*0.3f, -10.0f));
     m_barTransform.setRotation(glm::vec3(0.0f));
-    m_barTransform.setScale(glm::vec3(200.0f, m_height*0.5f, 1.0f));
+    m_barTransform.setScale(glm::vec3(200.0f, m_height*0.15f, 1.0f));
 
     float barLength = m_barTransform.getScale().x;
     float barStartPos = m_barTransform.getPosition().x - barLength*0.5f; 
 
     m_sliderTransform.setPosition(glm::vec3(barStartPos+barLength*m_value, y-m_height*0.3f, -10.0f));
     m_sliderTransform.setRotation(glm::vec3(0.0f));
-    m_sliderTransform.setScale(glm::vec3(10.0f, m_height*2.0f, 1.0f));
+    m_sliderTransform.setScale(glm::vec3(m_height*0.25f, m_height*0.25f, 1.0f));
 
     m_sliderColor = color * 0.4f;
 
     m_width = m_barTransform.getScale().x;
-    m_height = m_sliderTransform.getScale().y;
+    // m_height = m_sliderTransform.getScale().y;
     m_x = m_barTransform.getPosition().x - m_width * 0.5f;
     m_y = m_barTransform.getPosition().y + m_height * 0.5f;
 
@@ -111,6 +112,10 @@ void SlideButton::render() {
     shader.updateUniform("color", (void *) &m_sliderColor);
 
     shader.bind();
-    Mesh::getRectangleStatic().draw();
+    Mesh::getCircleStatic().draw();
     shader.unbind();
+}
+
+void SlideButton::setFontIndex(std::size_t index) {
+    m_slideText.setFontIndex(index);
 }

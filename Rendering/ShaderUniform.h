@@ -55,19 +55,14 @@ class ShaderUniform
     private:
         ShaderUniformType type;
         ShaderUniformValue value;
+        bool hasValue; /* value holds what was last uploaded to GL */
         Shader *shader;
         GLuint location;
         std::string name;
 
         static std::unordered_map<std::string, ShaderUniformType> uniformTypesStringMap;
 
-        void updateVec2 (const glm::vec2 &data);
-        void updateVec3 (const glm::vec3 &data);
-        void updateVec4 (const glm::vec4 &data);
-        void updateInt (int data);
-        void updateFloat (float data);
-        void updateBool (bool data);
-        void updateMat4 (const glm::mat4 &data);
+        void upload ();
         ShaderUniformType getUniformTypeFromName(const char * name);
 
         static std::unordered_map<std::string, ShaderUniformType> getUniformTypesStringMap();

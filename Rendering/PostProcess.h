@@ -14,6 +14,8 @@ class PostProcess
         PostProcess(int width, int height, GLuint inputTextureId, std::string &&shaderJsonFile);
 
         void bind();
+        /* run the effect straight into the default framebuffer (no extra copy pass) */
+        void processToScreen(int viewportWidth, int viewportHeight);
         void process(std::initializer_list<Texture *> list = {});
         GLuint getResultingTextureId();
         GLuint getFrameBufferObject();

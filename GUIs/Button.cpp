@@ -11,6 +11,11 @@ Button::Button(float x, float y, float width, float height,
 
 }
 
+
+Button::~Button() {
+    
+}
+
 void Button::input(Input &inputM) {
     const glm::vec2 &mousePos = inputM.getCorrectedMousePos();
 

@@ -29,8 +29,17 @@ Input::~Input()
 }
 
 void Input::update(Display * display){
-    SDL_Event event;
+    clearEdges();
+    pollEvents(display);
+}
 
+glm::vec2 Input::consumeMouseDelta() {
+    glm::vec2 d = delta;
+    delta = glm::vec2(0);
+    return d;
+}
+
+void Input::clearEdges() {
     for(unsigned int i = 0; i < NUM_KEYS; i++){
         downKeys[i] = false;
         upKeys[i] = false;
@@ -43,6 +52,10 @@ void Input::update(Display * display){
         downMouse[i] = false;
         upMouse[i] = false;
     }
+}
+
+void Input::pollEvents(Display *display) {
+    SDL_Event event;
 
     while (SDL_PollEvent(&event)){
         switch (event.type){
@@ -84,6 +97,7 @@ void Input::update(Display * display){
                 break;
             }
             case SDL_MOUSEMOTION:{
+                if (m_scripted) break;
                 mousePosition = glm::vec2(event.motion.x, event.motion.y);
                 correctedMousePosition = glm::vec2(mousePosition.x, display->getHeight() - mousePosition.y);
                 delta = glm::vec2(display->getWidth()/2.0f, display->getHeight()/2.0f) - mousePosition;
@@ -96,9 +110,47 @@ void Input::update(Display * display){
         }
         ImGui_ImplSDL2_ProcessEvent(&event);
     }
+    if (m_scripted) {
+        for (auto &k : m_injectedKeys) {
+            applyKey(k.first, k.second);
+        }
+        m_injectedKeys.clear();
+        delta = m_injectedDelta;
+        m_injectedDelta = glm::vec2(0);
+        return;
+    }
+
     if (warpMouse) {
         SDL_WarpMouseInWindow(display->getWindow(), display->getWidth()/2, display->getHeight()/2);
     }
+}
+
+void Input::setScripted(bool scripted) {
+    m_scripted = scripted;
+    delta = glm::vec2(0);
+}
+
+void Input::injectKey(int key, bool held) {
+    m_injectedKeys.push_back(std::make_pair(key, held));
+}
+
+void Input::injectMouseDelta(const glm::vec2 &d) {
+    m_injectedDelta = d;
+}
+
+void Input::applyKey(int key, bool held) {
+    bool *in, *down, *up;
+    int idx;
+    if (key >= 0 && key <= 127) {
+        idx = key; in = inputs; down = downKeys; up = upKeys;
+    } else {
+        idx = key - 1073741881;
+        if (idx < 0 || idx >= NUM_SPECIAL_KEYS) return;
+        in = specialInputs; down = specialDownKeys; up = specialUpKeys;
+    }
+    if (held && !in[idx]) down[idx] = true;
+    if (!held && in[idx]) up[idx] = true;
+    in[idx] = held;
 }
 
 void Input::setWarpMouse(bool warpMouse) {

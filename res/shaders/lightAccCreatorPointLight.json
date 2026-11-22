@@ -16,6 +16,10 @@
                     "cameraForwardVectorEyeSpace" : "VEC3",
                     "cameraForwardVector" : "VEC3",
                     "att_diffuse": "VEC3",
-                    "att_specular": "VEC3"
+                    "att_specular": "VEC3",
+                    "castsShadow" : "INT",
+                    "shadowFar" : "FLOAT",
+                    "shadowCube" : "INT",
+                    "inverseViewMatrix" : "MAT4"
                  }
 }

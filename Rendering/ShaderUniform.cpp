@@ -1,11 +1,13 @@
 #include "ShaderUniform.h"
 
+#include <cstring>
+
 ShaderUniform::ShaderUniform(const std::string &name, const char * t, Shader * shader) : type (getUniformTypeFromName (t)),
+                                                                                            hasValue (false),
                                                                                             shader (shader),
                                                                                             name (name) {
-    shader->bind ();
+    memset(&value, 0, sizeof(value));
     location = shader->getUniformLocation (name);
-    shader->unbind ();
 }
 
 std::unordered_map<std::string, ShaderUniformType> ShaderUniform::getUniformTypesStringMap() {
@@ -25,164 +27,111 @@ std::unordered_map<std::string, ShaderUniformType> ShaderUniform::getUniformType
 
 std::unordered_map<std::string, ShaderUniformType> ShaderUniform::uniformTypesStringMap = ShaderUniform::getUniformTypesStringMap ();
 
-void ShaderUniform::updateUniform (void * data) {
-    assert (type < LAST_TYPE);
+static size_t uniformValueSize(ShaderUniformType type) {
+    switch (type) {
+    case UNIFORM_MAT4:    return sizeof(float) * 16;
+    case UNIFORM_VEC2:    return sizeof(float) * 2;
+    case UNIFORM_VEC3:    return sizeof(float) * 3;
+    case UNIFORM_VEC4:    return sizeof(float) * 4;
+    case UNIFORM_FLOAT:   return sizeof(float);
+    case UNIFORM_INT:     return sizeof(int);
+    case UNIFORM_BOOLEAN: return sizeof(bool);
+    default:              return 0;
+    }
+}
 
-    shader->bind ();
+/* Upload the cached value to GL. Uses glProgramUniform* when available so the
+ * program doesn't have to be bound (and later rebound); otherwise binds the
+ * program through Shader::bind, which tracks the currently bound program. */
+void ShaderUniform::upload () {
+    const GLuint program = shader->getShaderId();
+    const bool dsa = Shader::hasDSAUniforms();
+
+    if (!dsa) {
+        shader->bind();
+    }
 
     switch (type) {
     case UNIFORM_MAT4:
-        updateMat4 (*(glm::mat4 *)data);
+        if (dsa) glProgramUniformMatrix4fv(program, location, 1, GL_FALSE, value.mat4);
+        else     glUniformMatrix4fv(location, 1, GL_FALSE, value.mat4);
         break;
     case UNIFORM_VEC2:
-        updateVec2 (*(glm::vec2 *)data);
+        if (dsa) glProgramUniform2f(program, location, value.vec2.x, value.vec2.y);
+        else     glUniform2f(location, value.vec2.x, value.vec2.y);
         break;
     case UNIFORM_VEC3:
-        updateVec3 (*(glm::vec3 *)data);
+        if (dsa) glProgramUniform3f(program, location, value.vec3.x, value.vec3.y, value.vec3.z);
+        else     glUniform3f(location, value.vec3.x, value.vec3.y, value.vec3.z);
         break;
     case UNIFORM_VEC4:
-        updateVec4 (*(glm::vec4 *)data);
-        break;
-    case UNIFORM_INT:
-        updateInt (*(int *)data);
+        if (dsa) glProgramUniform4f(program, location, value.vec4.x, value.vec4.y, value.vec4.z, value.vec4.w);
+        else     glUniform4f(location, value.vec4.x, value.vec4.y, value.vec4.z, value.vec4.w);
         break;
     case UNIFORM_FLOAT:
-        updateFloat (*(float *)data);
+        if (dsa) glProgramUniform1f(program, location, value.f);
+        else     glUniform1f(location, value.f);
+        break;
+    case UNIFORM_INT:
+        if (dsa) glProgramUniform1i(program, location, value.i);
+        else     glUniform1i(location, value.i);
         break;
     case UNIFORM_BOOLEAN:
-        updateBool (*(bool *)data);
+        if (dsa) glProgramUniform1i(program, location, (int) value.b);
+        else     glUniform1i(location, (int) value.b);
         break;
-    case NO_TYPE:
-    case LAST_TYPE:
+    default:
         break;
     }
-
-    shader->unbind ();
+    hasValue = true;
 }
 
-void ShaderUniform::updateMat4 (const glm::mat4 &data) {
-    assert (type == UNIFORM_MAT4);
+void ShaderUniform::updateUniform (void * data) {
+    assert (type < LAST_TYPE);
 
-    memcpy (value.mat4, (void *) &data, sizeof(glm::mat4));
-    glUniformMatrix4fv (location, 1, false, glm::value_ptr (data));
+    size_t size = uniformValueSize(type);
+    if (size == 0) {
+        return;
+    }
+
+    /* skip redundant uploads (material/sampler uniforms repeat every draw) */
+    if (hasValue && memcmp(&value, data, size) == 0) {
+        return;
+    }
+
+    memcpy(&value, data, size);
+    upload();
 }
-
-void ShaderUniform::updateVec2 (const glm::vec2 &data) {
-    assert (type == UNIFORM_VEC2);
-
-    value.vec2.x = data.x;
-    value.vec2.y = data.y;
-    glUniform2f (location, data.x, data.y);
-}
-
-void ShaderUniform::updateVec3 (const glm::vec3 &data) {
-    assert (type == UNIFORM_VEC3);
-
-    value.vec3.x = data.x;
-    value.vec3.y = data.y;
-    value.vec3.z = data.z;
-    glUniform3f (location, data.x, data.y, data.z);
-}
-
-void ShaderUniform::updateVec4 (const glm::vec4 &data) {
-    assert (type == UNIFORM_VEC4);
-
-    value.vec4.x = data.x;
-    value.vec4.y = data.y;
-    value.vec4.z = data.z;
-    value.vec4.w = data.w;
-    glUniform4f (location, data.x, data.y, data.z, data.w);
-}
-
-void ShaderUniform::updateInt (int data) {
-    assert (type == UNIFORM_INT);
-
-    value.i = data;
-    glUniform1i (location, data);
-}
-
-void ShaderUniform::updateFloat (float data) {
-    assert (type == UNIFORM_FLOAT);
-
-    value.f = data;
-    glUniform1f (location, data);
-}
-
-void ShaderUniform::updateBool (bool data) {
-    assert (type == UNIFORM_BOOLEAN);
-
-    value.b = data;
-    glUniform1i (location, (int) data);
-}
-
 
 void ShaderUniform::updateUniform(const std::vector<glm::mat4> &mats) {
     assert(type == UNIFORM_MAT4s);
 
-    shader->bind();
+    if (mats.empty()) {
+        return;
+    }
 
-    glUniformMatrix4fv(location,
-                        mats.size(),
-                        GL_FALSE,
-                        glm::value_ptr(mats[0]));
-    shader->unbind();
+    if (Shader::hasDSAUniforms()) {
+        glProgramUniformMatrix4fv(shader->getShaderId(), location, mats.size(),
+                                  GL_FALSE, glm::value_ptr(mats[0]));
+    } else {
+        shader->bind();
+        glUniformMatrix4fv(location, mats.size(), GL_FALSE, glm::value_ptr(mats[0]));
+    }
 }
 
 void ShaderUniform::reload () {
     assert (shader != NULL);
 
-    shader->bind();
+    /* the program may have been re-linked: refresh the location */
+    location = shader->getUniformLocation (name);
 
-    switch (type) {
-    case UNIFORM_MAT4: {
-        glm::mat4 tmp;
-        memcpy ((void *) &tmp, value.mat4, sizeof (glm::mat4));
-        updateMat4 (tmp);
-        break;
+    if (type == UNIFORM_MAT4s || type == NO_TYPE || type >= LAST_TYPE) {
+        return;
     }
-    case UNIFORM_VEC2: {
-        glm::vec3 tmp;
-        tmp.x = value.vec2.x;
-        tmp.y = value.vec2.y;
-        updateVec2 (tmp);
-        break;
+    /* uniforms that were never set keep GL's default (zero), as before */
+    if (hasValue) {
+        upload();
     }
-    case UNIFORM_VEC3: {
-        glm::vec3 tmp;
-        tmp.x = value.vec3.x;
-        tmp.y = value.vec3.y;
-        tmp.z = value.vec3.z;
-        updateVec3 (tmp);
-        break;
-    }
-    case UNIFORM_VEC4: {
-        glm::vec4 tmp;
-        tmp.x = value.vec4.x;
-        tmp.y = value.vec4.y;
-        tmp.z = value.vec4.z;
-        tmp.w = value.vec4.w;
-        updateVec4 (tmp);
-        break;
-    }
-    case UNIFORM_INT:
-        updateInt (value.i);
-        break;
-    case UNIFORM_FLOAT:
-        updateFloat (value.f);
-        break;
-    case UNIFORM_BOOLEAN:
-        updateBool (value.b);
-        break;
-    case UNIFORM_MAT4s:
-        //assert(false);
-        break;
-    case NO_TYPE:
-    case LAST_TYPE:
-        assert (false);
-        break;
-    }
-
-    shader->unbind();
 }
 
 ShaderUniformType ShaderUniform::getUniformTypeFromName(const char * name) {

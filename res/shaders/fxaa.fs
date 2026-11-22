@@ -21,7 +21,7 @@
 // Whitepaper describing the technique:
 // http://developer.download.nvidia.com/assets/gamedev/files/sdk/11/FXAA_WhitePaper.pdf
 
-layout(location = 0) out vec3 outColor;
+layout(location = 0) out vec4 outColor;
 
 in vec2 textureCoords;
 
@@ -77,7 +77,7 @@ void main()
 	float lumaResult2 = dot(luma, result2);
 
 	if(lumaResult2 < lumaMin || lumaResult2 > lumaMax)
-		outColor = result1;
+		outColor = vec4(result1, 1.0);
 	else
-		outColor = result2;
+		outColor = vec4(result2, 1.0);
 }

@@ -1,4 +1,5 @@
 #ifndef LIGHT_H
+#include <cstdint>
 #define LIGHT_H
 
 #include "Transform.h"
@@ -45,6 +46,11 @@ class Light
         const glm::mat4 &getShadowMapProjectionMatrix();
         const glm::mat4 &getShadowMapViewMatrix();
         FrameBuffer &getShadowMapFrameBuffer();
+
+        /* Shadow map caching: signature of (light matrices + shadow casters) the
+         * shadow map was last rendered with; re-render only when it changes. */
+        uint64_t m_shadowSignature = 0;
+        bool m_shadowSignatureValid = false;
         Texture &getShadowMapTexture();
 
         inline bool isCastingShadow() {
@@ -78,6 +84,25 @@ class Light
         std::string jsonify();
         virtual std::string jsonifyAttribs();
 
+        /* Optional animation, from the map's light "Attributes":
+         *   "flicker": 0..1 amplitude (fire), "flickerSpeed": rate
+         *   "orbit": {"center":[x,y,z], "radius", "speed" (deg/s), "bob", "phase"}
+         *   "spin": deg/s around the world Y axis (sweeping beams) */
+        struct Animation {
+            float flicker = 0.0f, flickerSpeed = 8.0f;
+            bool orbit = false;
+            glm::vec3 orbitCenter = glm::vec3(0.0f);
+            float orbitRadius = 0.0f, orbitSpeed = 0.0f, orbitBob = 0.0f, orbitPhase = 0.0f;
+            float spin = 0.0f;
+            bool nightOnly = false;   /* fades out by day (day-night cycle) */
+        };
+        void setAnimation(const Animation &animation);
+        inline bool isAnimated() const { return m_animated; }
+        /* length of one update tick, set by the engine */
+        static float s_tickSeconds;
+        /* 1 at night, 0 by day; set by the renderer each tick */
+        static float s_nightFactor;
+
     protected:
         Transform m_transform;
         glm::vec3 m_lightColor;
@@ -92,6 +117,13 @@ class Light
         bool m_to_be_removed;
 
         bool showGUI;
+
+        Animation m_animation;
+        bool m_animated = false;
+        float m_animationTime = 0.0f;
+        glm::vec3 m_baseColor = glm::vec3(0.0f);
+        glm::quat m_baseRotation = glm::quat(1, 0, 0, 0);
+        void animate();
         unsigned int imguiID;
 
         glm::vec3 m_att_diffuse, m_att_specular;

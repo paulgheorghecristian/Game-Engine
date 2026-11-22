@@ -3,12 +3,35 @@
 #include "Common.h"
 
 PhysicsComponent::PhysicsComponent(BoundingBodyType type, glm::vec3 scale,
-                                    float mass, bool shouldUpdate) : type(type),
+                                    float mass, bool shouldUpdate, Mesh *mesh) : type(type),
                                                                     boundingBodyScale(scale),
                                                                     bodyMass(mass),
                                                                     m_rigidBody(NULL),
-                                                                    m_shouldUpdate(shouldUpdate) {
-/* TODO maybe I want to take scale from entity as default?*/
+                                                                    m_shouldUpdate(shouldUpdate),
+                                                                    m_boundingMeshData(nullptr) {
+    /* TODO maybe I want to take scale from entity as default?*/
+    if ((type == BoundingBodyType::MESH &&
+        mesh == nullptr) ||
+        (type != BoundingBodyType::MESH &&
+        mesh != nullptr)) {
+        std::cerr << "Invalid PhysicsComponent state" << std::endl;
+        exit(1);
+    }
+
+    if (type == BoundingBodyType::MESH) {
+        indices.resize(mesh->getIndices().size());
+        vertices.resize(mesh->getVertices().size()*3);
+
+        for (int i = 0; i < mesh->getIndices().size(); i++){
+            indices[i] = mesh->getIndices()[i];
+        }
+
+        for(int i = 0; i < mesh->getVertices().size()*3; i+=3){
+            vertices[i] = btScalar(mesh->getVertices()[i/3].positionCoords.x * scale.x);
+            vertices[i+1] = btScalar(mesh->getVertices()[i/3].positionCoords.y * scale.y);
+            vertices[i+2] = btScalar(mesh->getVertices()[i/3].positionCoords.z * scale.z);
+        }
+    }
 }
 
 void PhysicsComponent::input(Input &inputManager) {
@@ -30,10 +53,11 @@ void PhysicsComponent::update() {
 
     if (!m_disabled && m_shouldUpdate == true) {
         _entity->getTransform().setPosition(glm::vec3(origin.x(), origin.y(), origin.z()));
-        _entity->getTransform().setRotation (glm::quat (quatXYZ.m_floats[0],
+        /* glm::quat's constructor takes (w, x, y, z); Bullet stores (x, y, z, w) */
+        _entity->getTransform().setRotation (glm::quat (quatXYZ.m_floats[3],
+                                                        quatXYZ.m_floats[0],
                                                         quatXYZ.m_floats[1],
-                                                        quatXYZ.m_floats[2],
-                                                        quatXYZ.m_floats[3]));
+                                                        quatXYZ.m_floats[2]));
         _entity->getTransform().setModelMatrix(glm::scale(glm::make_mat4(mat), _entity->getTransform().getScale()));
     }
 }
@@ -119,6 +143,17 @@ void PhysicsComponent::init() {
         case BoundingBodyType::CAPSULE:
             collisionShape = new btCapsuleShape(boundingBodyScale.x*2.0f, boundingBodyScale.y*2.0f);
             break;
+        case BoundingBodyType::MESH:
+            if (m_boundingMeshData == nullptr) {
+                m_boundingMeshData = new btTriangleIndexVertexArray(indices.size() / 3,
+                                                                    indices.data(),
+                                                                    3 * sizeof(int),
+                                                                    vertices.size(),
+                                                                    vertices.data(),
+                                                                    3 * sizeof(float));
+            }
+            collisionShape = new btBvhTriangleMeshShape(m_boundingMeshData, true, true);
+            break;
         default:
             assert (false);
     }
@@ -189,4 +224,7 @@ PhysicsComponent::~PhysicsComponent() {
 
     delete m_rigidBody;
     m_rigidBody = NULL;
+
+    delete m_boundingMeshData;
+    m_boundingMeshData = nullptr;
 }

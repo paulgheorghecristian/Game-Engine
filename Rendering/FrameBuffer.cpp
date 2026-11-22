@@ -58,15 +58,6 @@ ErrorCode FrameBuffer::init(int width, int height, unsigned int numOfRenderTarge
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F , width, height, 0, GL_RG, GL_FLOAT, 0);
     }
 
-    glGenTextures(1, &stencilBufferId);
-    glBindTexture(GL_TEXTURE_2D, stencilBufferId);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_STENCIL_INDEX8, width, height, 0,  GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, 0);
-
     //selecteaza attachment-ul pentru desenare color buffer
     for (unsigned int i = 0; i < numOfRenderTargets; i++) {
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, renderTargets[i], 0);
@@ -77,7 +68,6 @@ ErrorCode FrameBuffer::init(int width, int height, unsigned int numOfRenderTarge
     } else {
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + numOfRenderTargets, depthBufferId, 0);
     }
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, stencilBufferId, 0);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         print_error(OPENGL_ERROR, "Framebuffer is incomplete");
@@ -123,7 +113,11 @@ void FrameBuffer::bindAllRenderTargets()
 
     glBindFramebuffer (GL_FRAMEBUFFER, frameBufferId);
     if (renderTargets.size() > 0) {
-        glDrawBuffers (renderTargets.size(), &renderTargets[0]);
+        // glDrawBuffers takes attachment points, not texture names.
+        std::vector<GLenum> attachments(renderTargets.size());
+        for (size_t i = 0; i < attachments.size(); i++)
+            attachments[i] = GL_COLOR_ATTACHMENT0 + i;
+        glDrawBuffers (attachments.size(), attachments.data());
         glClearColor (0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     } else {
@@ -170,5 +164,8 @@ GLuint FrameBuffer::getFrameBufferObject()
 FrameBuffer::~FrameBuffer()
 {
     unbind ();
+    if (!renderTargets.empty())
+        glDeleteTextures (renderTargets.size(), renderTargets.data());
+    glDeleteTextures (1, &depthBufferId);
     glDeleteFramebuffers (1, &frameBufferId);
 }

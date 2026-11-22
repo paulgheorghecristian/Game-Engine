@@ -9,3 +9,11 @@ const glm::mat4 &ParticleFactory::getGlobalProjectionMatrix() {
 Display *ParticleFactory::getDisplay() {
     return RenderingMaster::getInstance()->getDisplay();
 }
+
+int ParticleFactory::getRenderWidth() {
+    return RenderingMaster::getInstance()->getRenderWidth();
+}
+
+int ParticleFactory::getRenderHeight() {
+    return RenderingMaster::getInstance()->getRenderHeight();
+}

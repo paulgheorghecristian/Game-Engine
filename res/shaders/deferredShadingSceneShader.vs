@@ -11,6 +11,8 @@ uniform mat4 modelMatrix, viewMatrix, projectionMatrix;
 out vec3 eyeSpaceNormal;
 out vec2 textureCoords;
 out mat3 fromTangentToModelSpace;
+out vec3 worldPosition;
+out vec3 worldNormal; /* inverse-transpose: correct for non-uniform scale */
 
 void main(){
 	eyeSpaceNormal = (mat3(viewMatrix) * mat3(modelMatrix) * inNormal).xyz;
@@ -29,5 +31,7 @@ void main(){
                                     normalizedBiTangent.x, normalizedBiTangent.y, normalizedBiTangent.z,
                                     normalizedNormal.x, normalizedNormal.y, normalizedNormal.z);
 
+	worldPosition = (modelMatrix * vec4(inPosition, 1)).xyz;
+	worldNormal = transpose(inverse(mat3(modelMatrix))) * inNormal;
 	gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(inPosition,1);
 }

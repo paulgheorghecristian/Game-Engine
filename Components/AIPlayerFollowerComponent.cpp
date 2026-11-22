@@ -94,14 +94,14 @@ void AIPlayerFollowerComponent::update() {
     float yRot2 = glm::eulerAngles(rotQuat).y;
 
     if (m_interpolate == false || glm::abs(yRot-yRot2) < 0.3) {
-        thisPosition = thisPosition + m_dirToCurrTargetNorm * 0.75f;
+        thisPosition = thisPosition + m_dirToCurrTargetNorm * 0.65f;
         _entity->getTransform().setPosition(thisPosition);
         _entity->getTransform().setRotation(rotQuat);
         lastQuat = rotQuat;
         m_interpolate = false;
     } else {
         glm::quat slerpQuat = glm::slerp(lastQuat, rotQuat, stepInterp);
-        stepInterp += 0.3;
+        stepInterp += 0.15;
         if (stepInterp > 1.0f)
             m_interpolate = false;
         _entity->getTransform().setRotation(slerpQuat);

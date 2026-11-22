@@ -2,6 +2,7 @@
 #define PHYSICSCOMPONENT_H
 
 #include "Component.h"
+#include "Mesh.h"
 #include "glm/glm.hpp"
 #include "bullet/btBulletDynamicsCommon.h"
 #include "glm/gtc/type_ptr.hpp"
@@ -16,11 +17,11 @@ class PhysicsComponent : public Component
             CUBE,
             SPHERE,
             CAPSULE,
-            SIMPLIFIED_MESH,
+            MESH,
         };
 
         PhysicsComponent(BoundingBodyType type, glm::vec3 scale,
-                        float mass, bool shouldUpdate = true);
+                        float mass, bool shouldUpdate = true, Mesh *mesh = nullptr);
         void input(Input &inputManager);
         void update();
         void render();
@@ -45,6 +46,9 @@ class PhysicsComponent : public Component
         bool m_shouldUpdate;
 
         btRigidBody *m_rigidBody;
+        std::vector<int> indices;
+        std::vector<btScalar> vertices;
+        btTriangleIndexVertexArray *m_boundingMeshData;
 };
 
 #endif // PHYSICSCOMPONENT_H

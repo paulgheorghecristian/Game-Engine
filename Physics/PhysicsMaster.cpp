@@ -36,7 +36,7 @@ PhysicsMaster::PhysicsMaster(float gravity) : gravityAcc (gravity), quadTree(glm
     info.m_restitution = 0.7;
     info.m_friction = 0.5;
     planeRigidBody = new btRigidBody(info);
-    world->addRigidBody(planeRigidBody);
+    // world->addRigidBody(planeRigidBody);
 }
 
 btGhostObject *PhysicsMaster::createBoxRigidBody(glm::vec3 position, glm::vec3 scale) {

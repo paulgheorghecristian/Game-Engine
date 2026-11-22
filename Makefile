@@ -59,21 +59,28 @@ LIBS := \
 -lLinearMath \
 -lassimp
 
+# System deps: sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libglew-dev libglu1-mesa-dev libgl-dev
+# Bullet and Assimp are vendored; rpaths are $$ORIGIN-relative so the binary
+# works regardless of the current working directory.
 LDOPTS := \
 -Lres/libraries/bullet/lib \
--Wl,-rpath=res/libraries/bullet/lib \
+-Wl,-rpath,'$$ORIGIN/res/libraries/bullet/lib' \
 -Lres/libraries/assimp/lib \
--Wl,-rpath=res/libraries/assimp/lib
+-Wl,-rpath,'$$ORIGIN/res/libraries/assimp/lib'
 
-#CXXFLAGS := -Wall -O3 -DNDEBUG
-CXXFLAGS := -Wall -O0 -g
-
-OBJDIR := $(MAKEFILE_DIR)/obj/
+# `make DEBUG=1` for an unoptimized debug build.
+ifeq ($(DEBUG),1)
+CXXFLAGS := -std=gnu++20 -Wall -O0 -g -MMD -MP
+OBJDIR := $(MAKEFILE_DIR)/obj/debug/
+else
+CXXFLAGS := -std=gnu++20 -Wall -O2 -g -DNDEBUG -MMD -MP
+OBJDIR := $(MAKEFILE_DIR)/obj/release/
+endif
 
 GE_OBJS := $(addprefix $(OBJDIR), \
 $(patsubst %.cpp,%.o,$(GAME_ENGINE_CC_SRCS)))
 
-$(OBJDIR)%.o: %.cpp
+$(OBJDIR)%.o: %.cpp Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
@@ -84,6 +91,10 @@ ${GAME_ENGINE_BINARY}: $(GE_OBJS)
 	$(LIBS)
 
 all: ${GAME_ENGINE_BINARY}
+
+-include $(GE_OBJS:.o=.d)
+
+.PHONY: all clean
 
 clean:
 	rm -rf $(MAKEFILE_DIR)/obj

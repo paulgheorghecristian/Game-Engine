@@ -3,24 +3,43 @@
 #include <math.h>
 
 /* TODO add transform to this class */
-Text::Text(Font *font,
+Text::Text(std::initializer_list<Font *> fonts,
            const glm::vec3 &position,
            const glm::vec3 &color,
            const std::string &text,
            float size,
            const glm::vec3 &rotation) : mesh(true, true), // prepare and will be modified
                                         currentString(text),
-                                        m_font(font),
                                         position(position),
                                         rotation(rotation),
                                         color(color),
                                         size(size),
                                         modelMatrix(1.0),
                                         currentWorldWidth(0.0f),
-                                        currentWorldHeight(0.0f)
+                                        currentWorldHeight(0.0f),
+                                        m_fonts(fonts)
 {
+    if (m_fonts.size() <= 0) {
+        std::cerr << "Please specify at least one font!" << std::endl;
+        exit(1);
+    }
+    m_font = m_fonts[0];
+
     updateMesh(0);
     computeModelMatrix ();
+}
+
+Text::Text(Font *font,
+           const glm::vec3 &position,
+           const glm::vec3 &color,
+           const std::string &text,
+           float size,
+           const glm::vec3 &rotation): Text({font},
+                                            position,
+                                            color,
+                                            text,
+                                            size,
+                                            rotation) {
 }
 
 void Text::updateMesh(bool dir){
@@ -95,8 +114,8 @@ void Text::computeModelMatrix(){
 
 void Text::changeSize(int dsize){
     size = dsize;
-    currentWorldWidth = currentCursor.x * size * 10;
-
+    currentWorldWidth = (currentCursor.x / m_font->getWidth()) * size * 10;
+    currentWorldHeight = ((float) m_font->getChars()[65].height / m_font->getHeight()) * size * 10;
     isModelMatrixModified = true;
 }
 
@@ -175,7 +194,6 @@ void Text::draw(Shader &shader) {
     shader.bind();
 
     glActiveTexture (GL_TEXTURE0);
-    glEnable (GL_TEXTURE_2D);
     glBindTexture (GL_TEXTURE_2D, m_font->getTextureId ());
 
     mesh.draw ();

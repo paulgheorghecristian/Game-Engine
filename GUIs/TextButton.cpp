@@ -14,7 +14,8 @@ TextButton::TextButton(float x, float y,
                         m_onReleaseF(onReleaseF),
                         m_onHoverF(onHoverF),
                         m_onUnhoverF(onUnhoverF),
-                        m_buttonText(Font::getFontFromCache("res/fonts/horror"),
+                        m_buttonText({Font::getFontFromCache("res/fonts/horror"),
+                                        Font::getFontFromCache("res/fonts/horror3")},
                                     glm::vec3 (x, y, -10),
                                     color) {
     m_buttonText.changeSize(size);
@@ -47,9 +48,14 @@ void TextButton::input(Input &inputM) {
 }
 
 void TextButton::update() {
-
+    m_width = m_buttonText.getCurrentWorldWidth();
+    m_height = m_buttonText.getCurrentWorldHeight();
 }
 
 void TextButton::render() {
     m_buttonText.draw(RenderingMaster::simpleTextShader);
+}
+
+void TextButton::setFontIndex(std::size_t index) {
+    m_buttonText.setFontIndex(index);
 }

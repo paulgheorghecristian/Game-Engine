@@ -14,6 +14,11 @@
 		    "subWidth" : "FLOAT",
 		    "subHeight" : "FLOAT",
 		    "screenHeight" : "INT",
-		    "screenWidth" : "INT"
+		    "screenWidth" : "INT",
+		    "tint" : "VEC3",
+		    "brightnessAdd" : "FLOAT",
+		    "additive" : "INT",
+		    "fadeIn" : "FLOAT",
+		    "atlasTopDown" : "INT"
             }
 }

@@ -28,7 +28,7 @@ class FrameBuffer
     protected:
     private:
         int width, height;
-        GLuint frameBufferId, depthBufferId, colorBufferId, stencilBufferId;
+        GLuint frameBufferId, depthBufferId, colorBufferId;
         GLint previousViewport[4];
         std::vector<GLuint> renderTargets;
         unsigned int numOfRenderTargets;

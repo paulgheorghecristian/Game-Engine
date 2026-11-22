@@ -11,15 +11,20 @@
                     "cameraPosition" : "VEC3",
                     "screenWidth" : "INT",
                     "screenHeight" : "INT",
+                    "volumetricDivisor" : "INT",
                     "volumetricLightDepthSampler" : "INT",
                     "volumetricLightProjectionMatrix" : "MAT4",
                     "volumetricLightViewMatrix" : "MAT4",
+                    "volumetricLightViewProj" : "MAT4",
+                    "inverseViewMatrix" : "MAT4",
                     "blueNoiseSampler" : "INT",
                     "alpha" : "FLOAT",
                     "virtualSphereDiameter": "FLOAT",
                     "numSamplePoints" : "INT",
                     "coef1" : "FLOAT",
                     "coef2" : "FLOAT",
+                    "beamDensity" : "FLOAT",
+                    "beamFalloff" : "FLOAT",
                     "secondFraction": "FLOAT"
                  }
 }

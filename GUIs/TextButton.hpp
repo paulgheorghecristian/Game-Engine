@@ -15,7 +15,7 @@ public:
             const std::function<void(Button *)> &onReleaseF,
             const std::function<void(Button *)> &onHoverF,
             const std::function<void(Button *)> &onUnhoverF,
-            std::size_t size = 20);
+            std::size_t size = 21);
 
     void onPress();
     void onRelease();
@@ -25,6 +25,8 @@ public:
     void input(Input &input);
     void update();
     void render();
+
+    void setFontIndex(std::size_t index);
 
     inline Text &getText() { return m_buttonText; }
     

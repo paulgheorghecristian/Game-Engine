@@ -11,6 +11,12 @@
 class Text
 {
     public:
+        Text (std::initializer_list<Font *> m_fonts,
+              const glm::vec3 &position,
+              const glm::vec3 &color,
+              const std::string &text = "",
+              float size = 10,
+              const glm::vec3 &rotation = glm::vec3 (0));
         Text (Font *font,
               const glm::vec3 &position,
               const glm::vec3 &color,
@@ -38,6 +44,14 @@ class Text
         float getCurrentWorldHeight() {
             return currentWorldHeight;
         }
+        void setFontIndex(std::size_t index) {
+            if (index >= m_fonts.size())
+                return;
+
+            useFontIndex = index;
+            m_font = m_fonts[index];
+            updateMesh(0);
+        }
 
         ~Text();
     protected:
@@ -54,6 +68,9 @@ class Text
 
         float currentWorldWidth, currentWorldHeight;
         glm::vec2 currentCursor;
+
+        std::vector<Font *> m_fonts;
+        std::size_t useFontIndex;
 
         void computeModelMatrix ();
         void updateMesh (bool);

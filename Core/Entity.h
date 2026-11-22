@@ -42,7 +42,8 @@ class Entity : public MemoryPoolInterface<Entity>
             BILL,
             ACTION,
             INSTANCE_RENDERABLE,
-            AIPLAYERFOLLOWER
+            AIPLAYERFOLLOWER,
+            PARTICLE_EMITTER
         };
     protected:
         Transform m_transform;

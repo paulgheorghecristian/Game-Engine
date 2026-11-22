@@ -18,6 +18,8 @@
                     "spotLightDepthSampler" : "INT",
                     "spotLightProjectionMatrix" : "MAT4",
                     "spotLightViewMatrix" : "MAT4",
+                    "inverseViewMatrix" : "MAT4",
+                    "eyeToSpotLightClip" : "MAT4",
                     "alpha" : "FLOAT",
                     "lightLength": "FLOAT",
                     "att_diffuse": "VEC3",

@@ -16,6 +16,7 @@ public:
     };
     Button(float x, float y, float width, float height,
             const std::string &text, const glm::vec3 &color);
+    virtual ~Button();
     virtual void input(Input &inputM);
 
     virtual void onPress() {};

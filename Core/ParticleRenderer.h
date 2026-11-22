@@ -159,6 +159,14 @@ ParticleRenderer<P>::ParticleRenderer(const glm::mat4 &projectionMatrix,
     result &= getRenderingShader().updateUniform ("subHeight", P::getTexture().getSubHeight());
     result &= getRenderingShader().updateUniform ("screenHeight", (void *) &screenHeight);
     result &= getRenderingShader().updateUniform ("screenWidth", (void *) &screenWidth);
+    {
+        glm::vec3 white(1.0f);
+        getRenderingShader().updateUniform ("tint", (void *) &white);
+        getRenderingShader().updateUniform ("brightnessAdd", 0.25f);
+        getRenderingShader().updateUniform ("additive", 0);
+        getRenderingShader().updateUniform ("fadeIn", 0.0f);
+        getRenderingShader().updateUniform ("atlasTopDown", 0);
+    }
 
     assert (result);
 }

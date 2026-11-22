@@ -33,6 +33,30 @@ void RenderComponent::render(Shader *externShader) {
         result &= externShader->updateUniform ("material.shininess", m_materials[i]->getShininess());
         result &= externShader->updateUniform ("material.normalMapStrength", m_materials[i]->getNormalMapStrength());
         result &= externShader->updateUniform ("material.isBlackAlpha", m_materials[i]->getIsBlackAlpha());
+        externShader->updateUniform ("material.emissive", m_materials[i]->getEmissive());
+        externShader->updateUniform ("material.specularStrength", m_materials[i]->getSpecularStrength());
+
+        const TerrainLayers *terrain = m_materials[i]->getTerrain();
+        bool terrainEnabled = terrain != nullptr && terrain->grass != nullptr && terrain->rock != nullptr;
+        externShader->updateUniform ("terrainEnabled", terrainEnabled);
+        if (terrainEnabled) {
+            Texture *layers[6] = { terrain->grass, terrain->grass2 ? terrain->grass2 : terrain->grass,
+                                   terrain->rock, terrain->rockNormal,
+                                   terrain->dirt ? terrain->dirt : terrain->grass,
+                                   terrain->soil ? terrain->soil : terrain->grass };
+            const char *names[6] = { "terrainGrass", "terrainGrass2", "terrainRock", "terrainRockNormal",
+                                     "terrainDirt", "terrainSoil" };
+            for (int layer = 0; layer < 6; layer++) {
+                externShader->updateUniform (names[layer], 3 + layer);
+                if (layers[layer] != nullptr) {
+                    layers[layer]->use(3 + layer);
+                }
+            }
+            bool hasRockNormal = terrain->rockNormal != nullptr;
+            externShader->updateUniform ("terrainHasRockNormal", hasRockNormal);
+            externShader->updateUniform ("terrainTileSize", terrain->tileSize);
+            externShader->updateUniform ("terrainShoreHeight", terrain->shoreHeight);
+        }
 
         if (m_materials[i]->getDiffuseTexture() != NULL) {
             result &= externShader->updateUniform ("textureSampler", m_materials[i]->getDiffuseTexture()->getTextureUnit());

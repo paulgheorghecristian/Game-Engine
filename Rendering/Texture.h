@@ -48,6 +48,15 @@ class Texture
         float subWidth, subHeight;
 
         std::string filePath;
+
+        /* Image files are decoded and uploaded once: textures loaded from the
+         * same path share one GL texture (reference counted). Each Texture
+         * object still has its own texture unit / atlas settings. */
+        bool m_shared = false;
+
+        /* sharing would make a copy release the GL texture twice */
+        Texture(const Texture &) = delete;
+        Texture &operator=(const Texture &) = delete;
 };
 
 #endif // TEXTURE_H

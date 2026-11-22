@@ -10,6 +10,8 @@ uniform sampler2D roughnessSampler;
 
 uniform mat4 spotLightProjectionMatrix;
 uniform mat4 spotLightViewMatrix;
+uniform mat4 inverseViewMatrix;   /* inverse(viewMatrix), computed on the CPU */
+uniform mat4 eyeToSpotLightClip;  /* spotLightProjection * spotLightView * inverseView */
 
 uniform vec3 lightColor;
 uniform int screenWidth, screenHeight;
@@ -45,21 +47,27 @@ void main() {
     float eyeZ = -projectionMatrix[3][2]/(depth + projectionMatrix[2][2]);
     vec3 viewPosition = view * eyeZ;
     vec3 dir = lightPositionEyeSpace - viewPosition;
-    vec3 dirNormalized = normalize (dir);
     float l = length (dir);
+
+    vec4 worldPosition = inverseViewMatrix * vec4(viewPosition, 1.0);
+    float spotLightAttCoef = max(0.0, dot (normalize(worldPosition.xyz - lightPosition), normalize(mat3(modelMatrix) * vec3(0,0,-1))));
+    float coneFactor = alpha - acos(spotLightAttCoef);
+    float lenAtt = max(1.0 - (l / lightLength), 0.0);
+
+    /* Outside the cone or beyond the range the contribution is <= 0, which the
+     * UNORM light buffer clamps to 0 anyway: skip the shadow lookups. */
+    if (coneFactor <= 0.0 || lenAtt <= 0.0) {
+        discard;
+    }
+
+    vec3 dirNormalized = normalize (dir);
     float totalPixelsInShadow = 0;
     float lightStrength = 1.0f;
 
     vec3 eyeSpaceNormal = texture (eyeSpaceNormalSampler, texCoord).rgb * 2.0 - vec3(1);
     float dotProduct = dot (dirNormalized, eyeSpaceNormal);
-    float spotLightAttCoef;
 
-    //TODO uniform instead of calculate here
-    mat4 inverseViewMatrix = inverse(viewMatrix);
-
-    // TODO investigate how to move this to VS
-    vec4 worldPosition = (inverseViewMatrix * vec4(viewPosition, 1.0));
-    vec4 spotLightClip = (spotLightProjectionMatrix * spotLightViewMatrix * worldPosition);
+    vec4 spotLightClip = eyeToSpotLightClip * vec4(viewPosition, 1.0);
     vec3 spotLightNDC = spotLightClip.xyz / spotLightClip.w;
     vec3 spotLightNDCNormalized = spotLightNDC.xyz * 0.5f + 0.5f;
 
@@ -81,7 +89,6 @@ void main() {
     }
 
     lightStrength = 1.0f - (totalPixelsInShadow / PCFKernelSize);
-    spotLightAttCoef = max(0.0, dot (normalize(worldPosition.xyz - lightPosition), normalize(mat3(modelMatrix) * vec3(0,0,-1))));
 
     vec3 H = normalize (dirNormalized + (-cameraForwardVectorEyeSpace));
     getLight = (dotProduct > 0);
@@ -98,10 +105,8 @@ void main() {
     float a2 = att_specular.x*0.001f, b2 = att_specular.y * 0.000001f, c2 = att_specular.z * 0.000001f;
     float att2 = 1.0 / (a2 + b2*l + c2 * l * l);
 
-    float lenAtt = max(1.0 - (l / lightLength), 0.0);
-
-    vec3 diffuseLight = (alpha - acos(spotLightAttCoef)) * att * lenAtt * diffuseStrength * lightColor;
-    vec3 specularLight = (alpha - acos(spotLightAttCoef)) * att2 * lenAtt * specularStrength * lightColor;
+    vec3 diffuseLight = coneFactor * att * lenAtt * diffuseStrength * lightColor;
+    vec3 specularLight = coneFactor * att2 * lenAtt * specularStrength * lightColor;
 
     outLight = diffuseLight;
     if (getLight) {

@@ -12,6 +12,10 @@
 class RenderComponent : public Component
 {
     public:
+        /* "castShadow": false in the map JSON keeps glowing props (lamps, lantern
+         * globes) out of shadow maps, so a light placed inside them still shines */
+        inline void setCastsShadow(bool casts) { m_castsShadow = casts; }
+        inline bool castsShadow() const { return m_castsShadow; }
         RenderComponent(RenderingObject &&renderingObject);
         void input(Input &inputManager);
         void update();
@@ -29,6 +33,8 @@ class RenderComponent : public Component
 
     private:
         RenderingObject renderingObject;
+    private:
+        bool m_castsShadow = true;
 };
 
 #endif // RENDERCOMPONENT_H
