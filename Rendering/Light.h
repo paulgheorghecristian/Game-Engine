@@ -82,6 +82,10 @@ class Light
         inline void setAttSpecular(float x, float y, float z) { m_att_specular.x = x; m_att_specular.y = y; m_att_specular.z = z;}
 
         std::string jsonify();
+        /* lights created by another feature (e.g. a black hole's glow) are
+         * recreated by it, so they are not saved as map lights */
+        void setOwnedByFeature(bool owned) { m_ownedByFeature = owned; }
+        bool isOwnedByFeature() const { return m_ownedByFeature; }
         virtual std::string jsonifyAttribs();
 
         /* Optional animation, from the map's light "Attributes":
@@ -131,6 +135,8 @@ class Light
         void initPhysics(const Transform& transform, bool grab);
     private:
         static unsigned int g_num_of_instances;
+    private:
+        bool m_ownedByFeature = false;
 };
 
 #endif // LIGHT_H

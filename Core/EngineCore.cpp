@@ -16,6 +16,7 @@
 #include "SlideButton.hpp"
 #include "ParticleEmitter.h"
 #include "GrassRenderer.h"
+#include "BlackHole.h"
 #include "ParticleEmitterComponent.h"
 #include "WaterRenderer.h"
 #include "rapidjson/prettywriter.h"
@@ -1226,6 +1227,12 @@ void EngineCore::loadMapFeatures(rapidjson::Document &gameDocument) {
         rm->setEnvironment(environment);
     }
 
+    if (gameDocument.HasMember("BlackHoles") && gameDocument["BlackHoles"].IsArray()) {
+        for (auto const &hole : gameDocument["BlackHoles"].GetArray()) {
+            rm->blackHoles.push_back(new BlackHole(hole));
+        }
+    }
+
     if (gameDocument.HasMember("Water") && gameDocument["Water"].IsObject()) {
         rm->water = new WaterRenderer(gameDocument["Water"], rm->getRenderWidth(), rm->getRenderHeight());
     }
@@ -1439,7 +1446,7 @@ bool EngineCore::saveMap(const std::string &path) {
     rapidjson::Value lightArray(rapidjson::kArrayType);
     for (Light *light : rm->getLights()) {
         rapidjson::Value value;
-        if (!parseInto("{" + light->jsonify() + "}", value)) {
+        if (light->isOwnedByFeature() || !parseInto("{" + light->jsonify() + "}", value)) {
             continue;
         }
         glm::vec3 baseColor, baseDirection;
@@ -1454,6 +1461,15 @@ bool EngineCore::saveMap(const std::string &path) {
         lightArray.PushBack(value, allocator);
     }
     doc.AddMember("Lights", lightArray, allocator);
+    if (!rm->blackHoles.empty()) {
+        rapidjson::Value holes(rapidjson::kArrayType);
+        for (BlackHole *hole : rm->blackHoles) {
+            rapidjson::Value value;
+            hole->save(value, allocator);
+            holes.PushBack(value, allocator);
+        }
+        doc.AddMember("BlackHoles", holes, allocator);
+    }
 
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
@@ -1578,6 +1594,12 @@ void EngineCore::runBenchmark(int numFrames) {
     const bool fireballs = scenario == "fireballs";
     /* GE_SCENARIO=boxes: camera stands still and drops a box (left click) every 12 frames */
     const bool boxes = scenario == "boxes";
+    /* GE_SCENARIO=jump: walk forward while turning, press space every 40
+     * frames, and print the player's height (tests ground contact / jumping) */
+    const bool jumpTest = scenario == "jump";
+    /* GE_SCENARIO=hills: run (shift) forward while slowly turning, never
+     * jumping, printing the player's position (catches launches off slopes) */
+    const bool hillsTest = scenario == "hills";
     const int segment = 100;
     double segmentSum = 0;
     int segmentStartLights = 0;
@@ -1596,6 +1618,24 @@ void EngineCore::runBenchmark(int numFrames) {
         }
         if (fireballs) {
             inputManager.injectKey(SDLK_g, i % 25 == 5);
+        }
+        if (hillsTest) {
+            inputManager.injectKey(SDLK_w, true);
+            inputManager.injectKey(SDLK_LSHIFT, true);
+            inputManager.injectMouseDelta(glm::vec2(0.7f, 0.0f));
+            if (i % 5 == 0) {
+                glm::vec3 p = player->getTransform().getPosition();
+                printf("PLAYER %d %.1f %.1f %.1f\n", i, p.x, p.y, p.z);
+            }
+        }
+        if (jumpTest) {
+            inputManager.injectKey(SDLK_w, true);
+            inputManager.injectKey(SDLK_SPACE, i % 40 == 10);
+            inputManager.injectMouseDelta(glm::vec2(1.5f, 0.0f));
+            if (i % 5 == 0) {
+                glm::vec3 p = player->getTransform().getPosition();
+                printf("PLAYER %d %.1f %.1f %.1f\n", i, p.x, p.y, p.z);
+            }
         }
         if (boxes && i % 12 == 5) {
             /* in front of the camera (a real click drops it at the camera) */

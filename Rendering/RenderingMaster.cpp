@@ -15,6 +15,7 @@
 #include "Font.h"
 #include "ParticleEmitter.h"
 #include "GrassRenderer.h"
+#include "BlackHole.h"
 #include "Material.h"
 #include "WaterRenderer.h"
 
@@ -249,6 +250,8 @@ RenderingMaster::~RenderingMaster()
     delete m_ssaoShader; delete m_ssaoBlurShader; delete m_bloomBrightShader; delete m_blurShader; delete m_tonemapShader;
     delete water;
     delete grass;
+    for (BlackHole *hole : blackHoles) delete hole;
+    delete m_lensCopyFB;
     for (ParticleEmitter *emitter : particleEmitters) {
         delete emitter;
     }
@@ -420,10 +423,14 @@ void RenderingMaster::drawDeferredShadingBuffers()
         if (water != NULL) {
             water->render(*m_hdrFB);
         }
+        renderBlackHoles(*m_hdrFB);
         m_hdrFB->unbind();
         renderBloomAndToneMap(); /* leaves fxaaFrameBuffer bound */
-    } else if (water != NULL) {
-        water->render(fxaaFrameBuffer);
+    } else {
+        if (water != NULL) {
+            water->render(fxaaFrameBuffer);
+        }
+        renderBlackHoles(fxaaFrameBuffer);
     }
     fxaaFrameBuffer.unbind();
     //END FXAA
@@ -708,8 +715,60 @@ void RenderingMaster::startIMGUIFrame() {
     ImGui::NewFrame();
 }
 
+void RenderingMaster::drawScreenQuad() {
+    screenSizeRectangle->draw();
+}
+
+/* black holes bend the composited image: each reads a copy of it */
+void RenderingMaster::renderBlackHoles(FrameBuffer &target)
+{
+    if (blackHoles.empty()) {
+        return;
+    }
+    if (m_lensCopyFB == nullptr) {
+        m_lensCopyFB = new FrameBuffer(renderWidth, renderHeight, 1, false, GL_RGBA16F);
+    }
+    GLuint sky = m_environment.pbr ? m_skyCube : 0;
+    for (BlackHole *hole : blackHoles) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, target.getFrameBufferObject());
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_lensCopyFB->getFrameBufferObject());
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        glBlitFramebuffer(0, 0, renderWidth, renderHeight, 0, 0, renderWidth, renderHeight,
+                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, target.getFrameBufferObject());
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        glViewport(0, 0, renderWidth, renderHeight);
+        glDisable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
+        glDisable(GL_BLEND);
+        hole->render(m_lensCopyFB->getRenderTargets()[0], depthTexture->getTextureId(), sky,
+                     renderWidth, renderHeight);
+    }
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+}
+
+void RenderingMaster::blackHoleGUI()
+{
+    ImGui::Begin("Black holes");
+    if (ImGui::Button("Add in front of me")) {
+        BlackHole *hole = new BlackHole(camera->getPosition() + camera->getForward() * 600.0f);
+        blackHoles.push_back(hole);
+    }
+    for (size_t i = 0; i < blackHoles.size(); i++) {
+        if (!blackHoles[i]->renderGUI((int) i)) {
+            delete blackHoles[i];
+            blackHoles.erase(blackHoles.begin() + i);
+            i--;
+        }
+    }
+    ImGui::End();
+}
+
 void RenderingMaster::imguiDrawCalls() {
     environmentGUI();
+    blackHoleGUI();
     {
         ImGui::Begin("GUI!");
 

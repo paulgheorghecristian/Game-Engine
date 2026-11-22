@@ -547,6 +547,11 @@ game = {
               "murkDepth": 14, "softEdge": 1.5, "reflectivity": 1.0,
               # bright reflections (crystal, braziers) bloom into soft rippling streaks
               "reflectionGlow": 1.8},
+    # a black hole hanging over the basin behind the colossus: it bends the
+    # light of the sky, the buttes and its own accretion disk
+    "BlackHoles": [{"position": [250, 380, -1750], "radius": 45, "lensing": 1.0, "influence": 9,
+                    "diskInner": 2.6, "diskOuter": 7.5, "diskColor": [1.0, 0.62, 0.3], "diskBrightness": 3.0,
+                    "diskOpacity": 0.85, "diskSpeed": 1.0, "diskTilt": [14, 8], "glow": 0.6}],
     "Entities": entities,
     "Lights": lights,
     "ParticleEmitters": emitters,

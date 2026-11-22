@@ -25,6 +25,7 @@ class ParticleRenderer;
 class ParticleEmitter;
 class WaterRenderer;
 class GrassRenderer;
+class BlackHole;
 
 enum GUIVarsEnum_f {
     VAR1_f = 0,
@@ -152,6 +153,9 @@ class RenderingMaster
         /* optional per-map features; owned by RenderingMaster */
         WaterRenderer *water = NULL;
         GrassRenderer *grass = NULL;
+        std::vector<BlackHole *> blackHoles;
+        /* a full screen quad (post-processing passes) */
+        void drawScreenQuad();
         std::vector<ParticleEmitter *> particleEmitters;
         void drawParticles();
         void addParticleEmitter(ParticleEmitter *emitter) { particleEmitters.push_back(emitter); }
@@ -266,6 +270,9 @@ class RenderingMaster
     private:
         float m_farPlane = 5000.0f, m_defaultFarPlane = 5000.0f;
         void uploadProjection();
+        FrameBuffer *m_lensCopyFB = nullptr;   /* black holes read a copy of the image they bend */
+        void renderBlackHoles(FrameBuffer &target);
+        void blackHoleGUI();
 };
 
 #endif // RENDERINGMASTER_H

@@ -1,0 +1,27 @@
+{
+    "VSPath" : "res/shaders/bufferCombinationShader.vs",
+    "FSPath" : "res/shaders/blackHole.fs",
+    "Uniforms" : {
+                    "sceneSampler" : "INT",
+                    "depthSampler" : "INT",
+                    "skySampler" : "INT",
+                    "hasSky" : "INT",
+                    "inverseProjectionMatrix" : "MAT4",
+                    "inverseViewMatrix" : "MAT4",
+                    "viewProjectionMatrix" : "MAT4",
+                    "projectionMatrix" : "MAT4",
+                    "cameraPosition" : "VEC3",
+                    "holePosition" : "VEC3",
+                    "holeRadius" : "FLOAT",
+                    "lensing" : "FLOAT",
+                    "influenceRadius" : "FLOAT",
+                    "diskNormal" : "VEC3",
+                    "diskInner" : "FLOAT",
+                    "diskOuter" : "FLOAT",
+                    "diskColor" : "VEC3",
+                    "diskBrightness" : "FLOAT",
+                    "diskOpacity" : "FLOAT",
+                    "diskSpeed" : "FLOAT",
+                    "time" : "FLOAT"
+                 }
+}

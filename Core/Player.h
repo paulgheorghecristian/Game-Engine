@@ -49,6 +49,10 @@ class Player : public Entity
                 void jump(PhysicsComponent *physicsComponent);
 
                 bool m_isJumping, m_wasSpaceReleased;
+                /* forgiving jumps: still allowed shortly after leaving the
+                 * ground (coyote time), and a press shortly before landing
+                 * is kept until it can be used (jump buffer); seconds */
+                float m_groundTimer = 0.0f, m_jumpBuffer = 0.0f;
                 Camera *m_camera;
                 bool m_freeRoam;
                 float speed;

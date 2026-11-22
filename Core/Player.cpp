@@ -134,15 +134,8 @@ void Player::PlayerControllerComponent::input(Input &inputManager) {
     }
 
     if (!m_freeRoam) {
-        if (inputManager.getKeyDown(SDLK_SPACE) && m_wasSpaceReleased) {
-            if (!m_isJumping) {
-                jump(physicsComponent);
-            }
-            m_wasSpaceReleased = false;
-        }
-
-        if (inputManager.getKeyUp(SDLK_SPACE)) {
-            m_wasSpaceReleased = true;
+        if (inputManager.getKeyDown(SDLK_SPACE)) {
+            m_jumpBuffer = 0.15f;   /* used by update() as soon as the player can jump */
         }
     }
 
@@ -152,86 +145,137 @@ void Player::PlayerControllerComponent::input(Input &inputManager) {
     }
 }
 
-void Player::PlayerControllerComponent::update() {
-    btRigidBody *m_body;
-    glm::vec3 playerPosition = _entity->getTransform().getPosition();
-    float closestHitFraction = 1000.0f;
-    float values[5][2]={{0, 1.0},
-                      {0, -1.0},
-                      {1.0, 0},
-                      {-1.0, 0},
-                      {0,0}
-                     };
-    btVector3 normal, hitPos;
-    PhysicsComponent *physicsComponent = (PhysicsComponent *) _entity->getComponent (Entity::Flags::DYNAMIC);
+namespace {
+/* Closest hit along a ground probe, ignoring the player's own body and
+ * objects that are not walkable geometry (the AI quadtree's ghost boxes,
+ * picking proxies). Filtering in needsCollision lets the ray find the real
+ * ground behind them instead of stopping at them. */
+struct GroundRayCallback : public btCollisionWorld::ClosestRayResultCallback {
+    const btCollisionObject *self;
+    GroundRayCallback(const btVector3 &from, const btVector3 &to, const btCollisionObject *self)
+        : btCollisionWorld::ClosestRayResultCallback(from, to), self(self) {}
+    bool needsCollision(btBroadphaseProxy *proxy) const override {
+        const btCollisionObject *object = (const btCollisionObject *) proxy->m_clientObject;
+        if (object == self) {
+            return false;
+        }
+        const UserData *data = (const UserData *) object->getUserPointer();
+        if (data != NULL && (data->type == PointerType::ENTITY || data->type == PointerType::LIGHT ||
+                             data->type == PointerType::QUADT_NODE)) {
+            return false;
+        }
+        return btCollisionWorld::ClosestRayResultCallback::needsCollision(proxy);
+    }
+};
 
+/* the capsule rides this high above the ground (its bottom hovers ~11 units
+ * up, so it steps over small obstacles) */
+const float RIDE_HEIGHT = 31.0f;
+const float GROUNDED_HEIGHT = 36.5f;   /* within this: standing on the ground */
+const float PROBE_LENGTH = 120.0f;
+const float MAX_WALKABLE_SLOPE = 0.6f; /* ground normal y; steeper: slide, no jump */
+const float JUMP_VELOCITY = 29.0f;     /* same jump height as before */
+const float TICK = 1.0f / 60.0f;
+}
+
+void Player::PlayerControllerComponent::update() {
+    PhysicsComponent *physicsComponent = (PhysicsComponent *) _entity->getComponent (Entity::Flags::DYNAMIC);
     if (physicsComponent == NULL) {
         return;
     }
-    m_body = physicsComponent->getRigidBody();
-    float radius = physicsComponent->getBoundingBodyScale().x * 2.0f;
+    btRigidBody *body = physicsComponent->getRigidBody();
+    btDynamicsWorld *world = PhysicsMaster::getInstance()->getWorld();
+    /* walls should not hold the player (pushing into a fence mid-air used to
+     * stick to it through friction) or bounce them away */
+    body->setFriction(0.0f);
+    body->setRestitution(0.0f);
 
-    if (!m_freeRoam) {
-        m_body->setGravity(PhysicsMaster::getInstance()->getWorld()->getGravity());
+    m_jumpBuffer = std::max(0.0f, m_jumpBuffer - TICK);
+    if (m_freeRoam) {
+        body->setGravity(btVector3(0, 0, 0));
+        return;
+    }
+    body->setGravity(world->getGravity());
 
-        for (int i = 0; i < 5; i++){
-            float xPlayerPosition = playerPosition.x+radius*values[i][0]*0.5;
-            float zPlayerPosition = playerPosition.z+radius*values[i][1]*0.5;
-            btVector3 from = btVector3(xPlayerPosition, playerPosition.y, zPlayerPosition);
-            btVector3 to = btVector3(xPlayerPosition, -10000, zPlayerPosition);
-
-            btCollisionWorld::ClosestRayResultCallback rayCallback(from, to);
-            PhysicsMaster::getInstance()->getWorld()->rayTest(from, to, rayCallback);
-
-            if (rayCallback.hasHit()) {
-                UserData *data = (UserData *) rayCallback.m_collisionObject->getUserPointer();
-
-                if (data != NULL &&
-                    (data->type == PointerType::ENTITY ||
-                    data->type == PointerType::LIGHT ||
-                    data->type == PointerType::QUADT_NODE)) {
-                    continue;
-                }
-
-                if (rayCallback.m_closestHitFraction < closestHitFraction){
-                    closestHitFraction = rayCallback.m_closestHitFraction;
-                    normal = rayCallback.m_hitNormalWorld;
-                    hitPos = rayCallback.m_hitPointWorld;
-                }
+    /* ground probe: five rays down from the capsule (centre and four sides) */
+    const glm::vec3 position = _entity->getTransform().getPosition();
+    const float offset = physicsComponent->getBoundingBodyScale().x;
+    const float offsets[5][2] = { {0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
+    float hitY[5];
+    glm::vec3 hitNormal[5];
+    bool hit[5];
+    float groundY = -1e9f;
+    for (int i = 0; i < 5; i++) {
+        btVector3 from(position.x + offsets[i][0] * offset, position.y, position.z + offsets[i][1] * offset);
+        btVector3 to = from - btVector3(0, PROBE_LENGTH, 0);
+        GroundRayCallback ray(from, to, body);
+        world->rayTest(from, to, ray);
+        hit[i] = ray.hasHit();
+        if (hit[i]) {
+            hitY[i] = ray.m_hitPointWorld.y();
+            hitNormal[i] = glm::vec3(ray.m_hitNormalWorld.x(), ray.m_hitNormalWorld.y(), ray.m_hitNormalWorld.z());
+            groundY = std::max(groundY, hitY[i]);
+        }
+    }
+    bool hasGround = groundY > -1e8f;
+    /* the ground's slope from the rays that agree with the highest hit (one
+     * ray catching the edge of a rock no longer decides it alone) */
+    glm::vec3 normal(0, 1, 0);
+    if (hasGround) {
+        glm::vec3 sum(0);
+        for (int i = 0; i < 5; i++) {
+            if (hit[i] && groundY - hitY[i] < 4.0f) {
+                sum += hitNormal[i];
             }
         }
-
-        float currentGroundDistance = glm::distance (glm::vec3(hitPos.x(), hitPos.y(), hitPos.z()), playerPosition);
-        const btVector3 &currentVel = m_body->getLinearVelocity();
-
-        /* 35 magic number, chosen by trial and error */
-        if (!m_isJumping && currentGroundDistance < 35) {
-            btTransform transform = m_body->getCenterOfMassTransform();
-            btVector3 origin = transform.getOrigin();
-
-            transform.setOrigin(btVector3(origin.x(), hitPos.y() + 31, origin.z()));
-            m_body->setCenterOfMassTransform(transform);
-            m_body->setLinearVelocity(btVector3(currentVel.x(), 0, currentVel.z()));
+        if (glm::length(sum) > 1e-4f) {
+            normal = glm::normalize(sum);
         }
+    }
 
-        if (m_isJumping || currentVel.y() < -5.0) {
-            m_body->setDamping(btScalar(0.2), btScalar(0));
+    btVector3 velocity = body->getLinearVelocity();
+    float height = position.y - groundY;
+    bool walkable = normal.y >= MAX_WALKABLE_SLOPE;
+    /* rising from a jump: never snap back down */
+    bool risingFromJump = m_isJumping && velocity.y() > 0.0f;
+    /* within reach of the ground; right after being on it (and not jumping)
+     * the reach is longer, so the player follows the ground over crests and
+     * down hills instead of flying off them */
+    float reach = (m_groundTimer > 0.0f && !m_isJumping) ? RIDE_HEIGHT + 22.0f : GROUNDED_HEIGHT;
+    bool onGround = hasGround && walkable && !risingFromJump && height <= reach;
+
+    if (onGround) {
+        m_isJumping = false;
+        m_groundTimer = 0.12f;
+        /* ride height set directly (as the original controller did), a few
+         * units per tick at most so the capsule is never shoved into
+         * geometry, and no vertical speed is kept: nothing launches the
+         * player at the top of a slope */
+        float dy = glm::clamp((groundY + RIDE_HEIGHT) - position.y, -8.0f, 8.0f);
+        btTransform transform = body->getCenterOfMassTransform();
+        transform.setOrigin(transform.getOrigin() + btVector3(0, dy, 0));
+        body->setCenterOfMassTransform(transform);
+        /* slopes do not add speed: grounded speed is capped at the flat
+         * ground walking / running speed */
+        btVector3 horizontal(velocity.x(), 0, velocity.z());
+        float maxSpeed = speed * 0.095f;
+        if (horizontal.length() > maxSpeed) {
+            horizontal *= maxSpeed / horizontal.length();
         }
-
-        /*36 magic number, chosen by trial and error */
-        if(currentGroundDistance <= 36 && currentVel.y() <= 0){
-            m_isJumping = false;
-
-            float dot_prod = glm::dot(glm::vec3(0,1,0),
-                                glm::vec3(normal.x(), normal.y(), normal.z()));
-
-            m_body->setDamping(btScalar(0.4+(1.1-dot_prod)), btScalar(0));
-            if (dot_prod < 0.7) {
-                m_isJumping = true;
-            }
-        }
+        body->setLinearVelocity(btVector3(horizontal.x(), 0, horizontal.z()));
+        body->setDamping(btScalar(0.4f + (1.1f - normal.y)), btScalar(0));
     } else {
-        m_body->setGravity(btVector3(0, 0, 0));
+        m_groundTimer = std::max(0.0f, m_groundTimer - TICK);
+        /* in the air or on a too steep slope: gravity takes over (it slides
+         * down slopes instead of getting trapped on them) */
+        body->setDamping(btScalar(0.2), btScalar(0));
+    }
+
+    /* jump: buffered press + coyote time, a fixed take-off velocity */
+    if (m_jumpBuffer > 0.0f && m_groundTimer > 0.0f) {
+        jump(physicsComponent);
+        m_jumpBuffer = 0.0f;
+        m_groundTimer = 0.0f;
     }
 }
 
@@ -244,10 +288,11 @@ const unsigned int Player::PlayerControllerComponent::getFlag() const {
 }
 
 void Player::PlayerControllerComponent::jump(PhysicsComponent *physicsComponent) {
-    btVector3 vel = physicsComponent->getRigidBody()->getLinearVelocity();
+    btRigidBody *body = physicsComponent->getRigidBody();
+    btVector3 velocity = body->getLinearVelocity();
     m_isJumping = true;
-    physicsComponent->getRigidBody()->applyCentralForce(btVector3(0, JUMP_SPEED, 0));
-    physicsComponent->getRigidBody()->setLinearVelocity(btVector3(vel.x(), 1, vel.z()));
+    body->activate(true);
+    body->setLinearVelocity(btVector3(velocity.x(), JUMP_VELOCITY, velocity.z()));
 }
 
 Player::~Player () {

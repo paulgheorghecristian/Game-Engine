@@ -38,7 +38,15 @@ void main(){
     vec4 textColor = texture(particleSampler, textCoords);
     vec4 prevTextColor = texture(particleSampler, previousTextCoords);
 
-    float depth = texture (depthSampler, texCoord).r;
+    /* the particle buffer is half resolution: each of its pixels covers 2x2
+     * scene pixels. Test against the farthest of them, or at silhouettes
+     * (lamp globes) the glow is dropped where it should show, leaving a dark
+     * dotted ring around the object */
+    vec2 sceneTexel = 0.5 / vec2(screenWidth, screenHeight);
+    float depth = max(max(texture(depthSampler, texCoord + vec2(-sceneTexel.x, -sceneTexel.y)).r,
+                          texture(depthSampler, texCoord + vec2(sceneTexel.x, -sceneTexel.y)).r),
+                      max(texture(depthSampler, texCoord + vec2(-sceneTexel.x, sceneTexel.y)).r,
+                          texture(depthSampler, texCoord + vec2(sceneTexel.x, sceneTexel.y)).r));
     float eyeZ = projectionMatrix[3][2]/(depth + projectionMatrix[2][2]);
 
     float depth2 = gl_FragCoord.z;

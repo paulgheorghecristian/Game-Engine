@@ -137,6 +137,33 @@
   "reflectivity": 1.0,
   "reflectionGlow": 1.8
  },
+ "BlackHoles": [
+  {
+   "position": [
+    250,
+    380,
+    -1750
+   ],
+   "radius": 45,
+   "lensing": 1.0,
+   "influence": 9,
+   "diskInner": 2.6,
+   "diskOuter": 7.5,
+   "diskColor": [
+    1.0,
+    0.62,
+    0.3
+   ],
+   "diskBrightness": 3.0,
+   "diskOpacity": 0.85,
+   "diskSpeed": 1.0,
+   "diskTilt": [
+    14,
+    8
+   ],
+   "glow": 0.6
+  }
+ ],
  "Entities": [
   {
    "Transform": {
