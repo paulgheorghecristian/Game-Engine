@@ -143,6 +143,9 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
     if (gameDocument.HasMember("ParticleEmitters")) {
         m_emittersJson = jsonToString(gameDocument["ParticleEmitters"]);
     }
+    if (gameDocument.HasMember("Audio")) {
+        m_audioJson = jsonToString(gameDocument["Audio"]);
+    }
     RenderingMaster::getInstance()->savedMapPath = m_savePath;
     RenderingMaster::getInstance()->onSaveMap = [this]() { saveMap(m_savePath); };
     RenderingMaster::getInstance()->onReloadMap = [this]() { reloadMap(m_savePath); };
@@ -747,6 +750,7 @@ static inline uint64_t fnv1a(uint64_t h, const void *data, size_t size) {
 void EngineCore::render(float alpha) {
     beginInterpolation(alpha);
     RenderingMaster::getInstance()->prepareFrame(alpha);
+    m_soundScape.update(RenderingMaster::getInstance()->getCamera());
 
     /*generate deferred shading buffers*/
     PT_FromHere("renderScene");
@@ -1269,6 +1273,10 @@ void EngineCore::loadMapFeatures(rapidjson::Document &gameDocument) {
         rm->setEnvironment(environment);
     }
 
+    if (gameDocument.HasMember("Audio")) {
+        m_soundScape.load(gameDocument["Audio"]);
+    }
+
     if (gameDocument.HasMember("BlackHoles") && gameDocument["BlackHoles"].IsArray()) {
         for (auto const &hole : gameDocument["BlackHoles"].GetArray()) {
             rm->blackHoles.push_back(new BlackHole(hole));
@@ -1476,6 +1484,8 @@ std::string EngineCore::mapJson() {
     if (parseInto(m_waterJson, water)) doc.AddMember("Water", water, allocator);
     rapidjson::Value grass;
     if (parseInto(m_grassJson, grass)) doc.AddMember("Grass", grass, allocator);
+    rapidjson::Value audio;
+    if (parseInto(m_audioJson, audio)) doc.AddMember("Audio", audio, allocator);
     if (parseInto(m_emittersJson, emitters)) doc.AddMember("ParticleEmitters", emitters, allocator);
 
     rapidjson::Value entityArray(rapidjson::kArrayType);

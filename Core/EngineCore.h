@@ -2,6 +2,7 @@
 #define ENGINECORE_H
 
 #include "FrameRecorder.h"
+#include "SoundScape.h"
 #include "Display.h"
 #include "Input.h"
 #include "Entity.h"
@@ -38,7 +39,7 @@ class EngineCore
 
         /* save the current world (F5) as <map>_saved.json; reload it (F9) */
         std::string m_mapPath, m_savePath;
-        std::string m_waterJson, m_emittersJson, m_grassJson;
+        std::string m_waterJson, m_emittersJson, m_grassJson, m_audioJson;
         /* the map's "Grass" (needs the terrain entity, so after the entities) */
         void loadGrass(rapidjson::Document &gameDocument);
         bool saveMap(const std::string &path);
@@ -78,6 +79,8 @@ class EngineCore
         bool m_warpBeforePlayMode = false;
         /* F12: record what is rendered to ~/Videos (MP4, without overlays) */
         FrameRecorder m_recorder;
+        /* the map's sound ("Audio" block) and the Kugelblitz's */
+        SoundScape m_soundScape;
         int outputType;
 
         void constructPlayer();

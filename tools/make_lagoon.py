@@ -324,7 +324,7 @@ def _cross(a, b):
     return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
 _h = _norm(moon)                # the hole sits in the moon
 black_holes = [{"sky": True, "direction": [round(c, 4) for c in _h], "angularRadius": 0.03,
-                "kugelblitz": True, "collapse": 0.62, "collapseSpeed": 1.0, "collapseDelay": 3.0, "collapseSite": [0.36, 0.77],
+                "kugelblitz": True, "collapse": 0.0, "collapseSpeed": 5.0, "collapseDelay": 3.0, "collapseSite": [0.36, 0.77],
                 # ends as the lagoon_bh sky hole: a long thin Gargantua disk
                 "lensing": 0.8, "influence": 11, "colorShift": 0.7, "diskInner": 3.0, "diskOuter": 16.0,
                 "diskColor": [1.0, 0.55, 0.26], "diskBrightness": 5.0, "diskOpacity": 0.55, "diskSpeed": 0.8,
@@ -366,6 +366,10 @@ game = {
               "waveSpeed": 0.03, "waveHeight": 0.5, "shallowColor": [0.7, 0.85, 0.9], "deepColor": [0.0, 0.025, 0.05],
               "murkDepth": 45, "softEdge": 3, "reflectivity": 1.0},
     "BlackHoles": black_holes,
+    # sound: wind, crickets at night, the campfire crackling (in 3D)
+    "Audio": {"wind": 0.15, "crickets": 0.25,
+              "sources": [{"sound": "fire_loop", "position": [round(fx, 1), round(fy + 6, 1), round(fz, 1)],
+                           "volume": 1.0, "radius": 480}]},
     "Entities": entities,
     "Lights": lights,
     "ParticleEmitters": emitters,

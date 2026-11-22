@@ -177,12 +177,14 @@ void main() {
     refraction = mix(refraction, deep, murk);
 
     vec3 reflection = deepColor;
+    vec3 sharpReflection = vec3(0.0);   /* unblurred: picks out small bright sources */
     vec3 reflectionHalo = vec3(0.0);
     vec4 reflectedParticles = vec4(0.0);
     if (hasReflection != 0) {
         vec2 reflectionUV = clamp(uv + distortion, vec2(0.001), vec2(0.999));
         /* slightly soft: a mirror-sharp edge on a lamp reads as a cut-out disc */
         reflection = textureLod(reflectionSampler, reflectionUV, 0.7 + clamp(sqrt(alpha2) * 12.0, 0.0, 3.0)).rgb;
+        sharpReflection = textureLod(reflectionSampler, reflectionUV, 0.0).rgb;
         reflectedParticles = texture(reflectionParticlesSampler, reflectionUV);
         if (reflectionGlow > 0.0) {
             /* light scattered by the ripples: the bright parts of the blurred
@@ -206,12 +208,26 @@ void main() {
 
     float cosTheta = max(dot(V, normalize(mix(vec3(0, 1, 0), normal, 0.3))), 0.0);
     float fresnel = clamp((0.02 + 0.98 * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0)) * reflectivity, 0.0, 1.0);
+    /* soft shoreline: the water body fades out over softEdge, but the surface
+     * (reflection, glints) stays until the last half unit, so shallow flats
+     * still read as water. The body is faded before anything is layered on
+     * it (fading it afterwards by subtraction went negative, black, under
+     * reflected billboards) */
+    float edge = clamp(waterDepth / softEdge, 0.0, 1.0);
+    float surfaceEdge = clamp(waterDepth / 0.5, 0.0, 1.0);
+    vec3 behind = texture(refractionSampler, uv).rgb;
+    refraction = mix(behind, refraction, edge);
     vec3 color = mix(refraction, reflection, fresnel);
     /* the glow is light scattered off the surface: not weighted by Fresnel */
     color += reflectionHalo;
     /* reflected billboards, composited like the main pass composites
      * particles (premultiplied; additive ones have alpha 0) */
     float particleReflect = mix(0.75, 1.0, fresnel);
+    /* light sources (glowing globes, flames) reflect as strongly as their
+     * billboards do: by Fresnel alone a lamp globe looking down was a few
+     * percent, a dark hole in the middle of its bright reflected halo */
+    float source = smoothstep(0.7, 1.3, max(sharpReflection.r, max(sharpReflection.g, sharpReflection.b)));
+    color += sharpReflection * source * max(particleReflect - fresnel, 0.0);
     color = reflectedParticles.rgb * particleReflect + color * (1.0 - reflectedParticles.a * particleReflect);
 
     /* glints: the sky's light (sun by day, moon by night) and nearby lights */
@@ -226,15 +242,7 @@ void main() {
         att *= att;
         specular += glint(normal, V, L, lightColors[i] * att * 0.6, alpha2 + 0.004) + lightColors[i] * att * 0.02;
     }
-    /* soft shoreline: the water body fades out over softEdge, but the surface
-     * (reflection, glints) stays until the last half unit, so shallow flats
-     * still read as water */
-    float edge = clamp(waterDepth / softEdge, 0.0, 1.0);
-    float surfaceEdge = clamp(waterDepth / 0.5, 0.0, 1.0);
-    vec3 behind = texture(refractionSampler, uv).rgb;
-    vec3 shallow = mix(behind, refraction, edge);
-    /* swap the refracted water body in the mix for its faded version */
-    color = mix(behind, color - (1.0 - fresnel) * (refraction - shallow), surfaceEdge);
+    color = mix(behind, color, surfaceEdge);
     color += specular * (1.0 - murk * 0.3) * surfaceEdge;
 
     vec3 hazeColor = fogColor + moonColor * fogMoonGlow * pow(max(dot(-V, moonDirection), 0.0), 6.0);

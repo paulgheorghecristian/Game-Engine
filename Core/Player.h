@@ -53,6 +53,12 @@ class Player : public Entity
                  * ground (coyote time), and a press shortly before landing
                  * is kept until it can be used (jump buffer); seconds */
                 float m_groundTimer = 0.0f, m_jumpBuffer = 0.0f;
+                /* sound: footsteps by distance walked, landing, water */
+                void playSounds(bool onGround, float groundY, const glm::vec3 &position);
+                float m_strideLeft = 0.0f;
+                bool m_wasOnGround = true, m_wasInWater = false, m_soundsStarted = false;
+                float m_fallSpeed = 0.0f;
+                glm::vec3 m_lastSoundPosition = glm::vec3(0.0f);
                 Camera *m_camera;
                 bool m_freeRoam;
                 float speed;

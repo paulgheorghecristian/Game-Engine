@@ -126,6 +126,25 @@ float breakupAmount() {
     return collapse >= 0.0 ? smoothstep(0.55, 0.97, collapse) : 0.0;
 }
 
+float kbBurst(float rate, float chance, float seed);
+
+/* the death spiral's flares: big chunks hitting the hole, and smaller
+ * flickers of debris raining in between them (0 outside the breakup) */
+float kbFlare() {
+    float b = breakupAmount();
+    float active = smoothstep(0.0, 0.08, b) * (1.0 - smoothstep(0.9, 1.0, collapse));
+    return (kbBurst(2.0, 0.7, 3.1) * 1.6 + kbBurst(4.3, 0.55, 9.7) * 0.6) * active;
+}
+
+/* bursts at irregular moments: `rate` chances a second, each firing with
+ * probability `chance`, a sharp rise and a quick decay (on the playback
+ * clock: the same every playthrough) */
+float kbBurst(float rate, float chance, float seed) {
+    float slot = floor(collapseTime * rate), phase = fract(collapseTime * rate);
+    vec2 h = fract(sin(vec2(slot * 12.9898 + seed, slot * 78.233 + seed * 2.1)) * 43758.5453);
+    return step(1.0 - chance, h.x) * (0.5 + 0.5 * h.y) * smoothstep(0.0, 0.04, phase) * exp(-phase * 5.0);
+}
+
 vec2 kbHash2(vec2 p) {
     return fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)))) * 43758.5453);
 }
@@ -215,6 +234,8 @@ void kugelblitzMoon(vec2 p, float r, inout float albedo, inout float lit, inout 
     float width = mix(0.05, 0.12, smoothstep(0.3, 0.85, collapse));
     float crack = (1.0 - smoothstep(0.0, width, cracks.y)) * reach;
     float pulse = 0.75 + 0.25 * sin(collapseTime * 2.3 + cracks.z * 40.0);
+    /* surges of light through the cracks from inside */
+    pulse += kbBurst(1.4, 0.6, 7.0) * 2.5 * smoothstep(0.28, 0.4, collapse);
     surface += mix(magma, whiteHot, crack * crack) * crack * 4.0 * pulse;
     surface += magma * exp(-cracks.y / 0.12) * reach * 0.8;   /* the glow around them */
     /* the crust chars as the inside heats up: near-black between blazing veins */
@@ -226,7 +247,7 @@ void kugelblitzMoon(vec2 p, float r, inout float albedo, inout float lit, inout 
 
     /* molten slab edges, and glowing rivers where slabs were */
     surface += magma * edge * b * 1.8;
-    heat += surface * present * disc;
+    heat += surface * present * disc * (1.0 + kbFlare() * 2.5);
     heat += mix(magma, whiteHot, 0.3) * (1.0 - present) * b * (1.0 - b) * 1.2 * disc *
             (0.6 + 0.4 * sin(r * 30.0 - collapseTime * 5.0));
     disc *= present;
@@ -273,28 +294,54 @@ void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRa
      * spiralling into the hole, lumpy with chunks, white-hot as they fall in */
     float b = breakupAmount();
     if (b > 0.0 && r > 0.04 && r < 4.5) {
-        float arm = theta * 2.0 + log(r) * 0.55 + collapseTime * 0.12;  /* two arms of a logarithmic spiral */
-        float band = pow(0.5 + 0.5 * cos(arm * 6.2831853), 5.0);
-        vec3 bits = kbCellsWrapped(vec2(theta * 40.0, log(r) * 9.0 + collapseTime * 0.8), 40.0);
-        float chunk = smoothstep(0.32, 0.0, bits.x) * step(0.35, bits.z);
+        /* the bigger the hole, the more violent the inflow: faster, churning,
+         * thicker and hotter, more chunks tumbling in. The extra motion is
+         * tied to the collapse (it speeds up smoothly as the hole grows; a
+         * speed-up on the clock would jerk the streams forward) */
+        float violence = smoothstep(0.62, 0.92, collapse);
+        float arm = theta * 2.0 + log(r) * 0.55 + collapseTime * 0.12 + 8.0 * violence * violence;
+        arm += violence * 0.06 * sin(r * 11.0 + collapseTime * 5.0 + theta * 12.566);   /* churning */
+        float band = pow(0.5 + 0.5 * cos(arm * 6.2831853), mix(5.0, 3.4, violence));
+        vec3 bits = kbCellsWrapped(vec2(theta * 40.0, log(r) * 9.0 + collapseTime * 0.8 + 30.0 * violence * violence), 40.0);
+        float chunk = smoothstep(mix(0.32, 0.4, violence), 0.0, bits.x) * step(mix(0.35, 0.15, violence), bits.z);
+        chunk *= 1.0 + violence * 0.6 * sin(collapseTime * 18.0 + bits.z * 60.0);          /* tumbling */
         float outer = mix(1.3, 3.6, b);
-        float extent = smoothstep(0.06, 0.25, r) * (1.0 - smoothstep(outer * 0.7, outer, r));
+        /* the streams end where they fall past the hole's edge, which grows
+         * with it (in moon radii; what is behind the shadow would only be
+         * wrapped round it into a blinding ring) */
+        float holeGrowth = smoothstep(0.62, 1.0, collapse);
+        float edge = 0.06 + holeGrowth * 1.5;
+        float extent = smoothstep(edge, edge * 1.6 + 0.2, r) * (1.0 - smoothstep(outer * 0.7, outer, r));
         float hot = smoothstep(2.6, 0.25, r);
         vec3 stream = mix(vec3(0.5, 0.18, 0.08), vec3(1.0, 0.68, 0.38), hot);
-        stream = mix(stream, vec3(1.0, 0.94, 0.82), hot * hot * chunk);
+        stream = mix(stream, vec3(1.0, 0.94, 0.82), hot * hot * chunk + violence * hot * 0.15);
         /* all fallen in by the end: only the black hole and its disk remain */
-        float fadeOut = 1.0 - smoothstep(0.85, 1.0, collapse);
-        result += stream * band * (0.3 + 1.8 * chunk) * extent * b * fadeOut * 2.2;
+        float fadeOut = 1.0 - smoothstep(0.92, 1.0, collapse);
+        result += stream * band * (0.3 + 1.8 * chunk) * extent * b * fadeOut * 2.2 * (1.0 + 0.6 * violence);
 
-        /* flares: big chunks hitting the hole, at irregular moments */
-        float beat = floor(collapseTime * 0.8), phase = fract(collapseTime * 0.8);
-        float burst = step(0.45, kbHash2(vec2(beat, 3.1)).x) * exp(-phase * 4.0) * b * (1.0 - b) * 4.0;
-        result += vec3(1.0, 0.86, 0.66) * burst * (exp(-r * 2.2) * 2.5 + exp(-r * 0.6) * 0.25);
+        /* flares: big chunks hitting the hole, and smaller flickers of the
+         * debris raining in between them */
+        result += stream * band * extent * kbFlare() * 1.5;     /* the streams light up in flares */
 
         /* dust thrown up by the breakup hides the stars, lit from inside */
         float dust = extent * b * fadeOut * (0.35 + 0.5 * band);
         color *= 1.0 - dust * 0.55;
         result += vec3(0.35, 0.16, 0.08) * dust * 0.06;
+    }
+
+    /* the flares' flash, where the falling crust meets the inflow, with a
+     * wide glow (outside the debris' area, or it would end in a hard edge) */
+    float flare = kbFlare();
+    if (flare > 0.0) {
+        /* a chunk hits at one spot on the rim (its angle changes from flare
+         * to flare); a flash all the way round was lensed into a ring */
+        float slot = floor(collapseTime * 2.0);
+        float angle = fract(sin(slot * 91.7 + 4.3) * 43758.5453) * 6.2831853;
+        float hit = mix(0.9, 0.45, b) + smoothstep(0.62, 1.0, collapse) * 1.4;
+        vec2 impact = vec2(cos(angle), sin(angle)) * hit;
+        float d = length(q - impact);
+        result += vec3(1.0, 0.86, 0.66) * flare *
+                  (exp(-d * d / 0.12) * 4.0 + exp(-d * 0.6) * 0.5 + exp(-r * 0.08) * 0.05);
     }
 
     /* 4. twin plasma jets out of the poles, a cosmic lighthouse */

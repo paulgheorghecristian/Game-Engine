@@ -13,6 +13,7 @@ INCLUDES := \
 -IRendering \
 -IRendering/SkeletalAnimation \
 -IRendering/DebugTools \
+-IAudio \
 -ICore \
 -Ires/libraries/rapidjson/include \
 -ICore/Utils \
@@ -40,6 +41,7 @@ $(wildcard Physics/*.cpp) \
 $(wildcard Rendering/*.cpp) \
 $(wildcard Rendering/SkeletalAnimation/*.cpp) \
 $(wildcard Rendering/DebugTools/*.cpp) \
+$(wildcard Audio/*.cpp) \
 $(wildcard Components/*.cpp) \
 $(wildcard GUIs/*.cpp) \
 $(wildcard res/libraries/imgui/*.cpp)

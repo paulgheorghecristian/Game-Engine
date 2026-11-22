@@ -148,8 +148,8 @@
    ],
    "angularRadius": 0.03,
    "kugelblitz": true,
-   "collapse": 0.62,
-   "collapseSpeed": 1.0,
+   "collapse": 0.0,
+   "collapseSpeed": 5.0,
    "collapseDelay": 3.0,
    "collapseSite": [
     0.36,
@@ -177,6 +177,22 @@
    "cloudClear": 0.7
   }
  ],
+ "Audio": {
+  "wind": 0.15,
+  "crickets": 0.25,
+  "sources": [
+   {
+    "sound": "fire_loop",
+    "position": [
+     720.7,
+     32.4,
+     -360.0
+    ],
+    "volume": 1.0,
+    "radius": 480
+   }
+  ]
+ },
  "Entities": [
   {
    "Transform": {
