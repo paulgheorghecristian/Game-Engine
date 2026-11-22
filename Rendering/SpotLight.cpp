@@ -190,8 +190,12 @@ void SpotLight::renderGUI() {
 
         ImGui::Text("Volumetric attribs");
         ImGui::DragInt("numSamplePoints", &numSamplePoints);
-        ImGui::DragFloat("coef1", &coef1, 0.01f);
-        ImGui::DragFloat("coef2", &coef2, 0.01f);
+        if (m_beamDensity <= 0.0f) {
+            /* original model only: the cone fades out between coef2 and
+             * coef1 times its length (the beam model uses Beam falloff) */
+            ImGui::DragFloat("coef1", &coef1, 0.01f);
+            ImGui::DragFloat("coef2", &coef2, 0.01f);
+        }
         ImGui::Text("Beam (beamDensity > 0: fades along its length)");
         ImGui::SliderFloat("Beam density", &m_beamDensity, 0.0f, 0.2f, "%.3f");
         ImGui::SliderFloat("Beam falloff", &m_beamFalloff, 20.0f, 1000.0f, "%.0f");

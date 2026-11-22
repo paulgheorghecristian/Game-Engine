@@ -246,8 +246,8 @@ lights.append(light((0, 0, 0), (0.16, 0.2, 0.32), "DIR", (0, 0, 0), dir=moon, ca
 BEAM_ANGLE, BEAM_RANGE = 0.13, 1150
 beam_volume = round(2 * BEAM_RANGE * math.tan(BEAM_ANGLE) * 1.08, 1)
 lights.append(light((lamp[0], lamp[1] + 1, lamp[2]), (1.0, 0.93, 0.75), "SPOT", (beam_volume, beam_volume, BEAM_RANGE), rot=(-11, 180, 0),
-                    cast_shadow=True, volumetric=True, numSamplePoints=48, coef1=0.8, coef2=0.02,
-                    beamDensity=0.035, beamFalloff=280, coneAngle=BEAM_ANGLE, shadowMapSize=1024,
+                    cast_shadow=True, volumetric=True, numSamplePoints=100, coef1=0.8, coef2=0.02,
+                    beamDensity=0.006, beamFalloff=450, coneAngle=BEAM_ANGLE, shadowMapSize=1024,
                     diffuse_attenuation=[30, 1, 0.1], specular_attenuation=[40, 1, 0.2], spin=20, nightOnly=True))
 # statue uplights
 for color, side in (((0.95, 0.3, 0.85), -1), ((0.3, 0.85, 1.0), 1)):

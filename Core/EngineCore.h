@@ -75,6 +75,8 @@ class EngineCore
         void constructEnemy();
         void loadLights(rapidjson::Document &gameDocument);
         void loadEntities(rapidjson::Document &gameDocument);
+        RenderingObject makeSpawnedBox();
+        void spawnBox(const glm::vec3 &position);
         /* optional map sections: Environment, Water, ParticleEmitters, PlayerStart */
         void loadMapFeatures(rapidjson::Document &gameDocument);
         glm::vec3 m_playerStart = glm::vec3(200, 10, 0);

@@ -591,15 +591,7 @@ void EngineCore::input() {
 
     if (inputManager.getWarpMouse()) {
         if (inputManager.getMouse(1)) {
-            Transform transform(RenderingMaster::getInstance()->getCamera()->getPosition(),
-                                glm::vec3(0),
-                                glm::vec3(20));
-            Entity *newEntity = new Entity();
-            newEntity->setTransform(transform);
-            entities.push_back(newEntity->addComponent(new RenderComponent(RenderingObject::loadObject("res/models/cube4.obj")))
-                                                        ->addComponent(new PhysicsComponent(PhysicsComponent::BoundingBodyType::CUBE,
-                                                                                            glm::vec3(20),
-                                                                                            20.0f)));
+            spawnBox(RenderingMaster::getInstance()->getCamera()->getPosition());
         }
     }
 
@@ -1189,6 +1181,48 @@ void EngineCore::loadMapFeatures(rapidjson::Document &gameDocument) {
     }
 }
 
+void EngineCore::spawnBox(const glm::vec3 &position) {
+    Transform transform(position,
+                        glm::vec3(0),
+                        glm::vec3(20));
+    Entity *newEntity = new Entity();
+    newEntity->setTransform(transform);
+    entities.push_back(newEntity->addComponent(new RenderComponent(makeSpawnedBox()))
+                                ->addComponent(new PhysicsComponent(PhysicsComponent::BoundingBodyType::CUBE,
+                                                                    glm::vec3(20),
+                                                                    20.0f)));
+}
+
+/* A box for the left-click spawner: textured and normal mapped, cycling
+ * through a few material sets so stacks of boxes do not all look alike.
+ * (cube4.obj has UVs; the loader computes the tangents for normal mapping.) */
+RenderingObject EngineCore::makeSpawnedBox() {
+    struct BoxLook {
+        const char *albedo, *normal;
+        float roughness, metallic, specularStrength;
+    };
+    static const BoxLook looks[] = {
+        { "res/textures/brick_wall.jpg", "res/textures/brick_wall_normal.jpg", 0.85f, 0.0f, 0.3f },
+        { "res/textures/metal.jpg",      "res/textures/metal_normal.jpg",      0.4f,  0.8f, 1.0f },
+        { "res/textures/196.bmp",        "res/textures/196_norm.bmp",          0.75f, 0.0f, 0.5f },
+        { "res/textures/165.bmp",        "res/textures/165_norm.bmp",          0.8f,  0.0f, 0.4f },
+    };
+    static unsigned int next = 0;
+    const BoxLook &look = looks[next++ % (sizeof(looks) / sizeof(looks[0]))];
+
+    Material *material = new Material();
+    material->setShininess(100.0f);
+    material->setRoughness(look.roughness);
+    material->setMetallic(look.metallic);
+    material->setSpecularStrength(look.specularStrength);
+    material->setDiffuseTexture(new Texture(look.albedo, 0));
+    material->setNormalTexture(new Texture(look.normal, 1));
+
+    RenderingObject box = RenderingObject::loadObject("res/models/cube4.obj", true, false);
+    box.addMaterial(material);
+    return box;
+}
+
 void EngineCore::loadEntities(rapidjson::Document &gameDocument) {
     if (gameDocument.HasMember("Entities")) {
         unsigned int numberOfEntities = gameDocument["Entities"].GetArray().Size();
@@ -1468,6 +1502,8 @@ void EngineCore::runBenchmark(int numFrames) {
     const bool walk = scenario == "walk";
     /* GE_SCENARIO=fireballs: camera stands still and throws a fireball (G) every 25 frames */
     const bool fireballs = scenario == "fireballs";
+    /* GE_SCENARIO=boxes: camera stands still and drops a box (left click) every 12 frames */
+    const bool boxes = scenario == "boxes";
     const int segment = 100;
     double segmentSum = 0;
     int segmentStartLights = 0;
@@ -1486,6 +1522,13 @@ void EngineCore::runBenchmark(int numFrames) {
         }
         if (fireballs) {
             inputManager.injectKey(SDLK_g, i % 25 == 5);
+        }
+        if (boxes && i % 12 == 5) {
+            /* in front of the camera (a real click drops it at the camera) */
+            Camera *camera = RenderingMaster::getInstance()->getCamera();
+            glm::vec3 forward = camera->getForward();
+            float side = (float) ((i / 12) % 3) - 1.0f;
+            spawnBox(camera->getPosition() + forward * 90.0f + camera->getRight() * (side * 28.0f) + glm::vec3(0, 40, 0));
         }
         if (walk) {
             inputManager.injectKey(SDLK_w, true);
