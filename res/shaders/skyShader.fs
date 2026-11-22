@@ -120,6 +120,7 @@ uniform float collapse;         /* < 0: no Kugelblitz */
 uniform vec2 collapseSite;      /* the facility, on the moon's disc (-1..1) */
 uniform vec2 jetAxis;           /* the jets' direction across the disc (unit) */
 uniform float collapseFlash;    /* the ignition flash, 1 at ignition fading in real time */
+uniform float collapseTime;     /* seconds since Play / Restart: every playthrough is identical */
 
 float breakupAmount() {
     return collapse >= 0.0 ? smoothstep(0.55, 0.97, collapse) : 0.0;
@@ -201,7 +202,7 @@ void kugelblitzMoon(vec2 p, float r, inout float albedo, inout float lit, inout 
 
     /* seismic shockwaves rippling out across the surface */
     float quake = smoothstep(0.03, 0.08, collapse) * (1.0 - smoothstep(0.3, 0.45, collapse));
-    float ring = pow(0.5 + 0.5 * sin(ds * 26.0 - time * 3.5), 12.0) * exp(-ds * 1.1) * quake;
+    float ring = pow(0.5 + 0.5 * sin(ds * 26.0 - collapseTime * 3.5), 12.0) * exp(-ds * 1.1) * quake;
     lit *= 1.0 + ring * 0.6;
     surface += vec3(0.5, 0.6, 0.8) * ring * 0.08;
 
@@ -213,7 +214,7 @@ void kugelblitzMoon(vec2 p, float r, inout float albedo, inout float lit, inout 
     float reach = 1.0 - smoothstep(spread - 0.35, spread, ds + wobble);
     float width = mix(0.05, 0.12, smoothstep(0.3, 0.85, collapse));
     float crack = (1.0 - smoothstep(0.0, width, cracks.y)) * reach;
-    float pulse = 0.75 + 0.25 * sin(time * 2.3 + cracks.z * 40.0);
+    float pulse = 0.75 + 0.25 * sin(collapseTime * 2.3 + cracks.z * 40.0);
     surface += mix(magma, whiteHot, crack * crack) * crack * 4.0 * pulse;
     surface += magma * exp(-cracks.y / 0.12) * reach * 0.8;   /* the glow around them */
     /* the crust chars as the inside heats up: near-black between blazing veins */
@@ -227,7 +228,7 @@ void kugelblitzMoon(vec2 p, float r, inout float albedo, inout float lit, inout 
     surface += magma * edge * b * 1.8;
     heat += surface * present * disc;
     heat += mix(magma, whiteHot, 0.3) * (1.0 - present) * b * (1.0 - b) * 1.2 * disc *
-            (0.6 + 0.4 * sin(r * 30.0 - time * 5.0));
+            (0.6 + 0.4 * sin(r * 30.0 - collapseTime * 5.0));
     disc *= present;
 }
 
@@ -261,9 +262,9 @@ void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRa
     float vent = smoothstep(0.25, 0.4, collapse) * (1.0 - smoothstep(0.7, 0.9, collapse));
     if (vent > 0.0 && r > 0.9 && r < 3.0) {
         /* cells long in radius, narrow round the limb: streaks blown outwards */
-        vec3 plume = kbCellsWrapped(vec2(theta * 34.0, r * 0.5 - time * 0.3), 34.0);
+        vec3 plume = kbCellsWrapped(vec2(theta * 34.0, r * 0.5 - collapseTime * 0.3), 34.0);
         float wisp = smoothstep(0.5, 0.0, plume.x) * step(0.4, plume.z);
-        float flicker = 0.6 + 0.4 * sin(time * 3.0 + plume.z * 30.0);
+        float flicker = 0.6 + 0.4 * sin(collapseTime * 3.0 + plume.z * 30.0);
         float fade = smoothstep(0.92, 1.05, r) * exp(-(r - 1.0) * 1.2);
         result += mix(vec3(0.5, 0.42, 0.38), vec3(1.0, 0.5, 0.2), exp(-(r - 1.0) * 2.5)) * wisp * flicker * fade * vent * 0.8;
     }
@@ -272,9 +273,9 @@ void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRa
      * spiralling into the hole, lumpy with chunks, white-hot as they fall in */
     float b = breakupAmount();
     if (b > 0.0 && r > 0.04 && r < 4.5) {
-        float arm = theta * 2.0 + log(r) * 0.55 + time * 0.12;  /* two arms of a logarithmic spiral */
+        float arm = theta * 2.0 + log(r) * 0.55 + collapseTime * 0.12;  /* two arms of a logarithmic spiral */
         float band = pow(0.5 + 0.5 * cos(arm * 6.2831853), 5.0);
-        vec3 bits = kbCellsWrapped(vec2(theta * 40.0, log(r) * 9.0 + time * 0.8), 40.0);
+        vec3 bits = kbCellsWrapped(vec2(theta * 40.0, log(r) * 9.0 + collapseTime * 0.8), 40.0);
         float chunk = smoothstep(0.32, 0.0, bits.x) * step(0.35, bits.z);
         float outer = mix(1.3, 3.6, b);
         float extent = smoothstep(0.06, 0.25, r) * (1.0 - smoothstep(outer * 0.7, outer, r));
@@ -286,7 +287,7 @@ void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRa
         result += stream * band * (0.3 + 1.8 * chunk) * extent * b * fadeOut * 2.2;
 
         /* flares: big chunks hitting the hole, at irregular moments */
-        float beat = floor(time * 0.8), phase = fract(time * 0.8);
+        float beat = floor(collapseTime * 0.8), phase = fract(collapseTime * 0.8);
         float burst = step(0.45, kbHash2(vec2(beat, 3.1)).x) * exp(-phase * 4.0) * b * (1.0 - b) * 4.0;
         result += vec3(1.0, 0.86, 0.66) * burst * (exp(-r * 2.2) * 2.5 + exp(-r * 0.6) * 0.25);
 
@@ -307,7 +308,7 @@ void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRa
         float width = 0.035 + 0.012 * s;
         float extent = smoothstep(0.75, 1.05, s) * (1.0 - smoothstep(len * 0.55, len, s));
         float beam = exp(-pow(perp / width, 2.0)) * extent;
-        float knots = 0.65 + 0.35 * sin(s * 2.2 - time * 9.0 + (along > 0.0 ? 0.0 : 1.7));
+        float knots = 0.65 + 0.35 * sin(s * 2.2 - collapseTime * 9.0 + (along > 0.0 ? 0.0 : 1.7));
         /* the same hot inflow as the disk: a white-hot core with an edge and
          * glow in the disk's color (blue jets clashed with the orange disk,
          * and the lens smeared their glow into blue smudges round the hole) */

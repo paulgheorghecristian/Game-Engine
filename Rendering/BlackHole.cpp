@@ -286,7 +286,10 @@ bool BlackHole::renderGUI(int index)
                 if (ImGui::Button(playing ? "Pause" : "Play")) {
                     if (!playing) {
                         if (collapse >= 1.0f) collapse = 0.0f;          /* finished: from the start */
-                        if (collapse <= 0.0f) delayElapsed = 0.0f;
+                        if (collapse <= 0.0f) {
+                            delayElapsed = 0.0f;
+                            playTime = 0.0f;
+                        }
                         if (collapseSpeed <= 0.0f) collapseSpeed = 1.0f;
                     }
                     playing = !playing;
@@ -295,6 +298,7 @@ bool BlackHole::renderGUI(int index)
                 if (ImGui::Button("Restart")) {
                     collapse = 0.0f;
                     delayElapsed = 0.0f;
+                    playTime = 0.0f;
                     if (collapseSpeed <= 0.0f) collapseSpeed = 1.0f;
                     playing = true;
                 }
@@ -302,6 +306,7 @@ bool BlackHole::renderGUI(int index)
                 if (ImGui::Button("Reset")) {
                     collapse = 0.0f;
                     delayElapsed = 0.0f;
+                    playTime = 0.0f;
                     playing = false;
                 }
                 ImGui::SameLine();

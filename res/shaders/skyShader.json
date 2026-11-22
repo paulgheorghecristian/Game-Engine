@@ -21,6 +21,7 @@
                     "cloudPass" : "INT",
                     "collapse" : "FLOAT",
                     "collapseFlash" : "FLOAT",
+                    "collapseTime" : "FLOAT",
                     "collapseSite" : "VEC2",
                     "jetAxis" : "VEC2",
                     "holeCloudClear" : "FLOAT",

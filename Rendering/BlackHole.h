@@ -92,6 +92,7 @@ class BlackHole
          * collapse only advances while playing */
         bool playing = false;
         float delayElapsed = 0.0f;
+        float playTime = 0.0f;         /* the Kugelblitz's own clock, from Play / Restart / Reset */
         glm::vec2 collapseSite = glm::vec2(0.32f, 0.22f);   /* the AI's facility, on the moon's disc */
         /* runtime: the ignition flash is an event (collapse leaving 0), not a
          * stage you can stop on; it fades in real time */

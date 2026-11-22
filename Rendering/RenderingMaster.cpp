@@ -537,6 +537,9 @@ void RenderingMaster::prepareFrame(float alpha) {
                 skyHole->ignitionTime = m_renderTime;
             }
             skyHole->previousCollapse = collapse;
+            skyHole->playTime += dt;
+            float playTime = skyHole->playTime;
+            skyShader->updateUniform("collapseTime", playTime);
             float flash = std::exp(-std::max(m_renderTime - skyHole->ignitionTime, 0.0f) * 1.4f);
             skyShader->updateUniform("collapseFlash", flash);
             /* the jets leave along the spin axis (the disk's normal), as seen on the moon's disc */
