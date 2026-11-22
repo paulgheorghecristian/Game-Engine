@@ -11,6 +11,7 @@
 class Camera;
 class Shader;
 class Texture;
+class SpotLight;
 
 /*
  * Data-driven particle emitter, configured from a map's "ParticleEmitters"
@@ -23,6 +24,15 @@ class Texture;
  *  "drift"  slow wandering particles kept inside a volume (fireflies, motes)
  *  "glow"   static, never-fading billboards (halos around lights in haze);
  *           "positions": [[x,y,z], ...] places one per entry
+ *  "beam"   dust motes drifting inside a light beam: spawned in the cone
+ *           from "position" along "direction" ("angle" = half angle in
+ *           radians, "length"), each lit by where it is in the beam: bright
+ *           on the axis, dark outside the cone, fading along the beam
+ *           (exp(-distance / "falloff")), with a slow twinkle.
+ *           "light": index of a spot light in the map's "Lights" array links
+ *           the motes to it: they live in the light's frame (move and rotate
+ *           with it) and take its cone angle, beam falloff, range and
+ *           brightness (so they dim and switch off with the light)
  *
  * All emitters share particleRenderShader (instanced point -> billboard quad,
  * texture-atlas animation, soft particles) and are drawn into the half
@@ -37,7 +47,7 @@ class Texture;
 class ParticleEmitter
 {
     public:
-        enum Type { SMOKE = 0, SPRAY, DRIFT, GLOW };
+        enum Type { SMOKE = 0, SPRAY, DRIFT, GLOW, BEAM };
 
         explicit ParticleEmitter(const rapidjson::Value &json);
         ~ParticleEmitter();
@@ -61,6 +71,13 @@ class ParticleEmitter
         /* forget all particles; they are re-emitted (staggered) from the current origin */
         void restart();
 
+        /* "beam" emitters: follow a spot light (see "light" above) */
+        int getLightIndex() const { return m_lightIndex; }
+        void linkLight(SpotLight *light) { m_light = light; m_lightLost = false; }
+        SpotLight *getLinkedLight() const { return m_light; }
+        /* the linked light was deleted: the motes go dark */
+        void lightRemoved() { m_light = nullptr; m_lightLost = true; }
+
     private:
         struct Particle {
             glm::vec3 position, velocity;
@@ -68,6 +85,8 @@ class ParticleEmitter
             float scale;
             float ageMs, lifeMs;
             float distanceToCamera;
+            float seed;                 /* per particle random in [0, 1) */
+            glm::vec3 local;            /* "beam": position in the beam's frame (x, y across, z along) */
         };
 
         Type m_type;
@@ -82,6 +101,15 @@ class ParticleEmitter
         float m_startScale, m_growth, m_scaleJitter;
         float m_lifetimeMs, m_brightness, m_fadeIn, m_wander;
         bool m_additive, m_atlasTopDown, m_nightOnly;
+        float m_beamAngle, m_beamLength, m_beamFalloff, m_beamRange;  /* "beam" */
+        int m_lightIndex = -1;
+        SpotLight *m_light = nullptr;
+        bool m_lightLost = false;
+        float m_lightBrightness = 1.0f;
+        glm::vec3 m_frameOrigin;            /* the beam's frame (from the light when linked) */
+        glm::mat3 m_frameBasis;             /* columns: across x, across y, along the beam */
+        void updateBeamFrame();
+        float beamIntensity(const Particle &p) const;
 
         Texture *m_texture;
         GLuint m_vao, m_vbo;

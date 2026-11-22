@@ -15,6 +15,7 @@
 #include "SelectionButton.hpp"
 #include "SlideButton.hpp"
 #include "ParticleEmitter.h"
+#include "GrassRenderer.h"
 #include "ParticleEmitterComponent.h"
 #include "WaterRenderer.h"
 #include "rapidjson/prettywriter.h"
@@ -134,6 +135,9 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
     if (gameDocument.HasMember("Water")) {
         m_waterJson = jsonToString(gameDocument["Water"]);
     }
+    if (gameDocument.HasMember("Grass")) {
+        m_grassJson = jsonToString(gameDocument["Grass"]);
+    }
     if (gameDocument.HasMember("ParticleEmitters")) {
         m_emittersJson = jsonToString(gameDocument["ParticleEmitters"]);
     }
@@ -142,6 +146,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
     RenderingMaster::getInstance()->onReloadMap = [this]() { reloadMap(m_savePath); };
     loadMapFeatures(gameDocument);
     loadEntities(gameDocument);
+    loadGrass(gameDocument);
     PhysicsMaster::getInstance()->startGraphCreation();
     PhysicsMaster::getInstance()->endGraphCreation();
     // DEBUG
@@ -178,7 +183,23 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
     //     m_quadTreeEntities[node->m_idx] = newEntity;
     // }
     // END DEBUG
-    loadLights(gameDocument);
+    {
+        std::vector<Light *> &sceneLights = RenderingMaster::getInstance()->getLights();
+        size_t firstMapLight = sceneLights.size();
+        loadLights(gameDocument);
+        /* "beam" particle emitters linked to a map light by index */
+        for (ParticleEmitter *emitter : RenderingMaster::getInstance()->particleEmitters) {
+            int index = emitter->getLightIndex();
+            if (index >= 0 && firstMapLight + index < sceneLights.size()) {
+                SpotLight *spot = dynamic_cast<SpotLight *>(sceneLights[firstMapLight + index]);
+                if (spot != NULL) {
+                    emitter->linkLight(spot);
+                } else {
+                    std::cout << "ParticleEmitter: light " << index << " is not a spot light" << std::endl;
+                }
+            }
+        }
+    }
 
     constructPlayer();
     // constructEnemy();
@@ -718,7 +739,8 @@ void EngineCore::render(float alpha) {
         if (entity->getComponent(Entity::Flags::BILL) != NULL)
             continue;
         if ((renderComponent =
-             (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL) {
+             (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL &&
+            !renderComponent->isBeyondDrawDistance(entity->getTransform())) {
             renderComponent->render(&RenderingMaster::getInstance()->deferredShading_SceneShader);
         }
         if ((instanceRenderComponent =
@@ -729,6 +751,11 @@ void EngineCore::render(float alpha) {
              (SkeletalAnimationComponent *) (entity->getComponent (Entity::Flags::ANIMATED))) != NULL) {
             skeletalAnimationComponent->render(&RenderingMaster::getInstance()->deferredShading_AnimRender);
         }
+    }
+    if (RenderingMaster::getInstance()->grass != NULL) {
+        PT_FromHere("grass");
+        RenderingMaster::getInstance()->grass->render();
+        PT_ToHere("grass");
     }
     DebugRenderer::getInstance()->render();
     RenderingMaster::getInstance()->getGBuffer().unbind();
@@ -773,6 +800,13 @@ void EngineCore::render(float alpha) {
             } else {
                 signature = fnv1a(signature, &light->getShadowMapViewMatrix(), sizeof(glm::mat4));
                 signature = fnv1a(signature, &light->getShadowMapProjectionMatrix(), sizeof(glm::mat4));
+                /* swaying trees: their shadows move every frame */
+                if (InstanceRenderComponent::s_windyComponents > 0 &&
+                    RenderingMaster::getInstance()->getEnvironment().wind > 0.0f &&
+                    dynamic_cast<DirectionalLight *>(light) != NULL) {
+                    float now = RenderingMaster::getInstance()->getTime();
+                    signature = fnv1a(signature, &now, sizeof(now));
+                }
             }
             if (light->m_shadowSignatureValid && light->m_shadowSignature == signature) {
                 continue;
@@ -1133,6 +1167,9 @@ void EngineCore::loadLights(rapidjson::Document &gameDocument) {
                         if (attribs.HasMember("beamFalloff")) {
                             spot->setBeamFalloff(attribs["beamFalloff"].GetFloat());
                         }
+                        if (attribs.HasMember("beamHaze")) {
+                            spot->setBeamHaze(attribs["beamHaze"].GetFloat());
+                        }
                         if (attribs.HasMember("coneAngle")) {
                             spot->setConeAngle(attribs["coneAngle"].GetFloat());
                         }
@@ -1143,6 +1180,32 @@ void EngineCore::loadLights(rapidjson::Document &gameDocument) {
             RenderingMaster::getInstance()->addLightToScene(newLight);
         }
     }
+}
+
+void EngineCore::loadGrass(rapidjson::Document &gameDocument) {
+    if (!gameDocument.HasMember("Grass") || !gameDocument["Grass"].IsObject()) {
+        return;
+    }
+    /* grows on the terrain: the entity whose material is a terrain material */
+    for (Entity *entity : entities) {
+        RenderComponent *rc = (RenderComponent *) entity->getComponent(Entity::Flags::RENDERABLE);
+        if (rc == NULL || rc->getRenderingObject().getMaterials().empty()) {
+            continue;
+        }
+        const TerrainLayers *terrain = rc->getRenderingObject().getMaterials()[0]->getTerrain();
+        if (terrain == nullptr) {
+            continue;
+        }
+        GrassRenderer *grass = new GrassRenderer(gameDocument["Grass"], rc->getRenderingObject().getFilePath(),
+                                                 entity->getTransform().getModelMatrix(), terrain);
+        if (grass->isValid()) {
+            RenderingMaster::getInstance()->grass = grass;
+        } else {
+            delete grass;
+        }
+        return;
+    }
+    std::cout << "Grass: the map has no terrain entity to grow on" << std::endl;
 }
 
 void EngineCore::loadMapFeatures(rapidjson::Document &gameDocument) {
@@ -1338,6 +1401,8 @@ bool EngineCore::saveMap(const std::string &path) {
     };
     rapidjson::Value water, emitters;
     if (parseInto(m_waterJson, water)) doc.AddMember("Water", water, allocator);
+    rapidjson::Value grass;
+    if (parseInto(m_grassJson, grass)) doc.AddMember("Grass", grass, allocator);
     if (parseInto(m_emittersJson, emitters)) doc.AddMember("ParticleEmitters", emitters, allocator);
 
     rapidjson::Value entityArray(rapidjson::kArrayType);

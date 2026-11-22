@@ -17,6 +17,7 @@ uniform sampler2D depthSampler;
 uniform sampler2D particlesSampler;
 uniform sampler2D volumetricLightSampler;
 uniform sampler2D flareSampler;
+uniform sampler2D reflectionParticlesSampler; /* mirrored billboards / flames, premultiplied */
 
 uniform mat4 projectionMatrix;
 uniform vec2 screenSize;
@@ -27,12 +28,14 @@ uniform int hasReflection;
 uniform float waveStrength, waveSpeed;
 uniform vec3 shallowColor, deepColor;
 uniform float murkDepth, softEdge, reflectivity;
+uniform vec3 ambientSky;       /* sky light: lights the water body by day */
+uniform float reflectionGlow;   /* bright reflections bloom into a soft, rippling streak */
 
 uniform vec3 moonDirection, moonColor;
 uniform vec3 fogColor;
 uniform float fogDensity, fogHeightFalloff, fogBaseHeight, fogMoonGlow;
 
-const int MAX_LIGHTS = 8;
+const int MAX_LIGHTS = 16;
 uniform int numLights;
 uniform vec3 lightPositions[MAX_LIGHTS];
 uniform vec3 lightColors[MAX_LIGHTS];
@@ -43,10 +46,22 @@ float linearDepth(float d) {
     return projectionMatrix[3][2] / ((2.0 * d - 1.0) + projectionMatrix[2][2]);
 }
 
+uniform float fogStart, fogEnd;
+/* distance cut-off: 0 before fogStart, closes in exponentially and is
+ * exactly 1 (fully fogged) at fogEnd, the far plane. fogEnd 0 = off */
+float fogCutoff(float dist) {
+    if (fogEnd <= 0.0) return 0.0;
+    float d = clamp((dist - fogStart) / max(fogEnd - fogStart, 1.0), 0.0, 1.0);
+    return (1.0 - exp(-4.0 * d * d)) / (1.0 - exp(-4.0));
+}
+
 float fogAmount(float dist, float height) {
-    if (fogDensity <= 0.0) return 0.0;
-    float heightFactor = exp(-max(height - fogBaseHeight, 0.0) * fogHeightFalloff);
-    return clamp((1.0 - exp(-dist * fogDensity)) * heightFactor, 0.0, 1.0);
+    float haze = 0.0;
+    if (fogDensity > 0.0) {
+        float heightFactor = exp(-max(height - fogBaseHeight, 0.0) * fogHeightFalloff);
+        haze = clamp((1.0 - exp(-dist * fogDensity)) * heightFactor, 0.0, 1.0);
+    }
+    return 1.0 - (1.0 - haze) * (1.0 - fogCutoff(dist));
 }
 
 void main() {
@@ -83,16 +98,49 @@ void main() {
     }
     vec3 refraction = texture(refractionSampler, refractionUV).rgb * shallowColor;
     float murk = clamp((linearDepth(refractionDepth) - surfaceZ) / murkDepth, 0.0, 1.0);
-    refraction = mix(refraction, deepColor, murk);
+    /* deep water is lit from inside by the sky and sun: teal-blue by day,
+     * near black at night */
+    float daylight = clamp(dot(ambientSky, vec3(0.3333)) * 2.6, 0.0, 1.0);
+    vec3 deep = deepColor + vec3(0.03, 0.12, 0.14) * daylight;
+    refraction = mix(refraction, deep, murk);
 
     vec3 reflection = deepColor;
+    vec3 reflectionHalo = vec3(0.0);
+    vec4 reflectedParticles = vec4(0.0);
     if (hasReflection != 0) {
-        reflection = texture(reflectionSampler, clamp(uv + distortion, vec2(0.001), vec2(0.999))).rgb;
+        vec2 reflectionUV = clamp(uv + distortion, vec2(0.001), vec2(0.999));
+        /* slightly soft: a mirror-sharp edge on a lamp reads as a cut-out disc */
+        reflection = textureLod(reflectionSampler, reflectionUV, 0.7).rgb;
+        reflectedParticles = texture(reflectionParticlesSampler, reflectionUV);
+        if (reflectionGlow > 0.0) {
+            /* light scattered by the ripples: the bright parts of the blurred
+             * reflection (mip chain), stretched into a vertical streak towards
+             * the viewer and wobbling with the waves */
+            vec2 wobble = (texture(dudvSampler, waveCoords * 0.6 + vec2(time * 0.02, 0.0)).rg - 0.5) * 0.02;
+            for (int k = -3; k <= 3; k++) {
+                float w = exp(-0.35 * float(k * k));
+                vec2 tap = clamp(reflectionUV + wobble + vec2(0.0, float(k) * 0.028), vec2(0.001), vec2(0.999));
+                vec3 blurred = textureLod(reflectionSampler, tap, 3.5).rgb * 0.6 +
+                               textureLod(reflectionSampler, tap, 5.0).rgb * 0.4;
+                /* only light sources (HDR values above ~1) glow, not the sky or
+                 * lit surfaces: soft-knee threshold on the brightness */
+                float brightness = max(blurred.r, max(blurred.g, blurred.b));
+                float over = max(brightness - 0.9, 0.0);
+                reflectionHalo += blurred * (over * over / (over + 0.6) / max(brightness, 1e-3)) * w;
+            }
+            reflectionHalo *= reflectionGlow * 0.35;
+        }
     }
 
     float cosTheta = max(dot(V, normalize(mix(vec3(0, 1, 0), normal, 0.25))), 0.0);
     float fresnel = clamp((0.02 + 0.98 * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0)) * reflectivity, 0.0, 1.0);
     vec3 color = mix(refraction, reflection, fresnel);
+    /* the glow is light scattered off the surface: not weighted by Fresnel */
+    color += reflectionHalo;
+    /* reflected billboards, composited like the main pass composites
+     * particles (premultiplied; additive ones have alpha 0) */
+    float particleReflect = mix(0.75, 1.0, fresnel);
+    color = reflectedParticles.rgb * particleReflect + color * (1.0 - reflectedParticles.a * particleReflect);
 
     /* glints: the moon and every nearby light */
     vec3 specular = moonColor * pow(max(dot(reflect(-moonDirection, normal), V), 0.0), 400.0) * 2.0;
@@ -105,7 +153,7 @@ void main() {
         if (lightSpots[i].w >= -1.0 && dot(-L, lightSpots[i].xyz) < lightSpots[i].w) continue;
         att *= att;
         vec3 H = normalize(L + V);
-        specular += lightColors[i] * att * (pow(max(dot(normal, H), 0.0), 160.0) * 2.5 + 0.06);
+        specular += lightColors[i] * att * (pow(max(dot(normal, H), 0.0), 160.0) * 2.5 + 0.02);
     }
     color += specular * (1.0 - murk * 0.3);
 

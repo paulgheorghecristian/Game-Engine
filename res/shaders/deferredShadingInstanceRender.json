@@ -2,6 +2,9 @@
     "VSPath" : "res/shaders/deferredShadingInstanceRender.vs",
     "FSPath" : "res/shaders/deferredShadingInstanceRender.fs",
     "Uniforms" : {
+                    "windStrength" : "FLOAT",
+                    "windDirection" : "VEC2",
+                    "windTime" : "FLOAT",
                     "material.ambient" : "VEC3",
                     "material.specular" : "VEC3",
                     "material.diffuse" : "VEC3",

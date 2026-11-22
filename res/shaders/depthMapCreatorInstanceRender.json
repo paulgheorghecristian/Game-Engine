@@ -2,6 +2,9 @@
     "VSPath" : "res/shaders/depthMapCreatorInstanceRender.vs",
     "FSPath" : "res/shaders/depthMapCreatorInstanceRender.fs",
     "Uniforms" : {
+                    "windStrength" : "FLOAT",
+                    "windDirection" : "VEC2",
+                    "windTime" : "FLOAT",
                     "viewMatrix" : "MAT4",
                     "projectionMatrix" : "MAT4"
                  }

@@ -35,6 +35,41 @@ uniform int castsShadow; /* 0: skip the shadow-map test */
 
 /* ---- PBR (Cook-Torrance: GGX distribution, Smith-Schlick visibility,
  * Schlick Fresnel; metal/roughness workflow) ---- */
+/* ---- clouds: one drifting fbm layer at CLOUD_HEIGHT (world units); the
+ * sky draws it and the directional light pass uses the same density for the
+ * cloud shadows on the ground, so the two always match ---- */
+uniform float cloudCoverage;   /* 0: no clouds .. 1: overcast */
+uniform vec2 cloudWind;        /* drift in world units per second */
+uniform float cloudTime;       /* seconds */
+const float CLOUD_HEIGHT = 1500.0;
+
+float cloudHash(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+}
+
+float cloudNoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(cloudHash(i), cloudHash(i + vec2(1, 0)), u.x),
+               mix(cloudHash(i + vec2(0, 1)), cloudHash(i + vec2(1, 1)), u.x), u.y);
+}
+
+/* 0..1 cloud density above world position xz */
+float cloudDensity(vec2 xz) {
+    vec2 p = (xz + cloudWind * cloudTime) * 0.0009;
+    float n = 0.0, amp = 0.5;
+    mat2 rot = mat2(0.8, -0.6, 0.6, 0.8);
+    for (int i = 0; i < 5; i++) {
+        n += amp * cloudNoise(p);
+        p = rot * p * 2.07 + vec2(7.3, 1.9);
+        amp *= 0.5;
+    }
+    float threshold = mix(0.68, 0.3, cloudCoverage);
+    return smoothstep(threshold, threshold + 0.22, n);
+}
+
 uniform bool pbrEnabled;
 uniform sampler2D albedoSampler;   /* G-buffer albedo (PBR: the light pass applies it) */
 
@@ -126,4 +161,11 @@ void main() {
     }
 
     outLight *= lightStrength;
+    /* cloud shadows: follow the light up to the cloud layer */
+    if (cloudCoverage > 0.0) {
+        vec3 world = (inverseViewMatrix * vec4(viewPosition, 1.0)).xyz;
+        vec3 L = normalize(lightDirection);
+        vec2 atClouds = world.xz + L.xz / max(L.y, 0.1) * (CLOUD_HEIGHT - world.y);
+        outLight *= 1.0 - 0.72 * cloudDensity(atClouds);
+    }
 }

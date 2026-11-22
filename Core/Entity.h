@@ -48,7 +48,9 @@ class Entity : public MemoryPoolInterface<Entity>
             ACTION,
             INSTANCE_RENDERABLE,
             AIPLAYERFOLLOWER,
-            PARTICLE_EMITTER
+            PARTICLE_EMITTER,
+            TRANSFORM_ANIMATION /* TempAnimationComponent (not ANIMATED: that one
+                                 * is the skeletal animation the renderer draws) */
         };
     protected:
         Transform m_transform;

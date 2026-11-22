@@ -24,6 +24,7 @@ class FrameBuffer
 
         unsigned int getNumOfRenderTargets();
         inline int getWidth() const { return width; }
+        inline int getHeight() const { return height; }
         GLuint getDepthTextureId();
         GLuint getFrameBufferObject();
         const std::vector<GLuint> &getRenderTargets();

@@ -42,6 +42,7 @@ uniform float terrainShoreHeight;
 uniform sampler2D terrainGrassNormal, terrainDirtNormal, terrainSoilNormal;
 uniform bool terrainHasGroundNormals;
 uniform float terrainNormalStrength;
+uniform float terrainVariation; /* 0..1: dry / lush patches, sparser higher up */
 
 /* planar (xz) tangent-space normal map -> world-space perturbation */
 vec3 terrainGroundBump(sampler2D map, vec2 uv) {
@@ -80,6 +81,19 @@ vec3 terrainSurface(vec3 position, vec3 geometricNormal, bool wantNormal, out ve
     vec3 grassFar = texture(terrainGrass2, uv * 0.23 + vec2(0.5)).rgb;
     vec3 grass = mix(grassNear, grassAlt, smoothstep(0.35, 0.7, macro));
     grass = mix(grass, grassFar, 0.35);
+    if (terrainVariation > 0.0) {
+        /* real grassland is patchy: straw-coloured dry patches, lush darker
+         * hollows, and thinner, browner growth higher up the hills */
+        float dryNoise = terrainNoise(position.xz * 0.0019 + vec2(3.7, 1.3)) * 0.65 +
+                         terrainNoise(position.xz * 0.0071 + vec2(9.1, 4.2)) * 0.35;
+        float altitude = smoothstep(terrainShoreHeight + 90.0, terrainShoreHeight + 420.0, position.y);
+        float dry = clamp(smoothstep(0.48, 0.78, dryNoise) * 0.8 + altitude * 0.45, 0.0, 1.0) * terrainVariation;
+        float lush = (1.0 - smoothstep(0.2, 0.45, dryNoise)) * (1.0 - altitude) * terrainVariation;
+        float g = dot(grass, vec3(0.3333));
+        vec3 straw = vec3(g * 1.25, g * 1.08, g * 0.62);
+        grass = mix(grass, straw, dry * 0.7);
+        grass = mix(grass, grass * vec3(0.78, 0.9, 0.72), lush * 0.6);
+    }
 
     /* rock: triplanar so steep slopes never stretch */
     vec3 w = pow(abs(n), vec3(4.0));

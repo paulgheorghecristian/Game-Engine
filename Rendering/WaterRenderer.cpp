@@ -10,6 +10,7 @@
 #include "RenderingMaster.h"
 #include "PointLight.h"
 #include "SpotLight.h"
+#include "ParticleEmitter.h"
 #include "DirectionalLight.h"
 
 static float jsonFloat(const rapidjson::Value &json, const char *key, float def) {
@@ -39,12 +40,17 @@ WaterRenderer::WaterRenderer(const rapidjson::Value &json, int renderWidth, int 
     m_murkDepth(jsonFloat(json, "murkDepth", 60.0f)),
     m_softEdge(jsonFloat(json, "softEdge", 4.0f)),
     m_reflectivity(jsonFloat(json, "reflectivity", 1.0f)),
+    m_reflectionGlow(jsonFloat(json, "reflectionGlow", 1.0f)),
     m_reflectionValid(false),
     m_width(renderWidth), m_height_px(renderHeight),
-    m_reflectionFB(std::max(16, renderWidth / 2), std::max(16, renderHeight / 2), 1),
-    m_sceneCopyFB(renderWidth, renderHeight, 1),
+    /* floating point: reflections keep bright lights above 1 (bloomed later,
+     * like the scene), and the refraction copy is taken from the HDR image */
+    m_reflectionFB(std::max(16, renderWidth / 2), std::max(16, renderHeight / 2), 1, false, GL_RGBA16F),
+    m_sceneCopyFB(renderWidth, renderHeight, 1, false, GL_RGBA16F),
+    m_reflectionParticlesFB(std::max(16, renderWidth / 2), std::max(16, renderHeight / 2), 1, false, GL_RGBA16F),
     m_reflectionTexture(m_reflectionFB.getRenderTargets()[0], 0),
     m_sceneCopyTexture(m_sceneCopyFB.getRenderTargets()[0], 1),
+    m_reflectionParticlesTexture(m_reflectionParticlesFB.getRenderTargets()[0], 8),
     m_dudvTexture("res/textures/waterDUDV.bmp", 2),
     m_normalTexture("res/textures/waterNormalMap.bmp", 3),
     m_waterShader("res/shaders/water.json"),
@@ -66,6 +72,7 @@ WaterRenderer::WaterRenderer(const rapidjson::Value &json, int renderWidth, int 
     m_waterShader.updateUniform("particlesSampler", 5);
     m_waterShader.updateUniform("volumetricLightSampler", 6);
     m_waterShader.updateUniform("flareSampler", 7);
+    m_waterShader.updateUniform("reflectionParticlesSampler", 8);
     m_waterShader.updateUniform("tiling", m_tiling);
     m_waterShader.updateUniform("waveStrength", m_waveStrength);
     m_waterShader.updateUniform("waveSpeed", m_waveSpeed);
@@ -83,6 +90,9 @@ WaterRenderer::WaterRenderer(const rapidjson::Value &json, int renderWidth, int 
 
 WaterRenderer::~WaterRenderer()
 {
+    if (m_farDepthTexture != 0) {
+        glDeleteTextures(1, &m_farDepthTexture);
+    }
     delete m_mesh;
 }
 
@@ -153,6 +163,7 @@ static void uploadEnvironment(Shader &shader)
     shader.updateUniform("fogHeightFalloff", env.fogHeightFalloff);
     shader.updateUniform("fogBaseHeight", env.fogBaseHeight);
     shader.updateUniform("fogMoonGlow", env.fogMoonGlow);
+    RenderingMaster::getInstance()->uploadFogCutoff(shader);
     shader.updateUniform("ambient", ambient);
     shader.updateUniform("ambientSky", (void *) &env.ambientSky);
     shader.updateUniform("ambientGround", (void *) &env.ambientGround);
@@ -203,6 +214,7 @@ void WaterRenderer::renderReflection(const std::vector<Entity *> &entities)
     shader.updateUniform("cameraPosition", (void *) &mirroredCamera);
     uploadEnvironment(shader);
     uploadForwardLights(shader, camera->getPosition());
+    rm->uploadWind(shader);
 
     glEnable(GL_CLIP_DISTANCE0);
     for (Entity *entity : entities) {
@@ -210,7 +222,7 @@ void WaterRenderer::renderReflection(const std::vector<Entity *> &entities)
             continue;
         }
         RenderComponent *rc = (RenderComponent *) entity->getComponent(Entity::Flags::RENDERABLE);
-        if (rc != NULL) {
+        if (rc != NULL && !rc->isBeyondDrawDistance(entity->getTransform())) {
             shader.updateUniform("instanced", false);
             rc->render(&shader);
         }
@@ -224,6 +236,47 @@ void WaterRenderer::renderReflection(const std::vector<Entity *> &entities)
     glFrontFace(GL_CCW);
 
     m_reflectionFB.unbind();
+
+    /* particles too (light halos, flames, sparks, lanterns), mirrored, into
+     * their own buffer that shares the reflection's depth (so reflected
+     * geometry still hides them) */
+    m_reflectionParticlesFB.bindSingleRenderTarget(0);
+    if (!rm->particleEmitters.empty()) {
+        int w = m_reflectionFB.getWidth(), h = m_reflectionFB.getHeight();
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_reflectionFB.getFrameBufferObject());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_reflectionParticlesFB.getFrameBufferObject());
+        glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_reflectionParticlesFB.getFrameBufferObject());
+        if (m_farDepthTexture == 0) {
+            float one = 1.0f;
+            glGenTextures(1, &m_farDepthTexture);
+            glBindTexture(GL_TEXTURE_2D, m_farDepthTexture);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 1, 1, 0, GL_RED, GL_FLOAT, &one);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        }
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, m_farDepthTexture);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        glDisable(GL_CULL_FACE);
+        rm->uploadFogCutoff(ParticleEmitter::getShader());
+        for (ParticleEmitter *emitter : rm->particleEmitters) {
+            emitter->draw(rm->getProjectionMatrix(), mirroredView, m_width, m_height_px, rm->getRenderAlpha());
+        }
+        glEnable(GL_CULL_FACE);
+    }
+    m_reflectionParticlesFB.unbind();
+
+    /* blurred levels for the reflection glow */
+    GLuint reflectionTexture = m_reflectionFB.getRenderTargets()[0];
+    glBindTexture(GL_TEXTURE_2D, reflectionTexture);
+    if (!m_reflectionMipmapsSet) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        m_reflectionMipmapsSet = true;
+    }
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void WaterRenderer::render(FrameBuffer &target)
@@ -257,6 +310,7 @@ void WaterRenderer::render(FrameBuffer &target)
     shader.updateUniform("cameraPosition", (void *) &camera->getPosition());
     shader.updateUniform("time", time);
     shader.updateUniform("hasReflection", reflectionValid);
+    shader.updateUniform("reflectionGlow", m_reflectionGlow);
     uploadEnvironment(shader);
     uploadForwardLights(shader, camera->getPosition());
 
@@ -268,6 +322,7 @@ void WaterRenderer::render(FrameBuffer &target)
     rm->particlesRTTexture.use(5);
     rm->getVolumetricLightTexture().use(6);
     rm->getFlareTexture().use(7);
+    m_reflectionParticlesTexture.use(8);
 
     shader.bind();
     m_mesh->draw();

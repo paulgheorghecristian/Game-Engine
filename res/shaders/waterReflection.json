@@ -2,6 +2,12 @@
     "VSPath" : "res/shaders/waterReflection.vs",
     "FSPath" : "res/shaders/waterReflection.fs",
     "Uniforms" : {
+                    "windStrength" : "FLOAT",
+                    "windDirection" : "VEC2",
+                    "windTime" : "FLOAT",
+                    "terrainVariation" : "FLOAT",
+                    "fogStart" : "FLOAT",
+                    "fogEnd" : "FLOAT",
                     "modelMatrix" : "MAT4",
                     "viewMatrix" : "MAT4",
                     "projectionMatrix" : "MAT4",

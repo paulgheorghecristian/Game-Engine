@@ -25,6 +25,16 @@ struct Environment
     float fogHeightFalloff = 0.0f;      /* fog thins out above fogBaseHeight */
     float fogBaseHeight = 0.0f;
     float fogMoonGlow = 0.0f;           /* haze brightens toward the moon (forward scattering) */
+    /* distance cut-off on top of the haze: from fogStart the fog closes in
+     * exponentially and is fully opaque at fogEnd, which also becomes the
+     * camera's far plane (draw distance). 0 = off (the original 5000 far plane) */
+    /* drifting cloud layer in the sky, and its shadows on the ground
+     * (directional light). 0 = no clouds */
+    float cloudCoverage = 0.0f;
+    float cloudSpeed = 14.0f;           /* world units per second */
+    float wind = 1.0f;                  /* how hard swaying things (trees, grass) move; blows like the clouds */
+    float fogStart = 0.0f;
+    float fogEnd = 0.0f;
 
     float ambient = 0.1f;               /* added to the light accumulation */
 
@@ -32,6 +42,8 @@ struct Environment
     bool hdr = false;                   /* filmic tone mapping instead of clipping at 1.0 */
     bool pbr = false;                   /* physically based shading (roughness / metallic materials) */
     float exposure = 1.0f;
+    float saturation = 1.0f;            /* colour grade (needs hdr): 1 = untouched */
+    float grade = 0.0f;                 /* 0..1: cool shadows, warm highlights, vignette */
     float bloomStrength = 0.0f;         /* needs hdr */
     float bloomThreshold = 1.0f;
     float aoStrength = 0.0f;            /* screen-space ambient occlusion, 0 = off */

@@ -2,12 +2,14 @@
 
 layout(location = 0) in vec4 positionAndScale;
 layout (location = 1) in float aliveForInMs;
+layout (location = 2) in float intensity;   /* per particle brightness (beam motes) */
 
 uniform mat4 viewMatrix;
 
 out vec3 eyeSpaceNormal;
 out mat4 viewModelMatrixOut;
 out float outAliveForInMs;
+out float outIntensity;
 
 void main(){
 	mat4 newModelMatrix = mat4(1.0);
@@ -28,6 +30,7 @@ void main(){
 
     viewModelMatrixOut = viewMatrix * newModelMatrix * scaleMatrix;
     outAliveForInMs = aliveForInMs;
+    outIntensity = intensity;
 
     gl_Position = vec4(vec3(0), 1.0);
 }

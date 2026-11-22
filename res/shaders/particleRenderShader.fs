@@ -6,6 +6,7 @@ in vec2 textCoords;
 in vec2 previousTextCoords;
 in float blendFactor;
 in float aliveFor;
+flat in float particleIntensity;
 
 uniform sampler2D particleSampler;
 uniform sampler2D depthSampler;
@@ -19,6 +20,15 @@ uniform float fadeIn;        /* fraction of the lifetime spent fading in */
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
+
+uniform float fogStart, fogEnd;
+/* distance cut-off: 0 before fogStart, closes in exponentially and is
+ * exactly 1 (fully fogged) at fogEnd, the far plane. fogEnd 0 = off */
+float fogCutoff(float dist) {
+    if (fogEnd <= 0.0) return 0.0;
+    float d = clamp((dist - fogStart) / max(fogEnd - fogStart, 1.0), 0.0, 1.0);
+    return (1.0 - exp(-4.0 * d * d)) / (1.0 - exp(-4.0));
+}
 
 /* soft particles */
 #define EPS 40
@@ -50,7 +60,13 @@ void main(){
     if (fadeIn > 0.0) {
         envelope *= clamp(aliveFor / fadeIn, 0.0, 1.0);
     }
-    outColor.a *= envelope;
+    outColor.a *= envelope * particleIntensity;
+    /* particles are composited over the fogged scene: fade them with the
+     * same cut-off (distance along the view axis) */
+    if (fogEnd > 0.0) {
+        float viewDepth = projectionMatrix[3][2] / (gl_FragCoord.z * 2.0 - 1.0 + projectionMatrix[2][2]);
+        outColor.a *= 1.0 - fogCutoff(abs(viewDepth));
+    }
     outColor.xyz = (outColor.xyz + vec3(brightnessAdd)) * tint;
     outColor.xyz *= outColor.a;
     /* premultiplied: alpha 0 means "add, don't occlude" in the composite */

@@ -26,12 +26,20 @@ class InstanceRenderComponent : public Component
 
         std::string jsonify() override;
 
+        /* "wind": how much the instances sway (trees ~1, 0 = rigid). The
+         * bend grows with the height above each instance's base */
+        void setWind(float wind);
+        float getWind() const { return m_wind; }
+        /* number of components that sway (their shadows must be re-rendered) */
+        static int s_windyComponents;
+
         virtual ~InstanceRenderComponent();
 
     protected:
 
     private:
         RenderingObject m_renderingObject;
+        float m_wind = 0.0f;
         unsigned int *m_numberOfTriangles;
 
         GLuint *vaoHandles;

@@ -23,7 +23,7 @@ void TempAnimationComponent::render() {
 }
 
 const unsigned int TempAnimationComponent::getFlag() const {
-    return Entity::Flags::ANIMATED;
+    return Entity::Flags::TRANSFORM_ANIMATION;
 }
 
 TempAnimationComponent::~TempAnimationComponent()

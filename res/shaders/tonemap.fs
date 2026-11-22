@@ -12,6 +12,8 @@ uniform sampler2D bloomSamplerNear;  /* half resolution blur */
 uniform sampler2D bloomSamplerFar;   /* quarter resolution blur (wider) */
 uniform float exposure;
 uniform float bloomStrength;
+uniform float saturation;      /* 1 = untouched */
+uniform float gradeStrength;   /* 0 = off: cool shadows / warm highlights and a vignette */
 
 vec3 aces(vec3 x) {
     /* Krzysztof Narkowicz's fit of the ACES filmic curve */
@@ -27,5 +29,16 @@ void main() {
      * linear light and convert back, so darks keep their contrast and only the
      * bright end is compressed */
     vec3 linear = pow(max(color, vec3(0.0)), vec3(2.2)) * exposure;
-    outColor = vec4(pow(aces(linear), vec3(1.0 / 2.2)), 1.0);
+    vec3 mapped = pow(aces(linear), vec3(1.0 / 2.2));
+
+    /* colour grade: daylight never looks like fully saturated primaries */
+    float luma = dot(mapped, vec3(0.2126, 0.7152, 0.0722));
+    mapped = mix(vec3(luma), mapped, saturation);
+    if (gradeStrength > 0.0) {
+        vec3 tint = mix(vec3(0.96, 0.99, 1.05), vec3(1.04, 1.0, 0.95), smoothstep(0.1, 0.8, luma));
+        mapped *= mix(vec3(1.0), tint, gradeStrength);
+        vec2 v = textureCoords - 0.5;
+        mapped *= 1.0 - gradeStrength * 0.22 * smoothstep(0.25, 0.85, dot(v, v) * 2.0);
+    }
+    outColor = vec4(clamp(mapped, 0.0, 1.0), 1.0);
 }

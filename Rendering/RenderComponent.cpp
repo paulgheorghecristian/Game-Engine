@@ -1,4 +1,5 @@
 #include "RenderComponent.h"
+#include "RenderingMaster.h"
 
 RenderComponent::RenderComponent(RenderingObject &&renderingObject) : renderingObject(std::move(renderingObject)) {
     bool hasTexture = false;
@@ -70,6 +71,7 @@ void RenderComponent::render(Shader *externShader) {
             externShader->updateUniform ("terrainHasRockNormal", hasRockNormal);
             externShader->updateUniform ("terrainTileSize", terrain->tileSize);
             externShader->updateUniform ("terrainShoreHeight", terrain->shoreHeight);
+            externShader->updateUniform ("terrainVariation", terrain->variation);
         }
 
         if (m_materials[i]->getDiffuseTexture() != NULL) {
@@ -184,4 +186,19 @@ std::string RenderComponent::jsonify() {
 
 RenderComponent::~RenderComponent()
 {
+}
+
+bool RenderComponent::isBeyondDrawDistance(Transform &transform)
+{
+    RenderingMaster *rm = RenderingMaster::getInstance();
+    if (rm->getEnvironment().fogEnd <= 0.0f) {
+        return false;
+    }
+    glm::vec3 localCenter;
+    float localRadius;
+    renderingObject.getBoundingSphere(localCenter, localRadius);
+    glm::vec3 center = glm::vec3(transform.getModelMatrix() * glm::vec4(localCenter, 1.0f));
+    glm::vec3 s = transform.getScale();
+    float radius = localRadius * glm::max(glm::abs(s.x), glm::max(glm::abs(s.y), glm::abs(s.z)));
+    return rm->isBeyondDrawDistance(center, radius);
 }

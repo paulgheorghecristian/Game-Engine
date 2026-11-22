@@ -2,6 +2,8 @@
     "VSPath" : "res/shaders/bufferCombinationShader.vs",
     "FSPath" : "res/shaders/bufferCombinationShader.fs",
     "Uniforms" : {
+                    "fogStart" : "FLOAT",
+                    "fogEnd" : "FLOAT",
                     "normalSampler" : "INT",
                     "depthSampler" : "INT",
                     "particlesSampler" : "INT",

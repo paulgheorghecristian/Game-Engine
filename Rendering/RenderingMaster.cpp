@@ -14,6 +14,7 @@
 #include "Button.hpp"
 #include "Font.h"
 #include "ParticleEmitter.h"
+#include "GrassRenderer.h"
 #include "Material.h"
 #include "WaterRenderer.h"
 
@@ -59,6 +60,8 @@ RenderingMaster::RenderingMaster(Display *display,
     this->display = display;
     this->camera = camera;
     this->projectionMatrix = projectionMatrix;
+    /* far plane of the projection we were given (restored when a map turns the fog cut-off off) */
+    m_defaultFarPlane = m_farPlane = projectionMatrix[3][2] / (projectionMatrix[2][2] + 1.0f);
 
     updateDt = display->getFrameTimeInMs();
 
@@ -172,6 +175,7 @@ RenderingMaster::RenderingMaster(Display *display,
     flarePostProcess->getShader().updateUniform("lensFlareColorSampler", 1);
     lensFlareColorTxt = new Texture("res/textures/lenscolor.bmp", 1);
     blueNoiseTexture = new Texture("res/textures/BlueNoise64Tiled.png", 2);
+    m_moonTexture = new Texture("res/textures/moon.png", 15);
 
     fxaaPostProcess = new PostProcess(renderWidth, renderHeight,
                                         fxaaFrameBuffer.getRenderTargets()[0],
@@ -242,6 +246,7 @@ RenderingMaster::~RenderingMaster()
     delete m_bloomHalfA; delete m_bloomHalfB; delete m_bloomQuarterA; delete m_bloomQuarterB;
     delete m_ssaoShader; delete m_ssaoBlurShader; delete m_bloomBrightShader; delete m_blurShader; delete m_tonemapShader;
     delete water;
+    delete grass;
     for (ParticleEmitter *emitter : particleEmitters) {
         delete emitter;
     }
@@ -408,10 +413,14 @@ void RenderingMaster::drawDeferredShadingBuffers()
 
     deferredShading_BufferCombinationShader.unbind();
     if (hdr) {
+        /* the water goes into the HDR image too, so its reflections and glints
+         * are bloomed and tone mapped like everything else */
+        if (water != NULL) {
+            water->render(*m_hdrFB);
+        }
         m_hdrFB->unbind();
         renderBloomAndToneMap(); /* leaves fxaaFrameBuffer bound */
-    }
-    if (water != NULL) {
+    } else if (water != NULL) {
         water->render(fxaaFrameBuffer);
     }
     fxaaFrameBuffer.unbind();
@@ -454,6 +463,11 @@ void RenderingMaster::update() {
         smokeRenderer->update(*camera, updateDt);
     }
     for (ParticleEmitter *emitter : particleEmitters) {
+        /* a beam emitter whose light was deleted in the editor */
+        if (emitter->getLinkedLight() != nullptr &&
+            std::find(lights.begin(), lights.end(), (Light *) emitter->getLinkedLight()) == lights.end()) {
+            emitter->lightRemoved();
+        }
         emitter->update(*camera, updateDt);
     }
 
@@ -477,6 +491,12 @@ void RenderingMaster::prepareFrame(float alpha) {
     forwardVectorInEyeSpace = glm::mat3 (cameraViewMatrix) * cameraForward;
     inverseViewMatrix = glm::inverse(cameraViewMatrix);
     skyShader->updateUniform("time", m_renderTime);
+    /* clouds drift with time; the sky needs the camera to place them in the world */
+    skyShader->updateUniform("cloudTime", m_renderTime);
+    skyShader->updateUniform("cameraPosition", (void *) &camera->getPosition());
+    DirectionalLight::getLightAccumulationShader().updateUniform("cloudTime", m_renderTime);
+    uploadWind(deferredShading_InstanceRender);
+    uploadWind(depthMapCreatorInstanceRender);
     DirectionalLight::getLightAccumulationShader().updateUniform("inverseViewMatrix", (void *) &inverseViewMatrix);
     PointLight::getLightAccumulationShader().updateUniform("inverseViewMatrix", (void *) &inverseViewMatrix);
     deferredShading_BufferCombinationShader.updateUniform("inverseViewMatrix", (void *) &inverseViewMatrix);
@@ -550,6 +570,15 @@ void RenderingMaster::createLightAccumulationBuffer()
     glClear(GL_COLOR_BUFFER_BIT);
 
     for (Light *light : lights) {
+        /* lights whose whole volume is past the draw distance light nothing visible */
+        if (m_environment.fogEnd > 0.0f) {
+            float reach = -1.0f;
+            if (PointLight *p = dynamic_cast<PointLight *>(light)) reach = p->getRange();
+            else if (dynamic_cast<SpotLight *>(light) != NULL) reach = light->getTransform().getScale().z;
+            if (reach > 0.0f && isBeyondDrawDistance(light->getTransform().getPosition(), reach)) {
+                continue;
+            }
+        }
         if (light->needsStencilTest()) {
             computeStencilBufferForLight(light);
         }
@@ -612,6 +641,10 @@ void RenderingMaster::drawSky()
     glDepthMask(GL_FALSE);
     glDisable(GL_CULL_FACE);
 
+    if (m_moonTexture != nullptr) {
+        m_moonTexture->use(15);
+        skyShader->updateUniform("moonSampler", 15);
+    }
     dynamic_cast<RenderComponent *>(skyDomeEntity.getComponent(Entity::Flags::RENDERABLE))->render(skyShader);
 
     glDepthMask(GL_TRUE);
@@ -652,6 +685,9 @@ void RenderingMaster::renderVolumetricLight()
             volumetricLightShader.updateUniform("coef2", spot->getCoef2());
             volumetricLightShader.updateUniform("beamDensity", spot->getBeamDensity());
             volumetricLightShader.updateUniform("beamFalloff", spot->getBeamFalloff());
+            volumetricLightShader.updateUniform("beamHaze", spot->getBeamHaze());
+            uploadFogCutoff(volumetricLightShader);
+            volumetricLightShader.updateUniform("time", m_renderTime);
             volumetricLightShader.updateUniform("secondFraction", secondFraction);
             lights[i]->render(volumetricLightShader);
             glEnable(GL_DEPTH_TEST);
@@ -712,10 +748,46 @@ void RenderingMaster::renderIMGUI() {
 }
 
 void RenderingMaster::setFOV(float fov) {
-    bool result = true;
     float aspectRatio = (float) display->getWidth() / (float) display->getHeight();
-    projectionMatrix = glm::perspective(glm::radians(fov), aspectRatio, 1.0f, 5000.0f);
+    projectionMatrix = glm::perspective(glm::radians(fov), aspectRatio, 1.0f, m_farPlane);
+    uploadProjection();
+}
 
+void RenderingMaster::setFarPlane(float farPlane) {
+    float nearPlane = projectionMatrix[3][2] / (projectionMatrix[2][2] - 1.0f);
+    m_farPlane = farPlane;
+    projectionMatrix[2][2] = -(farPlane + nearPlane) / (farPlane - nearPlane);
+    projectionMatrix[3][2] = -2.0f * farPlane * nearPlane / (farPlane - nearPlane);
+    uploadProjection();
+}
+
+bool RenderingMaster::isBeyondDrawDistance(const glm::vec3 &center, float radius) const {
+    if (m_environment.fogEnd <= 0.0f) {
+        return false;
+    }
+    return glm::length(center - camera->getPosition()) - radius > m_farPlane;
+}
+
+void RenderingMaster::uploadFogCutoff(Shader &shader) const {
+    float start = m_environment.fogStart, end = m_environment.fogEnd;
+    shader.updateUniform("fogStart", start);
+    shader.updateUniform("fogEnd", end);
+}
+
+glm::vec2 RenderingMaster::getWindDirection() const {
+    /* the wind blows the way the clouds drift */
+    return glm::normalize(glm::vec2(0.8f, 0.35f)) * m_environment.wind;
+}
+
+void RenderingMaster::uploadWind(Shader &shader) const {
+    glm::vec2 direction = getWindDirection();
+    float time = m_renderTime;
+    shader.updateUniform("windDirection", (void *) &direction);
+    shader.updateUniform("windTime", time);
+}
+
+void RenderingMaster::uploadProjection() {
+    bool result = true;
     result &= deferredShading_SceneShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= deferredShading_InstanceRender.updateUniform("projectionMatrix", (void *) &projectionMatrix);
     result &= deferredShading_AnimRender.updateUniform("projectionMatrix", (void *) &projectionMatrix);
@@ -795,6 +867,16 @@ void RenderingMaster::environmentGUI()
     changed |= ImGui::SliderFloat("Fog density", &m_baseEnvironment.fogDensity, 0.0f, 0.01f, "%.4f");
     changed |= ImGui::SliderFloat("Fog height falloff", &m_baseEnvironment.fogHeightFalloff, 0.0f, 0.03f, "%.4f");
     changed |= ImGui::SliderFloat("Haze glow", &m_baseEnvironment.fogMoonGlow, 0.0f, 1.0f);
+    changed |= ImGui::SliderFloat("Clouds", &m_baseEnvironment.cloudCoverage, 0.0f, 1.0f, "%.2f");
+    changed |= ImGui::SliderFloat("Wind", &m_baseEnvironment.wind, 0.0f, 3.0f, "%.2f");
+    if (m_baseEnvironment.cloudCoverage > 0.0f) {
+        changed |= ImGui::SliderFloat("Cloud speed", &m_baseEnvironment.cloudSpeed, 0.0f, 80.0f, "%.0f");
+    }
+    changed |= ImGui::SliderFloat("Fog end / draw distance", &m_baseEnvironment.fogEnd, 0.0f, 6000.0f,
+                                  m_baseEnvironment.fogEnd > 0.0f ? "%.0f" : "off");
+    if (m_baseEnvironment.fogEnd > 0.0f) {
+        changed |= ImGui::SliderFloat("Fog start", &m_baseEnvironment.fogStart, 0.0f, m_baseEnvironment.fogEnd, "%.0f");
+    }
     changed |= ImGui::SliderFloat("Ambient (night)", &m_baseEnvironment.ambient, 0.0f, 0.5f);
     if (m_baseEnvironment.dayLength > 0.0f) {
         changed |= ImGui::SliderFloat("Ambient (day)", &m_baseEnvironment.dayAmbient, 0.0f, 0.8f);
@@ -807,6 +889,8 @@ void RenderingMaster::environmentGUI()
         changed |= ImGui::SliderFloat("Exposure", &m_baseEnvironment.exposure, 0.2f, 4.0f);
         changed |= ImGui::SliderFloat("Bloom", &m_baseEnvironment.bloomStrength, 0.0f, 2.0f);
         changed |= ImGui::SliderFloat("Bloom threshold", &m_baseEnvironment.bloomThreshold, 0.2f, 3.0f);
+        changed |= ImGui::SliderFloat("Saturation", &m_baseEnvironment.saturation, 0.0f, 1.5f);
+        changed |= ImGui::SliderFloat("Colour grade", &m_baseEnvironment.grade, 0.0f, 1.0f);
     }
     changed |= ImGui::SliderFloat("Ambient occlusion", &m_baseEnvironment.aoStrength, 0.0f, 1.0f);
     changed |= ImGui::SliderFloat("AO radius", &m_baseEnvironment.aoRadius, 1.0f, 40.0f);
@@ -861,6 +945,20 @@ void RenderingMaster::applyEnvironment(const Environment &environment)
     c.updateUniform("fogHeightFalloff", e.fogHeightFalloff);
     c.updateUniform("fogBaseHeight", e.fogBaseHeight);
     c.updateUniform("fogMoonGlow", e.fogMoonGlow);
+    uploadFogCutoff(c);
+    {
+        float coverage = e.cloudCoverage;
+        glm::vec2 wind = glm::vec2(0.8f, 0.35f) * e.cloudSpeed;
+        skyShader->updateUniform("cloudCoverage", coverage);
+        skyShader->updateUniform("cloudWind", (void *) &wind);
+        DirectionalLight::getLightAccumulationShader().updateUniform("cloudCoverage", coverage);
+        DirectionalLight::getLightAccumulationShader().updateUniform("cloudWind", (void *) &wind);
+    }
+    /* the draw distance ends where the fog is opaque */
+    float farPlane = e.fogEnd > 0.0f ? std::max(e.fogEnd * 1.01f, 200.0f) : m_defaultFarPlane;
+    if (std::abs(farPlane - m_farPlane) > 0.5f) {
+        setFarPlane(farPlane);
+    }
     /* haze glows toward the dominant sky light (sun by day, moon by night) */
     c.updateUniform("moonDirection", (void *) &e.lightDirection);
     c.updateUniform("moonColor", (void *) &e.lightColor);
@@ -1076,6 +1174,9 @@ void RenderingMaster::renderBloomAndToneMap()
     float bloomStrength = bloom ? m_environment.bloomStrength : 0.0f;
     m_tonemapShader->updateUniform("exposure", exposure);
     m_tonemapShader->updateUniform("bloomStrength", bloomStrength);
+    float saturation = m_environment.saturation, grade = m_environment.grade;
+    m_tonemapShader->updateUniform("saturation", saturation);
+    m_tonemapShader->updateUniform("gradeStrength", grade);
     fxaaFrameBuffer.bindSingleRenderTarget(0);
     m_tonemapShader->bind();
     bindTexture(0, m_hdrFB->getRenderTargets()[0]);
@@ -1091,6 +1192,7 @@ void RenderingMaster::drawParticles()
         smokeRenderer->draw();
     }
     const glm::mat4 &view = camera->getViewMatrix();
+    uploadFogCutoff(ParticleEmitter::getShader());
     for (ParticleEmitter *emitter : particleEmitters) {
         emitter->draw(projectionMatrix, view, renderWidth, renderHeight, m_renderAlpha);
     }

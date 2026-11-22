@@ -79,18 +79,43 @@ vec3 pbrComposite(vec3 albedo) {
     return direct + (diffuseAmbient + specularAmbient) * occlusion;
 }
 
+uniform float fogStart, fogEnd;
+/* distance cut-off: 0 before fogStart, closes in exponentially and is
+ * exactly 1 (fully fogged) at fogEnd, the far plane. fogEnd 0 = off */
+float fogCutoff(float dist) {
+    if (fogEnd <= 0.0) return 0.0;
+    float d = clamp((dist - fogStart) / max(fogEnd - fogStart, 1.0), 0.0, 1.0);
+    return (1.0 - exp(-4.0 * d * d)) / (1.0 - exp(-4.0));
+}
+
 /* fog factor for the pixel at textureCoords with depth buffer value d;
  * also returns the fog color, brightened toward the moon */
 float fogAmount(float d, out vec3 color) {
     color = fogColor;
-    if (fogDensity <= 0.0) return 0.0;
+    if (fogDensity <= 0.0 && fogEnd <= 0.0) return 0.0;
     vec4 view = inverseProjectionMatrix * vec4(textureCoords * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);
     view /= view.w;
     vec3 world = (inverseViewMatrix * view).xyz;
     vec3 rayDir = normalize(mat3(inverseViewMatrix) * view.xyz);
     color += moonColor * fogMoonGlow * pow(max(dot(rayDir, moonDirection), 0.0), 6.0);
-    float heightFactor = exp(-max(world.y - fogBaseHeight, 0.0) * fogHeightFalloff);
-    return clamp((1.0 - exp(-length(view.xyz) * fogDensity)) * heightFactor, 0.0, 1.0);
+    float haze = 0.0;
+    if (fogDensity > 0.0) {
+        float heightFactor = exp(-max(world.y - fogBaseHeight, 0.0) * fogHeightFalloff);
+        haze = clamp((1.0 - exp(-length(view.xyz) * fogDensity)) * heightFactor, 0.0, 1.0);
+    }
+    return 1.0 - (1.0 - haze) * (1.0 - fogCutoff(length(view.xyz)));
+}
+
+/* with a fog cut-off the sky's horizon band is the fog itself, so geometry
+ * fading out at the draw distance melts into the sky instead of leaving a
+ * silhouette */
+float skyHaze(out vec3 color) {
+    color = fogColor;
+    if (fogEnd <= 0.0) return 0.0;
+    vec4 view = inverseProjectionMatrix * vec4(textureCoords * 2.0 - 1.0, 1.0, 1.0);
+    vec3 rayDir = normalize(mat3(inverseViewMatrix) * (view.xyz / view.w));
+    color += moonColor * fogMoonGlow * pow(max(dot(rayDir, moonDirection), 0.0), 6.0);
+    return 1.0 - smoothstep(-0.02, 0.22, rayDir.y);
 }
 
 vec4 volumetrics() {
@@ -173,6 +198,9 @@ void main() {
             finalColor = flarePixel.xyz * flarePixel.a + finalColor;
             outColor = finalColor;// * max(0.3, (1.0 - depthVal.x));
         } else {
+            vec3 skyHazeColor;
+            float horizonHaze = skyHaze(skyHazeColor);
+            albedoPixel = mix(albedoPixel, skyHazeColor, horizonHaze);
             vec3 finalColor = particlesPixel.xyz + albedoPixel * (1.0 - particlesPixel.a);
             finalColor = volumetricPixel.xyz + finalColor * (1.0 - volumetricPixel.a);
             finalColor = flarePixel.xyz * flarePixel.a + finalColor;

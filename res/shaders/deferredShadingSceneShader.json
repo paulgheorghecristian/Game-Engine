@@ -2,6 +2,7 @@
     "VSPath" : "res/shaders/deferredShadingSceneShader.vs",
     "FSPath" : "res/shaders/deferredShadingSceneShader.fs",
     "Uniforms" : {
+                    "terrainVariation" : "FLOAT",
                     "material.ambient" : "VEC3",
                     "material.specular" : "VEC3",
                     "material.diffuse" : "VEC3",

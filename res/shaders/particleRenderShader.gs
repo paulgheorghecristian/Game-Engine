@@ -10,6 +10,8 @@ out vec2 textCoords;
 in vec3 eyeSpaceNormal[1];
 in mat4 viewModelMatrixOut[1];
 in float outAliveForInMs[1];
+in float outIntensity[1];
+flat out float particleIntensity;
 out float blendFactor;
 out float aliveFor;
 
@@ -42,6 +44,10 @@ void main(){
     vec4 lr = PVM * vec4(vec3(0.5, -0.5, 0), 1.0);
 
     aliveFor = (outAliveForInMs[0] / liveForInMs);
+    particleIntensity = outIntensity[0];
+    if (particleIntensity <= 0.001) {
+        return;                 /* a mote outside its beam: nothing to draw */
+    }
     float normalizedAliveTime = (outAliveForInMs[0] / liveForInMs) * (totalNumOfSubTxts - 1);
 
     vec4 currentTextCoords, prevTxtCoords;
@@ -60,28 +66,34 @@ void main(){
     gl_Position = ul;
     textCoords = vec2(currentTextCoords.x, currentTextCoords.y);
     previousTextCoords = vec2(prevTxtCoords.x, prevTxtCoords.y);
+    particleIntensity = outIntensity[0];
     EmitVertex();
     gl_Position = ll;
     textCoords = vec2(currentTextCoords.x, currentTextCoords.w);
     previousTextCoords = vec2(prevTxtCoords.x, prevTxtCoords.w);
+    particleIntensity = outIntensity[0];
     EmitVertex();
     gl_Position = ur;
     textCoords = vec2(currentTextCoords.z, currentTextCoords.y);
     previousTextCoords = vec2(prevTxtCoords.z, prevTxtCoords.y);
+    particleIntensity = outIntensity[0];
     EmitVertex();
     EndPrimitive();
 
     gl_Position = ur;
     textCoords = vec2(currentTextCoords.z, currentTextCoords.y);
     previousTextCoords = vec2(prevTxtCoords.z, prevTxtCoords.y);
+    particleIntensity = outIntensity[0];
     EmitVertex();
     gl_Position = ll;
     textCoords = vec2(currentTextCoords.x, currentTextCoords.w);
     previousTextCoords = vec2(prevTxtCoords.x, prevTxtCoords.w);
+    particleIntensity = outIntensity[0];
     EmitVertex();
     gl_Position = lr;
     textCoords = vec2(currentTextCoords.z, currentTextCoords.w);
     previousTextCoords = vec2(prevTxtCoords.z, prevTxtCoords.w);
+    particleIntensity = outIntensity[0];
     EmitVertex();
     EndPrimitive();
 }

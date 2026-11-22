@@ -2,6 +2,8 @@
     "VSPath" : "res/shaders/bufferCombinationShader.vs",
     "FSPath" : "res/shaders/tonemap.fs",
     "Uniforms" : {
+                    "saturation" : "FLOAT",
+                    "gradeStrength" : "FLOAT",
                     "hdrSampler" : "INT",
                     "bloomSamplerNear" : "INT",
                     "bloomSamplerFar" : "INT",

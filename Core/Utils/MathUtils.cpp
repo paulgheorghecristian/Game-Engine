@@ -113,9 +113,15 @@ void MathUtils::calculateFrustumSurroundingCuboid (Camera *camera,
     float halfHeight = (maxY - minY) / 2.0;
     float halfDepth = (maxZ - minZ) / 2.0;
 
+    /* The box fits the camera's view, but casters between it and the light
+     * (tall cliffs, a low sun throwing long shadows) must be in the shadow
+     * map too, or their shadows vanish depending on where the camera looks:
+     * extend it far towards the light (only depth matters for a directional
+     * light: a caster shadowing a point inside the box has the same x, y) */
+    const float towardsLight = 3000.0f;
     projectionMatrix = glm::ortho (-halfWidth, halfWidth,
                                    -halfHeight, halfHeight,
-                                   -halfDepth-250.0f, halfDepth);
+                                   -halfDepth - towardsLight, halfDepth + 50.0f);
 
     viewMatrix = glm::mat4_cast (allRot);
     viewMatrix = glm::translate(viewMatrix, -inputFrustum.center);

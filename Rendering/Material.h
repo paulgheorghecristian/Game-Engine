@@ -17,6 +17,7 @@ struct TerrainLayers {
     float normalStrength = 1.0f;
     float tileSize = 60.0f;      /* world units per texture repeat */
     float shoreHeight = 0.0f;    /* shoreline blend around this height */
+    float variation = 0.0f;      /* 0..1: dry / lush patches of grass (0 = uniform) */
     ~TerrainLayers();
 };
 

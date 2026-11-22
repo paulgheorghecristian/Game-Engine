@@ -35,10 +35,17 @@ void Environment::load(const rapidjson::Value &json)
     readFloat(json, "fogHeightFalloff", fogHeightFalloff);
     readFloat(json, "fogBaseHeight", fogBaseHeight);
     readFloat(json, "fogMoonGlow", fogMoonGlow);
+    readFloat(json, "fogStart", fogStart);
+    readFloat(json, "cloudCoverage", cloudCoverage);
+    readFloat(json, "cloudSpeed", cloudSpeed);
+    readFloat(json, "wind", wind);
+    readFloat(json, "fogEnd", fogEnd);
     readFloat(json, "ambient", ambient);
     if (json.HasMember("hdr") && json["hdr"].IsBool()) hdr = json["hdr"].GetBool();
     if (json.HasMember("pbr") && json["pbr"].IsBool()) pbr = json["pbr"].GetBool();
     readFloat(json, "exposure", exposure);
+    readFloat(json, "saturation", saturation);
+    readFloat(json, "grade", grade);
     readFloat(json, "bloomStrength", bloomStrength);
     readFloat(json, "bloomThreshold", bloomThreshold);
     readFloat(json, "aoStrength", aoStrength);
@@ -140,6 +147,15 @@ void Environment::save(rapidjson::Value &json, rapidjson::Document::AllocatorTyp
     json.AddMember("fogHeightFalloff", fogHeightFalloff, allocator);
     json.AddMember("fogBaseHeight", fogBaseHeight, allocator);
     json.AddMember("fogMoonGlow", fogMoonGlow, allocator);
+    if (cloudCoverage > 0.0f) {
+        json.AddMember("cloudCoverage", cloudCoverage, allocator);
+        json.AddMember("cloudSpeed", cloudSpeed, allocator);
+    }
+    json.AddMember("wind", wind, allocator);
+    if (fogEnd > 0.0f) {
+        json.AddMember("fogStart", fogStart, allocator);
+        json.AddMember("fogEnd", fogEnd, allocator);
+    }
     json.AddMember("ambient", ambient, allocator);
     writeVec3(json, "ambientSkyTint", ambientSkyTint, allocator);
     writeVec3(json, "ambientGroundTint", ambientGroundTint, allocator);
@@ -147,6 +163,8 @@ void Environment::save(rapidjson::Value &json, rapidjson::Document::AllocatorTyp
     json.AddMember("hdr", hdr, allocator);
     json.AddMember("pbr", pbr, allocator);
     json.AddMember("exposure", exposure, allocator);
+    json.AddMember("saturation", saturation, allocator);
+    json.AddMember("grade", grade, allocator);
     json.AddMember("bloomStrength", bloomStrength, allocator);
     json.AddMember("bloomThreshold", bloomThreshold, allocator);
     json.AddMember("aoStrength", aoStrength, allocator);

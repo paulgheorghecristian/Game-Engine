@@ -24,6 +24,7 @@ template<typename P>
 class ParticleRenderer;
 class ParticleEmitter;
 class WaterRenderer;
+class GrassRenderer;
 
 enum GUIVarsEnum_f {
     VAR1_f = 0,
@@ -81,6 +82,11 @@ class RenderingMaster
         inline int getRenderHeight() const { return renderHeight; }
 
         void setFOV(float fov);
+        /* moves the camera's far plane (keeps fov / aspect / near) */
+        void setFarPlane(float farPlane);
+        float getFarPlane() const { return m_farPlane; }
+        /* a bounding sphere entirely past the draw distance (fully fogged) */
+        bool isBeyondDrawDistance(const glm::vec3 &center, float radius) const;
 
         Shader deferredShading_SceneShader;
         Shader deferredShading_InstanceRender;
@@ -133,6 +139,11 @@ class RenderingMaster
         std::string savedMapPath;
         /* seconds of simulated time, interpolated for the frame being rendered */
         inline float getTime() const { return m_renderTime; }
+        /* fog cut-off uniforms for passes composited after the fog (particles, beams) */
+        void uploadFogCutoff(Shader &shader) const;
+        /* wind uniforms (direction, strength, time) for shaders that sway geometry */
+        void uploadWind(Shader &shader) const;
+        glm::vec2 getWindDirection() const;
         inline float getRenderAlpha() const { return m_renderAlpha; }
 
         Texture &getVolumetricLightTexture() { return volumetricLightTxt; }
@@ -140,6 +151,7 @@ class RenderingMaster
 
         /* optional per-map features; owned by RenderingMaster */
         WaterRenderer *water = NULL;
+        GrassRenderer *grass = NULL;
         std::vector<ParticleEmitter *> particleEmitters;
         void drawParticles();
         void addParticleEmitter(ParticleEmitter *emitter) { particleEmitters.push_back(emitter); }
@@ -227,6 +239,7 @@ class RenderingMaster
         Texture *albedoTexture, *normalTexture, *lightAccumulationTexture;\
         Texture *roughnessTexture;
         Texture *blueNoiseTexture;
+        Texture *m_moonTexture = nullptr;   /* sky: full-moon albedo, unit 15 */
         Mesh *screenSizeRectangle;
 
         void computeStencilBufferForLight(Light *light);
@@ -250,6 +263,9 @@ class RenderingMaster
         float data_f[GUIVarsEnum_f::NUM_VARS_f];
         int data_i[GUIVarsEnum_int::NUM_VARS_i];
         glm::vec3 data_vec3[GUIVarsEnum_vec3::NUM_VARS_v3];
+    private:
+        float m_farPlane = 5000.0f, m_defaultFarPlane = 5000.0f;
+        void uploadProjection();
 };
 
 #endif // RENDERINGMASTER_H

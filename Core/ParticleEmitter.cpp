@@ -4,11 +4,12 @@
 #include <cstring>
 
 #include "Camera.h"
+#include "SpotLight.h"
 #include "Shader.h"
 #include "Texture.h"
 
-/* per instance: position.xyz + scale, normalized age (0..1000) */
-static const int FLOATS_PER_INSTANCE = 5;
+/* per instance: position.xyz + scale, normalized age (0..1000), intensity */
+static const int FLOATS_PER_INSTANCE = 6;
 /* the shader animates/fades over liveForInMs; ages are normalized to this */
 static const int NORMALIZED_LIFETIME = 1000;
 
@@ -28,7 +29,8 @@ static glm::vec3 getVec3(const rapidjson::Value &json, const char *key, const gl
 ParticleEmitter::ParticleEmitter(const rapidjson::Value &json)
 {
     std::string type = json.HasMember("type") ? json["type"].GetString() : "smoke";
-    m_type = type == "spray" ? SPRAY : (type == "drift" ? DRIFT : (type == "glow" ? GLOW : SMOKE));
+    m_type = type == "spray" ? SPRAY : (type == "drift" ? DRIFT : (type == "glow" ? GLOW :
+             (type == "beam" ? BEAM : SMOKE)));
 
     m_position = getVec3(json, "position", glm::vec3(0));
     m_direction = getVec3(json, "direction", glm::vec3(0, 1, 0));
@@ -61,6 +63,12 @@ ParticleEmitter::ParticleEmitter(const rapidjson::Value &json)
     m_additive = json.HasMember("blend") && std::string(json["blend"].GetString()) == "additive";
     m_atlasTopDown = json.HasMember("atlasTopDown") && json["atlasTopDown"].GetBool();
     m_nightOnly = json.HasMember("nightOnly") && json["nightOnly"].GetBool();
+    m_beamAngle = std::max(0.01f, getFloat(json, "angle", 0.15f));
+    m_beamLength = std::max(1.0f, getFloat(json, "length", 300.0f));
+    m_beamFalloff = std::max(1.0f, getFloat(json, "falloff", 150.0f));
+    m_beamRange = 1e9f;
+    m_lightIndex = json.HasMember("light") && json["light"].IsInt() ? json["light"].GetInt() : -1;
+    updateBeamFrame();
 
     int cols = 1, rows = 1;
     if (json.HasMember("atlas") && json["atlas"].IsArray() && json["atlas"].Size() >= 2) {
@@ -130,6 +138,9 @@ ParticleEmitter::ParticleEmitter(const rapidjson::Value &json)
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, FLOATS_PER_INSTANCE * sizeof(float), (void *) (4 * sizeof(float)));
     glVertexAttribDivisor(1, 1);
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, FLOATS_PER_INSTANCE * sizeof(float), (void *) (5 * sizeof(float)));
+    glVertexAttribDivisor(2, 1);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
@@ -169,7 +180,15 @@ glm::vec3 ParticleEmitter::randomInUnitSphere()
 void ParticleEmitter::respawn(Particle &p)
 {
     glm::vec3 offset;
-    if (m_type == DRIFT) {
+    if (m_type == BEAM) {
+        /* in the cone (in the beam's own frame): more of them near the lamp,
+         * where the beam is bright */
+        float t = m_beamLength * glm::pow(rand01(), 0.8f);
+        float r = glm::tan(m_beamAngle) * t * glm::sqrt(rand01());
+        float a = rand01() * 6.2831853f;
+        p.local = glm::vec3(glm::cos(a) * r, glm::sin(a) * r, t);
+        offset = m_frameOrigin + m_frameBasis * p.local - m_position;
+    } else if (m_type == DRIFT) {
         /* anywhere in a flattened ellipsoid */
         glm::vec3 r = randomInUnitSphere();
         offset = glm::vec3(r.x * m_radius, r.y * std::max(m_height, 1.0f), r.z * m_radius);
@@ -184,7 +203,8 @@ void ParticleEmitter::respawn(Particle &p)
 
     glm::vec3 dir = glm::normalize(m_direction + randomInUnitSphere() * m_spread);
     float speed = m_speedMin + (m_speedMax - m_speedMin) * rand01();
-    p.velocity = (m_type == DRIFT) ? randomInUnitSphere() * speed : dir * speed;
+    p.velocity = (m_type == DRIFT || m_type == BEAM) ? randomInUnitSphere() * speed : dir * speed;
+    p.seed = rand01();
 
     p.scale = m_startScale * (1.0f - m_scaleJitter * rand01());
     p.lifeMs = m_lifetimeMs * (0.7f + 0.3f * rand01());
@@ -232,6 +252,14 @@ void ParticleEmitter::simulate(Particle &p, float dtMs)
         break;
     case GLOW:
         break;
+    case BEAM:
+        /* slow brownian drift in the beam's frame (so the motes move and
+         * rotate with the light); motes that leave the cone just go dark */
+        p.velocity += randomInUnitSphere() * (m_wander * dt * 4.0f);
+        p.velocity *= std::max(0.0f, 1.0f - 0.8f * dt);
+        p.local += p.velocity * dt;
+        p.position = m_frameOrigin + m_frameBasis * p.local;
+        break;
     case DRIFT: {
         /* random wandering, gently pulled back into the volume */
         p.velocity += randomInUnitSphere() * (m_wander * dt * 4.0f);
@@ -269,9 +297,34 @@ void ParticleEmitter::restart()
     }
 }
 
+void ParticleEmitter::updateBeamFrame()
+{
+    if (m_light != nullptr) {
+        const Transform &t = m_light->getTransform();
+        glm::mat3 rotation = glm::mat3_cast(t.getRotation());
+        m_frameOrigin = t.getPosition();
+        m_frameBasis = glm::mat3(rotation * glm::vec3(1, 0, 0), rotation * glm::vec3(0, 1, 0),
+                                 rotation * glm::vec3(0, 0, -1));
+        m_beamAngle = std::max(0.01f, m_light->getConeAngle());
+        m_beamFalloff = std::max(1.0f, m_light->getBeamFalloff());
+        m_beamRange = t.getScale().z;
+        glm::vec3 c = m_light->getLightColor();
+        m_lightBrightness = glm::clamp(std::max(c.r, std::max(c.g, c.b)), 0.0f, 1.0f);
+        return;
+    }
+    glm::vec3 axis = m_direction;
+    glm::vec3 side = glm::normalize(glm::cross(axis, glm::abs(axis.y) < 0.9f ? glm::vec3(0, 1, 0) : glm::vec3(1, 0, 0)));
+    m_frameOrigin = m_position;
+    m_frameBasis = glm::mat3(side, glm::cross(side, axis), axis);
+    m_lightBrightness = m_lightLost ? 0.0f : 1.0f;
+}
+
 void ParticleEmitter::update(Camera &camera, float dtMs)
 {
     const glm::vec3 &cameraPosition = camera.getPosition();
+    if (m_type == BEAM) {
+        updateBeamFrame();
+    }
 
     for (Particle &p : m_particles) {
         p.previousPosition = p.position;
@@ -287,6 +340,25 @@ void ParticleEmitter::update(Camera &camera, float dtMs)
                       return a.distanceToCamera > b.distanceToCamera;
                   });
     }
+}
+
+float ParticleEmitter::beamIntensity(const Particle &p) const
+{
+    float along = p.local.z;
+    if (along <= 0.0f || m_lightBrightness <= 0.0f) {
+        return 0.0f;
+    }
+    float across = glm::atan(glm::length(glm::vec2(p.local.x, p.local.y)), along) / m_beamAngle;
+    float t = glm::clamp((across - 0.55f) / 0.45f, 0.0f, 1.0f);
+    float radial = 1.0f - t * t * (3.0f - 2.0f * t);
+    /* the same fades as the volumetric beam: exponential along it, and soft
+     * before the end of the light's range */
+    float fade = glm::exp(-along / m_beamFalloff);
+    float r = glm::clamp((along / m_beamRange - 0.6f) / 0.4f, 0.0f, 1.0f);
+    fade *= 1.0f - r * r * (3.0f - 2.0f * r);
+    /* each mote only catches the light now and then as it tumbles */
+    float twinkle = 0.2f + 0.8f * glm::pow(0.5f + 0.5f * glm::sin(p.ageMs * 0.0017f * (0.6f + p.seed) + p.seed * 40.0f), 4.0f);
+    return radial * fade * twinkle * m_lightBrightness;
 }
 
 void ParticleEmitter::draw(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix,
@@ -305,6 +377,7 @@ void ParticleEmitter::draw(const glm::mat4 &projectionMatrix, const glm::mat4 &v
         *out++ = position.z;
         *out++ = p.scale;
         *out++ = (p.ageMs / p.lifeMs) * NORMALIZED_LIFETIME;
+        *out++ = m_type == BEAM ? beamIntensity(p) : 1.0f;
         alive++;
     }
     if (alive == 0 || (m_nightOnly && s_nightFactor <= 0.001f)) {

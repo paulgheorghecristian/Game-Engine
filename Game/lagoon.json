@@ -42,6 +42,8 @@
   "fogHeightFalloff": 0.0035,
   "fogBaseHeight": -10.0,
   "fogMoonGlow": 0.35,
+  "cloudCoverage": 0.45,
+  "cloudSpeed": 14,
   "ambient": 0.05,
   "emissiveStrength": 1.6,
   "pbr": true,
@@ -50,7 +52,9 @@
   "bloomStrength": 0.5,
   "bloomThreshold": 0.9,
   "aoStrength": 0.9,
-  "aoRadius": 10,
+  "aoRadius": 18,
+  "saturation": 0.84,
+  "grade": 0.8,
   "ambientSkyTint": [
    0.85,
    0.95,
@@ -63,6 +67,26 @@
   ],
   "dayLength": 480,
   "timeOfDay": 0.0
+ },
+ "Grass": {
+  "radius": 200,
+  "spacing": 0.9,
+  "height": [
+   2.2,
+   4.8
+  ],
+  "width": 0.42,
+  "minHeight": -8.5,
+  "maxSlope": 0.5,
+  "wind": 1.0,
+  "clumping": 0.6,
+  "clearings": [
+   [
+    720.7,
+    -360.0,
+    17
+   ]
+  ]
  },
  "Water": {
   "height": -10.0,
@@ -144,7 +168,8 @@
        "soilNormal": "res/textures/terrain_soil_normal.png",
        "normalStrength": 1.0,
        "tileSize": 60,
-       "shoreHeight": -10.0
+       "shoreHeight": -10.0,
+       "variation": 1.0
       }
      }
     },
@@ -1634,19 +1659,19 @@
   {
    "Transform": {
     "position": [
-     720.65,
-     28.36,
-     -360.01
+     724.52,
+     31.36,
+     -358.63
     ],
     "rotation": [
-     -8,
-     0,
+     58.24,
+     76.23,
      0
     ],
     "scale": [
-     2.4,
-     2.4,
-     15
+     1.9,
+     1.9,
+     13.937
     ]
    },
    "Components": {
@@ -1679,19 +1704,19 @@
   {
    "Transform": {
     "position": [
-     720.65,
-     28.36,
-     -360.01
+     720.53,
+     31.36,
+     -355.91
     ],
     "rotation": [
-     12,
-     60,
+     58.24,
+     4.23,
      0
     ],
     "scale": [
-     2.4,
-     2.4,
-     15
+     1.9,
+     1.9,
+     13.937
     ]
    },
    "Components": {
@@ -1724,19 +1749,109 @@
   {
    "Transform": {
     "position": [
-     720.65,
-     28.36,
-     -360.01
+     716.71,
+     31.36,
+     -358.86
     ],
     "rotation": [
-     -8,
-     120,
+     58.24,
+     -67.77,
      0
     ],
     "scale": [
-     2.4,
-     2.4,
-     15
+     1.9,
+     1.9,
+     13.937
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.55,
+       0.45,
+       0.35
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/Bark002_2K_Color.jpg",
+      "NormalMapTexture": "res/textures/Bark002_2K_Normal.jpg",
+      "roughness": 0.85
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     718.34,
+     31.36,
+     -363.41
+    ],
+    "rotation": [
+     58.24,
+     -139.77,
+     0
+    ],
+    "scale": [
+     1.9,
+     1.9,
+     13.937
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.55,
+       0.45,
+       0.35
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/Bark002_2K_Color.jpg",
+      "NormalMapTexture": "res/textures/Bark002_2K_Normal.jpg",
+      "roughness": 0.85
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     723.16,
+     31.36,
+     -363.26
+    ],
+    "rotation": [
+     58.24,
+     148.23,
+     0
+    ],
+    "scale": [
+     1.9,
+     1.9,
+     13.937
     ]
    },
    "Components": {
@@ -2308,7 +2423,8 @@
         14.83
        ]
       }
-     ]
+     ],
+     "wind": 1.0
     }
    }
   },
@@ -4054,6 +4170,7 @@
     "coef2": 0.02,
     "beamDensity": 0.006,
     "beamFalloff": 450,
+    "beamHaze": 0.35,
     "coneAngle": 0.13,
     "shadowMapSize": 1024,
     "diffuse_attenuation": [

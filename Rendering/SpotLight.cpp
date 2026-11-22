@@ -199,6 +199,7 @@ void SpotLight::renderGUI() {
         ImGui::Text("Beam (beamDensity > 0: fades along its length)");
         ImGui::SliderFloat("Beam density", &m_beamDensity, 0.0f, 0.2f, "%.3f");
         ImGui::SliderFloat("Beam falloff", &m_beamFalloff, 20.0f, 1000.0f, "%.0f");
+        ImGui::SliderFloat("Beam haze", &m_beamHaze, 0.0f, 1.0f, "%.2f");
 
         m_transform.setScale(scale);
 
@@ -233,6 +234,9 @@ std::string SpotLight::jsonifyAttribs() {
     if (m_beamDensity > 0.0f) {
         res += ",\"beamDensity\":" + std::to_string(m_beamDensity);
         res += ",\"beamFalloff\":" + std::to_string(m_beamFalloff);
+        if (m_beamHaze > 0.0f) {
+            res += ",\"beamHaze\":" + std::to_string(m_beamHaze);
+        }
     }
     if (m_coneAngle > 0.0f) {
         res += ",\"coneAngle\":" + std::to_string(m_coneAngle);

@@ -1,0 +1,32 @@
+{
+    "VSPath" : "res/shaders/grass.vs",
+    "FSPath" : "res/shaders/grass.fs",
+    "Uniforms" : {
+                    "viewMatrix" : "MAT4",
+                    "projectionMatrix" : "MAT4",
+                    "cameraPosition" : "VEC3",
+                    "gridSize" : "INT",
+                    "spacing" : "FLOAT",
+                    "radius" : "FLOAT",
+                    "bladeHeight" : "VEC2",
+                    "bladeWidth" : "FLOAT",
+                    "minGroundHeight" : "FLOAT",
+                    "maxSlope" : "FLOAT",
+                    "clumping" : "FLOAT",
+                    "numClearings" : "INT",
+                    "heightSampler" : "INT",
+                    "fieldOrigin" : "VEC2",
+                    "fieldSize" : "VEC2",
+                    "fieldCell" : "FLOAT",
+                    "windStrength" : "FLOAT",
+                    "windDirection" : "VEC2",
+                    "windTime" : "FLOAT",
+                    "pbrEnabled" : "BOOL",
+                    "hasTerrainTextures" : "BOOL",
+                    "grassSampler" : "INT",
+                    "grass2Sampler" : "INT",
+                    "terrainTileSize" : "FLOAT",
+                    "terrainShoreHeight" : "FLOAT",
+                    "terrainVariation" : "FLOAT"
+                 }
+}

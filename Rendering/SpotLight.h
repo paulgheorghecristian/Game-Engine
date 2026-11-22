@@ -38,6 +38,9 @@ class SpotLight : public Light
         float getBeamFalloff() const { return m_beamFalloff; }
         void setBeamDensity(float d) { m_beamDensity = d; }
         void setBeamFalloff(float f) { m_beamFalloff = f; }
+        /* 0..1: the beam shows drifting, uneven smoke (0 = even haze) */
+        float getBeamHaze() const { return m_beamHaze; }
+        void setBeamHaze(float h) { m_beamHaze = h; }
         /* Cone half-angle in radians. By default it is derived from the
          * light's scale (scale.x / 1000, the original convention, which ties
          * the beam width to its range); "coneAngle" sets it independently so a
@@ -64,7 +67,7 @@ class SpotLight : public Light
         glm::vec3 worldRot;
 
         int numSamplePoints;
-        float m_beamDensity = 0.0f, m_beamFalloff = 250.0f, m_coneAngle = 0.0f;
+        float m_beamDensity = 0.0f, m_beamFalloff = 250.0f, m_coneAngle = 0.0f, m_beamHaze = 0.0f;
         float coef1;
         float coef2;
 

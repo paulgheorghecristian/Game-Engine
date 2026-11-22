@@ -26,6 +26,8 @@ class RenderComponent : public Component
         std::string jsonify() override;
 
         inline RenderingObject& getRenderingObject() { return renderingObject; }
+        /* entirely past the draw distance (the map's fog cut-off): skip drawing it */
+        bool isBeyondDrawDistance(Transform &transform);
 
         virtual ~RenderComponent();
 

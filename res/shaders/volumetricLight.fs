@@ -33,6 +33,38 @@ uniform float coef1;
 uniform float coef2;
 uniform float beamDensity; /* 0: original model; > 0: beam fading exponentially along its length */
 uniform float beamFalloff; /* distance over which the beam density drops by e */
+uniform float fogStart, fogEnd;
+/* distance cut-off: 0 before fogStart, closes in exponentially and is
+ * exactly 1 (fully fogged) at fogEnd, the far plane. fogEnd 0 = off */
+float fogCutoff(float dist) {
+    if (fogEnd <= 0.0) return 0.0;
+    float d = clamp((dist - fogStart) / max(fogEnd - fogStart, 1.0), 0.0, 1.0);
+    return (1.0 - exp(-4.0 * d * d)) / (1.0 - exp(-4.0));
+}
+uniform float beamHaze;    /* 0..1: the beam lights drifting, uneven smoke instead of an even haze */
+uniform float time;
+
+float hazeHash(vec3 p) {
+    p = fract(p * 0.3183099 + 0.1);
+    p *= 17.0;
+    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+float hazeNoise(vec3 x) {
+    vec3 i = floor(x), f = fract(x);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix(hazeHash(i), hazeHash(i + vec3(1, 0, 0)), f.x),
+                   mix(hazeHash(i + vec3(0, 1, 0)), hazeHash(i + vec3(1, 1, 0)), f.x), f.y),
+               mix(mix(hazeHash(i + vec3(0, 0, 1)), hazeHash(i + vec3(1, 0, 1)), f.x),
+                   mix(hazeHash(i + vec3(0, 1, 1)), hazeHash(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}
+
+/* slowly rising, drifting smoke density around 1 */
+float hazeDensity(vec3 world) {
+    vec3 p = world * 0.022 + vec3(time * 0.05, -time * 0.11, time * 0.03);
+    float n = hazeNoise(p) * 0.65 + hazeNoise(p * 2.7 + 3.1) * 0.35;
+    return mix(1.0, smoothstep(0.2, 0.85, n) * 2.2, beamHaze);
+}
 uniform float secondFraction;
 
 in vec3 positionModelSpace;
@@ -164,6 +196,7 @@ void main() {
     float pointsNotInShadow = 0;
     float beamDistanceSum = 0.0;
     float phaseSum = 0.0;
+    float cameraDistanceSum = 0.0;
 
 
     vec3 ray = normalize(positionModelSpace - cameraPosition);
@@ -255,10 +288,17 @@ void main() {
                  * normalised to 1 at 90 degrees) */
                 float cosTheta = dot(dir / max(len, 1e-3), -ray);
                 float phase = min(pow(1.0 + 0.1225, 1.5) / pow(1.1225 - 0.7 * cosTheta, 1.5), 3.0);
-                float w = radial * streaks;
+                /* fade out softly before the end of the light's range
+                 * instead of stopping at the light volume */
+                float rangeFade = 1.0 - smoothstep(0.6, 1.0, len / (virtualSphereDiameter * 0.5));
+                float w = radial * streaks * rangeFade;
+                if (beamHaze > 0.0) {
+                    w *= hazeDensity(worldPosition.xyz);
+                }
                 pointsNotInShadow += w;
                 beamDistanceSum += w * len;
                 phaseSum += w * phase;
+                cameraDistanceSum += w * currentT;
             } else {
                 pointsNotInShadow += sm1 * sm2;
             }
@@ -280,6 +320,8 @@ void main() {
         /* a dimmed light (e.g. a nightOnly lamp by day) also scatters less */
         float brightness = clamp(max(lightColor.r, max(lightColor.g, lightColor.b)), 0.0, 1.0);
         float beam = min(1.0 - exp(-opticalDepth), 0.8) * lengthFade * brightness;
+        /* beams are composited over the fogged scene: fade them like it */
+        beam *= 1.0 - fogCutoff(cameraDistanceSum / max(pointsNotInShadow, 1e-4));
         /* translucent: the beam lights the haze but the background stays visible */
         outLight.rgb = lightColor * beam;
         outLight.a = beam * 0.55;

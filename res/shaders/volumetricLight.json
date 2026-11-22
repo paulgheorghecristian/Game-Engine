@@ -2,6 +2,8 @@
     "VSPath" : "res/shaders/volumetricLight.vs",
     "FSPath" : "res/shaders/volumetricLight.fs",
     "Uniforms" : {
+                    "fogStart" : "FLOAT",
+                    "fogEnd" : "FLOAT",
                     "modelMatrix" : "MAT4",
                     "viewMatrix" : "MAT4",
                     "projectionMatrix" : "MAT4",
@@ -25,6 +27,8 @@
                     "coef2" : "FLOAT",
                     "beamDensity" : "FLOAT",
                     "beamFalloff" : "FLOAT",
+                    "beamHaze" : "FLOAT",
+                    "time" : "FLOAT",
                     "secondFraction": "FLOAT"
                  }
 }

@@ -2,6 +2,9 @@
     "VSPath" : "res/shaders/lightAccCreatorDirLight.vs",
     "FSPath" : "res/shaders/lightAccCreatorDirLight.fs",
     "Uniforms" : {
+                    "cloudCoverage" : "FLOAT",
+                    "cloudWind" : "VEC2",
+                    "cloudTime" : "FLOAT",
                     "pbrEnabled" : "BOOL",
                     "albedoSampler" : "INT",
                     "castsShadow" : "INT",

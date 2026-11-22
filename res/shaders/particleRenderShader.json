@@ -3,6 +3,8 @@
     "FSPath" : "res/shaders/particleRenderShader.fs",
     "GSPath" : "res/shaders/particleRenderShader.gs",
     "Uniforms" : {
+                    "fogStart" : "FLOAT",
+                    "fogEnd" : "FLOAT",
                     "viewMatrix" : "MAT4",
 		    "projectionMatrix" : "MAT4",
 		    "particleSampler" : "INT",

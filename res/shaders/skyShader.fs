@@ -10,6 +10,43 @@ uniform int skyMode;           /* 0: original dusk gradient, 1: night sky */
 uniform vec3 zenithColor, horizonColor;
 uniform float starIntensity;
 uniform vec3 moonDirection, moonColor;
+uniform sampler2D moonSampler;
+uniform vec3 cameraPosition;
+/* ---- clouds: one drifting fbm layer at CLOUD_HEIGHT (world units); the
+ * sky draws it and the directional light pass uses the same density for the
+ * cloud shadows on the ground, so the two always match ---- */
+uniform float cloudCoverage;   /* 0: no clouds .. 1: overcast */
+uniform vec2 cloudWind;        /* drift in world units per second */
+uniform float cloudTime;       /* seconds */
+const float CLOUD_HEIGHT = 1500.0;
+
+float cloudHash(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+}
+
+float cloudNoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(cloudHash(i), cloudHash(i + vec2(1, 0)), u.x),
+               mix(cloudHash(i + vec2(0, 1)), cloudHash(i + vec2(1, 1)), u.x), u.y);
+}
+
+/* 0..1 cloud density above world position xz */
+float cloudDensity(vec2 xz) {
+    vec2 p = (xz + cloudWind * cloudTime) * 0.0009;
+    float n = 0.0, amp = 0.5;
+    mat2 rot = mat2(0.8, -0.6, 0.6, 0.8);
+    for (int i = 0; i < 5; i++) {
+        n += amp * cloudNoise(p);
+        p = rot * p * 2.07 + vec2(7.3, 1.9);
+        amp *= 0.5;
+    }
+    float threshold = mix(0.68, 0.3, cloudCoverage);
+    return smoothstep(threshold, threshold + 0.22, n);
+}
+ /* full-moon albedo (maria, craters), on the disc */
 uniform float time;
 uniform vec3 sunDirection, sunColor, sunsetColor;
 uniform float sunVisibility;   /* 0 at night */
@@ -63,17 +100,61 @@ vec3 nightSky(vec3 dir) {
                                          pow(max(s, 0.0), 24.0) * 0.18 +
                                          pow(max(s, 0.0), 4.0) * 0.12); /* broad scattering glow */
 
-    /* moon disc, halo and a wide glow */
-    float m = dot(dir, normalize(moonDirection));
-    color += moonColor * (smoothstep(0.99935, 0.9996, m) * 1.6 * discs +
-                          pow(max(m, 0.0), 300.0) * 0.6 * discs +
+    /* moon: a textured disc (limb darkened), a soft halo and a wide glow */
+    vec3 moonDir = normalize(moonDirection);
+    float m = dot(dir, moonDir);
+    const float moonRadius = 0.036;                       /* angular radius (radians) */
+    if (m > 0.99 && discs > 0.0) {
+        vec3 right = normalize(cross(moonDir, abs(moonDir.y) < 0.99 ? vec3(0, 1, 0) : vec3(1, 0, 0)));
+        vec3 upAxis = cross(right, moonDir);
+        vec2 p = vec2(dot(dir, right), dot(dir, upAxis)) / sin(moonRadius);
+        float r = length(p);
+        if (r < 1.02) {
+            float albedo = texture(moonSampler, p * 0.5 + 0.5).r;
+            float limb = sqrt(max(1.0 - r * r, 0.0));
+            float disc = 1.0 - smoothstep(0.97, 1.01, r);
+            /* kept in the tone mapper's mid range so the maria and craters
+             * survive exposure and bloom; a greyer tint than the moonlight */
+            vec3 discColor = mix(moonColor, vec3(dot(moonColor, vec3(0.3333))), 0.6);
+            color += discColor * disc * pow(albedo, 1.5) * (0.55 + 0.45 * limb) * 1.25;
+        }
+    }
+    color += moonColor * (pow(max(m, 0.0), 300.0) * 0.35 * discs +
                           pow(max(m, 0.0), 12.0) * 0.12);
     return color;
 }
 
+vec3 clouds(vec3 dir, vec3 sky) {
+    if (cloudCoverage <= 0.0 || dir.y <= 0.0) return sky;
+    float t = (CLOUD_HEIGHT - cameraPosition.y) / max(dir.y, 0.02);
+    vec2 xz = cameraPosition.xz + dir.xz * t;
+    float d = cloudDensity(xz);
+    if (d <= 0.001) return sky;
+
+    /* light from the sun by day, the moon by night: sample the density a bit
+     * towards the light; denser there = this part is in the cloud's shadow */
+    vec3 L = sunVisibility > 0.0 ? normalize(sunDirection) : normalize(moonDirection);
+    float towardsLight = cloudDensity(xz + L.xz / max(L.y, 0.15) * 160.0);
+    float lit = clamp(1.0 - towardsLight * 0.75 + (1.0 - d) * 0.25, 0.0, 1.0);
+
+    vec3 shade = mix(horizonColor, zenithColor, 0.35) * 0.9 + vec3(0.08);
+    vec3 dayColor = mix(shade, sunColor * 1.15, lit);
+    dayColor += sunsetColor * sunsetStrength * (0.35 + 0.65 * lit);
+    /* silver lining: thin edges glow when looking towards the sun */
+    float toSun = max(dot(dir, normalize(sunDirection)), 0.0);
+    dayColor += sunColor * pow(toSun, 12.0) * (1.0 - d) * 1.5;
+    vec3 nightColor = horizonColor * 0.6 + moonColor * 0.12 * lit;
+    vec3 cloudColor = mix(nightColor, dayColor, sunVisibility);
+
+    /* thinner and hazier towards the horizon */
+    float fade = smoothstep(0.0, 0.14, dir.y) * exp(-t * 0.000035);
+    return mix(sky, cloudColor, d * fade * 0.95);
+}
+
 void main(){
     if (skyMode == 1) {
-        outColor = vec4(nightSky(normalize(skyDirection)), 1.0);
+        vec3 dir = normalize(skyDirection);
+        outColor = vec4(clouds(dir, nightSky(dir)), 1.0);
     } else {
         outColor = vec4(mix(vec3(0.22, 0.25, 0.58), vec3(0.6, 0.20, 0.1), texCoords.y-0.2), 1) * 0.3;
     }

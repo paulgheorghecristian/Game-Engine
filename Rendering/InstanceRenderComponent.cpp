@@ -47,8 +47,19 @@ void InstanceRenderComponent::update() {
 
 }
 
+int InstanceRenderComponent::s_windyComponents = 0;
+
+void InstanceRenderComponent::setWind(float wind) {
+    if ((m_wind > 0.0f) != (wind > 0.0f)) {
+        s_windyComponents += wind > 0.0f ? 1 : -1;
+    }
+    m_wind = wind;
+}
+
 void InstanceRenderComponent::render(Shader *externShader) {
     bool result = true;
+    /* every pass that draws instances sways them the same way */
+    externShader->updateUniform("windStrength", m_wind);
 
     const std::vector<Mesh *> &m_meshes = m_renderingObject.getMeshes();
     const std::vector<Material *> &m_materials = m_renderingObject.getMaterials();
@@ -280,6 +291,7 @@ std::string InstanceRenderComponent::jsonify() {
 }
 
 InstanceRenderComponent::~InstanceRenderComponent() {
+    setWind(0.0f);
         delete[] m_numberOfTriangles;
 
         glDeleteVertexArrays(m_renderingObject.getMeshes().size(), vaoHandles);

@@ -47,7 +47,7 @@ class WaterRenderer
         inline float getHeight() const { return m_height; }
 
         /* lights passed to forward shaders (water surface, reflection pass) */
-        static const int MAX_FORWARD_LIGHTS = 8;
+        static const int MAX_FORWARD_LIGHTS = 16;
         static void uploadForwardLights(Shader &shader, const glm::vec3 &referencePoint);
 
     private:
@@ -56,17 +56,26 @@ class WaterRenderer
         float m_tiling, m_waveStrength, m_waveSpeed, m_waveHeight;
         glm::vec3 m_shallowColor, m_deepColor;
         float m_murkDepth, m_softEdge, m_reflectivity;
+        float m_reflectionGlow;  /* "reflectionGlow": soft streaks under bright reflections */
         bool m_reflectionValid;
 
         int m_width, m_height_px;
         FrameBuffer m_reflectionFB;
         FrameBuffer m_sceneCopyFB;
-        Texture m_reflectionTexture, m_sceneCopyTexture;
+        /* reflected particles (billboards, flames, sparks) kept apart from the
+         * reflected scene, as the main pipeline does: they are composited over
+         * the water (not dimmed by the Fresnel term) and bloomed afterwards */
+        FrameBuffer m_reflectionParticlesFB;
+        Texture m_reflectionTexture, m_sceneCopyTexture, m_reflectionParticlesTexture;
         Texture m_dudvTexture, m_normalTexture;
 
+        bool m_reflectionMipmapsSet = false;
         Shader m_waterShader;
         Shader m_reflectionShader;
         Mesh *m_mesh;
+        /* 1x1 "nothing in front" depth for particles drawn into the reflection
+         * (they rely on the hardware depth test there instead) */
+        GLuint m_farDepthTexture = 0;
         glm::mat4 m_modelMatrix;
 };
 

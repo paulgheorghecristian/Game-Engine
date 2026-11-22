@@ -4,6 +4,7 @@
 #include "Entity.h"
 #include "RenderComponent.h"
 #include "InstanceRenderComponent.h"
+#include "RenderingMaster.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -194,6 +195,7 @@ void PointLight::renderShadowCube(const std::vector<Entity *> &entities)
     shader.updateUniform("lightPosition", (void *) &position);
     shader.updateUniform("farPlane", range);
     shader.updateUniform("textureSampler", 0);
+    RenderingMaster::getInstance()->uploadWind(shader);
 
     glBindFramebuffer(GL_FRAMEBUFFER, m_shadowFbo);
     glDrawBuffer(GL_NONE);

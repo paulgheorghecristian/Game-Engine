@@ -85,6 +85,7 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                 if (t.HasMember("normalStrength")) terrain->normalStrength = t["normalStrength"].GetFloat();
                 if (t.HasMember("tileSize")) terrain->tileSize = t["tileSize"].GetFloat();
                 if (t.HasMember("shoreHeight")) terrain->shoreHeight = t["shoreHeight"].GetFloat();
+                if (t.HasMember("variation")) terrain->variation = t["variation"].GetFloat();
                 material->setTerrain(terrain);
             }
             if (itr->value["Material"].HasMember("isBlackAlpha")) {
@@ -255,6 +256,7 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                 if (t.HasMember("normalStrength")) terrain->normalStrength = t["normalStrength"].GetFloat();
                 if (t.HasMember("tileSize")) terrain->tileSize = t["tileSize"].GetFloat();
                 if (t.HasMember("shoreHeight")) terrain->shoreHeight = t["shoreHeight"].GetFloat();
+                if (t.HasMember("variation")) terrain->variation = t["variation"].GetFloat();
                 material->setTerrain(terrain);
             }
             if (itr->value["Material"].HasMember("isBlackAlpha")) {
@@ -303,7 +305,11 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                 positionsRotationsScales.push_back(scale);
             }
         }
-        return new InstanceRenderComponent(std::move(renderingObject), positionsRotationsScales);
+        InstanceRenderComponent *instances = new InstanceRenderComponent(std::move(renderingObject), positionsRotationsScales);
+        if (itr->value.HasMember("wind") && itr->value["wind"].IsNumber()) {
+            instances->setWind(itr->value["wind"].GetFloat());
+        }
+        return instances;
     } if (strcmp (itr->name.GetString(), "SkeletalAnimationComponent") == 0) {
         RenderingObject renderingObject;
         Texture *texture = NULL;
@@ -368,6 +374,7 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                 if (t.HasMember("normalStrength")) terrain->normalStrength = t["normalStrength"].GetFloat();
                 if (t.HasMember("tileSize")) terrain->tileSize = t["tileSize"].GetFloat();
                 if (t.HasMember("shoreHeight")) terrain->shoreHeight = t["shoreHeight"].GetFloat();
+                if (t.HasMember("variation")) terrain->variation = t["variation"].GetFloat();
                 material->setTerrain(terrain);
             }
             if (itr->value["Material"].HasMember("isBlackAlpha")) {

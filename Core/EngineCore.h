@@ -37,7 +37,9 @@ class EngineCore
 
         /* save the current world (F5) as <map>_saved.json; reload it (F9) */
         std::string m_mapPath, m_savePath;
-        std::string m_waterJson, m_emittersJson;
+        std::string m_waterJson, m_emittersJson, m_grassJson;
+        /* the map's "Grass" (needs the terrain entity, so after the entities) */
+        void loadGrass(rapidjson::Document &gameDocument);
         bool saveMap(const std::string &path);
         void reloadMap(const std::string &path);
         std::vector<std::pair<Entity *, float>> m_fireballs; /* entity, spawn time */

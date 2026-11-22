@@ -69,9 +69,10 @@ def entity(mesh, pos, scale, rot=(0, 0, 0), material=None, physics=None, cast_sh
                           "scale": [round(v, 3) for v in (scale if isinstance(scale, (list, tuple)) else (scale,) * 3)]},
             "Components": comps}
 
-def instanced(mesh, transforms, material=None):
+def instanced(mesh, transforms, material=None, wind=0.0):
     irc = {"Mesh": mesh, "Transforms": transforms}
     if material: irc["Material"] = material
+    if wind: irc["wind"] = wind          # sway (trees): bends more higher up
     return {"Transform": {"position": [0, 0, 0], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1]},
             "Components": {"InstanceRenderComponent": irc}}
 
@@ -106,7 +107,9 @@ entities.append({"Transform": {"position": [0, 3, 0], "rotation": [0, 0, 0, 1], 
                                                                     "dirtNormal": "res/textures/terrain_dirt_normal.png",
                                                                     "soilNormal": "res/textures/terrain_soil_normal.png",
                                                                     "normalStrength": 1.0,
-                                                                    "tileSize": 60, "shoreHeight": WATER}})},
+                                                                    "tileSize": 60, "shoreHeight": WATER,
+                                                                    # dry / lush patches, sparser grass up the hills
+                                                                    "variation": 1.0}})},
                                 "PhysicsComponent": {"BoundingBodyType": ["mesh", "res/models/terrain4.obj"],
                                                      "scale": [4800, 1600, 4800], "mass": 0}}})
 # invisible floor just under the surface: you wade instead of sinking into the lagoon
@@ -176,8 +179,15 @@ entities.append(instanced("res/models/fence3.obj", fences))
 # --- campfire on the east shore --------------------------------------------
 fx, fz = polar(62, shore_radius(62) + 70)
 fy = H(fx, fz)
-for k, a in enumerate((0, 60, 120)):
-    entities.append(entity("res/models/cube4.obj", (fx, fy + 2.0, fz), (2.4, 2.4, 15), (12 if k == 1 else -8, a, 0), POST_MAT))
+# a teepee of logs: each leans in from a ring on the ground to meet above the
+# embers (rotation from the log's two ends: local -z runs base -> top)
+for k in range(5):
+    t = math.radians(k * 72 + 17)
+    base = (fx + math.cos(t) * 7.5, fy - 0.5, fz + math.sin(t) * 7.5)
+    top = (fx + math.cos(t + 0.5) * 0.8, fy + 10.5, fz + math.sin(t + 0.5) * 0.8)
+    length = math.dist(base, top) + 1.0
+    mid = tuple((base[i] + top[i]) / 2 for i in range(3))
+    entities.append(entity("res/models/cube4.obj", mid, (1.9, 1.9, length), aim(base, top), POST_MAT))
 entities.append(entity("res/models/sphere.obj", (fx, fy + 0.5, fz), (7, 1.5, 7), material=mat((1.0, 0.45, 0.12), emissive=1.0), cast_shadow=False))
 # log benches around the fire (long radial shadows)
 for a in (20, 140, 260):
@@ -215,7 +225,7 @@ for a in range(0, 360, 14):
         continue
     trees.append({"position": [round(x, 2), round(H(x, z) - 1, 2), round(z, 2)],
                   "rotation": [0, round(random.uniform(0, 360), 1), 0], "scale": [round(random.uniform(12, 17), 2)] * 3})
-entities.append(instanced("res/models/tree.obj", trees))
+entities.append(instanced("res/models/tree.obj", trees, wind=1.0))
 
 rocks = []
 for a in range(0, 360, 9):
@@ -247,7 +257,7 @@ BEAM_ANGLE, BEAM_RANGE = 0.13, 1150
 beam_volume = round(2 * BEAM_RANGE * math.tan(BEAM_ANGLE) * 1.08, 1)
 lights.append(light((lamp[0], lamp[1] + 1, lamp[2]), (1.0, 0.93, 0.75), "SPOT", (beam_volume, beam_volume, BEAM_RANGE), rot=(-11, 180, 0),
                     cast_shadow=True, volumetric=True, numSamplePoints=100, coef1=0.8, coef2=0.02,
-                    beamDensity=0.006, beamFalloff=450, coneAngle=BEAM_ANGLE, shadowMapSize=1024,
+                    beamDensity=0.006, beamFalloff=450, beamHaze=0.35, coneAngle=BEAM_ANGLE, shadowMapSize=1024,
                     diffuse_attenuation=[30, 1, 0.1], specular_attenuation=[40, 1, 0.2], spin=20, nightOnly=True))
 # statue uplights
 for color, side in (((0.95, 0.3, 0.85), -1), ((0.3, 0.85, 1.0), 1)):
@@ -307,15 +317,24 @@ game = {
     "Environment": {"sky": "night", "zenithColor": [0.004, 0.008, 0.03], "horizonColor": [0.05, 0.07, 0.14],
                     "starIntensity": 1.0, "moonDirection": moon, "moonColor": [0.6, 0.7, 0.95],
                     "fogColor": [0.055, 0.07, 0.11], "fogDensity": 0.0024, "fogHeightFalloff": 0.0035,
-                    "fogBaseHeight": WATER, "fogMoonGlow": 0.35, "ambient": 0.05, "emissiveStrength": 1.6,
+                    "fogBaseHeight": WATER, "fogMoonGlow": 0.35,
+                    # drifting clouds and their shadows sweeping over the hills
+                    "cloudCoverage": 0.45, "cloudSpeed": 14, "ambient": 0.05, "emissiveStrength": 1.6,
                     # HDR + filmic tone mapping, bloom, ambient occlusion
                     "pbr": True,
                     "hdr": True, "exposure": 1.25, "bloomStrength": 0.5, "bloomThreshold": 0.9,
-                    "aoStrength": 0.9, "aoRadius": 10,
+                    "aoStrength": 0.9, "aoRadius": 18,
+                    # colour grade: daylight is never fully saturated primaries
+                    "saturation": 0.84, "grade": 0.8,
                     # hemisphere ambient: moonlit sky above, dark ground below
                     "ambientSkyTint": [0.85, 0.95, 1.35], "ambientGroundTint": [0.45, 0.45, 0.5],
                     # day-night cycle: 8 minute days starting at midnight (T speeds it up)
                     "dayLength": 480, "timeOfDay": 0.0},
+    # grass blades around the player, bending in the wind (colored like the
+    # terrain's grass; none under water or on steep slopes)
+    "Grass": {"radius": 200, "spacing": 0.9, "height": [2.2, 4.8], "width": 0.42,
+              "minHeight": WATER + 1.5, "maxSlope": 0.5, "wind": 1.0, "clumping": 0.6,
+              "clearings": [[round(fx, 1), round(fz, 1), 17]]},   # bare ground around the campfire
     "Water": {"height": WATER, "center": list(C), "size": [1150, 1150], "tiling": 90, "waveStrength": 0.016,
               "waveSpeed": 0.03, "waveHeight": 0.5, "shallowColor": [0.7, 0.85, 0.9], "deepColor": [0.0, 0.025, 0.05],
               "murkDepth": 45, "softEdge": 3, "reflectivity": 1.0},
