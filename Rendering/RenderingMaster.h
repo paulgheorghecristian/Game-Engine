@@ -148,6 +148,8 @@ class RenderingMaster
         void uploadFogCutoff(Shader &shader) const;
         /* wind uniforms (direction, strength, time) for shaders that sway geometry */
         void uploadWind(Shader &shader) const;
+        void uploadGlowLights(Shader &shader);
+        void uploadHeat(Shader &shader);
         glm::vec2 getWindDirection() const;
         inline float getRenderAlpha() const { return m_renderAlpha; }
 
@@ -295,6 +297,19 @@ class RenderingMaster
         glm::vec2 m_stormDirection = glm::vec2(1.0f, 0.0f);
         float m_stormTurn = 0.0f;
         float m_fadeOut = 0.0f;
+        FrameBuffer *m_prevFrameFB = nullptr;   /* last frame's HDR image (reflections) */
+        /* exposure adaptation */
+        void updateAdaptation();
+        FrameBuffer *m_luminanceFB = nullptr, *m_adaptationA = nullptr, *m_adaptationB = nullptr;
+        Shader *m_luminanceShader = nullptr, *m_adaptationShader = nullptr;
+        float m_lastAdaptationTime = 0.0f;
+        /* temporal anti-aliasing */
+        void renderTemporalAA();
+        FrameBuffer *m_taaHistory[2] = {nullptr, nullptr};
+        Shader *m_taaShader = nullptr;
+        int m_taaIndex = 0, m_taaFrame = 0;
+        bool m_taaHistoryValid = false;
+        glm::mat4 m_taaPreviousViewProjection = glm::mat4(1.0f);
         float m_lastCollapseTime = -1.0f;
         void blackHoleGUI();
 };

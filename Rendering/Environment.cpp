@@ -33,12 +33,22 @@ void Environment::load(const rapidjson::Value &json)
     readFloat(json, "moonPhase", moonPhase);
     readFloat(json, "moonSize", moonSize);
     if (json.HasMember("moon") && json["moon"].IsBool()) moon = json["moon"].GetBool();
+    readFloat(json, "milkyWay", milkyWay);
+    readVec3(json, "milkyWayNormal", milkyWayNormal);
+    readVec3(json, "milkyWayCenter", milkyWayCenter);
     if (json.HasMember("timePaused") && json["timePaused"].IsBool()) timePaused = json["timePaused"].GetBool();
     readVec3(json, "fogColor", fogColor);
     readFloat(json, "fogDensity", fogDensity);
     readFloat(json, "fogHeightFalloff", fogHeightFalloff);
     readFloat(json, "fogBaseHeight", fogBaseHeight);
     readFloat(json, "fogMoonGlow", fogMoonGlow);
+    readFloat(json, "fogLightGlow", fogLightGlow);
+    if (json.HasMember("reflections") && json["reflections"].IsBool()) reflections = json["reflections"].GetBool();
+    readFloat(json, "autoExposure", autoExposure);
+    if (json.HasMember("temporalAA") && json["temporalAA"].IsBool()) temporalAA = json["temporalAA"].GetBool();
+    readFloat(json, "lensDirt", lensDirt);
+    readFloat(json, "chromaticAberration", chromaticAberration);
+    readFloat(json, "filmGrain", filmGrain);
     readFloat(json, "fogStart", fogStart);
     readFloat(json, "cloudCoverage", cloudCoverage);
     readFloat(json, "cloudSpeed", cloudSpeed);
@@ -156,12 +166,24 @@ void Environment::save(rapidjson::Value &json, rapidjson::Document::AllocatorTyp
     json.AddMember("moonPhase", moonPhase, allocator);
     json.AddMember("moonSize", moonSize, allocator);
     if (!moon) json.AddMember("moon", false, allocator);
+    if (milkyWay > 0.0f) {
+        json.AddMember("milkyWay", milkyWay, allocator);
+        writeVec3(json, "milkyWayNormal", milkyWayNormal, allocator);
+        writeVec3(json, "milkyWayCenter", milkyWayCenter, allocator);
+    }
     if (timePaused) json.AddMember("timePaused", true, allocator);
     writeVec3(json, "fogColor", fogColor, allocator);
     json.AddMember("fogDensity", fogDensity, allocator);
     json.AddMember("fogHeightFalloff", fogHeightFalloff, allocator);
     json.AddMember("fogBaseHeight", fogBaseHeight, allocator);
     json.AddMember("fogMoonGlow", fogMoonGlow, allocator);
+    json.AddMember("fogLightGlow", fogLightGlow, allocator);
+    json.AddMember("reflections", reflections, allocator);
+    json.AddMember("autoExposure", autoExposure, allocator);
+    json.AddMember("temporalAA", temporalAA, allocator);
+    json.AddMember("lensDirt", lensDirt, allocator);
+    json.AddMember("chromaticAberration", chromaticAberration, allocator);
+    json.AddMember("filmGrain", filmGrain, allocator);
     if (cloudCoverage > 0.0f) {
         json.AddMember("cloudCoverage", cloudCoverage, allocator);
         json.AddMember("cloudSpeed", cloudSpeed, allocator);

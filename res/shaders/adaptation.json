@@ -1,0 +1,10 @@
+{
+    "VSPath" : "res/shaders/bufferCombinationShader.vs",
+    "FSPath" : "res/shaders/adaptation.fs",
+    "Uniforms" : {
+                    "luminanceSampler" : "INT",
+                    "previousSampler" : "INT",
+                    "luminanceLod" : "FLOAT",
+                    "dt" : "FLOAT"
+                 }
+}

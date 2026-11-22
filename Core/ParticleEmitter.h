@@ -42,11 +42,14 @@ class SpotLight;
  *   type, texture, atlas [cols, rows], atlasTopDown, count, lifetimeMs,
  *   position [x,y,z], radius, height, direction [x,y,z], spread, speed [min,max],
  *   gravity, buoyancy, startScale, growth, scaleJitter, tint [r,g,b],
- *   brightness, blend ("alpha"|"additive"), fadeIn, wander, burst
+ *   brightness, blend ("alpha"|"additive"), fadeIn, wander, burst, heat
  *
  * "burst": true makes an emitter that emits nothing by itself: burst()
  * fires some of its particles from a point (footstep dust, impacts); each
  * lives once and then waits to be fired again.
+ *
+ * "heat": strength (fires): the air above the emitter shimmers (a heat haze
+ * column, drawn by the tone mapping pass; see RenderingMaster::uploadHeat).
  */
 class ParticleEmitter
 {
@@ -78,6 +81,9 @@ class ParticleEmitter
         void burst(const glm::vec3 &position, int count);
         /* scales the whole emitter's visibility (0..1; e.g. a storm's debris fading) */
         void setStrength(float strength) { m_strength = strength; }
+        float getHeat() const { return m_heat * m_strength; }
+        const glm::vec3 &getPosition() const { return m_position; }
+        float getRadius() const { return m_radius; }
 
         /* "beam" emitters: follow a spot light (see "light" above) */
         int getLightIndex() const { return m_lightIndex; }
@@ -111,6 +117,7 @@ class ParticleEmitter
         bool m_additive, m_atlasTopDown, m_nightOnly;
         float m_strength = 1.0f;
         bool m_burst = false;
+        float m_heat = 0.0f;
         float m_beamAngle, m_beamLength, m_beamFalloff, m_beamRange;  /* "beam" */
         int m_lightIndex = -1;
         SpotLight *m_light = nullptr;

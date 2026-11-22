@@ -34,6 +34,17 @@
    0.95
   ],
   "moonSize": 0.04,
+  "milkyWay": 0.9,
+  "milkyWayNormal": [
+   0.3687,
+   -0.6703,
+   -0.644
+  ],
+  "milkyWayCenter": [
+   -0.25,
+   0.66,
+   -0.83
+  ],
   "moonPhase": 0.0,
   "fogColor": [
    0.055,
@@ -4581,6 +4592,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4

@@ -154,7 +154,7 @@ void Light::initPhysics(const Transform& transform, bool grab) {
     t.setOrigin(btVector3(position.x, position.y, position.z));
 
     if (grab) {
-        collisionShape = new btSphereShape(50.0f);
+        collisionShape = new btSphereShape(20.0f);   /* clicks aimed past a light (at the sky, a black hole) do not grab it */
 
         UserData *userData = new UserData();
 
@@ -176,9 +176,14 @@ void Light::renderGUI() {
         ImGui::Begin("Lights");
         ImGui::PushID(std::to_string(imguiID).c_str());
         ImGui::Text("Light Color");
-        ImGui::ColorEdit3("light color", (float *) &m_lightColor);
+        /* an animated light (flicker, nightOnly...) edits its base color: the
+         * current color is the base times this frame's flicker, and copying
+         * that back every frame made the base random-walk down to black (a
+         * fire's light died while its editor was open) */
         if (m_animated) {
-            m_baseColor = m_lightColor; /* edits survive flicker / nightOnly */
+            ImGui::ColorEdit3("light color", (float *) &m_baseColor);
+        } else {
+            ImGui::ColorEdit3("light color", (float *) &m_lightColor);
         }
 
         if (ImGui::Checkbox("Cast shadow", &m_casts_shadow)) {

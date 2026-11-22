@@ -19,6 +19,7 @@ struct TerrainLayers {
     float shoreHeight = 0.0f;    /* shoreline blend around this height */
     float variation = 0.0f;      /* 0..1: dry / lush patches of grass (0 = uniform) */
     float rockDetail = 0.0f;     /* 0..1: relief, strata and ledges on the rock (0 = plain) */
+    float wetness = 0.0f;        /* 0..1: damp ground, darker and glossy, with puddles (0 = dry) */
     ~TerrainLayers();
 };
 

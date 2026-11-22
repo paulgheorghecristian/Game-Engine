@@ -87,6 +87,7 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                 if (t.HasMember("shoreHeight")) terrain->shoreHeight = t["shoreHeight"].GetFloat();
                 if (t.HasMember("variation")) terrain->variation = t["variation"].GetFloat();
                 if (t.HasMember("rockDetail")) terrain->rockDetail = t["rockDetail"].GetFloat();
+                if (t.HasMember("wetness")) terrain->wetness = t["wetness"].GetFloat();
                 material->setTerrain(terrain);
             }
             if (itr->value["Material"].HasMember("isBlackAlpha")) {
@@ -263,6 +264,7 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                 if (t.HasMember("shoreHeight")) terrain->shoreHeight = t["shoreHeight"].GetFloat();
                 if (t.HasMember("variation")) terrain->variation = t["variation"].GetFloat();
                 if (t.HasMember("rockDetail")) terrain->rockDetail = t["rockDetail"].GetFloat();
+                if (t.HasMember("wetness")) terrain->wetness = t["wetness"].GetFloat();
                 material->setTerrain(terrain);
             }
             if (itr->value["Material"].HasMember("isBlackAlpha")) {
@@ -382,6 +384,7 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                 if (t.HasMember("shoreHeight")) terrain->shoreHeight = t["shoreHeight"].GetFloat();
                 if (t.HasMember("variation")) terrain->variation = t["variation"].GetFloat();
                 if (t.HasMember("rockDetail")) terrain->rockDetail = t["rockDetail"].GetFloat();
+                if (t.HasMember("wetness")) terrain->wetness = t["wetness"].GetFloat();
                 material->setTerrain(terrain);
             }
             if (itr->value["Material"].HasMember("isBlackAlpha")) {

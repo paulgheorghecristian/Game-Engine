@@ -67,6 +67,7 @@ ParticleEmitter::ParticleEmitter(const rapidjson::Value &json)
     m_atlasTopDown = json.HasMember("atlasTopDown") && json["atlasTopDown"].GetBool();
     m_nightOnly = json.HasMember("nightOnly") && json["nightOnly"].GetBool();
     m_burst = json.HasMember("burst") && json["burst"].IsBool() && json["burst"].GetBool();
+    m_heat = getFloat(json, "heat", 0.0f);
     m_beamAngle = std::max(0.01f, getFloat(json, "angle", 0.15f));
     m_beamLength = std::max(1.0f, getFloat(json, "length", 300.0f));
     m_beamFalloff = std::max(1.0f, getFloat(json, "falloff", 150.0f));

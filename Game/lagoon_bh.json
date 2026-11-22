@@ -85,7 +85,18 @@
    0.5
   ],
   "dayLength": 480,
-  "timeOfDay": 0.74
+  "timeOfDay": 0.74,
+  "milkyWay": 1.1,
+  "milkyWayNormal": [
+   0.3319,
+   -0.6034,
+   -0.7251
+  ],
+  "milkyWayCenter": [
+   -0.0081,
+   0.7668,
+   -0.6418
+  ]
  },
  "Grass": {
   "radius": 200,

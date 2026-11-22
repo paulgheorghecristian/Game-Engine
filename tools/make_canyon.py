@@ -366,7 +366,7 @@ for bx, bz in BRAZIERS:
                         cast_shadow=True, shadowMapSize=512, diffuse_attenuation=[1300, 10, 7],
                         specular_attenuation=[90, 10, 2], flicker=0.3, flickerSpeed=9 + len(lights) % 4))
     emitters += [
-        {"type": "smoke", "texture": "res/textures/fire-texture-atlas.jpg", "atlas": [4, 4], "atlasTopDown": True,
+        {"type": "smoke", "texture": "res/textures/fire-texture-atlas.jpg", "heat": 1.0, "atlas": [4, 4], "atlasTopDown": True,
          "count": 18, "lifetimeMs": 700, "position": [bx, top + 1.5, bz], "radius": 2.2, "direction": [0, 1, 0],
          "spread": 0.12, "speed": [10, 18], "gravity": 0, "buoyancy": 0.4, "startScale": 8, "growth": -4,
          "blend": "additive", "tint": [1.0, 0.82, 0.62], "brightness": 0.0},
@@ -402,7 +402,7 @@ for tx, ty, tz in torches:
     lights.append(light((tx, ty + 3, tz), (1.0, 0.55, 0.22), "POINT", (190, 190, 190), cast_shadow=False,
                         diffuse_attenuation=[600, 10, 3.6], specular_attenuation=[90, 10, 2],
                         flicker=0.25, flickerSpeed=7, nightOnly=True))
-    emitters.append({"type": "smoke", "texture": "res/textures/fire-texture-atlas.jpg", "atlas": [4, 4],
+    emitters.append({"type": "smoke", "texture": "res/textures/fire-texture-atlas.jpg", "heat": 1.0, "atlas": [4, 4],
                      "atlasTopDown": True, "count": 10, "lifetimeMs": 600, "position": [tx, ty + 1, tz],
                      "radius": 0.8, "direction": [0, 1, 0], "spread": 0.1, "speed": [7, 12], "gravity": 0,
                      "buoyancy": 0.4, "startScale": 4.5, "growth": -3, "blend": "additive",
@@ -523,6 +523,13 @@ colossus_top = colossus_y + 20.67 * COL_SCALE
 head_angle = math.atan2(colossus_top - VIEW_Y, VIEW[1] - PED[1])
 hole_angle = head_angle + 0.105
 HOLE_DIR = [0.0, round(math.sin(hole_angle), 4), round(-math.cos(hole_angle), 4)]
+def galaxy_pole(core, slant=(1.0, 0.55, 0.0)):
+    """the pole of a Milky Way band through `core`, crossing the sky at a slant"""
+    n = [core[1] * slant[2] - core[2] * slant[1], core[2] * slant[0] - core[0] * slant[2],
+         core[0] * slant[1] - core[1] * slant[0]]
+    l = math.sqrt(sum(c * c for c in n))
+    return [round(c / l, 4) for c in n]
+
 VIEW_PITCH = round(math.degrees(hole_angle) * 0.5, 1)
 
 # --------------------------------------------------------------------------
@@ -536,6 +543,8 @@ game = {
                     "starIntensity": 1.0, "moonDirection": moon, "moonColor": [0.8, 0.84, 1.0],
                     # the moon is gone (the black hole took its place)
                     "moon": False,
+                    # the Milky Way (faint at dusk), its core behind the hole
+                    "milkyWay": 2.0, "milkyWayNormal": galaxy_pole(HOLE_DIR), "milkyWayCenter": HOLE_DIR,
                     "fogColor": [0.06, 0.05, 0.065], "fogDensity": 0.0011, "fogHeightFalloff": 0.0042,
                     "fogBaseHeight": BASIN_Y, "fogMoonGlow": 0.3,
                     # distance cut-off: the fog closes in from 400 and is opaque at

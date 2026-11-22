@@ -1,0 +1,7 @@
+{
+    "VSPath" : "res/shaders/bufferCombinationShader.vs",
+    "FSPath" : "res/shaders/luminance.fs",
+    "Uniforms" : {
+                    "hdrSampler" : "INT"
+                 }
+}

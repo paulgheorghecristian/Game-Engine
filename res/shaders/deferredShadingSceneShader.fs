@@ -44,6 +44,7 @@ uniform bool terrainHasGroundNormals;
 uniform float terrainNormalStrength;
 uniform float terrainVariation; /* 0..1: dry / lush patches, sparser higher up */
 uniform float terrainRockDetail; /* 0..1: relief, strata and ledges on the rock */
+uniform float terrainWetness;    /* 0..1: damp ground with puddles (darker, glossy: reflects) */
 
 /* planar (xz) tangent-space normal map -> world-space perturbation */
 vec3 terrainGroundBump(sampler2D map, vec2 uv) {
@@ -249,6 +250,19 @@ void main(){
         vec3 terrainNormal;
         float terrainSpecular, terrainRoughness;
         vec3 albedo = terrainSurface(worldPosition, worldNormal, true, terrainNormal, terrainSpecular, terrainRoughness);
+        if (terrainWetness > 0.0) {
+            /* damp everywhere, puddles in the low spots of a noise pattern (and
+             * only on fairly flat ground): water darkens the ground and makes
+             * it smooth; puddles are mirror flat */
+            float level = smoothstep(0.85, 0.97, worldNormal.y);
+            float pattern = terrainNoise(worldPosition.xz * 0.012) * 0.65 + terrainNoise(worldPosition.xz * 0.05 + 7.0) * 0.35;
+            float puddle = smoothstep(0.52, 0.6, pattern) * level;
+            float wet = terrainWetness * mix(0.55, 1.0, puddle);
+            albedo *= mix(1.0, 0.45, wet);
+            terrainRoughness = mix(terrainRoughness, 0.04, mix(wet * 0.7, 1.0, puddle * terrainWetness));
+            terrainSpecular = mix(terrainSpecular, 1.0, wet);
+            terrainNormal = normalize(mix(terrainNormal, worldNormal, puddle * terrainWetness));   /* still water is flat */
+        }
         outColor = vec4(albedo * material.diffuse, 1.0 - material.emissive);
         outEyeSpaceNormal = (normalize(mat3(viewMatrix) * terrainNormal) + vec3(1.0)) * 0.5;
         outRoughness = pbrEnabled ? vec3(terrainRoughness, 0.0, 0.0) : vec3(terrainSpecular);

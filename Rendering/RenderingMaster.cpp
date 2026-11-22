@@ -418,6 +418,17 @@ void RenderingMaster::drawDeferredShadingBuffers()
      * it is the camera's, so the hole must not bend or hide it */
     float flareInComposite = hdr && !blackHoles.empty() ? 0.0f : 1.0f;
     deferredShading_BufferCombinationShader.updateUniform("flareInComposite", flareInComposite);
+    uploadGlowLights(deferredShading_BufferCombinationShader);
+    /* reflections read the previous frame's finished HDR image (unit 15) */
+    bool ssr = hdr && skyReflections && m_environment.reflections && m_prevFrameFB != nullptr;
+    deferredShading_BufferCombinationShader.updateUniform("ssrEnabled", ssr);
+    deferredShading_BufferCombinationShader.updateUniform("previousFrameSampler", 15);
+    deferredShading_BufferCombinationShader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    if (ssr) {
+        glActiveTexture(GL_TEXTURE15);
+        glBindTexture(GL_TEXTURE_2D, m_prevFrameFB->getRenderTargets()[0]);
+        glActiveTexture(GL_TEXTURE0);
+    }
 
     screenSizeRectangle->draw();
 
@@ -429,6 +440,17 @@ void RenderingMaster::drawDeferredShadingBuffers()
             water->render(*m_hdrFB);
         }
         renderBlackHoles(*m_hdrFB);
+        /* keep this frame for the next one's reflections */
+        if (m_environment.reflections && m_environment.pbr) {
+            if (m_prevFrameFB == nullptr) {
+                m_prevFrameFB = new FrameBuffer(renderWidth, renderHeight, 1, false, GL_RGBA16F);
+            }
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, m_hdrFB->getFrameBufferObject());
+            glReadBuffer(GL_COLOR_ATTACHMENT0);
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_prevFrameFB->getFrameBufferObject());
+            glDrawBuffer(GL_COLOR_ATTACHMENT0);
+            glBlitFramebuffer(0, 0, renderWidth, renderHeight, 0, 0, renderWidth, renderHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        }
         m_hdrFB->unbind();
         renderBloomAndToneMap(); /* leaves fxaaFrameBuffer bound */
     } else {
@@ -439,6 +461,8 @@ void RenderingMaster::drawDeferredShadingBuffers()
     }
     fxaaFrameBuffer.unbind();
     //END FXAA
+
+    renderTemporalAA();
 
     /* FXAA writes the final image directly to the screen (it used to go to an
      * offscreen target followed by a full-screen copy pass) */
@@ -499,6 +523,25 @@ void RenderingMaster::update() {
 void RenderingMaster::prepareFrame(float alpha) {
     m_renderAlpha = glm::clamp(alpha, 0.0f, 1.0f);
     m_renderTime = m_time - (1.0f - m_renderAlpha) * (float) (updateDt / 1000.0);
+
+    /* temporal anti-aliasing: this frame's sub-pixel shift (Halton 2,3; the
+     * projection's off-axis terms, which nothing else uses) */
+    glm::vec2 jitter(0.0f);
+    if (m_environment.temporalAA && m_environment.hdr) {
+        auto halton = [](int i, int base) {
+            float f = 1.0f, r = 0.0f;
+            for (; i > 0; i /= base) { f /= base; r += f * (i % base); }
+            return r;
+        };
+        m_taaFrame = (m_taaFrame + 1) % 8;
+        jitter = glm::vec2((halton(m_taaFrame + 1, 2) - 0.5f) * 2.0f / renderWidth,
+                           (halton(m_taaFrame + 1, 3) - 0.5f) * 2.0f / renderHeight);
+    }
+    if (projectionMatrix[2][0] != jitter.x || projectionMatrix[2][1] != jitter.y) {
+        projectionMatrix[2][0] = jitter.x;
+        projectionMatrix[2][1] = jitter.y;
+        uploadProjection();
+    }
 
     glm::vec3 forwardVectorInEyeSpace;
     glm::vec3 cameraForward = glm::normalize(camera->getForward());
@@ -811,6 +854,82 @@ void RenderingMaster::drawScreenQuad() {
 }
 
 /* black holes bend the composited image: each reads a copy of it */
+/* heat haze above fires (emitters with "heat"), nearest first, for the
+ * tone mapping pass */
+void RenderingMaster::uploadHeat(Shader &shader)
+{
+    const int MAX_HEAT = 8;
+    glm::vec3 eye = camera->getPosition();
+    std::vector<std::pair<float, ParticleEmitter *>> hot;
+    for (ParticleEmitter *emitter : particleEmitters) {
+        if (emitter->getHeat() > 0.0f) {
+            hot.push_back({glm::length(emitter->getPosition() - eye), emitter});
+        }
+    }
+    std::sort(hot.begin(), hot.end(), [](const std::pair<float, ParticleEmitter *> &a,
+                                         const std::pair<float, ParticleEmitter *> &b) { return a.first < b.first; });
+    int count = std::min((int) hot.size(), MAX_HEAT);
+    glm::vec3 positions[MAX_HEAT], params[MAX_HEAT];
+    for (int i = 0; i < count; i++) {
+        ParticleEmitter *e = hot[i].second;
+        positions[i] = e->getPosition();
+        float radius = std::max(e->getRadius() * 2.5f, 6.0f);
+        params[i] = glm::vec3(radius, radius * 9.0f, e->getHeat());   /* a column ~9 radii tall */
+    }
+    shader.updateUniform("heatCount", count);
+    glm::mat4 inverseProjection = glm::inverse(projectionMatrix);
+    glm::mat4 inverseView = glm::inverse(camera->getViewMatrix());
+    shader.updateUniform("inverseProjectionMatrix", (void *) &inverseProjection);
+    shader.updateUniform("inverseViewMatrix", (void *) &inverseView);
+    float time = m_renderTime;
+    shader.updateUniform("time", time);
+    GLuint program = shader.getShaderId();
+    GLint loc;
+    if ((loc = glGetUniformLocation(program, "heatPositions")) >= 0 && count > 0)
+        glUniform3fv(loc, count, &positions[0].x);
+    if ((loc = glGetUniformLocation(program, "heatParams")) >= 0 && count > 0)
+        glUniform3fv(loc, count, &params[0].x);
+}
+
+/* the point lights nearest the camera, for their glow in the fog
+ * (bufferCombinationShader: lightGlow) */
+void RenderingMaster::uploadGlowLights(Shader &shader)
+{
+    const int MAX_GLOW = 16;
+    struct Glow { glm::vec3 position, color; float radius, distance; };
+    std::vector<Glow> glows;
+    glm::vec3 eye = camera->getPosition();
+    for (Light *light : lights) {
+        if (dynamic_cast<PointLight *>(light) == nullptr) continue;
+        const glm::vec3 &color = light->getLightColor();
+        if (color.r + color.g + color.b <= 0.003f) continue;
+        Glow g;
+        g.position = light->getTransform().getPosition();
+        g.radius = light->getTransform().getScale().x * 0.75f;   /* the deferred pass's cut-off */
+        g.color = color;
+        g.distance = glm::length(g.position - eye) - g.radius;
+        glows.push_back(g);
+    }
+    std::sort(glows.begin(), glows.end(), [](const Glow &a, const Glow &b) { return a.distance < b.distance; });
+    int count = std::min((int) glows.size(), MAX_GLOW);
+    glm::vec3 positions[MAX_GLOW], colors[MAX_GLOW];
+    float radii[MAX_GLOW];
+    for (int i = 0; i < count; i++) {
+        positions[i] = glows[i].position;
+        colors[i] = glows[i].color;
+        radii[i] = glows[i].radius;
+    }
+    shader.updateUniform("glowLightCount", count);
+    GLuint program = shader.getShaderId();
+    GLint loc;
+    if ((loc = glGetUniformLocation(program, "glowLightPositions")) >= 0 && count > 0)
+        glUniform3fv(loc, count, &positions[0].x);
+    if ((loc = glGetUniformLocation(program, "glowLightColors")) >= 0 && count > 0)
+        glUniform3fv(loc, count, &colors[0].x);
+    if ((loc = glGetUniformLocation(program, "glowLightRadii")) >= 0 && count > 0)
+        glUniform1fv(loc, count, radii);
+}
+
 void RenderingMaster::renderBlackHoles(FrameBuffer &target)
 {
     if (blackHoles.empty()) {
@@ -1089,8 +1208,16 @@ void RenderingMaster::environmentGUI()
     changed |= ImGui::SliderFloat("Fog density", &m_baseEnvironment.fogDensity, 0.0f, 0.01f, "%.4f");
     changed |= ImGui::SliderFloat("Fog height falloff", &m_baseEnvironment.fogHeightFalloff, 0.0f, 0.03f, "%.4f");
     changed |= ImGui::SliderFloat("Haze glow", &m_baseEnvironment.fogMoonGlow, 0.0f, 1.0f);
+    changed |= ImGui::SliderFloat("Light glow in fog", &m_baseEnvironment.fogLightGlow, 0.0f, 5.0f);
+    changed |= ImGui::Checkbox("Reflections (screen space)", &m_baseEnvironment.reflections);
+    changed |= ImGui::SliderFloat("Eye adaptation", &m_baseEnvironment.autoExposure, 0.0f, 1.0f);
+    changed |= ImGui::Checkbox("Temporal anti-aliasing", &m_baseEnvironment.temporalAA);
+    changed |= ImGui::SliderFloat("Lens dirt", &m_baseEnvironment.lensDirt, 0.0f, 2.0f);
+    changed |= ImGui::SliderFloat("Colour fringes", &m_baseEnvironment.chromaticAberration, 0.0f, 2.0f);
+    changed |= ImGui::SliderFloat("Film grain", &m_baseEnvironment.filmGrain, 0.0f, 0.15f);
     changed |= ImGui::SliderFloat("Clouds", &m_baseEnvironment.cloudCoverage, 0.0f, 1.0f, "%.2f");
     changed |= ImGui::Checkbox("Moon", &m_baseEnvironment.moon);
+    changed |= ImGui::SliderFloat("Milky Way", &m_baseEnvironment.milkyWay, 0.0f, 3.0f);
     changed |= ImGui::SliderFloat("Moon phase", &m_baseEnvironment.moonPhase, 0.0f, 1.0f, "%.2f");
     changed |= ImGui::SliderFloat("Moon size", &m_baseEnvironment.moonSize, 0.005f, 0.09f, "%.3f");
     changed |= ImGui::SliderFloat("Wind", &m_baseEnvironment.wind, 0.0f, 3.0f, "%.2f");
@@ -1174,6 +1301,12 @@ void RenderingMaster::applyEnvironment(const Environment &base)
     skyShader->updateUniform("moonSize", moonSize);
     float moonVisible = e.moon ? 1.0f : 0.0f;
     skyShader->updateUniform("moonVisible", moonVisible);
+    float milkyWay = e.milkyWay;
+    skyShader->updateUniform("milkyWay", milkyWay);
+    glm::vec3 galaxyPole = glm::length(e.milkyWayNormal) > 1e-4f ? glm::normalize(e.milkyWayNormal) : glm::vec3(0, 1, 0);
+    glm::vec3 galaxyCore = glm::length(e.milkyWayCenter) > 1e-4f ? glm::normalize(e.milkyWayCenter) : glm::vec3(0, 0, -1);
+    skyShader->updateUniform("milkyWayNormal", (void *) &galaxyPole);
+    skyShader->updateUniform("milkyWayCenter", (void *) &galaxyCore);
 
     Shader &c = deferredShading_BufferCombinationShader;
     c.updateUniform("ambient", e.ambient);
@@ -1192,6 +1325,7 @@ void RenderingMaster::applyEnvironment(const Environment &base)
     c.updateUniform("fogHeightFalloff", e.fogHeightFalloff);
     c.updateUniform("fogBaseHeight", e.fogBaseHeight);
     c.updateUniform("fogMoonGlow", e.fogMoonGlow);
+    c.updateUniform("fogLightGlow", e.fogLightGlow);
     uploadFogCutoff(c);
     {
         float coverage = e.cloudCoverage;
@@ -1385,6 +1519,114 @@ void RenderingMaster::blurPass(FrameBuffer &source, FrameBuffer &target, const g
     target.unbind();
 }
 
+/* temporal anti-aliasing (taa.fs): blends this frame (in fxaaFrameBuffer)
+ * with the reprojected history, and puts the result back for FXAA */
+void RenderingMaster::renderTemporalAA()
+{
+    if (!m_environment.temporalAA || !m_environment.hdr) {
+        m_taaHistoryValid = false;
+        return;
+    }
+    if (m_taaShader == nullptr) {
+        m_taaHistory[0] = new FrameBuffer(renderWidth, renderHeight, 1, false, GL_RGBA16F);
+        m_taaHistory[1] = new FrameBuffer(renderWidth, renderHeight, 1, false, GL_RGBA16F);
+        m_taaShader = new Shader("res/shaders/taa.json");
+        m_taaShader->updateUniform("currentSampler", 0);
+        m_taaShader->updateUniform("historySampler", 1);
+        m_taaShader->updateUniform("depthSampler", 2);
+        m_taaHistoryValid = false;
+    }
+    /* this frame's clip space (jittered) -> world -> last frame's clip space (unjittered) */
+    glm::mat4 view = camera->getViewMatrix();
+    glm::mat4 unjittered = projectionMatrix;
+    unjittered[2][0] = unjittered[2][1] = 0.0f;
+    glm::mat4 currentViewProjection = projectionMatrix * view;
+    glm::mat4 reprojection = m_taaPreviousViewProjection * glm::inverse(currentViewProjection);
+    m_taaPreviousViewProjection = unjittered * view;
+    glm::vec2 texel(1.0f / renderWidth, 1.0f / renderHeight);
+    float valid = m_taaHistoryValid ? 1.0f : 0.0f;
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    FrameBuffer *target = m_taaHistory[m_taaIndex];
+    FrameBuffer *history = m_taaHistory[1 - m_taaIndex];
+    target->bindSingleRenderTarget(0);
+    m_taaShader->bind();
+    m_taaShader->updateUniform("reprojection", (void *) &reprojection);
+    m_taaShader->updateUniform("texelSize", (void *) &texel);
+    m_taaShader->updateUniform("historyValid", valid);
+    float grain = m_environment.filmGrain, time = m_renderTime;
+    m_taaShader->updateUniform("filmGrain", grain);
+    m_taaShader->updateUniform("time", time);
+    bindTexture(0, fxaaFrameBuffer.getRenderTargets()[0]);
+    bindTexture(1, history->getRenderTargets()[0]);
+    bindTexture(2, depthTexture->getTextureId());
+    screenSizeRectangle->draw();
+    target->unbind();
+    /* back into the image FXAA reads */
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, target->getFrameBufferObject());
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fxaaFrameBuffer.getFrameBufferObject());
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glBlitFramebuffer(0, 0, renderWidth, renderHeight, 0, 0, renderWidth, renderHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    m_taaIndex = 1 - m_taaIndex;
+    m_taaHistoryValid = true;
+    glEnable(GL_DEPTH_TEST);
+}
+
+/* exposure adaptation: the scene's average luminance (log, mipmapped down to
+ * one pixel), followed over time into m_adaptationA (see adaptation.fs) */
+void RenderingMaster::updateAdaptation()
+{
+    if (m_environment.autoExposure <= 0.0f) {
+        return;
+    }
+    const int SIZE = 64;
+    if (m_luminanceFB == nullptr) {
+        m_luminanceFB = new FrameBuffer(SIZE, SIZE, 1, false, GL_RGBA16F);
+        m_adaptationA = new FrameBuffer(1, 1, 1, false, GL_RGBA16F);
+        m_adaptationB = new FrameBuffer(1, 1, 1, false, GL_RGBA16F);
+        m_luminanceShader = new Shader("res/shaders/luminance.json");
+        m_adaptationShader = new Shader("res/shaders/adaptation.json");
+        m_luminanceShader->updateUniform("hdrSampler", 0);
+        m_adaptationShader->updateUniform("luminanceSampler", 0);
+        m_adaptationShader->updateUniform("previousSampler", 1);
+        /* the previous value starts empty (a = 0): the first frame settles */
+        for (FrameBuffer *fb : {m_adaptationA, m_adaptationB}) {
+            fb->bindSingleRenderTarget(0);
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT);
+            fb->unbind();
+        }
+        GLuint luminance = m_luminanceFB->getRenderTargets()[0];
+        glBindTexture(GL_TEXTURE_2D, luminance);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        m_lastAdaptationTime = m_renderTime;
+    }
+    m_luminanceFB->bindSingleRenderTarget(0);
+    m_luminanceShader->bind();
+    bindTexture(0, m_hdrFB->getRenderTargets()[0]);
+    screenSizeRectangle->draw();
+    m_luminanceFB->unbind();
+    glBindTexture(GL_TEXTURE_2D, m_luminanceFB->getRenderTargets()[0]);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    float dt = glm::clamp(m_renderTime - m_lastAdaptationTime, 0.0f, 0.25f);
+    m_lastAdaptationTime = m_renderTime;
+    float lod = std::log2((float) SIZE);
+    m_adaptationShader->updateUniform("luminanceLod", lod);
+    m_adaptationShader->updateUniform("dt", dt);
+    m_adaptationB->bindSingleRenderTarget(0);
+    m_adaptationShader->bind();
+    bindTexture(0, m_luminanceFB->getRenderTargets()[0]);
+    bindTexture(1, m_adaptationA->getRenderTargets()[0]);
+    screenSizeRectangle->draw();
+    m_adaptationB->unbind();
+    std::swap(m_adaptationA, m_adaptationB);
+}
+
 void RenderingMaster::renderBloomAndToneMap()
 {
     int hw = std::max(16, renderWidth / 2), hh = std::max(16, renderHeight / 2);
@@ -1403,9 +1645,11 @@ void RenderingMaster::renderBloomAndToneMap()
         m_tonemapShader->updateUniform("bloomSamplerNear", 1);
         m_tonemapShader->updateUniform("bloomSamplerFar", 2);
         m_tonemapShader->updateUniform("flareSampler", 3);
+        m_tonemapShader->updateUniform("depthSampler", 4);
     }
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
+    updateAdaptation();
 
     const bool bloom = m_environment.bloomStrength > 0.0f;
     if (bloom) {
@@ -1437,6 +1681,23 @@ void RenderingMaster::renderBloomAndToneMap()
     bindTexture(2, m_bloomQuarterB->getRenderTargets()[0]);
     float flareStrength = blackHoles.empty() ? 0.0f : 1.0f;
     m_tonemapShader->updateUniform("flareStrength", flareStrength);
+    uploadHeat(*m_tonemapShader);
+    depthTexture->use(4);
+    float autoExposure = m_adaptationA != nullptr ? m_environment.autoExposure : 0.0f;
+    m_tonemapShader->updateUniform("autoExposure", autoExposure);
+    m_tonemapShader->updateUniform("adaptationSampler", 5);
+    if (m_adaptationA != nullptr) {
+        bindTexture(5, m_adaptationA->getRenderTargets()[0]);
+    }
+    /* with temporal anti-aliasing the grain is added after it (renderTemporalAA) */
+    bool taa = m_environment.temporalAA && m_environment.hdr;
+    float lensDirt = m_environment.lensDirt, aberration = m_environment.chromaticAberration,
+          grain = taa ? 0.0f : m_environment.filmGrain;
+    glm::vec2 screen((float) renderWidth, (float) renderHeight);
+    m_tonemapShader->updateUniform("lensDirt", lensDirt);
+    m_tonemapShader->updateUniform("chromaticAberration", aberration);
+    m_tonemapShader->updateUniform("filmGrain", grain);
+    m_tonemapShader->updateUniform("screenSize", (void *) &screen);
     if (flareStrength > 0.0f) {
         flarePostProcess->getResultingTexture().use(3);
     }

@@ -22,7 +22,7 @@
    0.035,
    0.045
   ],
-  "starIntensity": 0.15,
+  "starIntensity": 0.7,
   "moonDirection": [
    0.45,
    0.55,
@@ -35,6 +35,17 @@
   ],
   "moonSize": 0.02,
   "moon": false,
+  "milkyWay": 1.4,
+  "milkyWayNormal": [
+   0.4589,
+   -0.8343,
+   -0.3055
+  ],
+  "milkyWayCenter": [
+   0.0,
+   0.3438,
+   -0.939
+  ],
   "fogColor": [
    0.045,
    0.045,
@@ -44,9 +55,10 @@
   "fogHeightFalloff": 0.006,
   "fogBaseHeight": -10.0,
   "fogMoonGlow": 0.0,
+  "fogLightGlow": 3.4,
   "fogStart": 150,
   "fogEnd": 1600,
-  "cloudCoverage": 0.85,
+  "cloudCoverage": 0.3,
   "cloudSpeed": 6,
   "wind": 0.6,
   "ambient": 0.1,
@@ -204,8 +216,8 @@
    "diskOpacity": 0.55,
    "diskSpeed": 0.8,
    "diskTilt": [
-    57.01,
-    -9.54
+    39.01,
+    -14.54
    ],
    "glow": 0.0,
    "moonStream": 0.0,
@@ -264,7 +276,8 @@
        "soilNormal": "res/textures/terrain_dirt_normal.png",
        "normalStrength": 0.8,
        "tileSize": 45,
-       "shoreHeight": -1000
+       "shoreHeight": -1000,
+       "wetness": 0.75
       }
      }
     },
@@ -4470,6 +4483,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -4576,6 +4590,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -4682,6 +4697,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4

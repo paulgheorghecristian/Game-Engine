@@ -70,7 +70,7 @@ float fogAmount(float dist, float height) {
  * shimmer); its slopes go into the surface roughness instead, which spreads
  * the sun into a glitter path the way real water does ---- */
 uniform vec2 windDirection;    /* xz, length = the map's wind strength */
-const int WAVES = 16;
+const int WAVES = 28;
 const float GRAVITY = 140.0;   /* world units / s^2 (a unit is ~7 cm) */
 
 float waterHash(vec2 p) {
@@ -99,11 +99,16 @@ vec2 waveSlopes(vec2 p, float t, float footprint, out float unresolved) {
     vec2 slope = vec2(0.0);
     unresolved = 0.0;
     float wavelength = 30.0;
+    /* several waves at each size (a slow 0.88 step), not one: one wave per size
+     * meant two straight trains crossing at each scale, a diamond lattice.
+     * Same total energy as 16 waves */
+    float energy = sqrt(16.0 / float(WAVES));
     for (int i = 0; i < WAVES; i++) {
         float h1 = fract(sin(float(i) * 12.9898 + 1.3) * 43758.5453);
         float h2 = fract(sin(float(i) * 78.233 + 4.1) * 24634.6345);
+        float h3 = fract(sin(float(i) * 39.425 + 7.7) * 31415.9265);
         /* directions spread all round (golden angle steps), mostly downwind */
-        float angle = float(i) * 2.39996 + (h1 - 0.5) * 0.6;
+        float angle = float(i) * 2.39996 + (h1 - 0.5) * 1.3;
         vec2 d = vec2(cos(angle), sin(angle));
         float downwind = dot(d, w);
         if (downwind < 0.0) {
@@ -119,9 +124,14 @@ vec2 waveSlopes(vec2 p, float t, float footprint, out float unresolved) {
                           waveStrength / 0.016;
         float phase = dot(d, p) * k - omega * t + h2 * 6.2831853;
         float resolved = smoothstep(3.0, 8.0, lambda / max(footprint, 1e-4));
+        /* wave groups: each train comes and goes in patches a few wavelengths
+         * across (drifting with it), instead of running on forever uniformly */
+        vec2 g = (p - d * omega / k * 0.5 * t) / (lambda * 4.5) + vec2(h1, h3) * 57.0;
+        float group = smoothstep(0.15, 0.85, waterNoise(g));
+        steepness *= energy * (0.25 + 1.5 * group);
         slope += d * steepness * cos(phase) * resolved;
         unresolved += 0.5 * steepness * steepness * (1.0 - resolved);
-        wavelength *= 0.76;
+        wavelength *= 0.88;
     }
     return slope;
 }

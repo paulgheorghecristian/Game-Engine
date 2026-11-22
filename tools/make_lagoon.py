@@ -203,7 +203,7 @@ lights.append(light((fx, fy + 20, fz), (1.0, 0.45, 0.12), "POINT", (260, 260, 26
                     cast_shadow=True, shadowMapSize=1024, diffuse_attenuation=[450, 10, 3], specular_attenuation=[90, 10, 2],
                     flicker=0.35, flickerSpeed=11))
 emitters += [
-    {"type": "smoke", "texture": "res/textures/fire-texture-atlas.jpg", "atlas": [4, 4], "atlasTopDown": True,
+    {"type": "smoke", "texture": "res/textures/fire-texture-atlas.jpg", "heat": 1.0, "atlas": [4, 4], "atlasTopDown": True,
      "count": 45, "lifetimeMs": 900, "position": [fx, fy + 1, fz], "radius": 5, "direction": [0, 1, 0], "spread": 0.15,
      "speed": [14, 26], "gravity": 0, "buoyancy": 0.4, "startScale": 15, "growth": -6, "blend": "additive",
      "tint": [1.0, 0.85, 0.7], "brightness": 0.0},
@@ -250,6 +250,13 @@ entities.append(instanced("res/models/rock.obj", stones, ROCK_MAT))
 
 # --- lights --------------------------------------------------------------------
 moon = [-0.25, 0.66, -0.83]  # towards the moon (~37 degrees up, above the northern hills)
+def galaxy_pole(core, slant=(1.0, 0.55, 0.0)):
+    """the pole of a Milky Way band through `core`, crossing the sky at a slant"""
+    n = [core[1] * slant[2] - core[2] * slant[1], core[2] * slant[0] - core[0] * slant[2],
+         core[0] * slant[1] - core[1] * slant[0]]
+    l = math.sqrt(sum(c * c for c in n))
+    return [round(c / l, 4) for c in n]
+
 lights.append(light((0, 0, 0), (0.16, 0.2, 0.32), "DIR", (0, 0, 0), dir=moon, cast_shadow=True,
                     diffuse_attenuation=[0, 0, 0], specular_attenuation=[0, 0, 0]))
 # lighthouse: sweeping volumetric beam. coneAngle decouples the beam width
@@ -338,6 +345,8 @@ game = {
     "Environment": {"sky": "night", "zenithColor": [0.004, 0.008, 0.03], "horizonColor": [0.05, 0.07, 0.14],
                     "starIntensity": 1.4, "moonDirection": moon, "moonColor": [0.6, 0.7, 0.95],
                     "moonSize": 0.04,     # bigger than real, so it reads next to the hole
+                    # the Milky Way, its core behind the moon (and the Kugelblitz in it)
+                    "milkyWay": 0.9, "milkyWayNormal": galaxy_pole(moon), "milkyWayCenter": moon,
                     "moonPhase": 0.0,     # full: the moon reads clearly next to the hole
                     "fogColor": [0.055, 0.07, 0.11], "fogDensity": 0.0024, "fogHeightFalloff": 0.0035,
                     "fogBaseHeight": WATER, "fogMoonGlow": 0.35,

@@ -34,6 +34,17 @@
    1.0
   ],
   "moon": false,
+  "milkyWay": 2.0,
+  "milkyWayNormal": [
+   0.4282,
+   -0.7786,
+   -0.4586
+  ],
+  "milkyWayCenter": [
+   0.0,
+   0.5075,
+   -0.8616
+  ],
   "fogColor": [
    0.06,
    0.05,
@@ -13327,6 +13338,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -13395,6 +13407,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -13463,6 +13476,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -13531,6 +13545,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -13599,6 +13614,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -13667,6 +13683,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -13735,6 +13752,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -13803,6 +13821,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -13871,6 +13890,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -13909,6 +13929,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -13947,6 +13968,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -13985,6 +14007,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -14023,6 +14046,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -14061,6 +14085,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4
@@ -14099,6 +14124,7 @@
   {
    "type": "smoke",
    "texture": "res/textures/fire-texture-atlas.jpg",
+   "heat": 1.0,
    "atlas": [
     4,
     4

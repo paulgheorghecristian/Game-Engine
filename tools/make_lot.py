@@ -184,7 +184,10 @@ entities.append({"Transform": {"position": [0, 0, 0], "rotation": [0, 0, 0, 1], 
                                                                     "soilNormal": "res/textures/terrain_dirt_normal.png",
                                                                     "normalStrength": 0.8,
                                                                     "tileSize": 45,
-                                                                    "shoreHeight": -1000}})},   # no sand shore layer
+                                                                    "shoreHeight": -1000,   # no sand shore layer
+                                                                    # damp after rain, with puddles: the fires,
+                                                                    # lamps and projectors reflect in them
+                                                                    "wetness": 0.75}})},
                                 "PhysicsComponent": {"BoundingBodyType": ["mesh", GROUND_OBJ],
                                                      "scale": [1, 1, 1], "mass": 0}}})
 
@@ -350,7 +353,7 @@ for (x, z) in FIRES:
                         shadowMapSize=1024, diffuse_attenuation=[900, 14, 4.5], specular_attenuation=[260, 14, 4],
                         flicker=0.35, flickerSpeed=11))
     emitters += [
-        {"type": "smoke", "texture": "res/textures/fire-texture-atlas.jpg", "atlas": [4, 4], "atlasTopDown": True,
+        {"type": "smoke", "texture": "res/textures/fire-texture-atlas.jpg", "heat": 1.0, "atlas": [4, 4], "atlasTopDown": True,
          "count": 40, "lifetimeMs": 850, "position": [x, top, z], "radius": 4, "direction": [0, 1, 0], "spread": 0.15,
          "speed": [14, 24], "gravity": 0, "buoyancy": 0.4, "startScale": 13, "growth": -6, "blend": "additive",
          "tint": [1.0, 0.85, 0.7], "brightness": 0.0},
@@ -391,9 +394,17 @@ mask_angle = math.atan2(mask_top - EYE_Y, SPAWN[1] - mask_pos[2])
 hole_angle = mask_angle + math.radians(12)
 HOLE_DIR = [0.0, round(math.sin(hole_angle), 4), round(-math.cos(hole_angle), 4)]
 START_PITCH = round(math.degrees(hole_angle) * 0.45, 1)
+# the Milky Way crosses the sky at a slant with its bright core right behind
+# the hole, so the lensing visibly bends it
+def cross(a, b):
+    return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
+_slant = [1.0, 0.55, 0.0]
+_pole = cross(HOLE_DIR, _slant)
+_len = math.sqrt(sum(c * c for c in _pole))
+GALAXY_POLE = [round(c / _len, 4) for c in _pole]
 black_holes = [{"sky": True, "direction": HOLE_DIR, "angularRadius": 0.03, "lensing": 0.8, "influence": 11,
                 "colorShift": 0.7, "diskInner": 3.0, "diskOuter": 16.0, "diskColor": [1.0, 0.55, 0.26],
-                "diskBrightness": 2.0, "diskOpacity": 0.55, "diskSpeed": 0.8, "diskTilt": [57.01, -9.54],
+                "diskBrightness": 2.0, "diskOpacity": 0.55, "diskSpeed": 0.8, "diskTilt": [39.01, -14.54],
                 "glow": 0.0, "moonStream": 0.0, "cloudClear": 0.7}]
 
 # --------------------------------------------------------------------------
@@ -404,11 +415,12 @@ game = {
     "Environment": {"sky": "night", "zenithColor": [0.004, 0.005, 0.01], "horizonColor": [0.035, 0.035, 0.045],
                     # no moon (the black hole owns the sky); the faint cold key
                     # light is the directional light in "Lights"
-                    "starIntensity": 0.15, "moonDirection": [0.45, 0.55, -0.7], "moonColor": [0.42, 0.46, 0.58],
+                    "starIntensity": 0.7, "moonDirection": [0.45, 0.55, -0.7], "moonColor": [0.42, 0.46, 0.58],
                     "moonSize": 0.02, "moon": False,
+                    "milkyWay": 1.4, "milkyWayNormal": GALAXY_POLE, "milkyWayCenter": HOLE_DIR,
                     "fogColor": [0.045, 0.045, 0.055], "fogDensity": 0.0016, "fogHeightFalloff": 0.006,
-                    "fogBaseHeight": -10.0, "fogMoonGlow": 0.0, "fogStart": 150, "fogEnd": 1600,
-                    "cloudCoverage": 0.85, "cloudSpeed": 6, "wind": 0.6,
+                    "fogBaseHeight": -10.0, "fogMoonGlow": 0.0, "fogLightGlow": 3.4, "fogStart": 150, "fogEnd": 1600,
+                    "cloudCoverage": 0.3, "cloudSpeed": 6, "wind": 0.6,   # clear enough for the Milky Way
                     "ambient": 0.1, "emissiveStrength": 2.2,
                     "pbr": True, "hdr": True, "exposure": 1.3, "bloomStrength": 0.6, "bloomThreshold": 0.85,
                     "aoStrength": 1.0, "aoRadius": 14, "saturation": 0.8, "grade": 0.7,

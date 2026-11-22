@@ -22,6 +22,11 @@ struct Environment
     float moonPhase = 0.0f;             /* 0 full, 0.5 half, 1 new */
     float moonSize = 0.026f;            /* angular radius of the moon (radians, max 0.09) */
     bool moon = true;                   /* false: no moon (no disc, halo or moonlight) */
+    /* the Milky Way (night sky): strength (0 = none), the pole of its band,
+     * and the direction of its bright core */
+    float milkyWay = 0.0f;
+    glm::vec3 milkyWayNormal = glm::vec3(0.35f, 0.5f, 0.79f);
+    glm::vec3 milkyWayCenter = glm::vec3(0.0f, 0.4f, -0.9f);
     bool timePaused = false;            /* the day-night cycle starts paused at timeOfDay */
 
     glm::vec3 fogColor = glm::vec3(0.0f);
@@ -29,6 +34,15 @@ struct Environment
     float fogHeightFalloff = 0.0f;      /* fog thins out above fogBaseHeight */
     float fogBaseHeight = 0.0f;
     float fogMoonGlow = 0.0f;           /* haze brightens toward the moon (forward scattering) */
+    float fogLightGlow = 1.0f;          /* point lights glow in the fog (0 = off) */
+    /* the camera's lens (HDR): grime lit by bright light, colour fringes at
+     * the edges, film grain (0 = off) */
+    bool reflections = true;            /* screen-space reflections on glossy surfaces (HDR + PBR) */
+    float autoExposure = 0.6;           /* the eye adapts to bright and dark (0 = off) */
+    bool temporalAA = true;             /* temporal anti-aliasing (steadier edges, wires, grass) */
+    float lensDirt = 0.5f;
+    float chromaticAberration = 0.35f;
+    float filmGrain = 0.03f;
     /* distance cut-off on top of the haze: from fogStart the fog closes in
      * exponentially and is fully opaque at fogEnd, which also becomes the
      * camera's far plane (draw distance). 0 = off (the original 5000 far plane) */

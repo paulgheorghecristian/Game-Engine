@@ -9,6 +9,11 @@ in vec3 skyDirection;
 uniform int skyMode;           /* 0: original dusk gradient, 1: night sky */
 uniform vec3 zenithColor, horizonColor;
 uniform float starIntensity;
+/* the Milky Way: a band of light, dust lanes and dense faint stars along the
+ * great circle whose pole is milkyWayNormal, brightest and widest around
+ * milkyWayCenter (the galaxy's core). milkyWay: strength, 0 = none */
+uniform float milkyWay;
+uniform vec3 milkyWayNormal, milkyWayCenter;
 uniform vec3 moonDirection, moonColor;
 uniform sampler2D moonSampler; /* lunar map, equirectangular, 0 longitude in the middle */
 uniform float moonPhase;       /* 0 full moon, 0.5 half (lit from the right), 1 new */
@@ -380,6 +385,57 @@ vec3 hash33(vec3 p) {
     return fract((p.xxy + p.yxx) * p.zyx);
 }
 
+float valueNoise3(vec3 p) {
+    vec3 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix(hash13(i), hash13(i + vec3(1, 0, 0)), f.x),
+                   mix(hash13(i + vec3(0, 1, 0)), hash13(i + vec3(1, 1, 0)), f.x), f.y),
+               mix(mix(hash13(i + vec3(0, 0, 1)), hash13(i + vec3(1, 0, 1)), f.x),
+                   mix(hash13(i + vec3(0, 1, 1)), hash13(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}
+
+float fbm3(vec3 p) {
+    float sum = 0.0, amplitude = 0.5;
+    for (int i = 0; i < 5; i++) {
+        sum += valueNoise3(p) * amplitude;
+        p = p * 2.03 + vec3(1.7, 9.2, 4.1);
+        amplitude *= 0.5;
+    }
+    return sum;
+}
+
+/* the Milky Way in direction dir (added light; the stars it is made of) */
+vec3 milkyWayLight(vec3 dir) {
+    vec3 n = normalize(milkyWayNormal);
+    float latitude = asin(clamp(dot(dir, n), -1.0, 1.0));
+    /* the core: a bulge around the centre */
+    vec3 c = normalize(milkyWayCenter - n * dot(milkyWayCenter, n));
+    float fromCore = acos(clamp(dot(normalize(dir - n * dot(dir, n)), c), -1.0, 1.0));
+    float bulge = exp(-fromCore * fromCore / 0.45);
+    float width = 0.13 + 0.16 * bulge;
+    /* clumpy structure along the band, and its ragged edges */
+    float clumps = fbm3(dir * 6.0);
+    float edge = latitude + (fbm3(dir * 4.0 + 11.0) - 0.5) * 0.12;
+    float band = exp(-edge * edge / (width * width)) * (0.45 + 0.9 * clumps);
+    /* dust lanes: dark filaments down the middle (the Great Rift) */
+    float laneNoise = fbm3(dir * 11.0 + 3.0);
+    float lanes = smoothstep(0.42, 0.62, laneNoise) * exp(-pow((latitude - 0.015) / (0.05 + 0.04 * bulge), 2.0));
+    band *= 1.0 - 0.85 * lanes;
+    vec3 tint = mix(vec3(0.55, 0.62, 0.85), vec3(1.0, 0.86, 0.68), bulge * 0.8 + clumps * 0.2);
+    vec3 light = tint * band * (0.09 + 0.3 * bulge);
+    /* countless faint stars in it */
+    vec3 p = dir * 420.0;
+    vec3 cell = floor(p);
+    float h = hash13(cell);
+    float density = band * (1.0 - lanes);
+    if (h > 1.0 - 0.22 * density) {
+        vec3 jitter = hash33(cell) - 0.5;
+        float d = length(fract(p) - 0.5 - jitter * 0.6);
+        light += mix(vec3(0.8, 0.85, 1.0), vec3(1.0, 0.9, 0.8), hash13(cell + 3.0)) * smoothstep(0.32, 0.0, d) * 0.45;
+    }
+    return light * milkyWay;
+}
+
 vec3 nightSky(vec3 dir) {
     float up = clamp(dir.y, 0.0, 1.0);
     vec3 color = mix(horizonColor, zenithColor, pow(up, 0.45));
@@ -399,6 +455,9 @@ vec3 nightSky(vec3 dir) {
         vec3 tint = mix(vec3(0.75, 0.85, 1.0), vec3(1.0, 0.9, 0.75), hash13(cell + 7.0));
         color += tint * smoothstep(0.2 + 0.08 * brightness, 0.0, d) * twinkle * (0.55 + brightness) * 1.6 *
                  starIntensity * smoothstep(0.02, 0.25, up);
+    }
+    if (milkyWay > 0.0) {
+        color += milkyWayLight(dir) * starIntensity * smoothstep(0.0, 0.3, up);
     }
 
     /* sunrise / sunset glow on the horizon around the sun */

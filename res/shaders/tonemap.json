@@ -10,6 +10,17 @@
                     "exposure" : "FLOAT",
                     "bloomStrength" : "FLOAT",
                     "flareSampler" : "INT",
-                    "flareStrength" : "FLOAT"
+                    "flareStrength" : "FLOAT",
+                    "heatCount" : "INT",
+                    "depthSampler" : "INT",
+                    "inverseProjectionMatrix" : "MAT4",
+                    "inverseViewMatrix" : "MAT4",
+                    "time" : "FLOAT",
+                    "lensDirt" : "FLOAT",
+                    "chromaticAberration" : "FLOAT",
+                    "filmGrain" : "FLOAT",
+                    "screenSize" : "VEC2",
+                    "adaptationSampler" : "INT",
+                    "autoExposure" : "FLOAT"
                  }
 }

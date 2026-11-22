@@ -1,0 +1,14 @@
+{
+    "VSPath" : "res/shaders/bufferCombinationShader.vs",
+    "FSPath" : "res/shaders/taa.fs",
+    "Uniforms" : {
+                    "currentSampler" : "INT",
+                    "historySampler" : "INT",
+                    "depthSampler" : "INT",
+                    "reprojection" : "MAT4",
+                    "texelSize" : "VEC2",
+                    "historyValid" : "FLOAT",
+                    "filmGrain" : "FLOAT",
+                    "time" : "FLOAT"
+                 }
+}

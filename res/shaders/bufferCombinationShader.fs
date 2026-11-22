@@ -42,6 +42,62 @@ uniform mat4 inverseViewMatrix;
 uniform float fogMoonGlow;
 uniform vec3 moonDirection, moonColor;
 
+/* screen-space reflections: the reflected ray marched through the depth
+ * buffer; where it meets something on screen, that point's colour from the
+ * previous frame (the finished HDR image). Glossy surfaces only (wet ground,
+ * puddles, polished things); elsewhere, and where the ray leaves the screen,
+ * the sky cube stands in */
+uniform bool ssrEnabled;
+uniform sampler2D previousFrameSampler;
+uniform mat4 projectionMatrix;
+
+float viewDepthAt(vec2 uv) {
+    float d = texture(depthSampler, uv).x;
+    vec4 v = inverseProjectionMatrix * vec4(uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);
+    return d >= 1.0 ? -1e9 : v.z / v.w;
+}
+
+vec3 screenReflection(vec3 P, vec3 N, vec3 V, out float weight) {
+    weight = 0.0;
+    vec3 R = normalize(reflect(-V, N));
+    /* rays coming back towards the camera hit what is behind it: off screen */
+    float facing = 1.0 - smoothstep(-0.05, 0.45, R.z);
+    if (facing <= 0.0) return vec3(0.0);
+    float previousT = 0.0;
+    const int STEPS = 40;
+    const float MAX_T = 650.0;
+    for (int i = 1; i <= STEPS; i++) {
+        float t = 2.5 + float(i * i) * (MAX_T / float(STEPS * STEPS));
+        vec3 Q = P + R * t;
+        vec4 clip = projectionMatrix * vec4(Q, 1.0);
+        if (clip.w <= 0.0) break;
+        vec2 uv = clip.xy / clip.w * 0.5 + 0.5;
+        if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) break;
+        float behind = viewDepthAt(uv) - Q.z;               /* > 0: the ray went behind what is seen */
+        float thickness = max(3.0, t * 0.06);
+        if (behind > 0.0 && behind < thickness) {
+            /* refine between the last two steps */
+            float lo = previousT, hi = t;
+            for (int k = 0; k < 5; k++) {
+                float mid = 0.5 * (lo + hi);
+                vec3 M = P + R * mid;
+                vec4 c = projectionMatrix * vec4(M, 1.0);
+                vec2 u = c.xy / c.w * 0.5 + 0.5;
+                if (viewDepthAt(u) - M.z > 0.0) hi = mid; else lo = mid;
+            }
+            vec3 H = P + R * hi;
+            vec4 hc = projectionMatrix * vec4(H, 1.0);
+            uv = hc.xy / hc.w * 0.5 + 0.5;
+            vec2 edge = min(uv, 1.0 - uv);
+            weight = smoothstep(0.0, 0.07, edge.x) * smoothstep(0.0, 0.07, edge.y) *
+                     (1.0 - smoothstep(0.55, 1.0, hi / MAX_T)) * facing;
+            return textureLod(previousFrameSampler, uv, 0.0).rgb;
+        }
+        previousT = t;
+    }
+    return vec3(0.0);
+}
+
 /* PBR: lit color = direct light (from the light passes) + ambient light,
  * diffuse for dielectrics plus a Fresnel-weighted specular share from the sky */
 vec3 pbrComposite(vec3 albedo) {
@@ -74,6 +130,12 @@ vec3 pbrComposite(vec3 albedo) {
         float horizon = clamp(1.0 + dot(R, worldN), 0.0, 1.0);
         vec3 sky = textureLod(skyCube, R, roughness * (skyCubeMaxLod - 1.0)).rgb;
         specularAmbient = F * sky * horizon * horizon;
+        if (ssrEnabled && roughness < 0.3) {
+            float hit;
+            vec3 reflected = screenReflection(view.xyz / view.w, N, V, hit);
+            hit *= smoothstep(0.3, 0.08, roughness);
+            specularAmbient = mix(specularAmbient, F * reflected, hit);
+        }
     } else {
         specularAmbient = F * ambientSky * (1.0 - 0.6 * roughness);
     }
@@ -81,6 +143,49 @@ vec3 pbrComposite(vec3 albedo) {
 }
 
 uniform float fogStart, fogEnd;
+
+/* point lights glowing in the fog: the light each one scatters towards the
+ * eye along the view ray, in closed form. With the falloff 1/r^2 - 1/R^2
+ * (zero at the light's radius R), for the ray o + t d past a light at
+ * distance h:  int dt / ((t + b)^2 + h^2) = atan((t + b) / h) / h  */
+const int MAX_GLOW_LIGHTS = 16;
+uniform int glowLightCount;
+uniform vec3 glowLightPositions[MAX_GLOW_LIGHTS];
+uniform vec3 glowLightColors[MAX_GLOW_LIGHTS];
+uniform float glowLightRadii[MAX_GLOW_LIGHTS];
+uniform float fogLightGlow;      /* strength; 0 = off */
+
+vec3 lightGlow(vec3 o, vec3 d, float tMax) {
+    vec3 sum = vec3(0.0);
+    for (int i = 0; i < glowLightCount; i++) {
+        vec3 oc = o - glowLightPositions[i];
+        float R = glowLightRadii[i];
+        float b = dot(oc, d);
+        /* (the bulb is not a point: no brightening closer than ~7 units, or
+         * the halo balloons when the camera walks past a lamp) */
+        float h2 = max(dot(oc, oc) - b * b, 49.0);
+        if (h2 >= R * R) continue;
+        float s = sqrt(R * R - h2);
+        float t0 = max(0.0, -b - s), t1 = min(tMax, -b + s);
+        if (t1 <= t0) continue;
+        float h = sqrt(h2);
+        float scattered = (atan((t1 + b) / h) - atan((t0 + b) / h)) / h - (t1 - t0) / (R * R);
+        /* the fog's density where the light is */
+        float density = fogDensity * exp(-max(glowLightPositions[i].y - fogBaseHeight, 0.0) * fogHeightFalloff);
+        sum += glowLightColors[i] * max(scattered, 0.0) * density;
+    }
+    return sum * fogLightGlow * 330.0;
+}
+
+/* the glow along this pixel's ray, up to depth d (1: the sky, as far as the fog reaches) */
+vec3 fogLightGlowAt(float d) {
+    if (glowLightCount == 0 || fogLightGlow <= 0.0 || fogDensity <= 0.0) return vec3(0.0);
+    vec4 view = inverseProjectionMatrix * vec4(textureCoords * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);
+    view /= view.w;
+    vec3 rayDir = normalize(mat3(inverseViewMatrix) * view.xyz);
+    float tMax = d >= 1.0 ? (fogEnd > 0.0 ? fogEnd : 4000.0) : length(view.xyz);
+    return lightGlow(inverseViewMatrix[3].xyz, rayDir, tMax);
+}
 /* distance cut-off: 0 before fogStart, closes in exponentially and is
  * exactly 1 (fully fogged) at fogEnd, the far plane. fogEnd 0 = off */
 float fogCutoff(float dist) {
@@ -194,6 +299,7 @@ void main() {
             vec3 hazeColor;
             float haze = fogAmount(texture(depthSampler, textureCoords).x, hazeColor);
             finalColor = mix(finalColor, hazeColor, haze);
+            finalColor += fogLightGlowAt(texture(depthSampler, textureCoords).x);
             finalColor = particlesPixel.xyz + finalColor * (1.0 - particlesPixel.a);
             finalColor = volumetricPixel.xyz + finalColor * (1.0 - volumetricPixel.a);
             finalColor = flarePixel.xyz * flarePixel.a + finalColor;
@@ -202,6 +308,7 @@ void main() {
             vec3 skyHazeColor;
             float horizonHaze = skyHaze(skyHazeColor);
             albedoPixel = mix(albedoPixel, skyHazeColor, horizonHaze);
+            albedoPixel += fogLightGlowAt(1.0);
             vec3 finalColor = particlesPixel.xyz + albedoPixel * (1.0 - particlesPixel.a);
             finalColor = volumetricPixel.xyz + finalColor * (1.0 - volumetricPixel.a);
             finalColor = flarePixel.xyz * flarePixel.a + finalColor;
