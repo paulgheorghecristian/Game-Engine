@@ -32,6 +32,7 @@ uniform vec3 ambientSky;       /* sky light: lights the water body by day */
 uniform float reflectionGlow;   /* bright reflections bloom into a soft, rippling streak */
 
 uniform vec3 moonDirection, moonColor;
+uniform vec3 holeGlintDirection, holeGlintColor;   /* a sky black hole's disk (0: none) */
 uniform vec3 fogColor;
 uniform float fogDensity, fogHeightFalloff, fogBaseHeight, fogMoonGlow;
 
@@ -192,8 +193,21 @@ void main() {
     vec4 reflectedParticles = vec4(0.0);
     if (hasReflection != 0) {
         vec2 reflectionUV = clamp(uv + distortion, vec2(0.001), vec2(0.999));
-        /* slightly soft: a mirror-sharp edge on a lamp reads as a cut-out disc */
-        reflection = textureLod(reflectionSampler, reflectionUV, 0.7 + clamp(sqrt(alpha2) * 12.0, 0.0, 3.0)).rgb;
+        /* slightly soft: a mirror-sharp edge on a lamp reads as a cut-out disc.
+         * And streaked: ripples tilt the surface towards and away from the
+         * viewer, smearing every reflection (trees, hills, the sky) into
+         * vertical streaks, longer on rougher and more distant water */
+        float lod = 0.7 + clamp(sqrt(alpha2) * 12.0, 0.0, 3.0);
+        float stretch = clamp(0.004 + sqrt(alpha2) * 0.3, 0.0, 0.03);
+        reflection = vec3(0.0);
+        float weights = 0.0;
+        for (int k = -3; k <= 3; k++) {
+            float w = exp(-0.25 * float(k * k));
+            vec2 tap = clamp(reflectionUV + vec2(0.0, float(k) * stretch), vec2(0.001), vec2(0.999));
+            reflection += textureLod(reflectionSampler, tap, lod).rgb * w;
+            weights += w;
+        }
+        reflection /= weights;
         sharpReflection = textureLod(reflectionSampler, reflectionUV, 0.0).rgb;
         reflectedParticles = texture(reflectionParticlesSampler, reflectionUV);
         if (reflectionGlow > 0.0) {
@@ -242,6 +256,12 @@ void main() {
 
     /* glints: the sky's light (sun by day, moon by night) and nearby lights */
     vec3 specular = glint(normal, V, normalize(moonDirection), moonColor * 1.5, alpha2);
+    /* the black hole's disk: sparkles on the wave facets that face it, and
+     * a broader sheen, together a glittering path */
+    if (dot(holeGlintColor, holeGlintColor) > 0.0) {
+        specular += glint(normal, V, holeGlintDirection, holeGlintColor, alpha2 + 0.002)
+                  + glint(normal, V, holeGlintDirection, holeGlintColor * 0.3, alpha2 + 0.008);
+    }
     vec3 scatter = vec3(0.0);
     for (int i = 0; i < numLights; i++) {
         vec3 L = lightPositions[i] - worldPosition;

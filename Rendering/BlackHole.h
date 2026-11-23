@@ -58,6 +58,9 @@ class BlackHole
          * by lensSkyViewProjection(); everything it bends comes from there */
         void render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height,
                     GLuint lensSky = 0);
+        /* the same, seen by another camera (the water's mirrored one) */
+        void render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height,
+                    GLuint lensSky, const glm::mat4 &view, const glm::vec3 &eye);
         /* editor controls (inside an ImGui window); false when "Delete" was pressed */
         bool renderGUI(int index);
         void save(rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) const;

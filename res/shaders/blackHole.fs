@@ -120,6 +120,11 @@ vec4 diskEmission(vec3 hit, vec3 rayDir, float rr, float footprint) {
     intensity *= clamp(pow(g, 3.0), 0.1, 6.0);
 
     float edges = smoothstep(diskInner, diskInner + 0.25, rr) * (1.0 - smoothstep(diskOuter * 0.55, diskOuter, rr));
+    /* a disk wider than the sphere the rays are marched in (a huge sky hole:
+     * the sphere stops short of the camera) fades out before its edge, or
+     * it is cut off there, jagged */
+    float bound = boundRadius / holeRadius;
+    edges *= 1.0 - smoothstep(bound * 0.8, bound * 0.97, rr);
     float alpha = clamp(diskOpacity * edges * (0.45 + 0.75 * swirl) * mix(0.55, 1.0, streaks), 0.0, 1.0);
     return vec4(color * intensity * edges, alpha);
 }
@@ -266,10 +271,30 @@ vec3 lensSky(vec3 d) {
     vec3 ddx = dFdx(d), ddy = dFdy(d);
     float px = 1.0 / float(textureSize(lensSkySampler, 0).y);
     float soften = mix(1.0, 3.0, smoothstep(1.5, 6.0, max(length(duvx), length(duvy)) / px));
-    if (clip.w > 0.0 && all(greaterThanEqual(uv, vec2(0.0))) && all(lessThanEqual(uv, vec2(1.0)))) {
-        return textureGrad(lensSkySampler, uv, duvx * soften, duvy * soften).rgb;
+    /* inside the snapshot: it; outside: the sky cube, which does not quite
+     * match it (a big hole bends rays past the snapshot's edge, and a hard
+     * seam showed as an arc in the sky): cross-fade over its outer band */
+    float inside = 0.0;
+    if (clip.w > 0.0) {
+        vec2 e = min(uv, 1.0 - uv);
+        inside = smoothstep(0.0, 0.15, min(e.x, e.y));
     }
-    return hasSky != 0 ? textureGrad(skySampler, d, ddx * soften, ddy * soften).rgb : vec3(0.0);
+    vec3 snapshot = inside > 0.0 ? textureGrad(lensSkySampler, clamp(uv, vec2(0.0), vec2(1.0)),
+                                               duvx * soften, duvy * soften).rgb : vec3(0.0);
+    if (inside >= 1.0) return snapshot;
+    vec3 cube = vec3(0.0);
+    if (hasSky != 0) {
+        /* bent below the horizon (a big hole's grazing rays): the sky cube
+         * has only a flat ground colour there (a grey-green band hugging the
+         * shadow): the horizon's sky instead, darkening further down */
+        if (d.y < 0.02) {
+            vec3 horizon = normalize(vec3(d.x, 0.02, d.z));
+            cube = textureLod(skySampler, horizon, 3.0).rgb * mix(1.0, 0.35, smoothstep(0.02, -0.6, d.y));
+        } else {
+            cube = textureGrad(skySampler, d, ddx * soften, ddy * soften).rgb;
+        }
+    }
+    return mix(cube, snapshot, inside);
 }
 
 /* a sky pixel looking along `view`, bent to `bent`: the sky behind swapped

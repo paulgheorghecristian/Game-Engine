@@ -12,6 +12,7 @@
 #include "SpotLight.h"
 #include "ParticleEmitter.h"
 #include "DirectionalLight.h"
+#include "BlackHole.h"
 
 static float jsonFloat(const rapidjson::Value &json, const char *key, float def) {
     return json.HasMember(key) && json[key].IsNumber() ? json[key].GetFloat() : def;
@@ -207,6 +208,8 @@ void WaterRenderer::renderReflection(const std::vector<Entity *> &entities)
     rm->skyShader->updateUniform("viewMatrix", (void *) &mirroredView);
     rm->drawSky();
     rm->skyShader->updateUniform("viewMatrix", (void *) &view);
+    /* the black holes in the sky it mirrors (the scene then covers them) */
+    rm->renderBlackHolesMirrored(m_reflectionFB, mirroredView, mirroredCamera);
 
     Shader &shader = m_reflectionShader;
     shader.updateUniform("viewMatrix", (void *) &mirroredView);
@@ -316,6 +319,19 @@ void WaterRenderer::render(FrameBuffer &target)
     uploadEnvironment(shader);
     uploadForwardLights(shader, camera->getPosition());
     rm->uploadWind(shader);
+    /* a black hole in the sky: its disk's light glitters on the waves, a
+     * broken path across the water towards it (like the moon's) */
+    glm::vec3 holeDirection(0.0f, 1.0f, 0.0f), holeColor(0.0f);
+    for (BlackHole *hole : rm->blackHoles) {
+        if (hole->sky && !hole->kugelblitz) {
+            holeDirection = glm::normalize(hole->direction);
+            holeColor = hole->diskColor * (hole->diskBrightness * hole->diskOpacity * 0.12f) *
+                        glm::smoothstep(-0.02f, 0.15f, holeDirection.y);
+            break;
+        }
+    }
+    shader.updateUniform("holeGlintDirection", (void *) &holeDirection);
+    shader.updateUniform("holeGlintColor", (void *) &holeColor);
 
     m_reflectionTexture.use(0);
     m_sceneCopyTexture.use(1);

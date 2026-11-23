@@ -121,7 +121,10 @@ void main() {
     float a2 = att_specular.x*0.001f, b2 = att_specular.y * 0.000001f, c2 = att_specular.z * 0.000001f;
     float att2 = 1.0 / (a2 + b2*l + c2 * l * l);
 
-    float lenAtt = max(1.0 - (l / cutOff), 0.0);
+    /* linear fade to the cut-off, eased flat at the end (no visible ring
+     * where the light's range stops) */
+    float x = clamp(l / cutOff, 0.0, 1.0);
+    float lenAtt = (1.0 - x) * (1.0 - pow(x, 8.0));
 
     vec3 diffuseLight = att * diffuseStrength * lightColor * lenAtt;
     vec3 specularLight = att2 * specularStrength * lightColor * lenAtt;

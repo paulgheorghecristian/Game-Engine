@@ -284,6 +284,13 @@ class RenderingMaster
         static const int LENS_SKY_SIZE = 1024;
         void renderLensSky(const BlackHole &hole);
         void renderBlackHoles(FrameBuffer &target);
+        FrameBuffer *m_mirrorLensCopyFB = nullptr;   /* the same copy for the water's reflection */
+        GLuint m_farDepthTexture = 0;                /* 1x1, depth 1: "all sky" */
+    public:
+        /* the black holes into the water's reflection: over its sky, before
+         * the mirrored scene is drawn on top (target: the bound reflection) */
+        void renderBlackHolesMirrored(FrameBuffer &target, const glm::mat4 &mirroredView, const glm::vec3 &mirroredEye);
+    private:
         bool m_skyCloudCut = false;   /* a sky black hole with clouds: split the cloud layer */
     public:
         /* the Kugelblitz aftermath (Core/Aftermath): storm 0..1 adds wind,

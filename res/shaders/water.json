@@ -33,6 +33,8 @@
                     "reflectionGlow" : "FLOAT",
                     "moonDirection" : "VEC3",
                     "moonColor" : "VEC3",
+                    "holeGlintDirection" : "VEC3",
+                    "holeGlintColor" : "VEC3",
                     "fogColor" : "VEC3",
                     "fogDensity" : "FLOAT",
                     "fogHeightFalloff" : "FLOAT",

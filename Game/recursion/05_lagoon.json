@@ -170,8 +170,8 @@
     0.55,
     0.26
    ],
-   "diskBrightness": 2.0,
-   "diskOpacity": 0.55,
+   "diskBrightness": 5.0,
+   "diskOpacity": 0.75,
    "diskSpeed": 0.8,
    "diskTilt": [
     57.01,

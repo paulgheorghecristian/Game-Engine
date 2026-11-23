@@ -90,7 +90,9 @@ void main() {
     vec4 worldPosition = inverseViewMatrix * vec4(viewPosition, 1.0);
     float spotLightAttCoef = max(0.0, dot (normalize(worldPosition.xyz - lightPosition), normalize(mat3(modelMatrix) * vec3(0,0,-1))));
     float coneFactor = alpha - acos(spotLightAttCoef);
-    float lenAtt = max(1.0 - (l / lightLength), 0.0);
+    /* linear fade to the range, eased flat at the end (no visible ring) */
+    float x = clamp(l / lightLength, 0.0, 1.0);
+    float lenAtt = (1.0 - x) * (1.0 - pow(x, 8.0));
 
     /* Outside the cone or beyond the range the contribution is <= 0, which the
      * UNORM light buffer clamps to 0 anyway: skip the shadow lookups. */

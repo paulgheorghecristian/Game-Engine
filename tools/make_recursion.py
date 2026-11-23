@@ -184,7 +184,7 @@ def sky_hole(direction, radius):
     ring around it; the closer its pass to the Earth, the bigger (radius: angular)"""
     return {"sky": True, "direction": direction, "angularRadius": radius, "lensing": 0.8, "influence": 11,
             "colorShift": 0.7, "diskInner": 3.0, "diskOuter": 16.0, "diskColor": [1.0, 0.55, 0.26],
-            "diskBrightness": 2.0, "diskOpacity": 0.55, "diskSpeed": 0.8, "diskTilt": [57.01, -9.54],
+            "diskBrightness": 5.0, "diskOpacity": 0.75, "diskSpeed": 0.8, "diskTilt": [57.01, -9.54],
             "glow": 0.0, "moonStream": 0.0, "cloudClear": 0.7}
 
 def year4000(base, time_of_day, direction, radius, start, extra_env=None):

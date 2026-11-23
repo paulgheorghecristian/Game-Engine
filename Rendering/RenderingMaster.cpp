@@ -252,6 +252,8 @@ RenderingMaster::~RenderingMaster()
     delete grass;
     for (BlackHole *hole : blackHoles) delete hole;
     delete m_lensCopyFB;
+    delete m_mirrorLensCopyFB;
+    if (m_farDepthTexture != 0) glDeleteTextures(1, &m_farDepthTexture);
     delete m_lensSkyFB;
     for (ParticleEmitter *emitter : particleEmitters) {
         delete emitter;
@@ -1048,6 +1050,64 @@ void RenderingMaster::renderBlackHoles(FrameBuffer &target)
     }
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
+}
+
+void RenderingMaster::renderBlackHolesMirrored(FrameBuffer &target, const glm::mat4 &mirroredView,
+                                               const glm::vec3 &mirroredEye)
+{
+    if (blackHoles.empty()) {
+        return;
+    }
+    int w = target.getWidth(), h = target.getHeight();
+    if (m_mirrorLensCopyFB == nullptr || m_mirrorLensCopyFB->getWidth() != w || m_mirrorLensCopyFB->getHeight() != h) {
+        delete m_mirrorLensCopyFB;
+        m_mirrorLensCopyFB = new FrameBuffer(w, h, 1, false, GL_RGBA16F);
+    }
+    if (m_farDepthTexture == 0) {
+        /* only the sky is in the reflection yet: nothing in front of the holes */
+        const float far = 1.0f;
+        glGenTextures(1, &m_farDepthTexture);
+        glBindTexture(GL_TEXTURE_2D, m_farDepthTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 1, 1, 0, GL_RED, GL_FLOAT, &far);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    GLuint sky = m_environment.pbr ? m_skyCube : 0;
+    GLint frontFace;
+    glGetIntegerv(GL_FRONT_FACE, &frontFace);
+    glFrontFace(GL_CCW);                    /* the screen quad, not mirrored */
+    for (BlackHole *hole : blackHoles) {
+        GLuint lensSky = 0;
+        if (hole->sky) {
+            renderLensSky(*hole);
+            lensSky = m_lensSkyFB->getRenderTargets()[0];
+        }
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, target.getFrameBufferObject());
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_mirrorLensCopyFB->getFrameBufferObject());
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, m_mirrorLensCopyFB->getRenderTargets()[0]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, target.getFrameBufferObject());
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        glViewport(0, 0, w, h);
+        glDisable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
+        glDisable(GL_BLEND);
+        hole->render(m_mirrorLensCopyFB->getRenderTargets()[0], m_farDepthTexture, sky, w, h, lensSky,
+                     mirroredView, mirroredEye);
+    }
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glFrontFace(frontFace);
+    /* back to the reflection, as it was bound (without clearing it) */
+    glBindFramebuffer(GL_FRAMEBUFFER, target.getFrameBufferObject());
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glViewport(0, 0, w, h);
 }
 
 /* the sky behind a sky black hole: stars, moon and the moon stream, without

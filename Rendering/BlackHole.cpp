@@ -141,11 +141,15 @@ float BlackHole::kugelblitzGrowth() const
 void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height,
                        GLuint lensSky)
 {
+    Camera *camera = RenderingMaster::getInstance()->getCamera();
+    render(sourceTexture, depthTexture, skyCube, width, height, lensSky, camera->getViewMatrix(), camera->getPosition());
+}
+
+void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height,
+                       GLuint lensSky, const glm::mat4 &view, const glm::vec3 &eye)
+{
     RenderingMaster *rm = RenderingMaster::getInstance();
-    Camera *camera = rm->getCamera();
     const glm::mat4 &projection = rm->getProjectionMatrix();
-    const glm::mat4 &view = camera->getViewMatrix();
-    const glm::vec3 &eye = camera->getPosition();
     if (sky) {
         /* far away in a fixed direction from the camera, like the moon */
         const float SKY_DISTANCE = 20000.0f;
