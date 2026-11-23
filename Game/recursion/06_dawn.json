@@ -3,12 +3,12 @@
  "gravity": -10.0,
  "PlayerStart": {
   "position": [
-   545.36,
-   176.82,
-   -1124.73
+   820.0,
+   58.74,
+   -900.0
   ],
-  "yaw": 175,
-  "pitch": 34
+  "yaw": 15.2,
+  "pitch": 12
  },
  "Environment": {
   "sky": "night",
@@ -24,9 +24,9 @@
   ],
   "starIntensity": 1.4,
   "moonDirection": [
-   -0.25,
-   0.66,
-   -0.83
+   -0.2501,
+   0.3002,
+   -0.9205
   ],
   "moonColor": [
    0.6,
@@ -34,16 +34,16 @@
    0.95
   ],
   "moonSize": 0.04,
-  "milkyWay": 3.5,
+  "milkyWay": 0.9,
   "milkyWayNormal": [
-   0.0,
-   0.5,
-   -0.866
+   0.3687,
+   -0.6703,
+   -0.644
   ],
   "milkyWayCenter": [
-   1.0,
-   0.0,
-   0.0
+   -0.2501,
+   0.3002,
+   -0.9205
   ],
   "moonPhase": 0.0,
   "fogColor": [
@@ -96,7 +96,7 @@
    0.5
   ],
   "dayLength": 480,
-  "timeOfDay": 0.22,
+  "timeOfDay": 0.235,
   "timePaused": true,
   "moon": false
  },
@@ -151,7 +151,37 @@
   "softEdge": 3,
   "reflectivity": 1.0
  },
- "BlackHoles": [],
+ "BlackHoles": [
+  {
+   "sky": true,
+   "direction": [
+    -0.2501,
+    0.3002,
+    -0.9205
+   ],
+   "angularRadius": 0.1,
+   "lensing": 0.8,
+   "influence": 11,
+   "colorShift": 0.7,
+   "diskInner": 3.0,
+   "diskOuter": 16.0,
+   "diskColor": [
+    1.0,
+    0.55,
+    0.26
+   ],
+   "diskBrightness": 2.0,
+   "diskOpacity": 0.55,
+   "diskSpeed": 0.8,
+   "diskTilt": [
+    57.01,
+    -9.54
+   ],
+   "glow": 0.0,
+   "moonStream": 0.0,
+   "cloudClear": 0.7
+  }
+ ],
  "Audio": {
   "wind": 0.15,
   "crickets": 0.25,
@@ -3936,6 +3966,151 @@
      }
     }
    }
+  },
+  {
+   "Transform": {
+    "position": [
+     832.98,
+     45.7,
+     -856.91
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     22,
+     5,
+     22
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.75,
+       0.7,
+       0.65
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/158.JPG",
+      "NormalMapTexture": "res/textures/158_norm.JPG",
+      "roughness": 0.65,
+      "metallic": 0.3
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      22,
+      5,
+      22
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     832.98,
+     48.7,
+     -856.91
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     16,
+     1,
+     16
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.02,
+       0.02,
+       0.02
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     822.98,
+     57.7,
+     -856.91
+    ],
+    "rotation": [
+     0,
+     0,
+     -20
+    ],
+    "scale": [
+     2,
+     18,
+     16
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.75,
+       0.7,
+       0.65
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/158.JPG",
+      "NormalMapTexture": "res/textures/158_norm.JPG",
+      "roughness": 0.65,
+      "metallic": 0.3
+     }
+    }
+   }
   }
  ],
  "Lights": [
@@ -4174,9 +4349,9 @@
     ],
     "type": "DIR",
     "dir": [
-     -0.25,
-     0.66,
-     -0.83
+     -0.2501,
+     0.3002,
+     -0.9205
     ],
     "cast_shadow": true,
     "diffuse_attenuation": [

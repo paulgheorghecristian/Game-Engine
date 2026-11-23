@@ -90,6 +90,9 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
                 if (t.HasMember("wetness")) terrain->wetness = t["wetness"].GetFloat();
                 material->setTerrain(terrain);
             }
+            if (itr->value["Material"].HasMember("glass") && itr->value["Material"]["glass"].IsBool()) {
+                material->setGlass(itr->value["Material"]["glass"].GetBool());
+            }
             if (itr->value["Material"].HasMember("isBlackAlpha")) {
                 material->setIsBlackAlpha(itr->value["Material"]["isBlackAlpha"].GetBool());
             }
@@ -116,6 +119,9 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             renderingObject.addMaterial(material);
         }
         RenderComponent *renderComponent = new RenderComponent(std::move(renderingObject));
+        if (material != NULL && material->isGlass()) {
+            renderComponent->setCastsShadow(false);                 /* light goes through glass */
+        }
         if (itr->value.HasMember("castShadow")) {
             renderComponent->setCastsShadow(itr->value["castShadow"].GetBool());
         }

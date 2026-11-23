@@ -238,7 +238,7 @@ for k, (dz, h) in enumerate(((STAGE_D / 2 + 6, STAGE_H * 0.66), (STAGE_D / 2 + 1
 # loader breaks this rig, so he is a still figure: he just stands there),
 # the mask and the black suit as two parts with their own materials
 MAN = (STAGE[0], STAGE[1] + 8)
-MAN_SCALE = 0.175                   # the rig is ~185 tall (cm) -> ~32
+MAN_SCALE = 0.24                    # the rig is ~185 tall (cm) -> ~44 (an adult next to the player)
 for part, material in (("body", LATEX), ("mask", PORCELAIN)):
     entities.append(entity("res/models/masked_man_%s.obj" % part, (MAN[0], stage_top, MAN[1]), MAN_SCALE,
                            (0, 0, 0), material))
@@ -299,7 +299,7 @@ for k, (x, z, volumetric) in enumerate(((-95, STAGE[1] + 110, True), (100, STAGE
 # --------------------------------------------------------------------------
 # the audience: mannequins in rows, facing the stage (a few turned round)
 # --------------------------------------------------------------------------
-MANNEQUIN_SCALE = 1.5               # FinalBaseMesh: 20.7 tall -> ~31
+MANNEQUIN_SCALE = 2.15              # FinalBaseMesh: 20.7 tall -> ~44 (1.78 m: the player's eye is at 41)
 audience = []
 for row in range(4):
     for col in range(7):

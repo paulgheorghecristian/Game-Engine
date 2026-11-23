@@ -16,6 +16,10 @@ class RenderComponent : public Component
          * globes) out of shadow maps, so a light placed inside them still shines */
         inline void setCastsShadow(bool casts) { m_castsShadow = casts; }
         inline bool castsShadow() const { return m_castsShadow; }
+        bool isGlass() {
+            const std::vector<Material *> &materials = renderingObject.getMaterials();
+            return !materials.empty() && materials[0]->isGlass();
+        }
         RenderComponent(RenderingObject &&renderingObject);
         void input(Input &inputManager);
         void update();

@@ -1,0 +1,18 @@
+{
+    "VSPath" : "res/shaders/glass.vs",
+    "FSPath" : "res/shaders/glass.fs",
+    "Uniforms" : {
+                    "modelMatrix" : "MAT4",
+                    "viewMatrix" : "MAT4",
+                    "projectionMatrix" : "MAT4",
+                    "material.diffuse" : "VEC3",
+                    "material.roughness" : "FLOAT",
+                    "sceneSampler" : "INT",
+                    "depthSampler" : "INT",
+                    "skyCube" : "INT",
+                    "screenSize" : "VEC2",
+                    "cameraPosition" : "VEC3",
+                    "reflectionFloor" : "VEC3",
+                    "glowLightCount" : "INT"
+                 }
+}

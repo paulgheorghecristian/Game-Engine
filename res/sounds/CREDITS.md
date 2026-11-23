@@ -20,3 +20,4 @@ levelled; loops crossfaded).
 | spray_loop | Rain + long thunder: the rain bed (0.5–20.5 s, high-passed at 300 Hz), as wind-driven spray — https://opengameart.org/content/rain-long-thunder |
 | gust_1..3 | Wind (Wind.ogg, Wind2.ogg, Wind3.ogg) slowed to 0.85 with a bass lift — https://opengameart.org/content/wind |
 | step_sand_1..6 | Water Splash and sand footsteps: single steps cut from the sand footsteps recording (around its loudest hits) — https://opengameart.org/content/water-splash-and-sand-footsteps |
+| hum_loop | `shieldloop.wav` (downloaded with the electricity set; verify its page), looped, an octave down, low-passed: a failing fluorescent tube's buzz |

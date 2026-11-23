@@ -163,6 +163,9 @@ class RenderingMaster
         /* a full screen quad (post-processing passes) */
         void drawScreenQuad();
         std::vector<ParticleEmitter *> particleEmitters;
+        /* glass entities seen this frame (filled while the G-buffer is drawn) */
+        std::vector<Entity *> glass;
+        void renderGlass(FrameBuffer &target);
         void drawParticles();
         void addParticleEmitter(ParticleEmitter *emitter) { particleEmitters.push_back(emitter); }
         void removeParticleEmitter(ParticleEmitter *emitter) {
@@ -298,6 +301,8 @@ class RenderingMaster
         float m_stormTurn = 0.0f;
         float m_fadeOut = 0.0f;
         FrameBuffer *m_prevFrameFB = nullptr;   /* last frame's HDR image (reflections) */
+        FrameBuffer *m_glassCopyFB = nullptr;   /* the image behind the glass */
+        Shader *m_glassShader = nullptr;
         /* exposure adaptation */
         void updateAdaptation();
         FrameBuffer *m_luminanceFB = nullptr, *m_adaptationA = nullptr, *m_adaptationB = nullptr;

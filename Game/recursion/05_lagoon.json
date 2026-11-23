@@ -3,12 +3,12 @@
  "gravity": -10.0,
  "PlayerStart": {
   "position": [
-   661.0,
-   56.0,
-   -300.0
+   820.0,
+   58.74,
+   -900.0
   ],
-  "yaw": -45.0,
-  "pitch": -14
+  "yaw": 16.8,
+  "pitch": 12
  },
  "Environment": {
   "sky": "night",
@@ -96,9 +96,9 @@
    0.5
   ],
   "dayLength": 480,
-  "timeOfDay": 0.02,
+  "timeOfDay": 0.0,
   "timePaused": true,
-  "moon": true
+  "moon": false
  },
  "Grass": {
   "radius": 200,
@@ -159,34 +159,26 @@
     0.66,
     -0.83
    ],
-   "angularRadius": 0.03,
-   "kugelblitz": true,
-   "collapse": 0.66,
-   "collapseSpeed": 0.0,
-   "collapseDelay": 0.0,
-   "collapseSite": [
-    0.36,
-    0.77
-   ],
+   "angularRadius": 0.042,
    "lensing": 0.8,
    "influence": 11,
    "colorShift": 0.7,
-   "diskInner": 3,
-   "diskOuter": 16,
+   "diskInner": 3.0,
+   "diskOuter": 16.0,
    "diskColor": [
     1.0,
     0.55,
     0.26
    ],
-   "diskBrightness": 5.0,
+   "diskBrightness": 2.0,
    "diskOpacity": 0.55,
    "diskSpeed": 0.8,
    "diskTilt": [
-    41.54,
-    -21.34
+    57.01,
+    -9.54
    ],
-   "glow": 0,
-   "moonStream": 0,
+   "glow": 0.0,
+   "moonStream": 0.0,
    "cloudClear": 0.7
   }
  ],
@@ -3978,19 +3970,164 @@
   {
    "Transform": {
     "position": [
-     684.02,
-     3.6,
-     -325.57
+     832.98,
+     45.7,
+     -856.91
     ],
     "rotation": [
-     -0.76,
-     253.53,
-     5.81
+     0,
+     0,
+     0
     ],
     "scale": [
-     8.5,
-     0.15,
-     11
+     22,
+     5,
+     22
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.75,
+       0.7,
+       0.65
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/158.JPG",
+      "NormalMapTexture": "res/textures/158_norm.JPG",
+      "roughness": 0.65,
+      "metallic": 0.3
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      22,
+      5,
+      22
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     832.98,
+     48.7,
+     -856.91
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     16,
+     1,
+     16
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.02,
+       0.02,
+       0.02
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     822.98,
+     57.7,
+     -856.91
+    ],
+    "rotation": [
+     0,
+     0,
+     -20
+    ],
+    "scale": [
+     2,
+     18,
+     16
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.75,
+       0.7,
+       0.65
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/158.JPG",
+      "NormalMapTexture": "res/textures/158_norm.JPG",
+      "roughness": 0.65,
+      "metallic": 0.3
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     726.43,
+     26.86,
+     -390.14
+    ],
+    "rotation": [
+     49.93,
+     270.78,
+     11.31
+    ],
+    "scale": [
+     5.208,
+     0.06,
+     7.44
     ]
    },
    "Components": {
@@ -4022,19 +4159,19 @@
   {
    "Transform": {
     "position": [
-     682.82,
-     3.6,
-     -379.74
+     711.73,
+     25.24,
+     -370.79
     ],
     "rotation": [
-     -1.01,
-     307.95,
-     1.37
+     64.19,
+     19.13,
+     1.76
     ],
     "scale": [
-     8.5,
-     0.15,
-     11
+     5.208,
+     0.06,
+     7.44
     ]
    },
    "Components": {
@@ -4066,19 +4203,19 @@
   {
    "Transform": {
     "position": [
-     728.12,
-     3.6,
-     -387.36
+     750.37,
+     42.27,
+     -362.07
     ],
     "rotation": [
-     -0.54,
-     238.97,
-     -0.55
+     58.69,
+     342.42,
+     -3.8
     ],
     "scale": [
-     8.5,
-     0.15,
-     11
+     5.208,
+     0.06,
+     7.44
     ]
    },
    "Components": {
@@ -4110,19 +4247,19 @@
   {
    "Transform": {
     "position": [
-     695.12,
-     3.6,
-     -345.79
+     743.93,
+     45.17,
+     -343.92
     ],
     "rotation": [
-     -2.28,
-     79.71,
-     -4.65
+     48.33,
+     281.0,
+     3.86
     ],
     "scale": [
-     8.5,
-     0.15,
-     11
+     5.208,
+     0.06,
+     7.44
     ]
    },
    "Components": {
@@ -4154,19 +4291,19 @@
   {
    "Transform": {
     "position": [
-     733.17,
-     3.6,
-     -319.7
+     747.74,
+     42.05,
+     -365.23
     ],
     "rotation": [
-     -1.19,
-     184.4,
-     5.92
+     55.6,
+     85.8,
+     7.88
     ],
     "scale": [
-     8.5,
-     0.15,
-     11
+     5.208,
+     0.06,
+     7.44
     ]
    },
    "Components": {
@@ -4198,19 +4335,19 @@
   {
    "Transform": {
     "position": [
-     742.67,
-     3.6,
-     -349.56
+     706.23,
+     26.98,
+     -354.64
     ],
     "rotation": [
-     -4.63,
-     112.25,
-     -1.6
+     57.55,
+     83.86,
+     -2.1
     ],
     "scale": [
-     8.5,
-     0.15,
-     11
+     5.208,
+     0.06,
+     7.44
     ]
    },
    "Components": {
@@ -4243,7 +4380,7 @@
    "Transform": {
     "position": [
      751.0,
-     6.0,
+     36.59,
      -380.0
     ],
     "rotation": [

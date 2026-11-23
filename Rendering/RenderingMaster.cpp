@@ -439,6 +439,7 @@ void RenderingMaster::drawDeferredShadingBuffers()
         if (water != NULL) {
             water->render(*m_hdrFB);
         }
+        renderGlass(*m_hdrFB);
         renderBlackHoles(*m_hdrFB);
         /* keep this frame for the next one's reflections */
         if (m_environment.reflections && m_environment.pbr) {
@@ -457,6 +458,7 @@ void RenderingMaster::drawDeferredShadingBuffers()
         if (water != NULL) {
             water->render(fxaaFrameBuffer);
         }
+        renderGlass(fxaaFrameBuffer);
         renderBlackHoles(fxaaFrameBuffer);
     }
     fxaaFrameBuffer.unbind();
@@ -854,6 +856,62 @@ void RenderingMaster::drawScreenQuad() {
 }
 
 /* black holes bend the composited image: each reads a copy of it */
+/* glass (glass.fs): each pane shows the composited image behind it, bent and
+ * tinted, with reflections; drawn into the HDR image after the water */
+void RenderingMaster::renderGlass(FrameBuffer &target)
+{
+    if (glass.empty()) {
+        return;
+    }
+    if (m_glassShader == nullptr) {
+        m_glassShader = new Shader("res/shaders/glass.json");
+        m_glassShader->updateUniform("sceneSampler", 0);
+        m_glassShader->updateUniform("depthSampler", 1);
+        m_glassShader->updateUniform("skyCube", 2);
+        m_glassCopyFB = new FrameBuffer(renderWidth, renderHeight, 1, false, GL_RGBA16F);
+    }
+    /* the image behind the glass */
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, target.getFrameBufferObject());
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_glassCopyFB->getFrameBufferObject());
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glBlitFramebuffer(0, 0, renderWidth, renderHeight, 0, 0, renderWidth, renderHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+    /* draw into the target as it is (bindSingleRenderTarget would clear it) */
+    glBindFramebuffer(GL_FRAMEBUFFER, target.getFrameBufferObject());
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glViewport(0, 0, renderWidth, renderHeight);
+    Shader &shader = *m_glassShader;
+    glm::vec2 screen((float) renderWidth, (float) renderHeight);
+    shader.updateUniform("projectionMatrix", (void *) &projectionMatrix);
+    shader.updateUniform("viewMatrix", (void *) &camera->getViewMatrix());
+    shader.updateUniform("cameraPosition", (void *) &camera->getPosition());
+    shader.updateUniform("screenSize", (void *) &screen);
+    glm::vec3 floor = m_environment.ambientSky * 0.6f;
+    shader.updateUniform("reflectionFloor", (void *) &floor);
+    shader.bind();
+    uploadGlowLights(shader);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_glassCopyFB->getRenderTargets()[0]);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, depthTexture->getTextureId());
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyCube);
+    glActiveTexture(GL_TEXTURE0);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
+    for (Entity *entity : glass) {
+        RenderComponent *rc = (RenderComponent *) entity->getComponent(Entity::Flags::RENDERABLE);
+        if (rc != nullptr) {
+            rc->render(&shader);
+        }
+    }
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glass.clear();
+}
+
 /* heat haze above fires (emitters with "heat"), nearest first, for the
  * tone mapping pass */
 void RenderingMaster::uploadHeat(Shader &shader)

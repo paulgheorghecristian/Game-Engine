@@ -165,7 +165,7 @@
    "angularRadius": 0.03,
    "kugelblitz": true,
    "collapse": 0.0,
-   "collapseSpeed": 0.7,
+   "collapseSpeed": 5.0,
    "collapseDelay": 4.0,
    "collapseSite": [
     0.36,

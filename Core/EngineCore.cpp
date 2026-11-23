@@ -779,7 +779,11 @@ void EngineCore::render(float alpha) {
         if ((renderComponent =
              (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL &&
             !renderComponent->isBeyondDrawDistance(entity->getTransform())) {
-            renderComponent->render(&RenderingMaster::getInstance()->deferredShading_SceneShader);
+            if (renderComponent->isGlass()) {
+                RenderingMaster::getInstance()->glass.push_back(entity);   /* drawn after the scene */
+            } else {
+                renderComponent->render(&RenderingMaster::getInstance()->deferredShading_SceneShader);
+            }
         }
         if ((instanceRenderComponent =
              (InstanceRenderComponent *) (entity->getComponent (Entity::Flags::INSTANCE_RENDERABLE))) != NULL) {
@@ -1656,6 +1660,28 @@ void EngineCore::runBenchmark(int numFrames) {
     /* GE_SCENARIO=hills: run (shift) forward while slowly turning, never
      * jumping, printing the player's position (catches launches off slopes) */
     const bool hillsTest = scenario == "hills";
+    /* GE_SCENARIO=path: play-test a route. GE_PATH="x,z;x,z;..." waypoints: the
+     * player turns towards each and walks (W) until within 10 units, printing
+     * its position; GE_PATH_SHOTS=dir saves a screenshot at each waypoint
+     * reached (dir/wp<N>.png). Prints REACHED / PATH DONE (or how far it got) */
+    const bool pathTest = scenario == "path";
+    std::vector<glm::vec2> waypoints;
+    if (const char *pathEnv = std::getenv("GE_PATH")) {
+        std::string s(pathEnv);
+        size_t at = 0;
+        while (at < s.size()) {
+            size_t end = s.find(';', at);
+            std::string item = s.substr(at, end == std::string::npos ? std::string::npos : end - at);
+            float x, z;
+            if (std::sscanf(item.c_str(), "%f,%f", &x, &z) == 2) waypoints.push_back(glm::vec2(x, z));
+            if (end == std::string::npos) break;
+            at = end + 1;
+        }
+    }
+    const char *pathShots = std::getenv("GE_PATH_SHOTS");
+    size_t waypoint = 0;
+    int stuckFrames = 0;
+    glm::vec3 lastPathPosition(0.0f);
     const int segment = 100;
     double segmentSum = 0;
     int segmentStartLights = 0;
@@ -1674,6 +1700,36 @@ void EngineCore::runBenchmark(int numFrames) {
         }
         if (fireballs) {
             inputManager.injectKey(SDLK_g, i % 25 == 5);
+        }
+        if (pathTest) {
+            glm::vec3 p = player->getTransform().getPosition();
+            bool walking = false;
+            while (waypoint < waypoints.size()) {
+                glm::vec2 d = waypoints[waypoint] - glm::vec2(p.x, p.z);
+                if (glm::length(d) < 10.0f) {
+                    printf("REACHED %zu frame %d at %.1f %.1f %.1f\n", waypoint, i, p.x, p.y, p.z);
+                    if (pathShots != NULL) {
+                        saveScreenshot(std::string(pathShots) + "/wp" + std::to_string(waypoint) + ".png");
+                    }
+                    waypoint++;
+                    continue;
+                }
+                Camera *camera = RenderingMaster::getInstance()->getCamera();
+                glm::vec3 r = camera->getRotation();
+                camera->setRotation(r.x, std::atan2(-d.x, -d.y), r.z);
+                walking = true;
+                break;
+            }
+            inputManager.injectKey(SDLK_w, walking);
+            if (i % 30 == 0) {
+                printf("PLAYER %d %.1f %.1f %.1f wp %zu\n", i, p.x, p.y, p.z, waypoint);
+                stuckFrames = (walking && glm::length(p - lastPathPosition) < 3.0f) ? stuckFrames + 30 : 0;
+                lastPathPosition = p;
+            }
+            if (waypoint == waypoints.size() && !waypoints.empty()) {
+                printf("PATH DONE frame %d\n", i);
+                waypoints.clear();
+            }
         }
         if (hillsTest) {
             inputManager.injectKey(SDLK_w, true);

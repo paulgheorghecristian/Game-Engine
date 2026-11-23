@@ -3,9 +3,9 @@
  "gravity": -10.0,
  "PlayerStart": {
   "position": [
-   -110,
-   30,
-   25
+   -106.64,
+   31.0,
+   19.84
   ],
   "yaw": -90,
   "pitch": 0
@@ -29,42 +29,49 @@
    0,
    0
   ],
-  "fogDensity": 0.0,
+  "fogDensity": 0.004,
   "fogEnd": 0,
   "cloudCoverage": 0.0,
-  "ambient": 0.06,
+  "ambient": 0.03,
   "ambientSkyTint": [
-   0.9,
+   0.85,
    0.95,
-   1.05
+   0.9
   ],
   "ambientGroundTint": [
-   0.6,
-   0.6,
-   0.6
+   0.5,
+   0.52,
+   0.48
   ],
+  "fogColor": [
+   0.012,
+   0.016,
+   0.014
+  ],
+  "fogHeightFalloff": 0.0,
+  "fogBaseHeight": -100,
+  "fogLightGlow": 1.4,
   "emissiveStrength": 1.3,
   "pbr": true,
   "hdr": true,
-  "exposure": 1.1,
-  "bloomStrength": 0.45,
-  "bloomThreshold": 0.9,
-  "aoStrength": 1.0,
-  "aoRadius": 12,
-  "saturation": 0.85,
-  "grade": 0.6,
+  "exposure": 1.0,
+  "bloomStrength": 0.5,
+  "bloomThreshold": 0.85,
+  "aoStrength": 1.2,
+  "aoRadius": 16,
+  "saturation": 0.68,
+  "grade": 1.0,
   "dayLength": 0,
-  "fogLightGlow": 0.0,
-  "lensDirt": 0.4,
-  "chromaticAberration": 0.4,
-  "filmGrain": 0.04
+  "lensDirt": 0.55,
+  "chromaticAberration": 0.6,
+  "filmGrain": 0.06
  },
  "Entities": [
   {
    "Transform": {
     "position": [
      0,
-     -2.0,
+     -1.86,
      0
     ],
     "rotation": [
@@ -73,9 +80,9 @@
      0
     ],
     "scale": [
-     88.0,
-     4.0,
-     68.0
+     106.64,
+     3.72,
+     94.24
     ]
    },
    "Components": {
@@ -107,9 +114,9 @@
       "cube"
      ],
      "scale": [
-      88.0,
-      4.0,
-      68.0
+      106.64,
+      3.72,
+      94.24
      ],
      "mass": 0
     }
@@ -119,7 +126,7 @@
    "Transform": {
     "position": [
      0,
-     54.0,
+     73.78,
      0
     ],
     "rotation": [
@@ -128,9 +135,9 @@
      0
     ],
     "scale": [
-     88.0,
-     4.0,
-     68.0
+     106.64,
+     3.72,
+     94.24
     ]
    },
    "Components": {
@@ -161,9 +168,9 @@
       "cube"
      ],
      "scale": [
-      88.0,
-      4.0,
-      68.0
+      106.64,
+      3.72,
+      94.24
      ],
      "mass": 0
     }
@@ -172,9 +179,9 @@
   {
    "Transform": {
     "position": [
-     -27.5,
-     26.0,
-     -32.0
+     -32.86,
+     35.96,
+     -45.26
     ],
     "rotation": [
      0,
@@ -182,9 +189,9 @@
      0
     ],
     "scale": [
-     25.0,
-     52.0,
-     4.0
+     33.48,
+     71.92,
+     3.72
     ]
    },
    "Components": {
@@ -215,9 +222,9 @@
       "cube"
      ],
      "scale": [
-      25.0,
-      52.0,
-      4.0
+      33.48,
+      71.92,
+      3.72
      ],
      "mass": 0
     }
@@ -226,9 +233,9 @@
   {
    "Transform": {
     "position": [
-     -27.5,
-     8.0,
-     -30.2
+     -32.86,
+     11.16,
+     -43.2
     ],
     "rotation": [
      0,
@@ -236,8 +243,8 @@
      0
     ],
     "scale": [
-     25.0,
-     16.0,
+     33.48,
+     22.32,
      0.4
     ]
    },
@@ -271,8 +278,8 @@
    "Transform": {
     "position": [
      0.0,
-     48.0,
-     -32.0
+     64.48,
+     -45.26
     ],
     "rotation": [
      0,
@@ -280,9 +287,9 @@
      0
     ],
     "scale": [
-     30.0,
-     8.0,
-     4.0
+     32.24,
+     14.88,
+     3.72
     ]
    },
    "Components": {
@@ -313,9 +320,9 @@
       "cube"
      ],
      "scale": [
-      30.0,
-      8.0,
-      4.0
+      32.24,
+      14.88,
+      3.72
      ],
      "mass": 0
     }
@@ -324,9 +331,9 @@
   {
    "Transform": {
     "position": [
-     27.5,
-     26.0,
-     -32.0
+     32.86,
+     35.96,
+     -45.26
     ],
     "rotation": [
      0,
@@ -334,9 +341,9 @@
      0
     ],
     "scale": [
-     25.0,
-     52.0,
-     4.0
+     33.48,
+     71.92,
+     3.72
     ]
    },
    "Components": {
@@ -367,9 +374,9 @@
       "cube"
      ],
      "scale": [
-      25.0,
-      52.0,
-      4.0
+      33.48,
+      71.92,
+      3.72
      ],
      "mass": 0
     }
@@ -378,9 +385,9 @@
   {
    "Transform": {
     "position": [
-     27.5,
-     8.0,
-     -30.2
+     32.86,
+     11.16,
+     -43.2
     ],
     "rotation": [
      0,
@@ -388,8 +395,8 @@
      0
     ],
     "scale": [
-     25.0,
-     16.0,
+     33.48,
+     22.32,
      0.4
     ]
    },
@@ -423,8 +430,8 @@
    "Transform": {
     "position": [
      0.0,
-     26.0,
-     32.0
+     35.96,
+     45.26
     ],
     "rotation": [
      0,
@@ -432,9 +439,9 @@
      0
     ],
     "scale": [
-     80.0,
-     52.0,
-     4.0
+     99.2,
+     71.92,
+     3.72
     ]
    },
    "Components": {
@@ -465,9 +472,9 @@
       "cube"
      ],
      "scale": [
-      80.0,
-      52.0,
-      4.0
+      99.2,
+      71.92,
+      3.72
      ],
      "mass": 0
     }
@@ -477,8 +484,8 @@
    "Transform": {
     "position": [
      0.0,
-     8.0,
-     30.2
+     11.16,
+     43.2
     ],
     "rotation": [
      0,
@@ -486,8 +493,8 @@
      0
     ],
     "scale": [
-     80.0,
-     16.0,
+     99.2,
+     22.32,
      0.4
     ]
    },
@@ -520,9 +527,9 @@
   {
    "Transform": {
     "position": [
-     42.0,
-     26.0,
-     -21.0
+     51.46,
+     35.96,
+     -27.59
     ],
     "rotation": [
      0,
@@ -530,9 +537,9 @@
      0
     ],
     "scale": [
-     4.0,
-     52.0,
-     18.0
+     3.72,
+     71.92,
+     31.62
     ]
    },
    "Components": {
@@ -563,9 +570,9 @@
       "cube"
      ],
      "scale": [
-      4.0,
-      52.0,
-      18.0
+      3.72,
+      71.92,
+      31.62
      ],
      "mass": 0
     }
@@ -574,9 +581,9 @@
   {
    "Transform": {
     "position": [
-     39.6,
-     8.0,
-     -21.0
+     49.4,
+     11.16,
+     -27.59
     ],
     "rotation": [
      0,
@@ -585,8 +592,8 @@
     ],
     "scale": [
      0.4,
-     16.0,
-     18.0
+     22.32,
+     31.62
     ]
    },
    "Components": {
@@ -618,8 +625,8 @@
   {
    "Transform": {
     "position": [
-     42.0,
-     46.0,
+     51.46,
+     62.0,
      0.0
     ],
     "rotation": [
@@ -628,9 +635,9 @@
      0
     ],
     "scale": [
-     4.0,
-     12.0,
-     24.0
+     3.72,
+     19.84,
+     23.56
     ]
    },
    "Components": {
@@ -661,9 +668,9 @@
       "cube"
      ],
      "scale": [
-      4.0,
-      12.0,
-      24.0
+      3.72,
+      19.84,
+      23.56
      ],
      "mass": 0
     }
@@ -672,9 +679,9 @@
   {
    "Transform": {
     "position": [
-     42.0,
-     26.0,
-     21.0
+     51.46,
+     35.96,
+     27.59
     ],
     "rotation": [
      0,
@@ -682,9 +689,9 @@
      0
     ],
     "scale": [
-     4.0,
-     52.0,
-     18.0
+     3.72,
+     71.92,
+     31.62
     ]
    },
    "Components": {
@@ -715,9 +722,9 @@
       "cube"
      ],
      "scale": [
-      4.0,
-      52.0,
-      18.0
+      3.72,
+      71.92,
+      31.62
      ],
      "mass": 0
     }
@@ -726,9 +733,9 @@
   {
    "Transform": {
     "position": [
-     39.6,
-     8.0,
-     21.0
+     49.4,
+     11.16,
+     27.59
     ],
     "rotation": [
      0,
@@ -737,8 +744,8 @@
     ],
     "scale": [
      0.4,
-     16.0,
-     18.0
+     22.32,
+     31.62
     ]
    },
    "Components": {
@@ -770,9 +777,9 @@
   {
    "Transform": {
     "position": [
-     -42.0,
-     26.0,
-     -21.0
+     -51.46,
+     35.96,
+     -27.59
     ],
     "rotation": [
      0,
@@ -780,9 +787,9 @@
      0
     ],
     "scale": [
-     4.0,
-     52.0,
-     18.0
+     3.72,
+     71.92,
+     31.62
     ]
    },
    "Components": {
@@ -813,9 +820,9 @@
       "cube"
      ],
      "scale": [
-      4.0,
-      52.0,
-      18.0
+      3.72,
+      71.92,
+      31.62
      ],
      "mass": 0
     }
@@ -824,9 +831,9 @@
   {
    "Transform": {
     "position": [
-     -39.6,
-     8.0,
-     -21.0
+     -49.4,
+     11.16,
+     -27.59
     ],
     "rotation": [
      0,
@@ -835,8 +842,8 @@
     ],
     "scale": [
      0.4,
-     16.0,
-     18.0
+     22.32,
+     31.62
     ]
    },
    "Components": {
@@ -868,8 +875,8 @@
   {
    "Transform": {
     "position": [
-     -42.0,
-     46.0,
+     -51.46,
+     62.0,
      0.0
     ],
     "rotation": [
@@ -878,9 +885,9 @@
      0
     ],
     "scale": [
-     4.0,
-     12.0,
-     24.0
+     3.72,
+     19.84,
+     23.56
     ]
    },
    "Components": {
@@ -911,9 +918,9 @@
       "cube"
      ],
      "scale": [
-      4.0,
-      12.0,
-      24.0
+      3.72,
+      19.84,
+      23.56
      ],
      "mass": 0
     }
@@ -922,9 +929,9 @@
   {
    "Transform": {
     "position": [
-     -42.0,
-     26.0,
-     21.0
+     -51.46,
+     35.96,
+     27.59
     ],
     "rotation": [
      0,
@@ -932,9 +939,9 @@
      0
     ],
     "scale": [
-     4.0,
-     52.0,
-     18.0
+     3.72,
+     71.92,
+     31.62
     ]
    },
    "Components": {
@@ -965,9 +972,9 @@
       "cube"
      ],
      "scale": [
-      4.0,
-      52.0,
-      18.0
+      3.72,
+      71.92,
+      31.62
      ],
      "mass": 0
     }
@@ -976,9 +983,9 @@
   {
    "Transform": {
     "position": [
-     -39.6,
-     8.0,
-     21.0
+     -49.4,
+     11.16,
+     27.59
     ],
     "rotation": [
      0,
@@ -987,8 +994,8 @@
     ],
     "scale": [
      0.4,
-     16.0,
-     18.0
+     22.32,
+     31.62
     ]
    },
    "Components": {
@@ -1021,8 +1028,8 @@
    "Transform": {
     "position": [
      0,
-     22,
-     -32
+     28.52,
+     -45.88
     ],
     "rotation": [
      0,
@@ -1030,9 +1037,9 @@
      0
     ],
     "scale": [
-     30,
-     44,
-     3
+     32.24,
+     57.04,
+     2.48
     ]
    },
    "Components": {
@@ -1045,20 +1052,18 @@
        0
       ],
       "diffuse": [
-       0.55,
-       0.56,
-       0.6
+       0.3,
+       0.34,
+       0.33
       ],
       "specular": [
        0.2,
        0.2,
        0.2
       ],
-      "shininess": 20.0,
-      "Texture": "res/textures/metal.jpg",
-      "NormalMapTexture": "res/textures/metal_normal.jpg",
-      "metallic": 0.6,
-      "roughness": 0.45
+      "shininess": 60,
+      "roughness": 0.45,
+      "metallic": 0.35
      }
     },
     "PhysicsComponent": {
@@ -1066,9 +1071,9 @@
       "cube"
      ],
      "scale": [
-      30,
-      44,
-      3
+      32.24,
+      57.04,
+      2.48
      ],
      "mass": 0
     }
@@ -1077,9 +1082,9 @@
   {
    "Transform": {
     "position": [
-     -10,
-     47,
-     -31
+     -8.68,
+     60.76,
+     -42.9
     ],
     "rotation": [
      0,
@@ -1087,9 +1092,9 @@
      0
     ],
     "scale": [
-     3,
-     3,
-     1
+     2.48,
+     2.48,
+     0.992
     ]
    },
    "Components": {
@@ -1122,9 +1127,9 @@
   {
    "Transform": {
     "position": [
-     10,
-     47,
-     -31
+     8.68,
+     60.76,
+     -42.9
     ],
     "rotation": [
      0,
@@ -1132,9 +1137,9 @@
      0
     ],
     "scale": [
-     3,
-     3,
-     1
+     2.48,
+     2.48,
+     0.992
     ]
    },
    "Components": {
@@ -1167,8 +1172,8 @@
   {
    "Transform": {
     "position": [
-     -95,
-     -2.0,
+     -106.64,
+     -1.86,
      0
     ],
     "rotation": [
@@ -1177,9 +1182,9 @@
      0
     ],
     "scale": [
-     118.0,
-     4.0,
-     88.0
+     106.64,
+     3.72,
+     94.24
     ]
    },
    "Components": {
@@ -1211,9 +1216,9 @@
       "cube"
      ],
      "scale": [
-      118.0,
-      4.0,
-      88.0
+      106.64,
+      3.72,
+      94.24
      ],
      "mass": 0
     }
@@ -1222,8 +1227,8 @@
   {
    "Transform": {
     "position": [
-     -95,
-     54.0,
+     -106.64,
+     73.78,
      0
     ],
     "rotation": [
@@ -1232,9 +1237,9 @@
      0
     ],
     "scale": [
-     118.0,
-     4.0,
-     88.0
+     106.64,
+     3.72,
+     94.24
     ]
    },
    "Components": {
@@ -1265,9 +1270,9 @@
       "cube"
      ],
      "scale": [
-      118.0,
-      4.0,
-      88.0
+      106.64,
+      3.72,
+      94.24
      ],
      "mass": 0
     }
@@ -1276,9 +1281,9 @@
   {
    "Transform": {
     "position": [
-     -95.0,
-     26.0,
-     -42.0
+     -106.64,
+     35.96,
+     -45.26
     ],
     "rotation": [
      0,
@@ -1286,9 +1291,9 @@
      0
     ],
     "scale": [
-     110.0,
-     52.0,
-     4.0
+     99.2,
+     71.92,
+     3.72
     ]
    },
    "Components": {
@@ -1319,9 +1324,9 @@
       "cube"
      ],
      "scale": [
-      110.0,
-      52.0,
-      4.0
+      99.2,
+      71.92,
+      3.72
      ],
      "mass": 0
     }
@@ -1330,9 +1335,9 @@
   {
    "Transform": {
     "position": [
-     -95.0,
-     8.0,
-     -40.2
+     -106.64,
+     11.16,
+     -43.2
     ],
     "rotation": [
      0,
@@ -1340,8 +1345,8 @@
      0
     ],
     "scale": [
-     110.0,
-     16.0,
+     99.2,
+     22.32,
      0.4
     ]
    },
@@ -1374,9 +1379,9 @@
   {
    "Transform": {
     "position": [
-     -95.0,
-     26.0,
-     42.0
+     -106.64,
+     35.96,
+     45.26
     ],
     "rotation": [
      0,
@@ -1384,9 +1389,9 @@
      0
     ],
     "scale": [
-     110.0,
-     52.0,
-     4.0
+     99.2,
+     71.92,
+     3.72
     ]
    },
    "Components": {
@@ -1417,9 +1422,9 @@
       "cube"
      ],
      "scale": [
-      110.0,
-      52.0,
-      4.0
+      99.2,
+      71.92,
+      3.72
      ],
      "mass": 0
     }
@@ -1428,9 +1433,9 @@
   {
    "Transform": {
     "position": [
-     -95.0,
-     8.0,
-     40.2
+     -106.64,
+     11.16,
+     43.2
     ],
     "rotation": [
      0,
@@ -1438,8 +1443,8 @@
      0
     ],
     "scale": [
-     110.0,
-     16.0,
+     99.2,
+     22.32,
      0.4
     ]
    },
@@ -1472,9 +1477,9 @@
   {
    "Transform": {
     "position": [
-     -38.0,
-     26.0,
-     -26.0
+     -55.18,
+     35.96,
+     -27.59
     ],
     "rotation": [
      0,
@@ -1482,9 +1487,9 @@
      0
     ],
     "scale": [
-     4.0,
-     52.0,
-     28.0
+     3.72,
+     71.92,
+     31.62
     ]
    },
    "Components": {
@@ -1515,9 +1520,9 @@
       "cube"
      ],
      "scale": [
-      4.0,
-      52.0,
-      28.0
+      3.72,
+      71.92,
+      31.62
      ],
      "mass": 0
     }
@@ -1526,9 +1531,9 @@
   {
    "Transform": {
     "position": [
-     -40.4,
-     8.0,
-     -26.0
+     -57.24,
+     11.16,
+     -27.59
     ],
     "rotation": [
      0,
@@ -1537,8 +1542,8 @@
     ],
     "scale": [
      0.4,
-     16.0,
-     28.0
+     22.32,
+     31.62
     ]
    },
    "Components": {
@@ -1570,8 +1575,8 @@
   {
    "Transform": {
     "position": [
-     -38.0,
-     46.0,
+     -55.18,
+     62.0,
      0.0
     ],
     "rotation": [
@@ -1580,9 +1585,9 @@
      0
     ],
     "scale": [
-     4.0,
-     12.0,
-     24.0
+     3.72,
+     19.84,
+     23.56
     ]
    },
    "Components": {
@@ -1613,9 +1618,9 @@
       "cube"
      ],
      "scale": [
-      4.0,
-      12.0,
-      24.0
+      3.72,
+      19.84,
+      23.56
      ],
      "mass": 0
     }
@@ -1624,9 +1629,9 @@
   {
    "Transform": {
     "position": [
-     -38.0,
-     26.0,
-     26.0
+     -55.18,
+     35.96,
+     27.59
     ],
     "rotation": [
      0,
@@ -1634,9 +1639,9 @@
      0
     ],
     "scale": [
-     4.0,
-     52.0,
-     28.0
+     3.72,
+     71.92,
+     31.62
     ]
    },
    "Components": {
@@ -1667,9 +1672,9 @@
       "cube"
      ],
      "scale": [
-      4.0,
-      52.0,
-      28.0
+      3.72,
+      71.92,
+      31.62
      ],
      "mass": 0
     }
@@ -1678,9 +1683,9 @@
   {
    "Transform": {
     "position": [
-     -40.4,
-     8.0,
-     26.0
+     -57.24,
+     11.16,
+     27.59
     ],
     "rotation": [
      0,
@@ -1689,8 +1694,8 @@
     ],
     "scale": [
      0.4,
-     16.0,
-     28.0
+     22.32,
+     31.62
     ]
    },
    "Components": {
@@ -1722,8 +1727,8 @@
   {
    "Transform": {
     "position": [
-     -152.0,
-     26.0,
+     -158.1,
+     35.96,
      0.0
     ],
     "rotation": [
@@ -1732,9 +1737,9 @@
      0
     ],
     "scale": [
-     4.0,
-     52.0,
-     80.0
+     3.72,
+     71.92,
+     86.8
     ]
    },
    "Components": {
@@ -1765,9 +1770,9 @@
       "cube"
      ],
      "scale": [
-      4.0,
-      52.0,
-      80.0
+      3.72,
+      71.92,
+      86.8
      ],
      "mass": 0
     }
@@ -1776,8 +1781,8 @@
   {
    "Transform": {
     "position": [
-     -149.6,
-     8.0,
+     -156.04,
+     11.16,
      0.0
     ],
     "rotation": [
@@ -1787,8 +1792,8 @@
     ],
     "scale": [
      0.4,
-     16.0,
-     80.0
+     22.32,
+     86.8
     ]
    },
    "Components": {
@@ -1820,9 +1825,9 @@
   {
    "Transform": {
     "position": [
-     -148,
-     26,
-     -10
+     -53.32,
+     -1.86,
+     0
     ],
     "rotation": [
      0,
@@ -1830,9 +1835,550 @@
      0
     ],
     "scale": [
-     3,
-     16,
-     10
+     14.89,
+     3.72,
+     35.96
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.29
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 80,
+      "roughness": 0.22,
+      "specularStrength": 0.7
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      14.89,
+      3.72,
+      35.96
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -53.32,
+     73.78,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     14.89,
+     3.72,
+     35.96
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      14.89,
+      3.72,
+      35.96
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -53.32,
+     35.96,
+     -16.12
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     7.45,
+     71.92,
+     3.72
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      7.45,
+      71.92,
+      3.72
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -53.32,
+     35.96,
+     16.12
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     7.45,
+     71.92,
+     3.72
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      7.45,
+      71.92,
+      3.72
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -47.73,
+     35.96,
+     -13.02
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3.72,
+     71.92,
+     2.48
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      3.72,
+      71.92,
+      2.48
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -47.73,
+     62.0,
+     0.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3.72,
+     19.84,
+     23.56
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      3.72,
+      19.84,
+      23.56
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -47.73,
+     35.96,
+     13.02
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3.72,
+     71.92,
+     2.48
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      3.72,
+      71.92,
+      2.48
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -58.91,
+     35.96,
+     -13.02
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3.72,
+     71.92,
+     2.48
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      3.72,
+      71.92,
+      2.48
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -58.91,
+     62.0,
+     0.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3.72,
+     19.84,
+     23.56
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      3.72,
+      19.84,
+      23.56
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -58.91,
+     35.96,
+     13.02
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3.72,
+     71.92,
+     2.48
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      3.72,
+      71.92,
+      2.48
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -155.25,
+     29.76,
+     -12.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.488,
+     12.4,
+     7.44
     ]
    },
    "Components": {
@@ -1866,9 +2412,9 @@
   {
    "Transform": {
     "position": [
-     -144,
-     30,
-     -10
+     -151.28,
+     32.24,
+     -12.4
     ],
     "rotation": [
      0,
@@ -1876,9 +2422,9 @@
      -35
     ],
     "scale": [
-     8,
-     2,
-     2
+     8.68,
+     1.488,
+     1.488
     ]
    },
    "Components": {
@@ -1909,9 +2455,9 @@
   {
    "Transform": {
     "position": [
-     -95,
-     24.8,
-     20
+     -154.26,
+     53.94,
+     -12.4
     ],
     "rotation": [
      0,
@@ -1919,9 +2465,559 @@
      0
     ],
     "scale": [
-     40,
-     2.4,
-     22
+     1.488,
+     35.96,
+     1.488
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.75,
+       0.62,
+       0.15
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 40,
+      "roughness": 0.5,
+      "metallic": 0.3
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -72.17,
+     69.44,
+     -12.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     164.176,
+     1.488,
+     1.488
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.75,
+       0.62,
+       0.15
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 40,
+      "roughness": 0.5,
+      "metallic": 0.3
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     0,
+     69.44,
+     -30.38
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     21.328,
+     1.488,
+     1.488
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.75,
+       0.62,
+       0.15
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 40,
+      "roughness": 0.5,
+      "metallic": 0.3
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     9.92,
+     69.44,
+     -26.66
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.488,
+     1.488,
+     28.52
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.75,
+       0.62,
+       0.15
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 40,
+      "roughness": 0.5,
+      "metallic": 0.3
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     9.92,
+     64.48,
+     -40.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.488,
+     14.88,
+     1.488
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.75,
+       0.62,
+       0.15
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 40,
+      "roughness": 0.5,
+      "metallic": 0.3
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -66.96,
+     16.12,
+     -34.72
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     12.4,
+     32.24,
+     14.88
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.45,
+       0.47,
+       0.42
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 50,
+      "roughness": 0.45,
+      "metallic": 0.4
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      12.4,
+      32.24,
+      14.88
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -66.96,
+     7.44,
+     -27.03
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.976,
+     0.744,
+     0.496
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.55,
+       0.56,
+       0.6
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/metal.jpg",
+      "NormalMapTexture": "res/textures/metal_normal.jpg",
+      "metallic": 0.6,
+      "roughness": 0.45
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -66.96,
+     17.36,
+     -27.03
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.976,
+     0.744,
+     0.496
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.55,
+       0.56,
+       0.6
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/metal.jpg",
+      "NormalMapTexture": "res/textures/metal_normal.jpg",
+      "metallic": 0.6,
+      "roughness": 0.45
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -66.96,
+     27.28,
+     -27.03
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.976,
+     0.744,
+     0.496
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.55,
+       0.56,
+       0.6
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/metal.jpg",
+      "NormalMapTexture": "res/textures/metal_normal.jpg",
+      "metallic": 0.6,
+      "roughness": 0.45
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -99.2,
+     11.16,
+     18.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     11.16,
+     0.992,
+     11.16
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.08,
+       0.08,
+       0.09
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 60,
+      "roughness": 0.4
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -99.2,
+     17.36,
+     13.14
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     11.16,
+     12.4,
+     0.992
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.08,
+       0.08,
+       0.09
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 60,
+      "roughness": 0.4
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -99.2,
+     5.46,
+     18.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.24,
+     10.912,
+     1.24
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.55,
+       0.56,
+       0.6
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/metal.jpg",
+      "NormalMapTexture": "res/textures/metal_normal.jpg",
+      "metallic": 0.6,
+      "roughness": 0.45
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -106.64,
+     18.23,
+     31.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     29.76,
+     0.744,
+     14.88
     ]
    },
    "Components": {
@@ -1952,9 +3048,9 @@
       "cube"
      ],
      "scale": [
-      40,
-      2.4,
-      22
+      29.76,
+      0.74,
+      14.88
      ],
      "mass": 0
     }
@@ -1963,9 +3059,9 @@
   {
    "Transform": {
     "position": [
-     -113.0,
-     11.8,
-     11.0
+     -120.28,
+     8.93,
+     24.8
     ],
     "rotation": [
      0,
@@ -1973,9 +3069,9 @@
      0
     ],
     "scale": [
-     2,
-     23.6,
-     2
+     0.992,
+     17.856,
+     0.992
     ]
    },
    "Components": {
@@ -2009,9 +3105,9 @@
   {
    "Transform": {
     "position": [
-     -113.0,
-     11.8,
-     29.0
+     -120.28,
+     8.93,
+     37.2
     ],
     "rotation": [
      0,
@@ -2019,9 +3115,9 @@
      0
     ],
     "scale": [
-     2,
-     23.6,
-     2
+     0.992,
+     17.856,
+     0.992
     ]
    },
    "Components": {
@@ -2055,9 +3151,9 @@
   {
    "Transform": {
     "position": [
-     -77.0,
-     11.8,
-     11.0
+     -93.0,
+     8.93,
+     24.8
     ],
     "rotation": [
      0,
@@ -2065,9 +3161,9 @@
      0
     ],
     "scale": [
-     2,
-     23.6,
-     2
+     0.992,
+     17.856,
+     0.992
     ]
    },
    "Components": {
@@ -2101,9 +3197,9 @@
   {
    "Transform": {
     "position": [
-     -77.0,
-     11.8,
-     29.0
+     -93.0,
+     8.93,
+     37.2
     ],
     "rotation": [
      0,
@@ -2111,9 +3207,9 @@
      0
     ],
     "scale": [
-     2,
-     23.6,
-     2
+     0.992,
+     17.856,
+     0.992
     ]
    },
    "Components": {
@@ -2147,19 +3243,19 @@
   {
    "Transform": {
     "position": [
-     -101,
-     30,
-     18
+     -88.04,
+     16.86,
+     37.2
     ],
     "rotation": [
      0,
      0,
-     0
+     -12
     ],
     "scale": [
-     3,
-     8,
-     2
+     0.744,
+     32.24,
+     0.744
     ]
    },
    "Components": {
@@ -2172,17 +3268,17 @@
        0
       ],
       "diffuse": [
-       0.08,
-       0.08,
-       0.09
+       0.42,
+       0.28,
+       0.17
       ],
       "specular": [
        0.2,
        0.2,
        0.2
       ],
-      "shininess": 60,
-      "roughness": 0.4
+      "shininess": 20.0,
+      "roughness": 0.6
      }
     }
    }
@@ -2190,9 +3286,9 @@
   {
    "Transform": {
     "position": [
-     -101,
-     36,
-     18
+     -84.82,
+     1.49,
+     37.2
     ],
     "rotation": [
      0,
@@ -2200,9 +3296,9 @@
      0
     ],
     "scale": [
-     0.5,
-     6,
-     0.5
+     1.984,
+     2.48,
+     7.936
     ]
    },
    "Components": {
@@ -2215,17 +3311,17 @@
        0
       ],
       "diffuse": [
-       0.08,
-       0.08,
-       0.09
+       0.55,
+       0.45,
+       0.25
       ],
       "specular": [
        0.2,
        0.2,
        0.2
       ],
-      "shininess": 60,
-      "roughness": 0.4
+      "shininess": 20.0,
+      "roughness": 0.95
      }
     }
    }
@@ -2233,8 +3329,8 @@
   {
    "Transform": {
     "position": [
-     -95,
-     51.0,
+     -106.64,
+     70.68,
      0
     ],
     "rotation": [
@@ -2243,9 +3339,9 @@
      0
     ],
     "scale": [
-     26,
-     1.5,
-     3
+     29.76,
+     1.488,
+     2.976
     ]
    },
    "Components": {
@@ -2278,8 +3374,8 @@
   {
    "Transform": {
     "position": [
-     -95,
-     51.7,
+     -106.64,
+     71.55,
      0
     ],
     "rotation": [
@@ -2288,9 +3384,9 @@
      0
     ],
     "scale": [
-     29,
-     0.6,
-     7
+     33.48,
+     0.744,
+     7.44
     ]
    },
    "Components": {
@@ -2325,8 +3421,8 @@
   {
    "Transform": {
     "position": [
-     95,
-     -2.0,
+     106.64,
+     -1.86,
      0
     ],
     "rotation": [
@@ -2335,9 +3431,9 @@
      0
     ],
     "scale": [
-     118.0,
-     4.0,
-     88.0
+     106.64,
+     3.72,
+     94.24
     ]
    },
    "Components": {
@@ -2369,9 +3465,9 @@
       "cube"
      ],
      "scale": [
-      118.0,
-      4.0,
-      88.0
+      106.64,
+      3.72,
+      94.24
      ],
      "mass": 0
     }
@@ -2380,8 +3476,8 @@
   {
    "Transform": {
     "position": [
-     95,
-     54.0,
+     106.64,
+     73.78,
      0
     ],
     "rotation": [
@@ -2390,9 +3486,9 @@
      0
     ],
     "scale": [
-     118.0,
-     4.0,
-     88.0
+     106.64,
+     3.72,
+     94.24
     ]
    },
    "Components": {
@@ -2423,9 +3519,9 @@
       "cube"
      ],
      "scale": [
-      118.0,
-      4.0,
-      88.0
+      106.64,
+      3.72,
+      94.24
      ],
      "mass": 0
     }
@@ -2434,9 +3530,9 @@
   {
    "Transform": {
     "position": [
-     95.0,
-     26.0,
-     -42.0
+     106.64,
+     35.96,
+     -45.26
     ],
     "rotation": [
      0,
@@ -2444,9 +3540,9 @@
      0
     ],
     "scale": [
-     110.0,
-     52.0,
-     4.0
+     99.2,
+     71.92,
+     3.72
     ]
    },
    "Components": {
@@ -2477,9 +3573,9 @@
       "cube"
      ],
      "scale": [
-      110.0,
-      52.0,
-      4.0
+      99.2,
+      71.92,
+      3.72
      ],
      "mass": 0
     }
@@ -2488,9 +3584,9 @@
   {
    "Transform": {
     "position": [
-     95.0,
-     8.0,
-     -40.2
+     106.64,
+     11.16,
+     -43.2
     ],
     "rotation": [
      0,
@@ -2498,8 +3594,8 @@
      0
     ],
     "scale": [
-     110.0,
-     16.0,
+     99.2,
+     22.32,
      0.4
     ]
    },
@@ -2532,9 +3628,9 @@
   {
    "Transform": {
     "position": [
-     95.0,
-     26.0,
-     42.0
+     106.64,
+     35.96,
+     45.26
     ],
     "rotation": [
      0,
@@ -2542,9 +3638,9 @@
      0
     ],
     "scale": [
-     110.0,
-     52.0,
-     4.0
+     99.2,
+     71.92,
+     3.72
     ]
    },
    "Components": {
@@ -2575,9 +3671,9 @@
       "cube"
      ],
      "scale": [
-      110.0,
-      52.0,
-      4.0
+      99.2,
+      71.92,
+      3.72
      ],
      "mass": 0
     }
@@ -2586,9 +3682,9 @@
   {
    "Transform": {
     "position": [
-     95.0,
-     8.0,
-     40.2
+     106.64,
+     11.16,
+     43.2
     ],
     "rotation": [
      0,
@@ -2596,8 +3692,8 @@
      0
     ],
     "scale": [
-     110.0,
-     16.0,
+     99.2,
+     22.32,
      0.4
     ]
    },
@@ -2630,8 +3726,8 @@
   {
    "Transform": {
     "position": [
-     152.0,
-     26.0,
+     158.1,
+     35.96,
      0.0
     ],
     "rotation": [
@@ -2640,9 +3736,9 @@
      0
     ],
     "scale": [
-     4.0,
-     52.0,
-     80.0
+     3.72,
+     71.92,
+     86.8
     ]
    },
    "Components": {
@@ -2673,9 +3769,9 @@
       "cube"
      ],
      "scale": [
-      4.0,
-      52.0,
-      80.0
+      3.72,
+      71.92,
+      86.8
      ],
      "mass": 0
     }
@@ -2684,8 +3780,8 @@
   {
    "Transform": {
     "position": [
-     149.6,
-     8.0,
+     156.04,
+     11.16,
      0.0
     ],
     "rotation": [
@@ -2695,8 +3791,8 @@
     ],
     "scale": [
      0.4,
-     16.0,
-     80.0
+     22.32,
+     86.8
     ]
    },
    "Components": {
@@ -2728,9 +3824,9 @@
   {
    "Transform": {
     "position": [
-     38.0,
-     26.0,
-     -26.0
+     55.18,
+     35.96,
+     -27.59
     ],
     "rotation": [
      0,
@@ -2738,9 +3834,9 @@
      0
     ],
     "scale": [
-     4.0,
-     52.0,
-     28.0
+     3.72,
+     71.92,
+     31.62
     ]
    },
    "Components": {
@@ -2771,9 +3867,9 @@
       "cube"
      ],
      "scale": [
-      4.0,
-      52.0,
-      28.0
+      3.72,
+      71.92,
+      31.62
      ],
      "mass": 0
     }
@@ -2782,9 +3878,9 @@
   {
    "Transform": {
     "position": [
-     40.4,
-     8.0,
-     -26.0
+     57.24,
+     11.16,
+     -27.59
     ],
     "rotation": [
      0,
@@ -2793,8 +3889,8 @@
     ],
     "scale": [
      0.4,
-     16.0,
-     28.0
+     22.32,
+     31.62
     ]
    },
    "Components": {
@@ -2826,8 +3922,8 @@
   {
    "Transform": {
     "position": [
-     38.0,
-     46.0,
+     55.18,
+     62.0,
      0.0
     ],
     "rotation": [
@@ -2836,9 +3932,9 @@
      0
     ],
     "scale": [
-     4.0,
-     12.0,
-     24.0
+     3.72,
+     19.84,
+     23.56
     ]
    },
    "Components": {
@@ -2869,9 +3965,9 @@
       "cube"
      ],
      "scale": [
-      4.0,
-      12.0,
-      24.0
+      3.72,
+      19.84,
+      23.56
      ],
      "mass": 0
     }
@@ -2880,9 +3976,9 @@
   {
    "Transform": {
     "position": [
-     38.0,
-     26.0,
-     26.0
+     55.18,
+     35.96,
+     27.59
     ],
     "rotation": [
      0,
@@ -2890,9 +3986,9 @@
      0
     ],
     "scale": [
-     4.0,
-     52.0,
-     28.0
+     3.72,
+     71.92,
+     31.62
     ]
    },
    "Components": {
@@ -2923,9 +4019,9 @@
       "cube"
      ],
      "scale": [
-      4.0,
-      52.0,
-      28.0
+      3.72,
+      71.92,
+      31.62
      ],
      "mass": 0
     }
@@ -2934,9 +4030,9 @@
   {
    "Transform": {
     "position": [
-     40.4,
-     8.0,
-     26.0
+     57.24,
+     11.16,
+     27.59
     ],
     "rotation": [
      0,
@@ -2945,8 +4041,8 @@
     ],
     "scale": [
      0.4,
-     16.0,
-     28.0
+     22.32,
+     31.62
     ]
    },
    "Components": {
@@ -2978,9 +4074,9 @@
   {
    "Transform": {
     "position": [
-     148,
-     26,
-     -10
+     53.32,
+     -1.86,
+     0
     ],
     "rotation": [
      0,
@@ -2988,9 +4084,550 @@
      0
     ],
     "scale": [
-     3,
-     16,
-     10
+     14.89,
+     3.72,
+     35.96
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.29
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 80,
+      "roughness": 0.22,
+      "specularStrength": 0.7
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      14.89,
+      3.72,
+      35.96
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     53.32,
+     73.78,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     14.89,
+     3.72,
+     35.96
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      14.89,
+      3.72,
+      35.96
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     53.32,
+     35.96,
+     -16.12
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     7.45,
+     71.92,
+     3.72
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      7.45,
+      71.92,
+      3.72
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     53.32,
+     35.96,
+     16.12
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     7.45,
+     71.92,
+     3.72
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      7.45,
+      71.92,
+      3.72
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     58.91,
+     35.96,
+     -13.02
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3.72,
+     71.92,
+     2.48
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      3.72,
+      71.92,
+      2.48
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     58.91,
+     62.0,
+     0.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3.72,
+     19.84,
+     23.56
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      3.72,
+      19.84,
+      23.56
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     58.91,
+     35.96,
+     13.02
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3.72,
+     71.92,
+     2.48
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      3.72,
+      71.92,
+      2.48
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     47.73,
+     35.96,
+     -13.02
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3.72,
+     71.92,
+     2.48
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      3.72,
+      71.92,
+      2.48
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     47.73,
+     62.0,
+     0.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3.72,
+     19.84,
+     23.56
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      3.72,
+      19.84,
+      23.56
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     47.73,
+     35.96,
+     13.02
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3.72,
+     71.92,
+     2.48
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.42,
+       0.5,
+       0.44
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.85
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      3.72,
+      71.92,
+      2.48
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     155.25,
+     29.76,
+     -12.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.488,
+     12.4,
+     7.44
     ]
    },
    "Components": {
@@ -3024,9 +4661,9 @@
   {
    "Transform": {
     "position": [
-     144,
-     30,
-     -10
+     151.28,
+     32.24,
+     -12.4
     ],
     "rotation": [
      0,
@@ -3034,9 +4671,9 @@
      35
     ],
     "scale": [
-     8,
-     2,
-     2
+     8.68,
+     1.488,
+     1.488
     ]
    },
    "Components": {
@@ -3067,9 +4704,9 @@
   {
    "Transform": {
     "position": [
-     95,
-     24.8,
-     20
+     154.26,
+     53.94,
+     -12.4
     ],
     "rotation": [
      0,
@@ -3077,9 +4714,514 @@
      0
     ],
     "scale": [
-     40,
-     2.4,
-     22
+     1.488,
+     35.96,
+     1.488
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.75,
+       0.62,
+       0.15
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 40,
+      "roughness": 0.5,
+      "metallic": 0.3
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     72.17,
+     69.44,
+     -12.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     164.176,
+     1.488,
+     1.488
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.75,
+       0.62,
+       0.15
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 40,
+      "roughness": 0.5,
+      "metallic": 0.3
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -9.92,
+     69.44,
+     -26.66
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.488,
+     1.488,
+     28.52
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.75,
+       0.62,
+       0.15
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 40,
+      "roughness": 0.5,
+      "metallic": 0.3
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -9.92,
+     64.48,
+     -40.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.488,
+     14.88,
+     1.488
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.75,
+       0.62,
+       0.15
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 40,
+      "roughness": 0.5,
+      "metallic": 0.3
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     66.96,
+     16.12,
+     -34.72
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     12.4,
+     32.24,
+     14.88
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.45,
+       0.47,
+       0.42
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 50,
+      "roughness": 0.45,
+      "metallic": 0.4
+     }
+    },
+    "PhysicsComponent": {
+     "BoundingBodyType": [
+      "cube"
+     ],
+     "scale": [
+      12.4,
+      32.24,
+      14.88
+     ],
+     "mass": 0
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     66.96,
+     7.44,
+     -27.03
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.976,
+     0.744,
+     0.496
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.55,
+       0.56,
+       0.6
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/metal.jpg",
+      "NormalMapTexture": "res/textures/metal_normal.jpg",
+      "metallic": 0.6,
+      "roughness": 0.45
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     66.96,
+     17.36,
+     -27.03
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.976,
+     0.744,
+     0.496
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.55,
+       0.56,
+       0.6
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/metal.jpg",
+      "NormalMapTexture": "res/textures/metal_normal.jpg",
+      "metallic": 0.6,
+      "roughness": 0.45
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     66.96,
+     27.28,
+     -27.03
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.976,
+     0.744,
+     0.496
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.55,
+       0.56,
+       0.6
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/metal.jpg",
+      "NormalMapTexture": "res/textures/metal_normal.jpg",
+      "metallic": 0.6,
+      "roughness": 0.45
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     114.08,
+     11.16,
+     18.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     11.16,
+     0.992,
+     11.16
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.08,
+       0.08,
+       0.09
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 60,
+      "roughness": 0.4
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     114.08,
+     17.36,
+     13.14
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     11.16,
+     12.4,
+     0.992
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.08,
+       0.08,
+       0.09
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 60,
+      "roughness": 0.4
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     114.08,
+     5.46,
+     18.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.24,
+     10.912,
+     1.24
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.55,
+       0.56,
+       0.6
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "Texture": "res/textures/metal.jpg",
+      "NormalMapTexture": "res/textures/metal_normal.jpg",
+      "metallic": 0.6,
+      "roughness": 0.45
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     106.64,
+     18.23,
+     31.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     29.76,
+     0.744,
+     14.88
     ]
    },
    "Components": {
@@ -3110,9 +5252,9 @@
       "cube"
      ],
      "scale": [
-      40,
-      2.4,
-      22
+      29.76,
+      0.74,
+      14.88
      ],
      "mass": 0
     }
@@ -3121,9 +5263,9 @@
   {
    "Transform": {
     "position": [
-     77.0,
-     11.8,
-     11.0
+     93.0,
+     8.93,
+     24.8
     ],
     "rotation": [
      0,
@@ -3131,9 +5273,9 @@
      0
     ],
     "scale": [
-     2,
-     23.6,
-     2
+     0.992,
+     17.856,
+     0.992
     ]
    },
    "Components": {
@@ -3167,9 +5309,9 @@
   {
    "Transform": {
     "position": [
-     77.0,
-     11.8,
-     29.0
+     93.0,
+     8.93,
+     37.2
     ],
     "rotation": [
      0,
@@ -3177,9 +5319,9 @@
      0
     ],
     "scale": [
-     2,
-     23.6,
-     2
+     0.992,
+     17.856,
+     0.992
     ]
    },
    "Components": {
@@ -3213,9 +5355,9 @@
   {
    "Transform": {
     "position": [
-     113.0,
-     11.8,
-     11.0
+     120.28,
+     8.93,
+     24.8
     ],
     "rotation": [
      0,
@@ -3223,9 +5365,9 @@
      0
     ],
     "scale": [
-     2,
-     23.6,
-     2
+     0.992,
+     17.856,
+     0.992
     ]
    },
    "Components": {
@@ -3259,9 +5401,9 @@
   {
    "Transform": {
     "position": [
-     113.0,
-     11.8,
-     29.0
+     120.28,
+     8.93,
+     37.2
     ],
     "rotation": [
      0,
@@ -3269,9 +5411,9 @@
      0
     ],
     "scale": [
-     2,
-     23.6,
-     2
+     0.992,
+     17.856,
+     0.992
     ]
    },
    "Components": {
@@ -3305,94 +5447,8 @@
   {
    "Transform": {
     "position": [
-     89,
-     30,
-     18
-    ],
-    "rotation": [
-     0,
-     0,
-     0
-    ],
-    "scale": [
-     3,
-     8,
-     2
-    ]
-   },
-   "Components": {
-    "RenderComponent": {
-     "Mesh": "res/models/cube4.obj",
-     "Material": {
-      "ambient": [
-       0,
-       0,
-       0
-      ],
-      "diffuse": [
-       0.08,
-       0.08,
-       0.09
-      ],
-      "specular": [
-       0.2,
-       0.2,
-       0.2
-      ],
-      "shininess": 60,
-      "roughness": 0.4
-     }
-    }
-   }
-  },
-  {
-   "Transform": {
-    "position": [
-     89,
-     36,
-     18
-    ],
-    "rotation": [
-     0,
-     0,
-     0
-    ],
-    "scale": [
-     0.5,
-     6,
-     0.5
-    ]
-   },
-   "Components": {
-    "RenderComponent": {
-     "Mesh": "res/models/cube4.obj",
-     "Material": {
-      "ambient": [
-       0,
-       0,
-       0
-      ],
-      "diffuse": [
-       0.08,
-       0.08,
-       0.09
-      ],
-      "specular": [
-       0.2,
-       0.2,
-       0.2
-      ],
-      "shininess": 60,
-      "roughness": 0.4
-     }
-    }
-   }
-  },
-  {
-   "Transform": {
-    "position": [
-     95,
-     51.0,
+     106.64,
+     70.68,
      0
     ],
     "rotation": [
@@ -3401,9 +5457,9 @@
      0
     ],
     "scale": [
-     26,
-     1.5,
-     3
+     29.76,
+     1.488,
+     2.976
     ]
    },
    "Components": {
@@ -3436,8 +5492,8 @@
   {
    "Transform": {
     "position": [
-     95,
-     51.7,
+     106.64,
+     71.55,
      0
     ],
     "rotation": [
@@ -3446,9 +5502,9 @@
      0
     ],
     "scale": [
-     29,
-     0.6,
-     7
+     33.48,
+     0.744,
+     7.44
     ]
    },
    "Components": {
@@ -3484,7 +5540,7 @@
    "Transform": {
     "position": [
      0,
-     51.0,
+     70.68,
      0
     ],
     "rotation": [
@@ -3493,9 +5549,9 @@
      0
     ],
     "scale": [
-     26,
-     1.5,
-     3
+     29.76,
+     1.488,
+     2.976
     ]
    },
    "Components": {
@@ -3529,7 +5585,7 @@
    "Transform": {
     "position": [
      0,
-     51.7,
+     71.55,
      0
     ],
     "rotation": [
@@ -3538,9 +5594,9 @@
      0
     ],
     "scale": [
-     29,
-     0.6,
-     7
+     33.48,
+     0.744,
+     7.44
     ]
    },
    "Components": {
@@ -3577,8 +5633,8 @@
   {
    "Transform": {
     "position": [
-     -95,
-     48.0,
+     -106.64,
+     68.2,
      0
     ],
     "rotation": [
@@ -3587,9 +5643,9 @@
      0
     ],
     "scale": [
-     180,
-     180,
-     180
+     119.03999999999999,
+     119.03999999999999,
+     119.03999999999999
     ]
    },
    "Attributes": {
@@ -3602,14 +5658,14 @@
     "cast_shadow": true,
     "shadowMapSize": 512,
     "diffuse_attenuation": [
-     650,
-     12,
-     4
+     420,
+     6,
+     1.3
     ],
     "specular_attenuation": [
-     500,
-     12,
-     4
+     420,
+     6,
+     1.3
     ],
     "flicker": 0.05,
     "flickerSpeed": 28
@@ -3618,8 +5674,8 @@
   {
    "Transform": {
     "position": [
-     95,
-     48.0,
+     106.64,
+     68.2,
      0
     ],
     "rotation": [
@@ -3628,9 +5684,9 @@
      0
     ],
     "scale": [
-     180,
-     180,
-     180
+     119.03999999999999,
+     119.03999999999999,
+     119.03999999999999
     ]
    },
    "Attributes": {
@@ -3643,14 +5699,14 @@
     "cast_shadow": true,
     "shadowMapSize": 512,
     "diffuse_attenuation": [
-     650,
-     12,
-     4
+     420,
+     6,
+     1.3
     ],
     "specular_attenuation": [
-     500,
-     12,
-     4
+     420,
+     6,
+     1.3
     ],
     "flicker": 0.05,
     "flickerSpeed": 28
@@ -3660,7 +5716,7 @@
    "Transform": {
     "position": [
      0,
-     48.0,
+     68.2,
      0
     ],
     "rotation": [
@@ -3669,9 +5725,9 @@
      0
     ],
     "scale": [
-     180,
-     180,
-     180
+     119.03999999999999,
+     119.03999999999999,
+     119.03999999999999
     ]
    },
    "Attributes": {
@@ -3684,19 +5740,53 @@
     "cast_shadow": true,
     "shadowMapSize": 512,
     "diffuse_attenuation": [
-     650,
-     12,
-     4
+     420,
+     6,
+     1.3
     ],
     "specular_attenuation": [
-     500,
-     12,
-     4
+     420,
+     6,
+     1.3
     ],
     "flicker": 0.03,
     "flickerSpeed": 28
    }
   }
  ],
- "ParticleEmitters": []
+ "ParticleEmitters": [],
+ "Audio": {
+  "sources": [
+   {
+    "sound": "hum_loop",
+    "position": [
+     -106.6,
+     67.0,
+     0
+    ],
+    "volume": 0.39,
+    "radius": 149
+   },
+   {
+    "sound": "hum_loop",
+    "position": [
+     106.6,
+     67.0,
+     0
+    ],
+    "volume": 0.39,
+    "radius": 149
+   },
+   {
+    "sound": "hum_loop",
+    "position": [
+     0,
+     67.0,
+     0
+    ],
+    "volume": 0.374,
+    "radius": 149
+   }
+  ]
+ }
 }

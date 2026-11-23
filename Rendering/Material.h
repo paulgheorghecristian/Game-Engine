@@ -71,6 +71,10 @@ class Material
 
         void setIsBlackAlpha(bool s);
         bool getIsBlackAlpha() const;
+        /* glass: drawn see-through after the scene (RenderingMaster::renderGlass),
+         * its diffuse colour the tint; not in the G-buffer or the shadows */
+        bool isGlass() const { return m_glass; }
+        void setGlass(bool glass) { m_glass = glass; }
         void setDisableCulling(bool s);
         bool getDisableCulling() const;
 
@@ -96,6 +100,7 @@ class Material
         TerrainLayers *m_terrain = nullptr;
 
         bool m_isBlackAlpha, m_disableCulling;
+        bool m_glass = false;
 
         Texture *m_diffuseTexture;
         Texture *m_normalTexture;
