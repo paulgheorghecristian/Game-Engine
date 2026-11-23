@@ -70,6 +70,12 @@ class Light
         void setLightColor(const glm::vec3 &light) {
             m_lightColor = light;
         }
+        /* an animated (flickering) light's own color, which each frame's
+         * flicker scales (setLightColor would be overwritten) */
+        void setBaseColor(const glm::vec3 &color) {
+            m_baseColor = color;
+            m_lightColor = color;
+        }
 
         inline bool isToBeRemoved() {
             return m_to_be_removed;

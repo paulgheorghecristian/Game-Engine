@@ -135,9 +135,10 @@ uniform float collapseRate;     /* collapse per second while playing (to time th
 float kbGrowth() {
     return smoothstep(0.62, 1.0, collapse);
 }
-/* while it grows, the biggest pieces falling in throw matter back out:
- * this many outbursts, spread over the growth */
+/* near the end of its growth, the biggest pieces falling in throw matter
+ * back out: this many outbursts, over the last of it (the moon mostly gone) */
 const float GULPS = 7.0;
+const float OUTBURSTS_FROM = 0.82;
 
 float breakupAmount() {
     return collapse >= 0.0 ? smoothstep(0.55, 0.97, collapse) : 0.0;
@@ -394,9 +395,9 @@ void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRa
      * out: a flash at the hole and a spray of glowing fragments and streaks
      * to one side (where the piece fell in), bigger as the hole grows,
      * fading as it flies (the last, when the moon is gone, is the end: 6) */
-    if (collapse > 0.62 && collapseRate > 0.0) {
+    if (collapse > OUTBURSTS_FROM && collapseRate > 0.0) {
         for (int i = 1; i < int(GULPS); i++) {
-            float start = 0.62 + 0.38 * float(i) / GULPS;
+            float start = OUTBURSTS_FROM + (1.0 - OUTBURSTS_FROM) * float(i) / GULPS;
             /* seconds; the collapse stops at 1 when the moon is gone, so from
              * then on the clock carries them (or they would freeze mid-flight) */
             float age = (collapse - start) / collapseRate + max(formedTime, 0.0);

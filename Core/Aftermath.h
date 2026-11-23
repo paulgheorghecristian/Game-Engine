@@ -7,79 +7,72 @@
 
 class Camera;
 class ParticleEmitter;
+class PointLight;
+class BlackHole;
+class Timeline;
 
 /*
- * What follows the sky's Kugelblitz: once the moon is gone and the black
- * hole has formed (its collapse reaches 1 while playing), the world reacts.
+ * The storm after the sky's Kugelblitz, as behaviours. When it happens and
+ * how much of it there is comes from the map's timeline (Core/Timeline: the
+ * map's "Sequences", or Game/sequences/kugelblitz_storm.json); this only
+ * reads its parameters, each frame:
  *
- *   0 - 8 s   an eerie calm, in silence (no sound crosses space): the wind
- *             dies and turns to blow from the hole; from 0.6 s the moon's
- *             debris lands far off and sweeps in from the horizon (a wall of
- *             dust and embers); its roar is heard only in the last 1.5 s
- *   8 s       it reaches the player (BlackHole::DEBRIS_ARRIVAL): a deep
- *             blast, the camera shakes
- *   8 - 14 s  a gale from the hole: trees and grass thrash, the water heaves,
- *             fog rolls in, clouds race, and dust, burning embers and debris
- *             are flung at the player (roaring wind, gusts, spray)
- *   14 - 32 s it settles into a windier, foggier new normal; or, with the
- *             hole's "dustOut", it only gets worse (louder, deeper, more
- *             gusts, booms and thunder) and thickens into a dust storm
- *             (lightning, rain) until nothing is left but dust
+ *   storm, calm, windTurn, gustiness   the gale (wind, fog, clouds, waves) and the calm before it
+ *   shake                              the camera's shake (its amplitude)
+ *   groundDebris                       dust, chunks and embers flung along the ground; water spray
+ *   wall, frontDistance                the shockwave's wall of dust and embers, so far upwind
+ *   stormDust                          thick billows rushing past the camera
+ *   debrisRain                         the moon's debris raining out of the sky, some head-on
+ *   dust, dustVeil                     the dust fog, and its veil over the picture
+ *   rain, lensWater                    wind-driven rain, drops on the lens
+ *   lightning, thunderVolume           the chance of a strike in the dust (each 0.7 s), thunder after it
+ *   fires                              how many fires the debris has lit round the player
+ *   gusts, gustVolume                  gusts rushing past (rate multiplier, loudness)
+ *   booms, boomVolume                  debris coming down further off (per second, loudness)
+ *   thuds                              debris thudding down close by (per second)
+ *   gain                               the loudness of all its sounds (and the timeline's)
+ *   fadeOut                            the picture and the sound fading out
+ *   debrisArrival                      when the debris reaches the Earth (the sky's shell)
  *
- * With the hole's "quitAfter" set, that many seconds after the hole forms
- * the picture and sound fade out (2 s) and the game closes.
- *
- * It runs on the Kugelblitz's playback clock, so it is the same every time
- * and Restart / Reset take it back. A map that starts with the moon already
- * gone gets none of it.
+ * It places the timeline's sound anchors "front" (the shockwave) and
+ * "upwind". The hole's "quitAfter" still fades out and closes the game.
  */
 class Aftermath
 {
     public:
         ~Aftermath();
-        /* once a frame, before the renderer prepares it; true when the
-         * ending is over and the game should close */
-        bool update(Camera *camera);
+        /* once a frame, after the timeline advanced and before the renderer
+         * prepares it; true when the ending is over and the game should close */
+        bool update(Camera *camera, Timeline &timeline);
 
     private:
         void reset();
         void startDebris();
-        void placeDebris(Camera *camera, const glm::vec3 &downwind, float strength, float wall, float frontAhead,
-                         float dust, float falling, float t);
-        /* the storm's sounds, at its loudness (m_gain) */
+        void placeDebris(Camera *camera, const glm::vec3 &downwind, float ground, float wall, float frontDistance,
+                         float stormDust, float rain, float t);
+        void updateFires(int count, float t, const glm::vec3 &eye);
+        void putOutFires();
+        /* its sounds, at the timeline's "gain" */
         int play(const std::string &name, float volume, float pitch = 1.0f, bool loop = false);
-        int play3D(const std::string &name, const glm::vec3 &position, float volume, float radius, float pitch = 1.0f,
-                   bool loop = false);
-        void setVolume(int voice, float volume);
-        float m_gain = 1.0f;          /* the dust-out storm (00) is louder */
-        bool m_rainOnly = false;      /* the dust-out storm: only matter raining down, nothing thrown along the ground */
+        int play3D(const std::string &name, const glm::vec3 &position, float volume, float radius, float pitch = 1.0f);
 
         bool m_active = false;
-        float m_completedAt = 0.0f;        /* playback-clock time the hole formed */
-        float m_lastPlayTime = 0.0f;
-        float m_lastCollapse = -1.0f;
+        float m_lastT = -1.0f;            /* the timeline's clock last frame (a rewind resets) */
         glm::vec2 m_stormDirection = glm::vec2(1.0f, 0.0f);   /* xz, from the hole towards the player */
-        glm::vec3 m_holeDirection = glm::vec3(0.0f, 1.0f, 0.0f); /* towards the hole in the sky */
-
-        bool m_impactPlayed = false, m_secondBoomPlayed = false;
-        int m_gusts = 0;
-        float m_nextGust = 0.0f;
-        int m_roarVoice = 0, m_sprayVoice = 0;
+        glm::vec3 m_holeDirection = glm::vec3(0.0f, 1.0f, 0.0f);
+        float m_gain = 1.0f;
         float m_masterVolume = -1.0f;     /* before the ending's fade (-1: not fading) */
 
         std::vector<ParticleEmitter *> m_debris;
         bool m_debrisShown = false;
 
-        /* the dust storm (dustOut): lightning, thunder after it, the wind's
-         * own howl over the roar, debris thudding down */
+        int m_gusts = 0, m_booms = 0, m_thuds = 0, m_lastBolt = -1;
+        float m_nextGust = -1.0f, m_nextBoom = -1.0f, m_nextThud = -1.0f;
         struct Delayed { float at; std::string sound; float volume, pitch; };
-        std::vector<Delayed> m_delayed;
-        int m_lastBolt = -1;
-        int m_windVoice = 0, m_rumbleVoice = 0;
-        float m_nextBoom = 0.0f;
-        int m_booms = 0;
-        float m_nextThud = 0.0f;
-        int m_thuds = 0;
+        std::vector<Delayed> m_delayed;   /* thunder, after its lightning */
+
+        struct Fire { std::vector<ParticleEmitter *> emitters; PointLight *light; float litAt, size; };
+        std::vector<Fire> m_fires;
 };
 
 #endif // AFTERMATH_H

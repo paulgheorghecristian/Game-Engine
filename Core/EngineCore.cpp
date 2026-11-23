@@ -150,6 +150,9 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
     if (gameDocument.HasMember("Footsteps")) {
         m_footstepsJson = jsonToString(gameDocument["Footsteps"]);
     }
+    if (gameDocument.HasMember("Sequences")) {
+        m_sequencesJson = jsonToString(gameDocument["Sequences"]);
+    }
     RenderingMaster::getInstance()->savedMapPath = m_savePath;
     RenderingMaster::getInstance()->onSaveMap = [this]() { saveMap(m_savePath); };
     RenderingMaster::getInstance()->onReloadMap = [this]() { reloadMap(m_savePath); };
@@ -749,9 +752,12 @@ static inline uint64_t fnv1a(uint64_t h, const void *data, size_t size) {
 
 void EngineCore::render(float alpha) {
     beginInterpolation(alpha);
-    if (m_aftermath.update(RenderingMaster::getInstance()->getCamera())) {
+    /* the map's sequences, then what they drive, then their sounds */
+    m_timeline.advance(RenderingMaster::getInstance()->getTime());
+    if (m_aftermath.update(RenderingMaster::getInstance()->getCamera(), m_timeline) || m_timeline.fired("quit")) {
         isRunning = false;   /* the Kugelblitz's ending: the game closes */
     }
+    m_timeline.playSounds(RenderingMaster::getInstance()->getCamera()->getPosition());
     RenderingMaster::getInstance()->prepareFrame(alpha);
     m_soundScape.update(RenderingMaster::getInstance()->getCamera());
 
@@ -1306,6 +1312,20 @@ void EngineCore::loadMapFeatures(rapidjson::Document &gameDocument) {
         }
     }
 
+    /* the map's scripted sequences; a Moon destruction without any of its own
+     * gets the default storm after it */
+    m_timeline.clear();
+    if (gameDocument.HasMember("Sequences")) {
+        m_timeline.load(gameDocument["Sequences"]);
+    } else {
+        for (BlackHole *hole : rm->blackHoles) {
+            if (hole->sky && hole->kugelblitz) {
+                m_timeline.loadFile("Game/sequences/kugelblitz_storm.json");
+                break;
+            }
+        }
+    }
+
     if (gameDocument.HasMember("Water") && gameDocument["Water"].IsObject()) {
         rm->water = new WaterRenderer(gameDocument["Water"], rm->getRenderWidth(), rm->getRenderHeight());
     }
@@ -1511,6 +1531,8 @@ std::string EngineCore::mapJson() {
     if (parseInto(m_audioJson, audio)) doc.AddMember("Audio", audio, allocator);
     rapidjson::Value footsteps;
     if (parseInto(m_footstepsJson, footsteps)) doc.AddMember("Footsteps", footsteps, allocator);
+    rapidjson::Value sequences;
+    if (parseInto(m_sequencesJson, sequences)) doc.AddMember("Sequences", sequences, allocator);
     if (parseInto(m_emittersJson, emitters)) doc.AddMember("ParticleEmitters", emitters, allocator);
 
     rapidjson::Value entityArray(rapidjson::kArrayType);

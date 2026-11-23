@@ -195,8 +195,12 @@ void main() {
         /* the lens bends red and blue a little differently, more towards the edges */
         vec2 fromCentre = uv - 0.5;
         vec2 shift = fromCentre * dot(fromCentre, fromCentre) * chromaticAberration * 0.02;
-        color.r = texture(hdrSampler, uv + shift).r;
-        color.b = texture(hdrSampler, uv - shift).b;
+        vec3 outer = texture(hdrSampler, uv + shift).rgb, inner = texture(hdrSampler, uv - shift).rgb;
+        color.r = outer.r;
+        color.b = inner.b;
+        /* green spread between them too: with only red and blue moved, a small
+         * bright spark split into red, GREEN and blue dots */
+        color.g = color.g * 0.5 + (outer.g + inner.g) * 0.25;
     }
     vec3 bloomFar = texture(bloomSamplerFar, uv).rgb;
     vec3 bloom = texture(bloomSamplerNear, uv).rgb * 0.6 + bloomFar * 0.8;

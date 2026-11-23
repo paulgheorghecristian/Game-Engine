@@ -602,12 +602,13 @@ void RenderingMaster::prepareFrame(float alpha) {
             skyShader->updateUniform("collapseTime", playTime);
             float formed = skyHole->formedAt >= 0.0f ? playTime - skyHole->formedAt : -1.0f;
             skyShader->updateUniform("formedTime", formed);
-            float arrival = BlackHole::DEBRIS_ARRIVAL;
+            float arrival = m_debrisArrival;
             skyShader->updateUniform("debrisArrival", arrival);
             float rate = skyHole->collapseSpeed / 60.0f;
             skyShader->updateUniform("collapseRate", rate);
-            /* matter thrown straight at us: while it grows, until its debris arrives */
-            m_frontEjecta = glm::smoothstep(0.62f, 0.72f, collapse) *
+            /* matter thrown straight at us: as the last of the moon falls in,
+             * until its debris arrives */
+            m_frontEjecta = glm::smoothstep(0.85f, 0.95f, collapse) *
                             (formed < 0.0f ? (collapse >= 1.0f ? 0.0f : 1.0f)
                                            : 1.0f - glm::smoothstep(arrival - 1.5f, arrival, formed));
             skyShader->updateUniform("frontEjecta", m_frontEjecta);

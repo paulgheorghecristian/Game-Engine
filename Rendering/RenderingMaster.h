@@ -307,6 +307,8 @@ class RenderingMaster
         void setDust(float dust, float veil) { m_dust = dust; m_dustVeil = veil; }
         /* the storm's water: rain 0..1 streaking past, lens 0..1 drops on the lens */
         void setStormWater(float rain, float lens) { m_rain = rain; m_lensWater = lens; }
+        /* when a Kugelblitz's debris reaches the Earth (its timeline's "debrisArrival") */
+        void setDebrisArrival(float seconds) { m_debrisArrival = seconds; }
         /* lightning in the dust: flash 0..1 (blinding), seen as a glow inside
          * the dust at screen x boltX, height reach (0..1), shaped by seed */
         void setLightning(float flash, float boltX, float seed, float reach) {
@@ -316,6 +318,7 @@ class RenderingMaster
         float m_lightning = 0.0f, m_boltX = 0.5f, m_boltSeed = 0.0f, m_boltReach = 0.0f;
         float m_dust = 0.0f, m_dustVeil = 0.0f, m_appliedDust = 0.0f;
         float m_rain = 0.0f, m_lensWater = 0.0f;
+        float m_debrisArrival = 8.0f;
         float m_storm = 0.0f, m_calm = 0.0f;
         float m_appliedStorm = 0.0f, m_appliedCalm = 0.0f;
         glm::vec2 m_stormDirection = glm::vec2(1.0f, 0.0f);

@@ -40,6 +40,7 @@ Run after make_canyon.py / make_lagoon.py (it starts from their maps):
   python3 tools/make_recursion.py
 """
 import copy, json, math, os, random
+import make_sequences                 # the storm's timeline (tools/make_sequences.py)
 
 random.seed(2000)
 OUT = 'Game/recursion'
@@ -402,10 +403,11 @@ def serious_lights(g):
     return g
 
 scenes['00_archive_ignition'] = serious_lights(outdoor(LAGOON, 0.0, LAGOON_MOON,
-    [dict(moon_destruction(LAGOON_MOON, 0.0, play=True, speed=5.0, delay=4.0),
-          dustOut=24.0, stormWater=0.8, silent=True)],              # the footage ends in the storm's dust
+    [dict(moon_destruction(LAGOON_MOON, 0.0, play=True, speed=5.0, delay=4.0), silent=True)],              # the footage ends in the storm's dust
     start(490, 40, -60, moon_yaw, moon_pitch),
-    {"filmGrain": 0.09, "chromaticAberration": 1.4, "lensDirt": 0.9, "saturation": 0.6, "cloudCoverage": 0.2}))
+    {"filmGrain": 0.09, "chromaticAberration": 0.8, "lensDirt": 0.9, "saturation": 0.6, "cloudCoverage": 0.2}))
+# the footage ends in the storm's dust: its timeline (Core/Timeline, tools/make_sequences.py)
+scenes['00_archive_ignition']["Sequences"] = [make_sequences.dust_out_storm()]
 
 # --------------------------------------------------------------------------
 # 01 Room 7: the room where you wake, AURA's lab built like a hospital ward (Ch.1), 4 x 5 m

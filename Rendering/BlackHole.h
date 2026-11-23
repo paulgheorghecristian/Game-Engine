@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <GL/glew.h>
+#include <vector>
 #include <glm/glm.hpp>
 
 #include "rapidjson/document.h"
@@ -92,8 +93,6 @@ class BlackHole
         float collapseDelay = 0.0f;    /* seconds the moon stays intact after Play, before ignition */
         bool autoPlay = false;         /* start playing when the map loads */
         float quitAfter = 0.0f;        /* seconds after the hole forms (into the storm) to fade out and close the game; 0: never */
-        float dustOut = 0.0f;          /* seconds after the hole forms until the storm's dust hides everything; 0: it settles instead */
-        float stormWater = 0.0f;       /* 0..1: rain in the storm, and water on the lens */
         bool silent = false;           /* no sound from the moon's destruction (none crosses space):
                                         * the first heard is its debris arriving (Core/Aftermath) */
         /* runtime playback (Play / Pause / Restart / Reset in the editor):
@@ -117,13 +116,14 @@ class BlackHole
         /* sky: the view of the sky behind it, centred on it (camera at the
          * origin), LENS_SKY_HALF_ANGLE radians each way */
         static constexpr float LENS_SKY_HALF_ANGLE = 0.5f;
-        /* a Kugelblitz: seconds (on its playback clock) from the last of the moon
+        /* a Kugelblitz: the default seconds (on its playback clock) from the last of the moon
          * falling in to its debris reaching the Earth: half the moon, flung
          * out as plasma at about a seventh of the speed of light (like real
          * black holes' jets), lands ~8 s after the flash is seen (see
          * Game/recursion/STORY.md): seconds of silence while it crosses. The
          * sky's debris shell fills the sky by then (skyShader.fs), as the
-         * storm hits (Core/Aftermath.cpp) */
+         * storm hits. A map's timeline sets it ("debrisArrival",
+         * Core/Timeline): this is when none does */
         static constexpr float DEBRIS_ARRIVAL = 8.0f;
         glm::mat4 lensSkyView() const;
         glm::mat4 lensSkyProjection() const;
