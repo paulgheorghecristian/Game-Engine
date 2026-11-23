@@ -292,6 +292,7 @@ class RenderingMaster
         void renderBlackHolesMirrored(FrameBuffer &target, const glm::mat4 &mirroredView, const glm::vec3 &mirroredEye);
     private:
         bool m_skyCloudCut = false;   /* a sky black hole with clouds: split the cloud layer */
+        float m_frontEjecta = 0.0f;   /* a Kugelblitz throwing matter at us (sky pass 4, over the hole) */
     public:
         /* the Kugelblitz aftermath (Core/Aftermath): storm 0..1 adds wind,
          * fog, clouds and waves; calm 0..1 stills the wind before it hits */
@@ -301,7 +302,20 @@ class RenderingMaster
         void setStormDirection(const glm::vec2 &direction, float turn) { m_stormDirection = direction; m_stormTurn = turn; }
         /* 0: normal, 1: the picture is black (the ending) */
         void setFadeOut(float fade) { m_fadeOut = fade; }
+        /* the storm's dust: dust 0..1 thickens the fog into it; veil 0..1
+         * covers the picture (1: nothing but dust) */
+        void setDust(float dust, float veil) { m_dust = dust; m_dustVeil = veil; }
+        /* the storm's water: rain 0..1 streaking past, lens 0..1 drops on the lens */
+        void setStormWater(float rain, float lens) { m_rain = rain; m_lensWater = lens; }
+        /* lightning in the dust: flash 0..1 (blinding), seen as a glow inside
+         * the dust at screen x boltX, height reach (0..1), shaped by seed */
+        void setLightning(float flash, float boltX, float seed, float reach) {
+            m_lightning = flash; m_boltX = boltX; m_boltSeed = seed; m_boltReach = reach;
+        }
     private:
+        float m_lightning = 0.0f, m_boltX = 0.5f, m_boltSeed = 0.0f, m_boltReach = 0.0f;
+        float m_dust = 0.0f, m_dustVeil = 0.0f, m_appliedDust = 0.0f;
+        float m_rain = 0.0f, m_lensWater = 0.0f;
         float m_storm = 0.0f, m_calm = 0.0f;
         float m_appliedStorm = 0.0f, m_appliedCalm = 0.0f;
         glm::vec2 m_stormDirection = glm::vec2(1.0f, 0.0f);

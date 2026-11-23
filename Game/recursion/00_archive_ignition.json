@@ -191,7 +191,10 @@
    "glow": 0,
    "moonStream": 0,
    "cloudClear": 0.7,
-   "autoPlay": true
+   "autoPlay": true,
+   "dustOut": 24.0,
+   "stormWater": 0.8,
+   "silent": true
   }
  ],
  "Audio": {
@@ -4001,9 +4004,9 @@
    },
    "Attributes": {
     "color": [
-     1.0,
-     0.62,
-     0.28
+     0.5,
+     0.33,
+     0.16
     ],
     "type": "POINT",
     "cast_shadow": true,
@@ -4043,9 +4046,9 @@
    },
    "Attributes": {
     "color": [
-     1.0,
-     0.62,
-     0.28
+     0.5,
+     0.33,
+     0.16
     ],
     "type": "POINT",
     "cast_shadow": true,
@@ -4085,9 +4088,9 @@
    },
    "Attributes": {
     "color": [
-     1.0,
-     0.62,
-     0.28
+     0.5,
+     0.33,
+     0.16
     ],
     "type": "POINT",
     "cast_shadow": true,
@@ -4127,9 +4130,9 @@
    },
    "Attributes": {
     "color": [
-     1.0,
-     0.62,
-     0.28
+     0.5,
+     0.33,
+     0.16
     ],
     "type": "POINT",
     "cast_shadow": true,
@@ -4253,9 +4256,9 @@
    },
    "Attributes": {
     "color": [
-     1.0,
-     0.93,
-     0.75
+     0.7,
+     0.651,
+     0.525
     ],
     "type": "SPOT",
     "cast_shadow": true,
@@ -4302,9 +4305,9 @@
    },
    "Attributes": {
     "color": [
-     0.95,
-     0.3,
-     0.85
+     0.42,
+     0.38,
+     0.32
     ],
     "type": "SPOT",
     "cast_shadow": true,
@@ -4342,9 +4345,9 @@
    },
    "Attributes": {
     "color": [
-     0.3,
-     0.85,
-     1.0
+     0.42,
+     0.38,
+     0.32
     ],
     "type": "SPOT",
     "cast_shadow": true,
@@ -4382,9 +4385,9 @@
    },
    "Attributes": {
     "color": [
-     0.35,
-     1.0,
-     0.55
+     0.42,
+     0.38,
+     0.32
     ],
     "type": "SPOT",
     "cast_shadow": true,
@@ -4422,9 +4425,9 @@
    },
    "Attributes": {
     "color": [
-     0.3,
-     1.0,
-     0.75
+     0.42,
+     0.38,
+     0.32
     ],
     "type": "POINT",
     "cast_shadow": false,
@@ -4450,146 +4453,6 @@
      "bob": 6,
      "phase": 0
     }
-   }
-  },
-  {
-   "Transform": {
-    "position": [
-     500.0,
-     6.0,
-     -775.0
-    ],
-    "rotation": [
-     0,
-     0,
-     0
-    ],
-    "scale": [
-     190,
-     190,
-     190
-    ]
-   },
-   "Attributes": {
-    "color": [
-     0.45,
-     0.6,
-     1.0
-    ],
-    "type": "POINT",
-    "cast_shadow": false,
-    "nightOnly": true,
-    "diffuse_attenuation": [
-     600,
-     10,
-     3.9
-    ],
-    "specular_attenuation": [
-     90,
-     10,
-     2
-    ],
-    "orbit": {
-     "center": [
-      500.0,
-      10.0,
-      -775.0
-     ],
-     "radius": 195,
-     "speed": 7,
-     "bob": 6,
-     "phase": 120
-    }
-   }
-  },
-  {
-   "Transform": {
-    "position": [
-     500.0,
-     6.0,
-     -775.0
-    ],
-    "rotation": [
-     0,
-     0,
-     0
-    ],
-    "scale": [
-     190,
-     190,
-     190
-    ]
-   },
-   "Attributes": {
-    "color": [
-     0.9,
-     0.5,
-     1.0
-    ],
-    "type": "POINT",
-    "cast_shadow": false,
-    "nightOnly": true,
-    "diffuse_attenuation": [
-     600,
-     10,
-     3.9
-    ],
-    "specular_attenuation": [
-     90,
-     10,
-     2
-    ],
-    "orbit": {
-     "center": [
-      500.0,
-      14.0,
-      -775.0
-     ],
-     "radius": 240,
-     "speed": 22,
-     "bob": 6,
-     "phase": 240
-    }
-   }
-  },
-  {
-   "Transform": {
-    "position": [
-     500.0,
-     31.78,
-     -793.0
-    ],
-    "rotation": [
-     0,
-     0,
-     0
-    ],
-    "scale": [
-     150,
-     150,
-     150
-    ]
-   },
-   "Attributes": {
-    "color": [
-     0.35,
-     0.75,
-     1.0
-    ],
-    "type": "POINT",
-    "cast_shadow": true,
-    "diffuse_attenuation": [
-     600,
-     10,
-     3.9
-    ],
-    "specular_attenuation": [
-     90,
-     10,
-     2
-    ],
-    "flicker": 0.1,
-    "flickerSpeed": 3
    }
   }
  ],
@@ -4726,12 +4589,12 @@
      -390
     ]
    ],
-   "startScale": 60,
+   "startScale": 32,
    "blend": "additive",
    "tint": [
-    1.0,
-    0.6,
-    0.28
+    0.7,
+    0.45,
+    0.22
    ],
    "nightOnly": true
   },
@@ -4766,9 +4629,9 @@
    "startScale": 110,
    "blend": "additive",
    "tint": [
-    1.0,
-    0.92,
-    0.75
+    0.7,
+    0.644,
+    0.525
    ],
    "nightOnly": true
   },
@@ -4782,97 +4645,13 @@
      -793.0
     ]
    ],
-   "startScale": 70,
+   "startScale": 40,
    "blend": "additive",
    "tint": [
-    0.3,
-    0.65,
-    0.95
-   ]
-  },
-  {
-   "type": "drift",
-   "texture": "res/textures/glowWhite.png",
-   "count": 160,
-   "lifetimeMs": 5000,
-   "position": [
-    500.0,
-    12.0,
-    -655.0
-   ],
-   "radius": 330,
-   "height": 22,
-   "speed": [
-    4,
-    12
-   ],
-   "wander": 14,
-   "startScale": 2.6,
-   "blend": "additive",
-   "tint": [
-    0.65,
-    1.0,
-    0.35
-   ],
-   "fadeIn": 0.35,
-   "nightOnly": true
-  },
-  {
-   "type": "spray",
-   "texture": "res/textures/glowWhite.png",
-   "count": 260,
-   "lifetimeMs": 2600,
-   "position": [
-    500.0,
-    29.78,
-    -793.0
-   ],
-   "radius": 2,
-   "direction": [
-    0,
-    1,
-    0
-   ],
-   "spread": 0.18,
-   "speed": [
-    70,
-    105
-   ],
-   "gravity": -70,
-   "startScale": 2.2,
-   "blend": "additive",
-   "tint": [
-    0.45,
-    0.8,
-    1.0
-   ]
-  },
-  {
-   "type": "drift",
-   "texture": "res/textures/flowerBurst.bmp",
-   "count": 40,
-   "lifetimeMs": 4000,
-   "position": [
-    500.0,
-    54.28,
-    -775.0
-   ],
-   "radius": 40,
-   "height": 30,
-   "speed": [
-    3,
-    8
-   ],
-   "wander": 8,
-   "startScale": 6,
-   "scaleJitter": 0.5,
-   "blend": "additive",
-   "tint": [
-    0.9,
     0.6,
-    1.0
-   ],
-   "fadeIn": 0.4
+    0.55,
+    0.45
+   ]
   },
   {
    "type": "drift",
@@ -4899,9 +4678,9 @@
    "scaleJitter": 0.4,
    "blend": "alpha",
    "tint": [
-    0.35,
-    0.42,
-    0.55
+    0.4,
+    0.4,
+    0.42
    ],
    "brightness": 0.05,
    "fadeIn": 0.4,

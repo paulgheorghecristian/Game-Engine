@@ -96,6 +96,86 @@ vec2 heatOffset(vec2 uv) {
     }
     return offset * 0.01;
 }
+/* value noise in 3D (the third axis is time: shapes change, not slide) */
+float dustHash(vec3 p) {
+    p = fract(p * 0.1031);
+    p += dot(p, p.zyx + 31.32);
+    return fract((p.x + p.y) * p.z);
+}
+float dustNoise(vec3 x) {
+    vec3 i = floor(x), f = fract(x);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix(dustHash(i), dustHash(i + vec3(1, 0, 0)), f.x),
+                   mix(dustHash(i + vec3(0, 1, 0)), dustHash(i + vec3(1, 1, 0)), f.x), f.y),
+               mix(mix(dustHash(i + vec3(0, 0, 1)), dustHash(i + vec3(1, 0, 1)), f.x),
+                   mix(dustHash(i + vec3(0, 1, 1)), dustHash(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}
+
+/* the storm (Core/Aftermath): its dust covering the picture, rain streaking
+ * past and water on the lens */
+uniform float dustVeil;        /* 0..1: 1 = nothing but dust */
+uniform vec3 dustColor;
+uniform float rainAmount, lensWater;
+uniform float lightning;       /* 0..1: a flash in the dust (blinding) */
+uniform vec3 bolt;             /* where the flash is: screen x, a seed, its height (0..1) */
+
+/* drops on the lens: each bends the picture like a little lens (flipped,
+ * squeezed), and they come and go. Returns the uv offset; rim: their edges */
+vec2 lensDrops(vec2 uv, out float rim) {
+    vec2 aspect = vec2(screenSize.x / screenSize.y, 1.0);
+    vec2 offset = vec2(0.0);
+    rim = 0.0;
+    for (int layer = 0; layer < 2; layer++) {
+        float scale = layer == 0 ? 6.0 : 11.0;
+        vec2 p = uv * aspect * scale + float(layer) * 7.3;
+        vec2 cell = floor(p);
+        float h = hash12(cell + float(layer) * 17.0);
+        if (h > lensWater * 0.55) continue;
+        /* hits, stays, runs off: each drop's own cycle */
+        float life = fract(time * (0.12 + 0.2 * hash12(cell + 2.3)) + hash12(cell + 4.1));
+        float there = smoothstep(0.0, 0.04, life) * (1.0 - smoothstep(0.7, 1.0, life));
+        vec2 c = vec2(hash12(cell + 3.1), hash12(cell + 5.7)) * 0.5 + 0.25;
+        c.x += life * 0.15;                       /* blown sideways */
+        float r = 0.12 + 0.2 * hash12(cell + 9.3);
+        vec2 d = (fract(p) - c) / r;
+        float dist = length(d);
+        if (dist < 1.0) {
+            float bulge = sqrt(1.0 - dist * dist);
+            offset -= d * r / scale / aspect * 2.2 * bulge * there;
+            rim += smoothstep(0.65, 1.0, dist) * there;
+        }
+    }
+    return offset;
+}
+
+/* rain driven by the gale: thin slanted streaks rushing past */
+float rainStreaks(vec2 uv) {
+    vec2 p = uv * vec2(screenSize.x / screenSize.y, 1.0);
+    float s = 0.0;
+    for (int k = 0; k < 3; k++) {
+        /* three depths: near streaks bigger, faster and fewer */
+        float columns = k == 0 ? 45.0 : (k == 1 ? 85.0 : 150.0);
+        float slant = 0.32 + 0.12 * sin(time * 0.6 + float(k) * 1.7) + 0.05 * sin(time * 1.9 + float(k));   /* gusts */
+        float qx = (p.x + p.y * slant) * columns;
+        float column = floor(qx);
+        float c1 = hash12(vec2(column, 3.1 + float(k) * 17.0)), c2 = hash12(vec2(column, 7.7 + float(k) * 13.0));
+        /* each column its own speed and phase */
+        float speed = (9.0 + 4.0 * float(k)) * (0.7 + 0.6 * c1);
+        float qy = p.y * (2.2 + float(k)) * (0.8 + 0.4 * c2) + time * speed + c2 * 10.0;
+        float row = floor(qy), y = fract(qy);
+        vec2 id = vec2(column, row) + float(k) * 31.0;
+        float h = hash12(id), length_ = 0.25 + 0.55 * hash12(id + 1.7);
+        if (h < 0.8) continue;
+        /* its place in the column, and its own slight tilt */
+        float centre = 0.2 + 0.6 * hash12(id + 4.3) + (y - 0.5) * (hash12(id + 9.1) - 0.5) * 0.9;
+        float width = k == 0 ? 0.09 : 0.12;
+        float line = smoothstep(width, 0.0, abs(fract(qx) - centre));
+        float segment = smoothstep(0.0, 0.08, y) * (1.0 - smoothstep(length_ - 0.1, length_, y));
+        s += line * segment * (0.35 + 0.65 * hash12(id + 6.6)) * (k == 0 ? 1.0 : (k == 1 ? 0.7 : 0.45));
+    }
+    return s;
+}
+
 uniform float saturation;      /* 1 = untouched */
 uniform float gradeStrength;   /* 0 = off: cool shadows / warm highlights and a vignette */
 
@@ -106,6 +186,10 @@ vec3 aces(vec3 x) {
 
 void main() {
     vec2 uv = textureCoords + heatOffset(textureCoords);
+    float dropRim = 0.0;
+    if (lensWater > 0.0) {
+        uv += lensDrops(textureCoords, dropRim);
+    }
     vec3 color = texture(hdrSampler, uv).rgb;
     if (chromaticAberration > 0.0) {
         /* the lens bends red and blue a little differently, more towards the edges */
@@ -120,6 +204,14 @@ void main() {
     if (lensDirt > 0.0) {
         /* bright light scattered by the grime on the lens */
         color += bloomFar * lensDirtAt(textureCoords) * lensDirt * 1.6 * max(bloomStrength, 0.3);
+    }
+    if (lensWater > 0.0) {
+        /* the drops' edges: dark, with the light around caught in them */
+        color = color * (1.0 - 0.35 * dropRim) + bloomFar * dropRim * 0.8;
+    }
+    if (rainAmount > 0.0) {
+        /* lit by what is around: faint in the dark, bright by the fires */
+        color += rainStreaks(textureCoords) * rainAmount * (vec3(0.09, 0.085, 0.08) + bloomFar * 1.5);
     }
     if (flareStrength > 0.0) {
         /* a camera effect: on top of whatever the black holes bent */
@@ -145,6 +237,43 @@ void main() {
         mapped *= mix(vec3(1.0), tint, gradeStrength);
         vec2 v = textureCoords - 0.5;
         mapped *= 1.0 - gradeStrength * 0.22 * smoothstep(0.25, 0.85, dot(v, v) * 2.0);
+    }
+    if (dustVeil > 0.0) {
+        /* the dust: churning, billowing, rushing at us, until it is all there
+         * is. Not a texture sliding across: it changes shape (3D noise moving
+         * through time), turbulence folds it (domain warping), it only drifts
+         * a little with the wind, and two layers expanding from the middle of
+         * the picture, cross-fading, make it come at the camera */
+        vec2 aspect = vec2(screenSize.x / screenSize.y, 1.0);
+        vec2 fromCentre = (textureCoords - 0.5) * aspect;
+        float n = 0.0, weights = 0.0;
+        for (int layer = 0; layer < 2; layer++) {
+            float phase = fract(time * 0.12 + float(layer) * 0.5);
+            float weight = sin(phase * 3.14159265);                       /* fades in and out */
+            vec2 p = fromCentre / (0.6 + phase * 1.6) + float(layer) * 7.3;   /* expanding: coming at us */
+            p += vec2(time * 0.08, time * 0.02);                         /* a little drift with the wind */
+            vec2 warp = vec2(dustNoise(vec3(p * 1.3, time * 0.25)), dustNoise(vec3(p * 1.3 + 5.2, time * 0.25))) - 0.5;
+            p += warp * 0.9;
+            float d = dustNoise(vec3(p * 2.2, time * 0.4)) * 0.6 + dustNoise(vec3(p * 5.0, time * 0.7)) * 0.4;
+            n += d * weight;
+            weights += weight;
+        }
+        n /= max(weights, 1e-3);
+        vec3 dust = dustColor * (0.7 + 0.6 * n);
+        float cover = clamp(dustVeil + (n - 0.5) * 3.2 * dustVeil * (1.0 - dustVeil), 0.0, 1.0);
+        mapped = mix(mapped, dust, cover);
+    }
+    if (lightning > 0.0) {
+        /* lightning in the dust storm (dust charges itself rubbing together),
+         * seen through the dust: no bolt, a great soft glow somewhere up in
+         * it, the dust around lit from inside, and the whole picture paling */
+        vec2 aspect = vec2(screenSize.x / screenSize.y, 1.0);
+        vec2 at = vec2(bolt.x, 0.55 + 0.4 * bolt.z);                       /* up in the dust */
+        vec2 d = (textureCoords - at) * aspect;
+        float billow = 0.75 + 0.5 * noise2(textureCoords * aspect * 4.0 + bolt.y);
+        float glow = (exp(-dot(d, d) / 0.05) * 1.2 + exp(-dot(d, d) / 0.4) * 0.5) * billow;
+        vec3 lit = mix(vec3(0.95, 0.93, 1.0), dustColor * 3.0 + 0.25, dustVeil);
+        mapped = mix(mapped, lit, clamp(lightning * (0.3 + glow), 0.0, 1.0));
     }
     if (filmGrain > 0.0) {
         /* grain, changing every frame, stronger in the shadows */

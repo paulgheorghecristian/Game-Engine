@@ -78,6 +78,12 @@ void SoundScape::update(Camera *camera)
     if (kugelblitz == nullptr) {
         return;
     }
+    if (kugelblitz->silent) {
+        /* no sound crosses space: nothing until its debris arrives (Core/Aftermath) */
+        m_lastCollapse = kugelblitz->collapse;
+        m_lastPlayTime = kugelblitz->playTime;
+        return;
+    }
     /* ignition: the flash first, the deep blast a few seconds later */
     const float BLAST_DELAY = 6.5f;   /* seconds */
     if (kugelblitz->playTime < m_lastPlayTime) {

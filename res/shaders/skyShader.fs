@@ -127,6 +127,17 @@ uniform vec2 collapseSite;      /* the facility, on the moon's disc (-1..1) */
 uniform vec2 jetAxis;           /* the jets' direction across the disc (unit) */
 uniform float collapseFlash;    /* the ignition flash, 1 at ignition fading in real time */
 uniform float collapseTime;     /* seconds since Play / Restart: every playthrough is identical */
+uniform float formedTime;       /* seconds since the last of the moon fell in (< 0: not yet, or not seen) */
+uniform float debrisArrival;    /* seconds from then until its debris reaches the Earth (BlackHole::DEBRIS_ARRIVAL) */
+uniform float collapseRate;     /* collapse per second while playing (to time the gulps' outbursts) */
+
+/* the hole's growth as the moon pours in (as BlackHole::kugelblitzGrowth) */
+float kbGrowth() {
+    return smoothstep(0.62, 1.0, collapse);
+}
+/* while it grows, the biggest pieces falling in throw matter back out:
+ * this many outbursts, spread over the growth */
+const float GULPS = 7.0;
 
 float breakupAmount() {
     return collapse >= 0.0 ? smoothstep(0.55, 0.97, collapse) : 0.0;
@@ -139,7 +150,7 @@ float kbBurst(float rate, float chance, float seed);
 float kbFlare() {
     float b = breakupAmount();
     float active = smoothstep(0.0, 0.08, b) * (1.0 - smoothstep(0.9, 1.0, collapse));
-    return (kbBurst(2.0, 0.7, 3.1) * 1.6 + kbBurst(4.3, 0.55, 9.7) * 0.6) * active;
+    return (kbBurst(2.6, 0.8, 3.1) * 2.2 + kbBurst(6.1, 0.65, 9.7) * 0.9 + kbBurst(11.0, 0.5, 5.3) * 0.4) * active;
 }
 
 /* bursts at irregular moments: `rate` chances a second, each firing with
@@ -305,17 +316,19 @@ void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRa
          * tied to the collapse (it speeds up smoothly as the hole grows; a
          * speed-up on the clock would jerk the streams forward) */
         float violence = smoothstep(0.62, 0.92, collapse);
-        float arm = theta * 2.0 + log(r) * 0.55 + collapseTime * 0.12 + 8.0 * violence * violence;
-        arm += violence * 0.06 * sin(r * 11.0 + collapseTime * 5.0 + theta * 12.566);   /* churning */
-        float band = pow(0.5 + 0.5 * cos(arm * 6.2831853), mix(5.0, 3.4, violence));
-        vec3 bits = kbCellsWrapped(vec2(theta * 40.0, log(r) * 9.0 + collapseTime * 0.8 + 30.0 * violence * violence), 40.0);
-        float chunk = smoothstep(mix(0.32, 0.4, violence), 0.0, bits.x) * step(mix(0.35, 0.15, violence), bits.z);
-        chunk *= 1.0 + violence * 0.6 * sin(collapseTime * 18.0 + bits.z * 60.0);          /* tumbling */
+        float arm = theta * 2.0 + log(r) * 0.55 + collapseTime * 0.2 + 16.0 * violence * violence;
+        /* churning and shearing: the streams kink, tear and whip, harder as it grows */
+        arm += violence * 0.14 * sin(r * 11.0 + collapseTime * 7.0 + theta * 12.566);
+        arm += violence * 0.07 * sin(r * 27.0 - collapseTime * 13.0 + theta * 31.4);
+        float band = pow(0.5 + 0.5 * cos(arm * 6.2831853), mix(5.0, 2.8, violence));
+        vec3 bits = kbCellsWrapped(vec2(theta * 40.0, log(r) * 9.0 + collapseTime * 1.4 + 55.0 * violence * violence), 40.0);
+        float chunk = smoothstep(mix(0.32, 0.45, violence), 0.0, bits.x) * step(mix(0.35, 0.08, violence), bits.z);
+        chunk *= 1.0 + violence * 1.1 * sin(collapseTime * 26.0 + bits.z * 60.0);          /* tumbling, flashing */
         float outer = mix(1.3, 3.6, b);
         /* the streams end where they fall past the hole's edge, which grows
          * with it (in moon radii; what is behind the shadow would only be
          * wrapped round it into a blinding ring) */
-        float holeGrowth = smoothstep(0.62, 1.0, collapse);
+        float holeGrowth = kbGrowth();
         float edge = 0.06 + holeGrowth * 1.5;
         float extent = smoothstep(edge, edge * 1.6 + 0.2, r) * (1.0 - smoothstep(outer * 0.7, outer, r));
         float hot = smoothstep(2.6, 0.25, r);
@@ -323,7 +336,13 @@ void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRa
         stream = mix(stream, vec3(1.0, 0.94, 0.82), hot * hot * chunk + violence * hot * 0.15);
         /* all fallen in by the end: only the black hole and its disk remain */
         float fadeOut = 1.0 - smoothstep(0.92, 1.0, collapse);
-        result += stream * band * (0.3 + 1.8 * chunk) * extent * b * fadeOut * 2.2 * (1.0 + 0.6 * violence);
+        result += stream * band * (0.3 + 2.2 * chunk) * extent * b * fadeOut * 2.2 * (1.0 + 1.1 * violence);
+        /* sparks: fragments sheared off the streams as they whip round, flung
+         * outwards on their own, white-hot, many as it grows */
+        vec3 sparks = kbCellsWrapped(vec2(theta * 90.0 + collapseTime * 0.6, log(r) * 14.0 - collapseTime * 3.0), 90.0);
+        float spark = smoothstep(0.16, 0.0, sparks.x) * step(1.0 - 0.35 * violence, sparks.z);
+        result += vec3(1.0, 0.8, 0.55) * spark * extent * b * fadeOut * (0.6 + 2.5 * violence) *
+                  (0.6 + 0.4 * sin(collapseTime * 30.0 + sparks.z * 50.0));
 
         /* flares: big chunks hitting the hole, and smaller flickers of the
          * debris raining in between them */
@@ -343,7 +362,7 @@ void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRa
          * to flare); a flash all the way round was lensed into a ring */
         float slot = floor(collapseTime * 2.0);
         float angle = fract(sin(slot * 91.7 + 4.3) * 43758.5453) * 6.2831853;
-        float hit = mix(0.9, 0.45, b) + smoothstep(0.62, 1.0, collapse) * 1.4;
+        float hit = mix(0.9, 0.45, b) + kbGrowth() * 1.4;
         vec2 impact = vec2(cos(angle), sin(angle)) * hit;
         float d = length(q - impact);
         result += vec3(1.0, 0.86, 0.66) * flare *
@@ -369,6 +388,106 @@ void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRa
         vec3 jetColor = mix(amber, vec3(1.0, 0.96, 0.88), exp(-pow(perp / (width * 0.4), 2.0)));
         result += jetColor * beam * knots * 2.5 * grow;
         result += amber * exp(-pow(perp / (width * 6.0), 2.0)) * extent * 0.1 * grow;
+    }
+
+    /* 5b. while it grows, the biggest pieces falling in throw matter back
+     * out: a flash at the hole and a spray of glowing fragments and streaks
+     * to one side (where the piece fell in), bigger as the hole grows,
+     * fading as it flies (the last, when the moon is gone, is the end: 6) */
+    if (collapse > 0.62 && collapseRate > 0.0) {
+        for (int i = 1; i < int(GULPS); i++) {
+            float start = 0.62 + 0.38 * float(i) / GULPS;
+            /* seconds; the collapse stops at 1 when the moon is gone, so from
+             * then on the clock carries them (or they would freeze mid-flight) */
+            float age = (collapse - start) / collapseRate + max(formedTime, 0.0);
+            if (collapse >= 1.0 && formedTime < 0.0) continue;        /* a map loaded finished */
+            if (age < 0.0 || age > 6.0) continue;
+            float size = 0.4 + 0.6 * float(i) / GULPS;
+            float fade = exp(-age * 0.6);
+            result += vec3(1.0, 0.85, 0.65) * exp(-age * 5.0) * size * (exp(-r * r / 0.4) * 3.0 + exp(-r * 0.5) * 0.4);
+            float side = fract(float(i) * 0.618034 + 0.13);                /* spread round the hole (golden ratio) */
+            float toward = cos((theta - side) * 6.2831853);
+            float sector = smoothstep(0.35, 0.9, toward);                 /* a spray, not a ring */
+            float front = 1.2 + age * (2.5 + 2.0 * size) * (1.0 + 0.4 * size);
+            if (sector > 0.0 && r < front * 1.2) {
+                float u = r / front;
+                vec3 rays = kbCellsWrapped(vec2(theta * 120.0 + float(i) * 13.0, u * 1.1), 120.0);
+                float streak = smoothstep(0.3, 0.0, rays.x) * step(0.15, rays.z) * smoothstep(0.1, 0.7, u) *
+                               (1.0 - smoothstep(0.9, 1.1, u));
+                vec3 bits = kbCellsWrapped(vec2(theta * 80.0 + float(i) * 7.0, u * 5.0), 80.0);
+                float lump = smoothstep(0.5, 0.05, bits.x) * step(0.2, bits.z) * exp(-pow((u - 0.95) / 0.12, 2.0));
+                vec3 c = mix(vec3(0.85, 0.3, 0.1), vec3(1.0, 0.85, 0.65), exp(-age * 0.9));
+                result += c * (streak * 1.1 + lump * 2.0) * sector * fade * size * 1.5;
+            }
+        }
+    }
+
+    /* 6. the end: the last of the moon falls in. A black hole tearing a body
+     * apart throws about half of it out into space and keeps the rest: a
+     * blinding burst, a shell of glowing wreckage racing outwards (radial
+     * streaks behind it, cooling from white to red), and two arcs of the
+     * bound half sweeping round the hole, falling back in */
+    if (formedTime >= 0.0 && formedTime < 90.0) {
+        float t = formedTime;
+        float burst = exp(-t * 1.1);
+        result += vec3(1.0, 0.92, 0.8) * burst * (exp(-r * r / 0.6) * 7.0 + exp(-r * 0.3) * 0.9);
+
+        /* the shell expands from the moon towards us, its edge reaching the
+         * horizon (90 degrees) as it arrives, debrisArrival seconds on. It
+         * spreads across the sky at a steady angle per second (true
+         * perspective, asin(radius / distance), crawls in the middle and
+         * lurches at the end: it looked like it stopped, then sped up). In
+         * these gnomonic moon-radius units the edge is at tan(angle) / tan(moon) */
+        float reached = t / max(debrisArrival, 0.1);
+        float edgeAngle = min(reached, 0.995) * 1.5707963;
+        /* once it has passed us it keeps flying outwards (what is left in
+         * view streams away from the hole) and thins out over a few seconds */
+        float after = max(t - debrisArrival, 0.0);
+        float front = max(1.6 + t * 2.0, tan(edgeAngle) / tan(moonRadius)) * (1.0 + after * 0.8);
+        float passed = smoothstep(0.85, 1.0, reached);                          /* it is all round us now */
+        float gone = 1.0 - smoothstep(0.0, 4.0, after);
+        float cool = exp(-t * 0.1);
+        vec3 hot = mix(vec3(0.75, 0.22, 0.07), vec3(1.0, 0.62, 0.3), cool);
+        hot = mix(hot, vec3(1.0, 0.92, 0.8), exp(-t * 0.8));                   /* white-hot only at first */
+        /* thrown out mostly in the plane it was spinning in: two broad fans
+         * across the jets' axis, thinner towards the poles */
+        vec2 across = vec2(-jetAxis.y, jetAxis.x);
+        float fan = 0.25 + 0.75 * pow(abs(dot(q / max(r, 1e-3), across)), 1.5);
+        if (r > 0.3 && (r < front * 1.3 || passed > 0.0)) {
+            float u = r / front;
+            /* the shell: clumps riding the front, ragged */
+            /* (cells long along the radius: fragments flying outwards, not dots) */
+            vec3 clumps = kbCellsWrapped(vec2(theta * 80.0, u * 5.0), 80.0);
+            float ragged = 0.07 + 0.05 * sin(theta * 6.2831853 * 7.0 + clumps.z * 6.0);
+            float shell = exp(-pow((u - 1.0) / ragged, 2.0));
+            float lump = smoothstep(0.5, 0.05, clumps.x) * step(0.15, clumps.z) * (0.4 + 0.6 * clumps.z);
+            /* streaks: fragments strung out behind it, pointing away from the hole */
+            vec3 rays = kbCellsWrapped(vec2(theta * 140.0, u * 0.9), 140.0);
+            float streak = smoothstep(0.32, 0.0, rays.x) * step(0.12, rays.z) * smoothstep(0.05, 0.6, u) *
+                           (1.0 - smoothstep(0.9, 1.15, u)) * (0.5 + rays.z) * (1.0 - 0.6 * passed);
+            /* and a finer, fainter layer of smaller fragments between them */
+            vec3 fine = kbCellsWrapped(vec2(theta * 300.0, u * 1.6 + 3.0), 300.0);
+            streak += smoothstep(0.28, 0.0, fine.x) * step(0.3, fine.z) * smoothstep(0.1, 0.7, u) *
+                      (1.0 - smoothstep(0.85, 1.1, u)) * 0.5 * (1.0 - 0.6 * passed);
+            float glow = (shell * (0.06 + 2.4 * lump) + streak * 1.3) * fan * mix(0.35, 1.0, cool) * smoothstep(0.0, 0.3, t) *
+                         (1.0 - smoothstep(60.0, 90.0, t));
+            result += hot * glow * 1.8 * gone;
+            /* the dust it carries dims the stars behind it */
+            color *= 1.0 - 0.3 * shell * fan * mix(0.4, 1.0, cool) * gone;
+        }
+        /* the bound half: two arcs flung round the hole, lumpy, falling back */
+        float bound = smoothstep(0.5, 3.0, t) * exp(-t * 0.03);
+        float reach = 2.5 + 9.0 * (1.0 - exp(-t * 0.2));
+        if (bound > 0.0 && r > 0.4 && r < reach * 1.2) {
+            float arm = theta * 2.0 - log(r) * 1.2 + t * 0.22;                  /* orbiting, faster further in */
+            arm += 0.25 * t / (0.5 + r);
+            float band = pow(0.5 + 0.5 * cos(arm * 6.2831853), 4.0);
+            vec3 bits = kbCellsWrapped(vec2(theta * 50.0, log(r) * 8.0 + t * 0.5), 50.0);
+            float lumps = 0.5 + 2.0 * smoothstep(0.35, 0.0, bits.x) * step(0.3, bits.z);
+            float span = smoothstep(0.4, 1.0, r) * (1.0 - smoothstep(reach * 0.7, reach * 1.2, r));
+            vec3 c = mix(vec3(0.85, 0.32, 0.1), vec3(1.0, 0.8, 0.55), smoothstep(reach, 0.6, r));
+            result += c * band * lumps * span * bound * 1.8;
+        }
     }
     color += result;
 }
@@ -596,6 +715,37 @@ void cloudLayer(vec3 dir, out vec3 cloudColor, out float alpha) {
  * behind the hole with no clouds at all, which the hole bends. */
 uniform int cloudPass;
 uniform vec3 cloudCutDirection;
+uniform float frontEjecta;       /* pass 4: matter flying at us out of the hole (0..1) */
+
+/* pass 4, drawn over the black hole (it is in front of it): fragments of
+ * the moon blasted straight at us, out of the hole's middle, growing and
+ * brightening as they come, faster and faster (log-polar cells moving
+ * outwards: constant speed in log r is the looming of something coming
+ * closer), a little stretched by their motion */
+vec3 frontEjectaAt(vec3 dir) {
+    vec3 moonDir = normalize(moonDirection);
+    vec3 right = normalize(cross(moonDir, abs(moonDir.y) < 0.99 ? vec3(0, 1, 0) : vec3(1, 0, 0)));
+    vec3 upAxis = cross(right, moonDir);
+    float facing = dot(dir, moonDir);
+    if (facing < 0.2) return vec3(0.0);
+    vec2 q = vec2(dot(dir, right), dot(dir, upAxis)) / (facing * tan(moonSize));
+    float r = length(q);
+    float theta = atan(q.y, q.x) / 6.2831853;
+    float lr = log(max(r, 0.02));
+    vec3 sum = vec3(0.0);
+    for (int k = 0; k < 2; k++) {
+        float density = k == 0 ? 26.0 : 55.0;
+        vec3 c = kbCellsWrapped(vec2(theta * density + float(k) * 7.0, lr * 1.4 - collapseTime * (0.9 + 0.5 * float(k))), density);
+        /* fragments, not blobs: the cells grow with r (log-polar), the
+         * fragment inside stays small */
+        float size = 0.3 / (1.0 + r * 0.08);
+        float blob = smoothstep(size, size * 0.2, c.x) * step(k == 0 ? 0.75 : 0.62, c.z);
+        float near = smoothstep(0.4, 3.0, r) * (1.0 - smoothstep(14.0, 40.0, r));   /* out of the hole, then past us */
+        vec3 hot = mix(vec3(0.95, 0.38, 0.12), vec3(1.0, 0.72, 0.45), c.z);
+        sum += hot * blob * near * (0.5 + 0.5 * smoothstep(1.0, 8.0, r)) * (k == 0 ? 0.8 : 0.45);
+    }
+    return sum * frontEjecta;
+}
 uniform sampler2D sceneDepth;    /* pass 2: only over the sky */
 uniform vec2 screenSize;
 
@@ -604,6 +754,14 @@ void main(){
         vec3 dir = normalize(skyDirection);
         if (cloudPass == 3) {
             outColor = vec4(nightSky(dir), 1.0);
+            outEyeSpaceNormal = vec3(0);
+            return;
+        }
+        if (cloudPass == 4) {
+            if (texture(sceneDepth, gl_FragCoord.xy / screenSize).r < 1.0) discard;   /* only over the sky */
+            vec3 front = frontEjectaAt(dir);
+            if (dot(front, front) <= 0.0) discard;
+            outColor = vec4(front, 1.0);                       /* added (blend one, one) */
             outEyeSpaceNormal = vec3(0);
             return;
         }

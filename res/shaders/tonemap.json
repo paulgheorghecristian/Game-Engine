@@ -21,6 +21,12 @@
                     "filmGrain" : "FLOAT",
                     "screenSize" : "VEC2",
                     "adaptationSampler" : "INT",
-                    "autoExposure" : "FLOAT"
+                    "autoExposure" : "FLOAT",
+                    "dustVeil" : "FLOAT",
+                    "dustColor" : "VEC3",
+                    "rainAmount" : "FLOAT",
+                    "lensWater" : "FLOAT",
+                    "lightning" : "FLOAT",
+                    "bolt" : "VEC3"
                  }
 }

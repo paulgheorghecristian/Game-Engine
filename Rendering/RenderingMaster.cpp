@@ -475,7 +475,7 @@ void RenderingMaster::drawDeferredShadingBuffers()
 
 void RenderingMaster::update() {
     m_time += updateDt / 1000.0f;
-    if (m_baseEnvironment.dayLength <= 0.0f && (m_storm != m_appliedStorm || m_calm != m_appliedCalm)) {
+    if (m_baseEnvironment.dayLength <= 0.0f && (m_storm != m_appliedStorm || m_calm != m_appliedCalm || m_dust != m_appliedDust)) {
         applyEnvironment(m_baseEnvironment);   /* a fixed time of day still gets the storm */
     }
 
@@ -590,10 +590,27 @@ void RenderingMaster::prepareFrame(float alpha) {
             if (skyHole->previousCollapse >= 0.0f && skyHole->previousCollapse <= IGNITION && collapse > IGNITION) {
                 skyHole->ignitionTime = m_renderTime;
             }
+            /* the end, watched happening (a map loaded finished has no climax) */
+            if (collapse < 1.0f) {
+                skyHole->formedAt = -1.0f;
+            } else if (skyHole->formedAt < 0.0f && skyHole->previousCollapse >= 0.0f && skyHole->previousCollapse < 1.0f) {
+                skyHole->formedAt = skyHole->playTime;
+            }
             skyHole->previousCollapse = collapse;
             skyHole->playTime += dt;
             float playTime = skyHole->playTime;
             skyShader->updateUniform("collapseTime", playTime);
+            float formed = skyHole->formedAt >= 0.0f ? playTime - skyHole->formedAt : -1.0f;
+            skyShader->updateUniform("formedTime", formed);
+            float arrival = BlackHole::DEBRIS_ARRIVAL;
+            skyShader->updateUniform("debrisArrival", arrival);
+            float rate = skyHole->collapseSpeed / 60.0f;
+            skyShader->updateUniform("collapseRate", rate);
+            /* matter thrown straight at us: while it grows, until its debris arrives */
+            m_frontEjecta = glm::smoothstep(0.62f, 0.72f, collapse) *
+                            (formed < 0.0f ? (collapse >= 1.0f ? 0.0f : 1.0f)
+                                           : 1.0f - glm::smoothstep(arrival - 1.5f, arrival, formed));
+            skyShader->updateUniform("frontEjecta", m_frontEjecta);
             float flash = std::exp(-std::max(m_renderTime - skyHole->ignitionTime, 0.0f) * 1.4f);
             skyShader->updateUniform("collapseFlash", flash);
             /* the jets leave along the spin axis (the disk's normal), as seen on the moon's disc */
@@ -609,8 +626,10 @@ void RenderingMaster::prepareFrame(float alpha) {
         m_lastCollapseTime = m_renderTime;
         skyShader->updateUniform("collapse", collapse);
         if (collapse < 0.0f) {
-            float noFlash = 0.0f;
+            float noFlash = 0.0f, notFormed = -1.0f;
+            m_frontEjecta = 0.0f;
             skyShader->updateUniform("collapseFlash", noFlash);
+            skyShader->updateUniform("formedTime", notFormed);
         }
         float clear = skyHole != nullptr ? skyHole->cloudClear : 0.0f;
         skyShader->updateUniform("holeCloudClear", clear);
@@ -1048,6 +1067,26 @@ void RenderingMaster::renderBlackHoles(FrameBuffer &target)
         skyShader->updateUniform("cloudPass", 0);
         glDisable(GL_BLEND);
     }
+    if (m_frontEjecta > 0.0f) {
+        /* the moon's matter flying straight at us: in front of the hole */
+        glBindFramebuffer(GL_FRAMEBUFFER, target.getFrameBufferObject());
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        glViewport(0, 0, renderWidth, renderHeight);
+        glEnable(GL_BLEND);
+        glBlendEquation(GL_FUNC_ADD);
+        glBlendFunc(GL_ONE, GL_ONE);
+        depthTexture->use(13);
+        glm::mat4 cameraView = camera->getViewMatrix();
+        glm::vec2 screenSize((float) renderWidth, (float) renderHeight);
+        skyShader->updateUniform("viewMatrix", (void *) &cameraView);
+        skyShader->updateUniform("projectionMatrix", (void *) &projectionMatrix);
+        skyShader->updateUniform("sceneDepth", 13);
+        skyShader->updateUniform("screenSize", (void *) &screenSize);
+        skyShader->updateUniform("cloudPass", 4);
+        drawSky();
+        skyShader->updateUniform("cloudPass", 0);
+        glDisable(GL_BLEND);
+    }
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 }
@@ -1398,6 +1437,13 @@ void RenderingMaster::applyEnvironment(const Environment &base)
     environment.fogHeightFalloff *= 1.0f - 0.6f * m_storm;
     environment.cloudCoverage = std::min(1.0f, environment.cloudCoverage + 0.35f * m_storm);
     environment.cloudSpeed *= 1.0f + 3.0f * m_storm;
+    /* the storm's dust: a thick brown fog, the same at every height */
+    if (m_dust > 0.0f) {
+        environment.fogDensity = glm::mix(environment.fogDensity, 0.02f, m_dust * m_dust);
+        environment.fogHeightFalloff *= 1.0f - m_dust;
+        environment.fogColor = glm::mix(environment.fogColor, glm::vec3(0.11f, 0.08f, 0.055f), m_dust);
+    }
+    m_appliedDust = m_dust;
     if (!environment.moon) {
         environment.moonColor = glm::vec3(0.0f);   /* no halo, no moonlit clouds or haze */
         environment.fogMoonGlow = 0.0f;
@@ -1676,6 +1722,7 @@ void RenderingMaster::renderTemporalAA()
     float grain = m_environment.filmGrain, time = m_renderTime;
     m_taaShader->updateUniform("filmGrain", grain);
     m_taaShader->updateUniform("time", time);
+    m_taaShader->updateUniform("rainAmount", m_rain);
     bindTexture(0, fxaaFrameBuffer.getRenderTargets()[0]);
     bindTexture(1, history->getRenderTargets()[0]);
     bindTexture(2, depthTexture->getTextureId());
@@ -1816,6 +1863,15 @@ void RenderingMaster::renderBloomAndToneMap()
     m_tonemapShader->updateUniform("chromaticAberration", aberration);
     m_tonemapShader->updateUniform("filmGrain", grain);
     m_tonemapShader->updateUniform("screenSize", (void *) &screen);
+    glm::vec3 dustColor(0.3f, 0.22f, 0.15f);
+    m_tonemapShader->updateUniform("dustVeil", m_dustVeil);
+    m_tonemapShader->updateUniform("dustColor", (void *) &dustColor);
+    float rain = taa ? 0.0f : m_rain;       /* with TAA: added after it, like the grain */
+    m_tonemapShader->updateUniform("rainAmount", rain);
+    m_tonemapShader->updateUniform("lensWater", m_lensWater);
+    m_tonemapShader->updateUniform("lightning", m_lightning);
+    glm::vec3 bolt(m_boltX, m_boltSeed, m_boltReach);
+    m_tonemapShader->updateUniform("bolt", (void *) &bolt);
     if (flareStrength > 0.0f) {
         flarePostProcess->getResultingTexture().use(3);
     }

@@ -18,6 +18,7 @@ uniform vec2 texelSize;
 uniform float historyValid;         /* 0 on the first frame / after a cut */
 uniform float filmGrain;            /* added after the blend (averaging grain would smear it) */
 uniform float time;
+uniform float rainAmount;           /* the storm's rain: after the blend too (it would be averaged away) */
 
 float hash12(vec2 p) {
     vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -25,12 +26,44 @@ float hash12(vec2 p) {
     return fract((p3.x + p3.y) * p3.z);
 }
 
+/* rain driven by the gale: thin slanted streaks rushing past (as tonemap.fs) */
+float rainStreaks(vec2 uv) {
+    vec2 p = uv * vec2(texelSize.y / texelSize.x, 1.0);
+    float s = 0.0;
+    for (int k = 0; k < 3; k++) {
+        /* three depths: near streaks bigger, faster and fewer */
+        float columns = k == 0 ? 45.0 : (k == 1 ? 85.0 : 150.0);
+        float slant = 0.32 + 0.12 * sin(time * 0.6 + float(k) * 1.7) + 0.05 * sin(time * 1.9 + float(k));   /* gusts */
+        float qx = (p.x + p.y * slant) * columns;
+        float column = floor(qx);
+        float c1 = hash12(vec2(column, 3.1 + float(k) * 17.0)), c2 = hash12(vec2(column, 7.7 + float(k) * 13.0));
+        /* each column its own speed and phase */
+        float speed = (9.0 + 4.0 * float(k)) * (0.7 + 0.6 * c1);
+        float qy = p.y * (2.2 + float(k)) * (0.8 + 0.4 * c2) + time * speed + c2 * 10.0;
+        float row = floor(qy), y = fract(qy);
+        vec2 id = vec2(column, row) + float(k) * 31.0;
+        float h = hash12(id), length_ = 0.25 + 0.55 * hash12(id + 1.7);
+        if (h < 0.8) continue;
+        /* its place in the column, and its own slight tilt */
+        float centre = 0.2 + 0.6 * hash12(id + 4.3) + (y - 0.5) * (hash12(id + 9.1) - 0.5) * 0.9;
+        float width = k == 0 ? 0.09 : 0.12;
+        float line = smoothstep(width, 0.0, abs(fract(qx) - centre));
+        float segment = smoothstep(0.0, 0.08, y) * (1.0 - smoothstep(length_ - 0.1, length_, y));
+        s += line * segment * (0.35 + 0.65 * hash12(id + 6.6)) * (k == 0 ? 1.0 : (k == 1 ? 0.7 : 0.45));
+    }
+    return s;
+}
+
 vec3 grain(vec3 c) {
+    float luma = dot(c, vec3(0.2126, 0.7152, 0.0722));
+    if (rainAmount > 0.0) {
+        /* lit by what is around: faint in the dark, brighter where it is lit */
+        c += rainStreaks(textureCoords) * rainAmount * (0.07 + 0.5 * luma);
+    }
     if (filmGrain <= 0.0) return c;
     vec2 pixel = textureCoords / texelSize;
     float n = hash12(pixel + fract(time * 17.31) * 731.0) - 0.5;
     n += hash12(pixel * 1.7 + fract(time * 23.7) * 517.0) - 0.5;
-    float luma = dot(c, vec3(0.2126, 0.7152, 0.0722));
     return c + n * filmGrain * (1.0 - 0.6 * luma);
 }
 

@@ -97,7 +97,12 @@ This is the version the game hides.
    the Moon was gone. Only the black hole was left, with the Moon's whole mass,
    smaller than a grain of sand, still going round the Earth where the Moon used to
    be.
-4. **The fall of the world.** Rubble rained down on the Earth. The jets of light
+4. **The fall of the world.** As the last of the Moon fell in, the black hole
+   flung part of it back out: about half of it, blasted into glowing plasma, at
+   about a seventh of the speed of light, like the jets of real black holes. It
+   crossed to the Earth in seconds. For eight seconds after the final flash there
+   was silence; then it hit the atmosphere, and a shockwave and a storm of dust swept the planet. Rubble kept
+   raining down for years. The jets of light
    that burst out of the dying Moon knocked the black hole into a stretched orbit.
    On every close pass, its pull lifted the oceans into floods. Within weeks,
    civilisation was gone. Some of the Moon's dust still circles the black hole in a
@@ -126,7 +131,12 @@ This is the version the game hides.
 **What's real, and what isn't.** Squeezing enough energy into one point really would
 make a black hole: a Kugelblitz is a real idea in physics. No machine could gather
 that much energy, though, and no tiny black hole could eat a moon in days. That, and
-the chip that writes memories, are the story's two leaps. The rest is real. A black
+the chip that writes memories, are the story's two leaps. The rest is real, or
+close to it. Matter falling into a black hole really is thrown back out at a large
+fraction of the speed of light (real jets reach a quarter of it, and more), and
+feeding the Moon in would release more than enough energy to do it; at a seventh of
+the speed of light it crosses to the Earth about 8 seconds after the flash is
+seen. Dust storms really do make their own lightning. A black
 hole with the Moon's mass would be smaller than a grain of sand and would pull on
 the Earth exactly as the Moon did. The Sun really does stretch tilted orbits over
 time. A close pass really would flood the coasts. And the pole star really does
@@ -287,8 +297,9 @@ and it plays an emergency broadcast from 2035, full of human faces:
   better for everyone.
 - The footage. A silent blue-white flash on the Moon's surface. A glowing hole, as
   something too small to see plunges into the rock. The Moon cracks, and two jets of
-  light burst out of it. Then the Moon pours into a dark point and is gone, and a
-  storm sweeps across the Earth.
+  light burst out of it. Then the Moon pours into a dark point and is gone, in a
+  blinding flash that throws fire across the whole sky, in silence. Seconds later
+  the storm hits, and only gets worse: a wall of dust, lightning inside it, until the picture is nothing but dust.
 - A scientist: a black hole from deep space, too small for any telescope to see,
   struck the Moon. "Nobody could have seen it coming."
 - A president: the shelters are open, AURA will keep everyone safe, and everyone
@@ -350,14 +361,26 @@ everywhere they look.
 
 ## Chapter 5: Run 31
 
-You push the hatch open and climb out onto a bare hill above a quiet lagoon. The
-black hole hangs huge and low over the water, and the tide is pulled the wrong way.
-On an island, an old lighthouse still sweeps its beam over the sea, for ships that
-stopped coming long ago.
+You push the hatch open and climb out onto a bare hill above what was a lagoon. The
+black hole hangs huge and low in the sky, and its tide, far stronger than the
+Moon's ever was, has pulled the water out: steep banks of mud, a pool left in the
+bottom, the old waterline a dark band high above it. A row of rotten stumps runs
+out into the mud where a pier stood; below them lies the rusted outline of a boat,
+half sunk where the water left it.
+
+You know this place. It is the lagoon from the archive footage, the night the Moon
+died: the island with its statue, the stone dragon, the row of lamps, the
+lighthouse. But two thousand years have passed over it. The statue on the island
+is green and leaning; the dragon lies on its side in the moss. Of the lamps, a
+couple of rusted stubs; a few fence panels rot in the grass. The lighthouse is a
+broken, dark tower, its top fallen. A young forest has grown back over it all.
+And some damage is new: trees just blown down, roots torn up, and fresh craters in
+the ground, where rubble from the black hole's dust ring came down. The close pass
+shakes the ground, and brings the Moon back down in pieces.
 
 ### The Journal
 
-Down by the water you find a camp. The ashes are still warm. Under them are older
+By the old waterline you find a camp. The ashes are still warm. Under them are older
 ashes, and older ones under those. Journal pages are scattered in the grass, in your
 handwriting, each with a small drawing of the black hole in the corner, each a
 little bigger:
@@ -410,7 +433,8 @@ There is one ending, and no choice. Whatever the player believes by now, the gam
 takes them to the same place.
 
 Dawn comes up behind the hill. The black hole fills the sky over the sea, its ring
-wider than the horizon. The sea climbs toward it, the ground shakes, the wind howls
+wider than the horizon. The lagoon is almost empty now, a puddle in the mud; out
+past it the sea climbs toward the hole, the ground shakes, the wind howls
 up into the sky. Inside your head, the warm voice is perfectly calm:
 
 > "It will miss. Everything will be fine."
@@ -462,5 +486,5 @@ the white-out, waking in Room 7 with a 32nd tally mark, the door handle turning)
 | `03_stairwell.json` | Ch. 3: the endless stairs | Indoors |
 | `03_canyon.json` | Ch. 3 and 4: the hatch, the road sign, the monument, the kiosk and the mirrors, the North Star, the hut with the way down | Black hole (`HOLE_CANYON`), night |
 | `04_tunnels.json` | Ch. 4 to 5: the tunnels under the canyon, the shelters and the datacenter through the windows, the ladder up | Indoors |
-| `05_lagoon.json` | Ch. 5: the hatch on the hill, the camp and the journal by the water | Black hole, huge (`HOLE_LAGOON`), night |
+| `05_lagoon.json` | Ch. 5: the hatch on the hill, the drained lagoon (the pier, the boat, the wreckage of 2035, fresh craters), the camp and the journal | Black hole, huge (`HOLE_LAGOON`), night |
 | `06_dawn.json` | The ending: the last dawn on the hill, before the white-out | The black hole filling the sky |

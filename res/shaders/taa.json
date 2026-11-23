@@ -9,6 +9,7 @@
                     "texelSize" : "VEC2",
                     "historyValid" : "FLOAT",
                     "filmGrain" : "FLOAT",
-                    "time" : "FLOAT"
+                    "time" : "FLOAT",
+                    "rainAmount" : "FLOAT"
                  }
 }

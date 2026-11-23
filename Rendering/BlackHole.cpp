@@ -51,6 +51,9 @@ BlackHole::BlackHole(const rapidjson::Value &json) :
     collapseDelay = jsonFloat(json, "collapseDelay", collapseDelay);
     autoPlay = json.HasMember("autoPlay") && json["autoPlay"].IsBool() && json["autoPlay"].GetBool();
     quitAfter = jsonFloat(json, "quitAfter", quitAfter);
+    dustOut = jsonFloat(json, "dustOut", dustOut);
+    stormWater = jsonFloat(json, "stormWater", stormWater);
+    silent = json.HasMember("silent") && json["silent"].IsBool() && json["silent"].GetBool();
     if (autoPlay && kugelblitz) {
         collapse = 0.0f;
         playing = true;
@@ -133,7 +136,9 @@ bool BlackHole::skyMayBeVisible(const glm::vec3 &forward, const glm::mat4 &proje
 float BlackHole::kugelblitzGrowth() const
 {
     if (!kugelblitz) return 1.0f;
-    /* it shows once the middle of the crust has fallen in */
+    /* it shows once the middle of the crust has fallen in, and grows
+     * smoothly as the moon pours in (its size follows its mass); the sky
+     * shader's kbGrowth is the same curve */
     float t = glm::clamp((collapse - 0.62f) / 0.38f, 0.0f, 1.0f);
     return t * t * (3.0f - 2.0f * t);
 }
@@ -324,6 +329,9 @@ bool BlackHole::renderGUI(int index)
                 ImGui::SliderFloat("Collapse speed (/min)", &collapseSpeed, 0.0f, 5.0f, "%.3f", 3.0f);   /* curved: fine control of slow speeds */
                 ImGui::SliderFloat("Start delay (s)", &collapseDelay, 0.0f, 120.0f, "%.0f");
                 ImGui::SliderFloat("Close game after (s)", &quitAfter, 0.0f, 60.0f, quitAfter > 0.0f ? "%.0f s into the storm" : "never");
+                ImGui::SliderFloat("Dust hides all after (s)", &dustOut, 0.0f, 60.0f, dustOut > 0.0f ? "%.0f s into the storm" : "never");
+                ImGui::SliderFloat("Storm water (rain, lens)", &stormWater, 0.0f, 1.0f, "%.2f");
+                ImGui::Checkbox("Silent in space", &silent);
                 ImGui::DragFloat2("Facility (on the moon)", &collapseSite.x, 0.01f, -0.9f, 0.9f);
             } else {
                 ImGui::SliderFloat("Moon stream", &moonStream, 0.0f, 3.0f, "%.2f");
@@ -379,6 +387,9 @@ void BlackHole::save(rapidjson::Value &json, rapidjson::Document::AllocatorType 
             json.AddMember("collapseDelay", collapseDelay, allocator);
             if (autoPlay) json.AddMember("autoPlay", true, allocator);
             if (quitAfter > 0.0f) json.AddMember("quitAfter", quitAfter, allocator);
+            if (dustOut > 0.0f) json.AddMember("dustOut", dustOut, allocator);
+            if (stormWater > 0.0f) json.AddMember("stormWater", stormWater, allocator);
+            if (silent) json.AddMember("silent", true, allocator);
             rapidjson::Value site(rapidjson::kArrayType);
             site.PushBack(collapseSite.x, allocator).PushBack(collapseSite.y, allocator);
             json.AddMember("collapseSite", site, allocator);

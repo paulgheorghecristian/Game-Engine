@@ -360,10 +360,52 @@ scenes = {}
 # --------------------------------------------------------------------------
 moon_yaw = yaw_towards((490, -60), (490 + LAGOON_MOON[0], -60 + LAGOON_MOON[2]))
 moon_pitch = round(math.degrees(math.asin(LAGOON_MOON[1])) * 0.8, 1)
-scenes['00_archive_ignition'] = outdoor(LAGOON, 0.0, LAGOON_MOON,
-    [moon_destruction(LAGOON_MOON, 0.0, play=True, speed=5.0, delay=4.0)],
+def serious_lights(g):
+    """the lagoon's lights for the 2035 footage: no show colours (the island's
+    pink, cyan, green and purple, its sparkles), ordinary warm-white
+    floodlights and dim sodium lamps, smaller halos"""
+    def near(pos, x, z, r):
+        return math.hypot(pos[0] - x, pos[2] - z) < r
+    island_points = 0
+    keep = []
+    for l in g["Lights"]:
+        a, pos = l["Attributes"], l["Transform"]["position"]
+        c = a.get("color")
+        if a["type"] == "POINT" and c == [1.0, 0.62, 0.28]:
+            a["color"] = [0.5, 0.33, 0.16]                                          # the lamps: dim sodium
+        elif near(pos, 500, -775, 60) or near(pos, 246, -801, 30):
+            if a["type"] == "POINT":
+                island_points += 1
+                if island_points > 1: continue                                      # one light, not three
+            a["color"] = [0.42, 0.38, 0.32]                                         # floodlights, warm white
+        elif a["type"] == "SPOT" and near(pos, 515.4, -1214.7, 20):
+            a["color"] = [round(v * 0.7, 3) for v in c]                             # the lighthouse, dimmer
+        keep.append(l)
+    g["Lights"] = keep
+    emitters = []
+    for p in g.get("ParticleEmitters", []):
+        spots = p.get("positions") or [p.get("position") or [0, 0, 0]]
+        if p.get("type") in ("drift", "spray") and any(near(q, 500, -720, 120) for q in spots) and \
+           "smoke" not in p.get("texture", ""):
+            continue                                                                # the island's sparkles
+        if p.get("type") == "glow":
+            if spots[0][0] in (452.0, 528.0):
+                p["startScale"], p["tint"] = 32, [0.7, 0.45, 0.22]
+            elif near(spots[0], 500, -793, 10):
+                p["startScale"], p["tint"] = 40, [0.6, 0.55, 0.45]
+            elif near(spots[0], 515.4, -1214.7, 10):
+                p["tint"] = [round(v * 0.7, 3) for v in p["tint"]]
+        if p.get("type") == "drift" and "smoke" in p.get("texture", "") and near(spots[0], 500, -775, 10):
+            p["tint"] = [0.4, 0.4, 0.42]                                            # the mist, grey
+        emitters.append(p)
+    g["ParticleEmitters"] = emitters
+    return g
+
+scenes['00_archive_ignition'] = serious_lights(outdoor(LAGOON, 0.0, LAGOON_MOON,
+    [dict(moon_destruction(LAGOON_MOON, 0.0, play=True, speed=5.0, delay=4.0),
+          dustOut=24.0, stormWater=0.8, silent=True)],              # the footage ends in the storm's dust
     start(490, 40, -60, moon_yaw, moon_pitch),
-    {"filmGrain": 0.09, "chromaticAberration": 1.4, "lensDirt": 0.9, "saturation": 0.6, "cloudCoverage": 0.2})
+    {"filmGrain": 0.09, "chromaticAberration": 1.4, "lensDirt": 0.9, "saturation": 0.6, "cloudCoverage": 0.2}))
 
 # --------------------------------------------------------------------------
 # 01 Room 7: the room where you wake, AURA's lab built like a hospital ward (Ch.1), 4 x 5 m
@@ -844,11 +886,194 @@ scenes['04_tunnels'] = scene(ents, lights, interior_env(ambient=0.03), start(0, 
 # behind it; you start beside it, the black hole ahead over the water
 HILL = (820.0, -900.0)
 HILL_Y = lagoon_ground(*HILL)
+
+# the black hole's close pass: its tide, far stronger than the Moon's ever
+# was, has pulled the lagoon's water out. Steep mud banks under the old
+# waterline (the terrain's shore band marks it: the high-tide line), a pool
+# left in the bottom; by the last dawn hardly a puddle
+WATER_LAGOON, WATER_DAWN = -75.0, -98.0
+HULL = mat((0.2, 0.28, 0.33), extra={"roughness": 0.85})             # a fishing boat's faded paint
+OLD_WOOD = mat((0.3, 0.24, 0.18), extra={"roughness": 0.95})
+
+def euler_matrix(rx, ry, rz):
+    """the rotation matrix of an entity's rot (degrees), as the engine builds
+    it (glm::quat from Euler angles): to place the parts of a rigid object"""
+    cx, cy, cz = (math.cos(math.radians(a) / 2) for a in (rx, ry, rz))
+    sx, sy, sz = (math.sin(math.radians(a) / 2) for a in (rx, ry, rz))
+    w = cx * cy * cz + sx * sy * sz
+    x = sx * cy * cz - cx * sy * sz
+    y = cx * sy * cz + sx * cy * sz
+    z = cx * cy * sz - sx * sy * cz
+    return [[1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)],
+            [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)],
+            [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)]]
+
+def rigid(origin, rot, parts):
+    """boxes (local centre, size, material) of one object turned by rot, at origin"""
+    R = euler_matrix(*rot)
+    out = []
+    for (lx, ly, lz), size, material in parts:
+        wx = origin[0] + R[0][0] * lx + R[0][1] * ly + R[0][2] * lz
+        wy = origin[1] + R[1][0] * lx + R[1][1] * ly + R[1][2] * lz
+        wz = origin[2] + R[2][0] * lx + R[2][1] * ly + R[2][2] * lz
+        out.append(box((wx, wy, wz), size, material, solid=True, rot=rot))
+    return out
+
+def drained_lagoon():
+    """what two thousand years and the water's going left of the camp's pier and
+    boat: a row of rotten stumps in the mud, and the boat's rusted hull, half
+    buried where it sank (it was steel: only its outline is left)"""
+    ents = []
+    rng = random.Random(2035)
+    ROTTEN = mat((0.17, 0.14, 0.11), extra={"roughness": 1.0})
+    RUST = mat((0.3, 0.16, 0.09), extra={"roughness": 0.95, "metallic": 0.2})
+    # the pier: out from the camp's old shore towards the middle of the lagoon
+    P0, d = (675.0, -410.0), (-0.43, -0.9)
+    n = math.hypot(*d); d = (d[0] / n, d[1] / n); side = (-d[1], d[0])
+    SPAN = 1.6 * M
+    for k in range(8):
+        for s_ in (-1, 1):
+            if rng.random() < 0.3: continue                                         # rotted away
+            t = k * SPAN
+            x, z = P0[0] + d[0] * t + side[0] * s_ * 0.9 * M, P0[1] + d[1] * t + side[1] * s_ * 0.9 * M
+            h = rng.uniform(0.3, 1.4) * M
+            gy = lagoon_ground(x, z)
+            ents.append(box((x, gy + h / 2 - 4, z), (0.2 * M, h + 8, 0.2 * M), ROTTEN, True,
+                            rot=(rng.uniform(-12, 12), rng.uniform(0, 90), rng.uniform(-12, 12))))
+    # the boat's hull, rusted to an outline, sunk in the bank below the pier's end
+    BX, BZ = 600.0, -530.0
+    by = lagoon_ground(BX, BZ) - 0.45 * M
+    boat_yaw = math.degrees(math.atan2(0.92, -0.38))
+    ents += rigid((BX, by, BZ), (18, boat_yaw, -12), [
+        ((0, 0.75 * M, 0.9 * M), (6.0 * M, 0.9 * M, 0.08 * M), RUST),               # what is left of its sides
+        ((-0.5 * M, 0.7 * M, -0.9 * M), (4.4 * M, 0.8 * M, 0.08 * M), RUST),
+        ((3.0 * M, 0.75 * M, 0), (0.08 * M, 0.9 * M, 1.7 * M), RUST),               # the bow
+        ((-1.6 * M, 0.95 * M, 0.2 * M), (0.08 * M, 0.5 * M, 1.2 * M), RUST),        # a rib
+        ((0.6 * M, 0.95 * M, -0.1 * M), (0.08 * M, 0.45 * M, 1.4 * M), RUST),       # another
+    ])
+    # the camp's old slipway: broken concrete, mossy, nearly buried
+    MOSSY = mat((0.27, 0.31, 0.24), extra={"roughness": 0.95})
+    for (x, z, sx, sz, rx, ry, rz) in ((700, -385, 2.4, 1.6, 12, 25, -8), (688, -398, 1.8, 1.4, -18, 40, 15),
+                                       (712, -372, 1.4, 1.2, 6, 10, 22)):
+        ents.append(box((x, lagoon_ground(x, z) - 0.05 * M, z), (sx * M, 0.3 * M, sz * M), MOSSY, True, rot=(rx, ry, rz)))
+    return ents
+
+CRATER_RIM = mat((0.24, 0.18, 0.13), extra={"roughness": 0.95})
+CRATER_PIT = mat((0.015, 0.013, 0.012), extra={"roughness": 1.0})
+
+def crater(x, z, r):
+    """where a piece of the Moon came down: a pit (dark) in a rim of thrown-up
+    earth, rocks flung round it (the terrain is one mesh: it can't be dug)"""
+    gy = lagoon_ground(x, z)
+    out = [entity("res/models/sphere.obj", (x, gy - 0.05 * r, z), (r * 1.25, r * 0.32, r * 1.25), material=CRATER_RIM),
+           entity("res/models/sphere.obj", (x, gy + 0.24 * r, z), (r * 0.8, r * 0.04, r * 0.8), material=CRATER_PIT,
+                  cast_shadow=False)]
+    rng = random.Random(int(x * 7 + z * 13))
+    for k in range(7):
+        a = rng.uniform(0, 2 * math.pi); d = r * rng.uniform(1.4, 2.6)
+        rx_, rz_ = x + math.cos(a) * d, z + math.sin(a) * d
+        out.append(entity("res/models/rock.obj", (rx_, lagoon_ground(rx_, rz_), rz_), rng.uniform(1.5, 4.0),
+                          (rng.uniform(0, 360), rng.uniform(0, 360), 0), RUSTY))
+    return out
+
+def storm_damage(g):
+    """2035 to 4000. What the 2035 storm wrecked has had two thousand years:
+    wood rotted, steel rusted away, stone and concrete weathered and mossy, a
+    young forest grown back. Enough is left to know the place from the archive
+    footage: the island and its statue, the dragon, the lighthouse (a broken,
+    dark tower), stubs of the lamps, a few fence panels. And the close pass's
+    own damage, fresh: trees just blown down, craters where rubble from the
+    black hole's dust ring came down"""
+    rng = random.Random(4000)
+    def near(pos, x, z, r):
+        return math.hypot(pos[0] - x, pos[2] - z) < r
+    # no power for two thousand years: only the campfire (yours, from earlier runs)
+    g["Lights"] = [l for l in g["Lights"]
+                   if l["Attributes"]["type"] == "DIR" or near(l["Transform"]["position"], *CAMPFIRE[0::2], 30)]
+    def powered(p):
+        spots = p.get("positions") or [p.get("position") or [0, 0, 0]]
+        return any(near(q, 500, -775, 150) or near(q, 515.4, -1214.7, 30) or (q[0] in (452.0, 528.0)) for q in spots)
+    g["ParticleEmitters"] = [p for p in g.get("ParticleEmitters", []) if not powered(p)]
+    MOSS_BRONZE = mat((0.3, 0.4, 0.3), extra={"roughness": 0.85, "metallic": 0.2})
+    WEATHERED = mat((0.42, 0.4, 0.37), extra={"roughness": 0.95})
+    RUSTED = mat((0.28, 0.15, 0.08), extra={"roughness": 0.95, "metallic": 0.2})
+    lamps = 0
+    kept = []
+    for e in g["Entities"]:
+        rc = e["Components"].get("RenderComponent", {})
+        mesh, t = rc.get("Mesh", ""), e["Transform"]
+        pos = t["position"]
+        if mesh == "res/models/cube4.obj" and abs(t["scale"][1] - 30) < 1:              # the lamp posts
+            lamps += 1
+            if lamps % 2: continue                                                      # rusted away
+            gy = lagoon_ground(pos[0], pos[2])
+            t["scale"] = [1.6, 12, 1.6]                                                 # a stub, rusted, leaning
+            t["position"] = [pos[0], gy + 4, pos[2]]
+            t["rotation"] = [rng.uniform(-18, 18), 0, rng.uniform(-18, 18)]
+            rc["Material"] = RUSTED
+        elif mesh == "res/models/sphere.obj" and (abs(t["scale"][0] - 3.2) < 0.1 or near(pos, 515.4, -1214.7, 5)):
+            continue                                                                    # the lamps' globes, the lighthouse's lamp
+        elif mesh == "res/models/cube4.obj" and near(pos, 515.4, -1214.7, 5):           # the lighthouse: broken off, dark
+            top = pos[1] + t["scale"][1] / 2
+            t["scale"] = [t["scale"][0], t["scale"][1] * 0.7, t["scale"][2]]
+            t["position"] = [pos[0], pos[1] - t["scale"][1] * 0.3 / 0.7 / 2, pos[2]]
+            rc["Material"] = WEATHERED
+            for k in range(5):                                                          # its top, fallen
+                a = rng.uniform(0, 2 * math.pi); r = rng.uniform(14, 40)
+                x, z = pos[0] + math.cos(a) * r, pos[2] + math.sin(a) * r
+                kept.append(box((x, lagoon_ground(x, z) + 2, z), (rng.uniform(6, 12), rng.uniform(4, 8), rng.uniform(6, 12)),
+                                WEATHERED, True, rot=(rng.uniform(-30, 30), rng.uniform(0, 90), rng.uniform(-30, 30))))
+        elif mesh == "res/models/dragon.obj":                                           # the dragon: toppled, mossy, sinking
+            t["rotation"] = [0, 90, 75]
+            t["position"] = [pos[0], pos[1] - 12, pos[2]]
+            rc["Material"] = mat((0.2, 0.33, 0.24), extra={"roughness": 0.8})
+        elif mesh == "res/models/buddha.obj":                                           # the island's statue: tilted, green
+            t["rotation"] = [10, 0, -7]
+            rc["Material"] = MOSS_BRONZE
+        kept.append(e)
+    g["Entities"] = kept
+    for e in g["Entities"]:
+        ic = e["Components"].get("InstanceRenderComponent")
+        if ic and "fence3.obj" in ic["Mesh"]:                                           # a few fence panels, fallen
+            ic["Transforms"] = [dict(f, rotation=[rng.uniform(80, 88), f["rotation"][1] + rng.uniform(-30, 30), 0],
+                                     position=[f["position"][0], f["position"][1] - 2, f["position"][2]])
+                                for f in ic["Transforms"] if rng.random() < 0.25]
+        elif ic and "tree.obj" in ic["Mesh"]:
+            for t in ic["Transforms"]:                                                  # the close pass: trees just blown down
+                fate = rng.random()
+                if fate < 0.3:
+                    t["rotation"] = [rng.uniform(82, 88), rng.uniform(0, 360), 0]
+                    t["position"][1] -= 0.5 * M
+                elif fate < 0.45:
+                    t["rotation"] = [rng.uniform(25, 40), rng.uniform(0, 360), 0]
+            young = []                                                                  # the forest grown back
+            while len(young) < 22:
+                x, z = rng.uniform(-50, 1050), rng.uniform(-1300, -260)
+                y = lagoon_ground(x, z)
+                if y is None or not (-2 < y < 130): continue
+                if near((x, 0, z), *CAMPFIRE[0::2], 70) or near((x, 0, z), *HILL, 90) or near((x, 0, z), 675, -410, 60):
+                    continue
+                young.append({"position": [round(x, 1), round(y - 1, 1), round(z, 1)],
+                              "rotation": [0, round(rng.uniform(0, 360), 1), 0], "scale": [round(rng.uniform(7, 11), 2)] * 3})
+            ic["Transforms"] += young
+    for (x, z, r) in ((735, -820, 34), (760, -980, 26), (690, -300, 30), (880, -760, 22), (620, -880, 18),
+                      (560, -470, 24)):
+        g["Entities"] += crater(x, z, r)
+    # the island: its rock, all the way down to the lake bed now the water is gone
+    island = next(e for e in g["Entities"] if e["Components"].get("RenderComponent", {}).get("Mesh") == "res/models/rock.obj")
+    g["Entities"].append(entity("res/models/rock.obj", (500.0, -78.0, -775.0), (36.0, 62.0, 36.0), (0, 80, 0),
+                                copy.deepcopy(island["Components"]["RenderComponent"].get("Material"))))
+    g["Water"]["softEdge"] = 14                         # the pool's edge on the coarse terrain: soft, not polygonal
+
 _b = (-LAGOON_MOON[0], -LAGOON_MOON[2])
 HILL_HATCH = (HILL[0] + 45 * _b[0] / math.hypot(*_b), HILL[1] + 45 * _b[1] / math.hypot(*_b))
 g = year4000(LAGOON, 0.0, LAGOON_MOON, HOLE_LAGOON,
             start(HILL[0], HILL_Y + 28, HILL[1], yaw_towards(HILL, (HILL[0] + LAGOON_MOON[0], HILL[1] + LAGOON_MOON[2])), 12))
 g["Entities"] += hatch(HILL_HATCH[0], lagoon_ground(*HILL_HATCH), HILL_HATCH[1])
+g["Water"]["height"] = WATER_LAGOON
+WRECKAGE = drained_lagoon()
+g["Entities"] += WRECKAGE
+storm_damage(g)
 for k in range(6):
     a = random.uniform(0, 2 * math.pi); r = random.uniform(14, 32)          # (within the firelight)
     x, z = CAMPFIRE[0] + math.cos(a) * r, CAMPFIRE[2] + math.sin(a) * r
@@ -869,6 +1094,9 @@ DAWN_DIR = [round(c / math.sqrt(sum(v * v for v in _d)), 4) for c in _d]
 g = year4000(LAGOON, 0.235, DAWN_DIR, 0.1,
             start(HILL[0], HILL_Y + 28, HILL[1], yaw_towards(HILL, (HILL[0] + DAWN_DIR[0], HILL[1] + DAWN_DIR[2])), 12))
 g["Entities"] += hatch(HILL_HATCH[0], lagoon_ground(*HILL_HATCH), HILL_HATCH[1])
+g["Water"]["height"] = WATER_DAWN
+g["Entities"] += copy.deepcopy(WRECKAGE)
+storm_damage(g)
 scenes['06_dawn'] = g
 
 # --------------------------------------------------------------------------
