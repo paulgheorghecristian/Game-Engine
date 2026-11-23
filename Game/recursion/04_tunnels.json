@@ -2861,23 +2861,23 @@
    "Transform": {
     "position": [
      90.52,
-     17.36,
-     21.08
+     16.12,
+     18.6
     ],
     "rotation": [
-     -90,
      0,
+     6,
      0
     ],
     "scale": [
-     1.913,
-     1.913,
-     1.913
+     19.84,
+     2.976,
+     9.92
     ]
    },
    "Components": {
     "RenderComponent": {
-     "Mesh": "res/models/FinalBaseMesh.obj",
+     "Mesh": "res/models/cube4.obj",
      "Material": {
       "ambient": [
        0,
@@ -2885,9 +2885,52 @@
        0
       ],
       "diffuse": [
-       0.62,
-       0.52,
-       0.46
+       0.3,
+       0.33,
+       0.4
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     33.6,
+     38.44,
+     -9.92
+    ],
+    "rotation": [
+     90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     5.704,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
       ],
       "specular": [
        0.2,
@@ -2895,7 +2938,51 @@
        0.2
       ],
       "shininess": 20.0,
-      "roughness": 0.7
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     33.6,
+     34.72,
+     -9.18
+    ],
+    "rotation": [
+     -154.98,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     8.954,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
      }
     }
    }
@@ -7436,6 +7523,3393 @@
      }
     }
    }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     33.73,
+     341.0
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     15.624,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     35.22,
+     335.05
+    ],
+    "rotation": [
+     45.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     32.24,
+     335.05
+    ],
+    "rotation": [
+     135.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     37.45,
+     367.04
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     5.704,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     33.73,
+     366.3
+    ],
+    "rotation": [
+     154.98,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     8.954,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     31.5,
+     338.77
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     15.624,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     32.98,
+     332.82
+    ],
+    "rotation": [
+     45.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     30.01,
+     332.82
+    ],
+    "rotation": [
+     135.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     35.22,
+     364.81
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     5.704,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     31.5,
+     364.06
+    ],
+    "rotation": [
+     154.98,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     8.954,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     32.24,
+     339.76
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     15.624,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     33.73,
+     333.81
+    ],
+    "rotation": [
+     45.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     30.75,
+     333.81
+    ],
+    "rotation": [
+     135.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     35.96,
+     365.8
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     5.704,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     32.24,
+     365.06
+    ],
+    "rotation": [
+     154.98,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     8.954,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     33.73,
+     43.4
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     15.624,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     35.22,
+     37.45
+    ],
+    "rotation": [
+     45.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     32.24,
+     37.45
+    ],
+    "rotation": [
+     135.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     37.45,
+     69.44
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     5.704,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     33.73,
+     68.7
+    ],
+    "rotation": [
+     154.98,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     8.954,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     31.5,
+     41.17
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     15.624,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     32.98,
+     35.22
+    ],
+    "rotation": [
+     45.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     30.01,
+     35.22
+    ],
+    "rotation": [
+     135.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     35.22,
+     67.21
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     5.704,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     31.5,
+     66.46
+    ],
+    "rotation": [
+     154.98,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     8.954,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     32.24,
+     42.16
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     15.624,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     33.73,
+     36.21
+    ],
+    "rotation": [
+     45.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     30.75,
+     36.21
+    ],
+    "rotation": [
+     135.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     35.96,
+     68.2
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     5.704,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     32.24,
+     67.46
+    ],
+    "rotation": [
+     154.98,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     8.954,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     33.73,
+     -254.2
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     15.624,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     35.22,
+     -260.15
+    ],
+    "rotation": [
+     45.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     32.24,
+     -260.15
+    ],
+    "rotation": [
+     135.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     37.45,
+     -228.16
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     5.704,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     33.73,
+     -228.9
+    ],
+    "rotation": [
+     154.98,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     8.954,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.3,
+       0.3,
+       0.285
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     31.5,
+     -256.43
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     15.624,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     32.98,
+     -262.38
+    ],
+    "rotation": [
+     45.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     30.01,
+     -262.38
+    ],
+    "rotation": [
+     135.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     35.22,
+     -230.39
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     5.704,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.07,
+     31.5,
+     -231.14
+    ],
+    "rotation": [
+     154.98,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     8.954,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.5,
+       0.5,
+       0.475
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     32.24,
+     -255.44
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     15.624,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     33.73,
+     -261.39
+    ],
+    "rotation": [
+     45.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     30.75,
+     -261.39
+    ],
+    "rotation": [
+     135.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     4.953,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     35.96,
+     -229.4
+    ],
+    "rotation": [
+     -90.0,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     5.704,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     32.24,
+     -230.14
+    ],
+    "rotation": [
+     154.98,
+     0,
+     0
+    ],
+    "scale": [
+     0.149,
+     8.954,
+     0.744
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.9,
+       0.9,
+       0.855
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 1.0
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     16.42,
+     0.25,
+     -486.69
+    ],
+    "rotation": [
+     0,
+     117.17,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     13.3,
+     0.3,
+     -481.92
+    ],
+    "rotation": [
+     0,
+     65.82,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     13.12,
+     0.35,
+     -482.27
+    ],
+    "rotation": [
+     0,
+     6.75,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     17.78,
+     0.4,
+     -487.69
+    ],
+    "rotation": [
+     0,
+     16.33,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     17.66,
+     0.45,
+     -478.31
+    ],
+    "rotation": [
+     0,
+     22.28,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     15.17,
+     0.5,
+     -480.78
+    ],
+    "rotation": [
+     0,
+     170.59,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     19.56,
+     0.55,
+     -483.64
+    ],
+    "rotation": [
+     0,
+     175.73,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     12.98,
+     0.6,
+     -477.91
+    ],
+    "rotation": [
+     0,
+     52.13,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     14.19,
+     0.64,
+     -487.1
+    ],
+    "rotation": [
+     0,
+     55.53,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     22.52,
+     0.69,
+     -486.32
+    ],
+    "rotation": [
+     0,
+     104.69,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     20.32,
+     0.74,
+     -483.94
+    ],
+    "rotation": [
+     0,
+     98.59,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     13.18,
+     0.79,
+     -487.82
+    ],
+    "rotation": [
+     0,
+     37.07,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     20.84,
+     0.84,
+     -483.26
+    ],
+    "rotation": [
+     0,
+     56.55,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     19.66,
+     0.89,
+     -482.94
+    ],
+    "rotation": [
+     0,
+     53.96,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     22.25,
+     0.94,
+     -479.89
+    ],
+    "rotation": [
+     0,
+     43.94,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     19.52,
+     0.99,
+     -482.05
+    ],
+    "rotation": [
+     0,
+     157.52,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     21.45,
+     1.04,
+     -484.99
+    ],
+    "rotation": [
+     0,
+     176.43,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     13.86,
+     1.09,
+     -483.38
+    ],
+    "rotation": [
+     0,
+     136.29,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     14.28,
+     1.14,
+     -482.5
+    ],
+    "rotation": [
+     0,
+     7.06,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     20.69,
+     1.19,
+     -479.08
+    ],
+    "rotation": [
+     0,
+     103.14,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     23.26,
+     1.24,
+     -484.67
+    ],
+    "rotation": [
+     0,
+     125.15,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     19.77,
+     1.29,
+     -481.37
+    ],
+    "rotation": [
+     0,
+     82.12,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     22.82,
+     1.34,
+     -476.85
+    ],
+    "rotation": [
+     0,
+     85.34,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     20.64,
+     1.39,
+     -487.81
+    ],
+    "rotation": [
+     0,
+     126.27,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     20.42,
+     1.44,
+     -476.25
+    ],
+    "rotation": [
+     0,
+     147.95,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     15.93,
+     1.49,
+     -483.78
+    ],
+    "rotation": [
+     0,
+     120.36,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     12.68,
+     1.54,
+     -482.83
+    ],
+    "rotation": [
+     0,
+     30.25,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     13.85,
+     1.59,
+     -487.83
+    ],
+    "rotation": [
+     0,
+     138.28,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     14.0,
+     1.64,
+     -485.49
+    ],
+    "rotation": [
+     0,
+     70.37,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     23.21,
+     1.69,
+     -487.56
+    ],
+    "rotation": [
+     0,
+     80.85,
+     0
+    ],
+    "scale": [
+     5.456,
+     0.099,
+     0.62
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.8,
+       0.8,
+       0.76
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.8
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.12,
+     37.2,
+     -466.24
+    ],
+    "rotation": [
+     4,
+     0,
+     0
+    ],
+    "scale": [
+     0.124,
+     6.944,
+     5.208
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.95,
+       0.94,
+       0.88
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0,
+      "roughness": 0.9
+     }
+    }
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     -32.02,
+     40.67,
+     -466.24
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.099,
+     0.744,
+     1.984
+    ]
+   },
+   "Components": {
+    "RenderComponent": {
+     "Mesh": "res/models/cube4.obj",
+     "castShadow": false,
+     "Material": {
+      "ambient": [
+       0,
+       0,
+       0
+      ],
+      "diffuse": [
+       0.75,
+       0.68,
+       0.45
+      ],
+      "specular": [
+       0.2,
+       0.2,
+       0.2
+      ],
+      "shininess": 20.0
+     }
+    }
+   }
   }
  ],
  "Lights": [
@@ -7591,7 +11065,7 @@
      1.3
     ],
     "flicker": 0.05,
-    "flickerSpeed": 28
+    "flickerSpeed": 7
    }
   },
   {
@@ -7632,7 +11106,7 @@
      1.3
     ],
     "flicker": 0.05,
-    "flickerSpeed": 28
+    "flickerSpeed": 7
    }
   },
   {
@@ -7672,8 +11146,8 @@
      6,
      1.3
     ],
-    "flicker": 0.7,
-    "flickerSpeed": 28
+    "flicker": 0.35,
+    "flickerSpeed": 7
    }
   },
   {
@@ -7714,7 +11188,45 @@
      1.3
     ],
     "flicker": 0.05,
-    "flickerSpeed": 28
+    "flickerSpeed": 7
+   }
+  },
+  {
+   "Transform": {
+    "position": [
+     0,
+     59.52,
+     -481.12
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     99.2,
+     99.2,
+     99.2
+    ]
+   },
+   "Attributes": {
+    "color": [
+     0.3,
+     0.38,
+     0.6
+    ],
+    "type": "POINT",
+    "cast_shadow": false,
+    "diffuse_attenuation": [
+     600,
+     6,
+     1.5
+    ],
+    "specular_attenuation": [
+     600,
+     6,
+     1.5
+    ]
    }
   }
  ],
@@ -7748,7 +11260,7 @@
      64.5,
      0.0
     ],
-    "volume": 0.75,
+    "volume": 0.6299999999999999,
     "radius": 149
    },
    {

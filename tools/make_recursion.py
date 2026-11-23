@@ -11,8 +11,8 @@ textures). Each is a map in Game/recursion/:
   02_twin_levers          Ch.2: two rooms, a lever in each
   02_security_office      Ch.2: wall of CCTV monitors; the cleaning robot's hall
   02_waiting_room         Ch.2 "things that don't add up": fake windows (a
-                          snowy night street, a full Moon, the same red car),
-                          clocks stuck at 11:59, the radio, the newspapers
+                          night street, a full Moon, the same red car),
+                          clocks that never move, the radio, the newspapers
   02_records_room         Ch.2 the tapes: shelves of cassettes, the shutter
   03_stairwell            Ch.3: the EXIT door and the endless stairs up
   03_canyon               Ch.3 and 4: out of the hatch at night, the torch path
@@ -284,14 +284,15 @@ def tube(ents, lights, x, z, h=H_ROOM, along='x', flicker=0.04, color=(0.85, 0.9
     ents.append(box((x, h - 0.015 * M, z), (size[0] + 0.15 * M, 0.03 * M, size[2] + 0.18 * M), STEEL, cast_shadow=False))
     lights.append(light((x, h - 0.15 * M, z), color, "POINT", (radius, radius, radius), cast_shadow=shadow,
                         shadowMapSize=512, diffuse_attenuation=[420, 6, 1.3], specular_attenuation=[420, 6, 1.3],
-                        flicker=flicker, flickerSpeed=28))
+                        flicker=min(flicker, 0.35), flickerSpeed=7))  # a slow waver, never a strobe
 
 def door(ents, x, z, along='x', locked=True, window=True, lit=False, open_window=False):
     """a closed steel door filling a doorway (along: the wall's direction), a small window in it.
-    open_window: the window is a real opening (the engine has no clear glass), to see into the room"""
+    open_window: a tall observation window, a real opening (the engine has no clear glass), low
+    enough to see down onto a bed in the room"""
     size = (DW, DH, 0.06 * M) if along == 'x' else (0.06 * M, DH, DW)
     if open_window:
-        ww, wh, wy = 0.25 * M, 0.35 * M, 1.6 * M
+        ww, wh, wy = 0.3 * M, 0.7 * M, 1.35 * M
         def part(c_along, c_y, s_along, s_y):
             if along == 'x':
                 ents.append(box((x + c_along, c_y, z), (s_along, s_y, size[2]), DOOR_PAINT, True))
@@ -432,14 +433,23 @@ for (side, z) in cell_doors:
     x = CW / 2 + 0.08 * M if side == 'e' else -CW / 2 - 0.08 * M
     door(ents, x, z, along='z', window=True, open_window=(side == 'e' and z == S4))
     ents.append(box((x + (-0.1 * M if side == 'e' else 0.1 * M), 2.3 * M, z), (0.01 * M, 0.15 * M, 0.3 * M), PAPER))   # cell plates
-# Subject 4's cell behind her window: a small lit room, a woman standing very
-# still with her back to the window, facing the far wall
+# Subject 4's cell behind her window: a small lit room, a woman lying on her
+# bed along the far wall, very still, a blanket over her legs
 room(ents, CW / 2 + 1.7 * M, S4, 3.0 * M, 2.6 * M, doors=[('w', 0)])
-ents.append(entity("res/models/FinalBaseMesh.obj", (CW / 2 + 2.4 * M, 0, S4), 1.65 * M / 20.74, (0, 90, 0),
-                   mat((0.85, 0.7, 0.6), extra={"roughness": 0.6})))
+B4 = CW / 2 + 2.6 * M                                                                       # her bed's centre (x)
+ents.append(box((B4, 0.4 * M, S4), (0.9 * M, 0.12 * M, 2.0 * M), STEEL, True))              # the frame
+for lx in (-0.4, 0.4):
+    for lz in (-0.95, 0.95):
+        ents.append(box((B4 + lx * M, 0.17 * M, S4 + lz * M), (0.05 * M, 0.34 * M, 0.05 * M), STEEL))
+ents.append(box((B4, 0.75 * M, S4 - 1.0 * M), (0.9 * M, 0.7 * M, 0.04 * M), STEEL))        # the headboard
+ents.append(box((B4, 0.5 * M, S4), (0.85 * M, 0.1 * M, 1.95 * M), OFFWHITE))                # the mattress
+ents.append(box((B4, 0.6 * M, S4 - 0.8 * M), (0.5 * M, 0.1 * M, 0.3 * M), PAPER))           # the pillow
+ents.append(entity("res/models/FinalBaseMesh.obj", (B4, 0.66 * M, S4 + 0.85 * M), 1.65 * M / 20.74, (-90, 0, 0),
+                   mat((0.85, 0.7, 0.6), extra={"roughness": 0.6})))                        # on her back, head on the pillow
+ents.append(box((B4, 0.62 * M, S4 + 0.45 * M), (0.88 * M, 0.16 * M, 1.0 * M), mat((0.45, 0.55, 0.6), extra={"roughness": 0.9})))  # the blanket
 tube(ents, lights, CW / 2 + 2.0 * M, S4, flicker=0.02, color=(1.0, 0.92, 0.75), radius=4 * M)
 for k, z in enumerate([z * M for z in (-10, -5, 0, 5, 10)]):
-    tube(ents, lights, 0, z, along='x', flicker=0.9 if k == 2 else 0.05, dead=(k == 1))
+    tube(ents, lights, 0, z, along='x', flicker=0.35 if k == 2 else 0.05, dead=(k == 1))
 papers(ents, 0, 0, 3 * M, n=4, spread=0.8 * M)
 papers(ents, 0.3 * M, 0, -7 * M, n=3, spread=0.6 * M)
 ents.append(box((0, 2.35 * M, -CL / 2 + 0.03 * M), (0.6 * M, 0.2 * M, 0.04 * M), EXIT_GREEN, cast_shadow=False))
@@ -542,7 +552,7 @@ ents, lights = [], []
 WW, WD = 5.0 * M, 4.0 * M
 room(ents, 0, 0, WW, WD, walls=mat((0.55, 0.5, 0.4), extra={"roughness": 0.85}), doors=[('s', -1.6 * M)])
 door(ents, -1.6 * M, WD / 2 + 0.08 * M)
-# the "windows": screens of a snowy street on New Year's Eve, a full Moon over
+# the "windows": screens of a quiet street at night, a full Moon over
 # the rooftops (the last Moon the player will see: outside there is none). The
 # same Moon in the same place in both, and the same red car: they're screens
 for k, x in enumerate((-1.2 * M, 1.1 * M)):
@@ -556,14 +566,14 @@ for k, x in enumerate((-1.2 * M, 1.1 * M)):
                         glow((0.006, 0.006, 0.01)), cast_shadow=False))                                              # rooftops
         ents.append(box((x + (hx_ - 0.06) * M, 1.375 * M + hh * 0.45 * M, zf + 0.025 * M), (0.05 * M, 0.04 * M, 0.005 * M),
                         glow((0.9, 0.6, 0.25)), cast_shadow=False))                                                  # a lit window
-    ents.append(box((x, 1.2 * M, zf), (1.4 * M, 0.35 * M, 0.02 * M), glow((0.12, 0.13, 0.17)), cast_shadow=False))   # snowy street
+    ents.append(box((x, 1.2 * M, zf), (1.4 * M, 0.35 * M, 0.02 * M), glow((0.12, 0.13, 0.17)), cast_shadow=False))   # the street
     ents.append(box((x + (-0.25 + k * 0.5) * M, 1.28 * M, zf + 0.015 * M), (0.35 * M, 0.15 * M, 0.02 * M),
                     glow((0.45, 0.03, 0.02)), cast_shadow=False))                                                    # the red car
     ents.append(box((x + (-0.25 + k * 0.5 - 0.17) * M, 1.27 * M, zf + 0.03 * M), (0.03 * M, 0.025 * M, 0.005 * M),
                     glow((1.0, 0.9, 0.6)), cast_shadow=False))                                                       # its headlight
 lights.append(light((0, 1.5 * M, -WD / 2 + 0.5 * M), (0.35, 0.45, 0.75), "SPOT", (8 * M, 8 * M, 6 * M), rot=(0, 180, 0),
                     cast_shadow=True, coneAngle=0.7, diffuse_attenuation=[500, 6, 1.5], specular_attenuation=[500, 6, 1.5]))
-# clocks at 11:59, never moving
+# clocks that never move
 for x, z, yaw in ((-WW / 2 + 0.03 * M, 0, 90), (WW / 2 - 0.03 * M, -0.4 * M, -90), (0.6 * M, WD / 2 - 0.03 * M, 180)):
     a = math.radians(yaw)
     ents.append(entity("res/models/sphere.obj", (x, 2.0 * M, z), (0.15 * M, 0.15 * M, 0.02 * M), (0, yaw, 0), WHITE))
@@ -624,7 +634,7 @@ ents.append(box((0, 1.0 * M, -RRD / 2 - 0.05 * M), (1.22 * M, 0.06 * M, 0.1 * M)
 room(ents, 0, -RRD / 2 - 1.5 * M, 2.4 * M, 2.6 * M, walls=PEELING, doors=[('s', 0, 1.2 * M, 2.2 * M)])
 ents.append(box((0, 2.4 * M, -RRD / 2 + 0.03 * M), (0.15 * M, 0.15 * M, 0.05 * M), LED_RED, cast_shadow=False))
 lights.append(light((0, 2.3 * M, -RRD / 2 + 0.4 * M), (1.0, 0.1, 0.05), "POINT", (5 * M, 5 * M, 5 * M), cast_shadow=False,
-                    diffuse_attenuation=[600, 10, 4], specular_attenuation=[600, 10, 4], flicker=0.9, flickerSpeed=4))
+                    diffuse_attenuation=[600, 10, 4], specular_attenuation=[600, 10, 4], flicker=0.4, flickerSpeed=3))
 tube(ents, lights, -1.5 * M, -0.3 * M, along='z', flicker=0.05)
 tube(ents, lights, 1.5 * M, -0.3 * M, along='z', flicker=0.35)
 scenes['02_records_room'] = scene(ents, lights, interior_env(ambient=0.04), start(0, EYE, 2.2 * M, 0, -5))
@@ -661,7 +671,7 @@ for f in range(FLIGHTS):
     ents.append(box((0, y0 + RISE / 2, z_start + direction * RUN / 2), (0.1 * M, RISE + 1.0 * M, RUN), CONCRETE, True))  # the middle wall
     lights.append(light((0, y0 + RISE + 2.0 * M, zl), (1.0, 0.72, 0.42), "POINT", (4 * M, 4 * M, 4 * M), cast_shadow=False,
                         diffuse_attenuation=[500, 10, 3], specular_attenuation=[500, 10, 3],
-                        flicker=0.5 if f % 3 == 1 else 0.08, flickerSpeed=9))
+                        flicker=0.3 if f % 3 == 1 else 0.06, flickerSpeed=6))
     ents.append(entity("res/models/sphere.obj", (SWX / 2 - 0.15 * M, y0 + RISE + 2.0 * M, zl), 0.06 * M,
                        material=glow((1.0, 0.75, 0.45)), cast_shadow=False))
     # a narrow window in the west wall: AURA's datacenter, rows of racks and
@@ -745,8 +755,22 @@ scenes['03_canyon'] = g
 # 04 the way down: AURA's tunnels under the canyon, out to the lagoon. On one
 # side, windows into the shelters (people asleep in bunks, generations who
 # have never seen the sky); on the other, the datacenter; at the far end a
-# ladder up to the hatch on the hill above the lagoon
+# ladder up to the hatch on the hill above the lagoon. And proof that you (or
+# something) came this way before: chalk arrows signed 7, drawn over and over;
+# an empty bunk with a 7 chalked on its window; a pile of SUBJECT 7 wristbands
+# at the foot of the ladder; a page in your handwriting
 # --------------------------------------------------------------------------
+def chalk(ents, x, z0, y0, right, strokes, material, w=0.03 * M):
+    """chalk strokes on a wall facing +-x: (u1, v1, u2, v2) in metres, u to the
+    viewer's right (right=+1 if that is +z, -1 if -z), v up, from (z0, y0)"""
+    for u1, v1, u2, v2 in strokes:
+        du, dv = (u2 - u1) * right, v2 - v1
+        ents.append(box((x, y0 + (v1 + v2) / 2 * M, z0 + (u1 + u2) / 2 * right * M),
+                        (0.006 * M, math.hypot(du, dv) * M + w, w), material,
+                        rot=(math.degrees(math.atan2(du, dv)), 0, 0), cast_shadow=False))
+SEVEN = [(0, 0.3, 0.2, 0.3), (0.2, 0.3, 0.06, 0)]
+ARROW = [(0, 0.1, 0.6, 0.1), (0.6, 0.1, 0.48, 0.22), (0.6, 0.1, 0.48, -0.02)]
+CHALK = [mat((c, c, c * 0.95), extra={"roughness": 1.0}) for c in (0.3, 0.5, 0.9)]   # faded .. fresh
 ents, lights = [], []
 TW, TL, TH = 2.6 * M, 40.0 * M, 2.8 * M
 DORMS = (12.0 * M, 0.0, -12.0 * M)
@@ -766,7 +790,12 @@ for z in DORMS:
         for level in (0.45 * M, 1.5 * M):
             ents.append(box((bx, level, z), (0.9 * M, 0.12 * M, 2.0 * M), STEEL, True))
             ents.append(box((bx, level + 0.1 * M, z), (0.85 * M, 0.08 * M, 1.95 * M), mat((0.3, 0.33, 0.4))))
-            if random.random() < 0.8:                                                       # someone asleep, on their back
+            asleep = random.random() < 0.8
+            if z == DORMS[1] and bx == cx + 0.2 * M and level == 0.45 * M:                  # an empty bunk: yours? (under the strobing tube)
+                ents.append(box((bx, level + 0.2 * M, z + 0.75 * M), (0.8 * M, 0.12 * M, 0.4 * M), mat((0.3, 0.33, 0.4)),
+                                rot=(0, 6, 0)))                                             # the blanket, pushed back
+                chalk(ents, TW / 2 + WT / 2 - 0.02 * M, z - 0.5 * M, 1.25 * M, 1, SEVEN, CHALK[2])
+            elif asleep:                                                                    # someone asleep, on their back
                 ents.append(entity("res/models/FinalBaseMesh.obj", (bx, level + 0.25 * M, z + 0.85 * M),
                                    1.6 * M / 20.74, (-90, 0, 0), SLEEPER))
         for corner in (-1, 1):
@@ -782,13 +811,28 @@ for z in (6.0 * M, -6.0 * M):                                                   
                         (0.005 * M, 0.012 * M, 0.012 * M),
                         glow((0.2, 1.0, 0.4) if random.random() < 0.7 else (1.0, 0.6, 0.15)), cast_shadow=False))
 for k, z in enumerate([v * M for v in (16, 8, 0, -8, -16)]):
-    tube(ents, lights, 0, z, h=TH, along='z', flicker=0.7 if k == 2 else 0.05, dead=(k == 3))
+    tube(ents, lights, 0, z, h=TH, along='z', flicker=0.35 if k == 2 else 0.05, dead=(k == 3))
 for rx_ in (-0.25 * M, 0.25 * M):                                                           # the ladder up
     ents.append(box((rx_, TH / 2, -TL / 2 + 0.1 * M), (0.05 * M, TH, 0.05 * M), STEEL))
 for k in range(int((TH - 0.3 * M) / (0.3 * M))):
     ents.append(box((0, 0.3 * M + k * 0.3 * M, -TL / 2 + 0.1 * M), (0.5 * M, 0.04 * M, 0.04 * M), STEEL))
 ents.append(box((0, TH - 0.02 * M, -TL / 2 + 0.5 * M), (0.9 * M, 0.04 * M, 0.9 * M),
                 mat((0.25, 0.3, 0.45), emissive=0.4)))                                     # the hatch, night beyond
+lights.append(light((0, TH - 0.4 * M, -TL / 2 + 0.6 * M), (0.3, 0.38, 0.6), "POINT", (4 * M, 4 * M, 4 * M),
+                    cast_shadow=False, diffuse_attenuation=[600, 6, 1.5], specular_attenuation=[600, 6, 1.5]))  # night, down the hatch
+for z in (14.0 * M, 2.0 * M, -10.0 * M):            # arrows to the ladder, signed 7, drawn again and again
+    for k, (dv, du) in enumerate(((0.06, 0.05), (-0.03, -0.04), (0, 0))):
+        chalk(ents, -TW / 2 + 0.005 * M + k * 0.002 * M, z + du * M, 1.2 * M + dv * M, -1, ARROW, CHALK[k])
+        chalk(ents, -TW / 2 + 0.005 * M + k * 0.002 * M, z + (0.85 + du) * M, 1.15 * M + dv * M, -1, SEVEN, CHALK[k])
+bands = random.Random(7)                            # the SUBJECT 7 wristbands at the foot of the ladder
+for k in range(30):                                 # runs 1 to 30 (31 is on your wrist)
+    ents.append(box((0.75 * M + bands.uniform(-0.25, 0.25) * M, 0.01 * M + k * 0.002 * M,
+                     -TL / 2 + 0.55 * M + bands.uniform(-0.25, 0.25) * M), (0.22 * M, 0.004 * M, 0.025 * M),
+                    OFFWHITE, rot=(0, bands.uniform(0, 180), 0), cast_shadow=False))
+ents.append(box((-TW / 2 + 0.005 * M, 1.5 * M, -TL / 2 + 1.2 * M), (0.005 * M, 0.28 * M, 0.21 * M), PAPER,
+                rot=(4, 0, 0), cast_shadow=False))                                          # a page, taped up
+ents.append(box((-TW / 2 + 0.009 * M, 1.64 * M, -TL / 2 + 1.2 * M), (0.004 * M, 0.03 * M, 0.08 * M),
+                mat((0.75, 0.68, 0.45)), cast_shadow=False))                                # the tape
 scenes['04_tunnels'] = scene(ents, lights, interior_env(ambient=0.03), start(0, EYE, TL / 2 - 1.5 * M, 0, 0))
 
 # --------------------------------------------------------------------------

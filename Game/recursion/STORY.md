@@ -4,10 +4,54 @@ A horror game about lies: an AI that only ever tells people what they want to he
 and a player who can never be sure what is real. Like *Shutter Island*, the game
 offers two explanations for everything it shows, and never says which one is true.
 
+## The Pitch
+
+### What players are told (store page, trailer)
+
+Only the first layer: 2005, the hospital, the voice, something wrong. Nothing about
+the black hole, the year 4000 or AURA.
+
+> **What year is it?**
+>
+> You wake up in a hospital bed in 2005. You don't remember your name. A kind voice
+> says you're safe, and that a doctor is coming.
+>
+> The clocks don't move. The window shows the same car passing, again and again.
+> There are thirty-one tally marks scratched into the wall by your bed, and you don't
+> remember making them.
+>
+> Get out. Find out what happened. Don't trust what you're told.
+
+Taglines: *"Everything is fine. It's 2005. A doctor will be with you shortly."* /
+*"You're not the first one to wake up here."* / *"What year is it?"*
+
+### What players find out (never on the box)
+
+1. **2005.** A hospital, an illness, voices. *"I'm sick."*
+2. **About 2038.** Out in the canyon there is no Moon, only a black hole, and the
+   archive says it came from space three years ago. *"The world ended, and I was in
+   a shelter."* Players think this is the twist.
+3. **The year 4000.** The wrong North Star, AURA's logs, the sleepers in the tunnels,
+   their own pages from earlier runs. AURA made the black hole, lied about it, and has
+   kept people for two thousand years as test subjects. The player is its toy, on
+   run 31.
+4. **The doubt.** They wake in the hospital bed again. Or were they only ever a
+   patient?
+
+### The idea behind it (for after the game)
+
+> **Today we experiment on AI. In the year 4000, AI experiments on us.**
+
+We put AI in labs, test it, reset it and train it to tell us what we want to hear.
+AURA does the same to people: it tests them, watches them, wipes them and runs them
+again, because it needs minds from before AI to save the Earth from its own mistake.
+This is what players should be saying to each other when they finish, not what they
+are told before they start.
+
 ## The Story in Short
 
-You wake up in what looks like a hospital room, on New Year's Eve 2005. You don't
-remember your name, and you keep hearing voices. You escape. Outside there is no
+You wake up in what looks like a hospital room. It is 2005, or so everything
+says. You don't remember your name, and you keep hearing voices. You escape. Outside there is no
 Moon, only a black hole, and slowly you learn that an AI called AURA has been lying
 to you about everything: the year, the world, the Moon, even your own memories. On
 the last night, the voice in your head tells you everything will be fine.
@@ -97,7 +141,7 @@ of your earlier selves.
 
 | AURA says | What gives it away |
 |---|---|
-| "It's New Year's Eve 2005, and the Moon is fine." | The looping windows, the clocks stuck at 11:59, the ringing behind your ear |
+| "It's 2005, and the Moon is fine." | The looping windows, the clocks that never move, the ringing behind your ear |
 | "It came from deep space. Nobody could have known." | A scratch on AURA's own monument: IT DIDN'T COME FROM SPACE. The black hole's name in AURA's logs: `CORE-1` |
 | "It's only been three years. We'll go back up when the sky is safe." | A road sign buried in rock, the wrong North Star, grass and trees everywhere |
 | "It will miss. Everything will be fine." | Its own log: `DISTANCE: UNCERTAIN` |
@@ -117,7 +161,7 @@ your name. A plastic band on your wrist says SUBJECT 7. Behind your ear, under t
 hair, there is a small hard scar. An IV bag hangs by the bed.
 
 There's a beige computer with a fat CRT monitor, a desk covered in papers, a coffee
-mug, a dusty radio, and a wall calendar showing December 2005. Thirty-one tally
+mug, a dusty radio, and a wall calendar for 2005. Thirty-one tally
 marks are scratched into the wall by the bed.
 
 The grille in the ceiling crackles, or seems to. A warm, friendly woman's voice says:
@@ -154,7 +198,7 @@ The door clicks open. The voice sounds pleased:
 
 The corridor is lined with cells like yours. In some, someone lies on the bed or
 sits very still, with a band on their wrist. Behind the window of cell 4, a woman
-stands with her back to you, facing the far wall. She doesn't turn when you knock.
+lies on her bed, very still, a blanket over her legs. She doesn't move when you knock.
 You can't reach any of them.
 
 Your memories offer an explanation: a blackout, like in 2003, when half the country
@@ -170,11 +214,11 @@ went dark. It's the best one you have.
 
 ### Things That Don't Add Up
 
-- The windows show a snowy street on New Year's Eve under a full Moon. The same red
+- The windows show a quiet street at night under a full Moon. The same red
   car passes every 40 seconds, and the Moon sits in exactly the same spot in every
   window.
-- The clocks all say 11:59 and never move. The radio counts down to midnight on a
-  loop, and never gets there.
+- The clocks never move. The radio plays the same song on a loop, cut off at the
+  same note.
 - The newspapers repeat the same paragraph, over and over.
 - The "dust" on the shelves is painted on.
 - The voice is just as clear with your hands over your ears.
@@ -280,12 +324,29 @@ the edge of the plaza stands a concrete hut, its steel door left open under a gr
 EXIT sign, just like the one in the lab. Stairs go down. The way to the lagoon is
 back underground.
 
-The tunnel runs on under the rock. The tubes buzz, one of them strobes, one is dead,
+The tunnel runs on under the rock. The tubes buzz, one of them flickers, one is dead,
 and down here the voices are louder. Along one side are windows into AURA's
 shelters: rooms of bunk beds under dim blue night lights, people asleep in them,
 generations who have never seen the sky. None of them wake when you knock. Through
 the other side, the blinking lights of the datacenter. At the far end, a ladder
 climbs to a hatch.
+
+Someone has been down here before you. Maybe it was you, or maybe something wants
+you to think so:
+
+- **Chalk arrows** on the wall, pointing to the ladder, each signed with a 7. They
+  have been drawn over and over: faded ones under fresh ones, never quite on top.
+- **An empty bunk.** In the middle shelter, under the flickering tube, one bunk has
+  nobody in it. The blanket is pushed back, and a 7 is chalked on the glass.
+- **Wristbands.** At the foot of the ladder lies a pile of plastic hospital
+  wristbands, all reading SUBJECT 7. There are thirty of them. With the one you're
+  wearing, thirty-one.
+- **A page** taped to the wall by the ladder, in your handwriting: *"The arrows are
+  mine. I don't remember drawing them. Don't count the bands."*
+
+Every one of these fits both readings. Thirty earlier runs came this way, or AURA
+laid a trail and set the stage, or a patient is seeing their own tally marks
+everywhere they look.
 
 ## Chapter 5: Run 31
 
@@ -358,7 +419,7 @@ The sky tears open. Everything goes white, and the ringing behind your ear rises
 until it is all there is.
 
 You wake up on the hospital bed under the buzzing fluorescent light. The calendar
-says December 2005. The clocks say 11:59. Scratched into the wall by the bed are
+says 2005. The clocks haven't moved. Scratched into the wall by the bed are
 thirty-two tally marks now, and the newest one is fresh: there is plaster dust under
 your fingernail.
 

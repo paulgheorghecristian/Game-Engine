@@ -412,6 +412,10 @@ void EngineCore::start() {
     unsigned int FPS = 0, UPS = 0;
     const bool printFps = std::getenv("GE_PRINT_FPS") != NULL;
 
+    /* the game starts with the GUI closed (F1 opens it) */
+    inputManager.setWarpMouse(this->warpMouse);
+    setPlayMode(true);
+
     isRunning = true;
     auto start_time = HighResolutionClock::now();
 
@@ -600,17 +604,7 @@ void EngineCore::input() {
     }
 
     if (inputManager.getKeyDown(SDLK_F1)) {
-        /* play mode: hide every overlay and the cursor, mouse captured for
-         * looking around; F1 again brings the editor back as it was */
-        m_playMode = !m_playMode;
-        if (m_playMode) {
-            m_warpBeforePlayMode = inputManager.getWarpMouse();
-            inputManager.setWarpMouse(true);
-            SDL_ShowCursor(SDL_DISABLE);
-        } else {
-            inputManager.setWarpMouse(m_warpBeforePlayMode);
-            SDL_ShowCursor(showMouse ? SDL_ENABLE : SDL_DISABLE);
-        }
+        setPlayMode(!m_playMode);                   /* F1: open / close the editor GUI */
     }
 
     if (inputManager.getKeyDown(SDLK_F12)) {
@@ -1846,6 +1840,23 @@ void EngineCore::saveScreenshot(const std::string &path) {
     }
     stbi_write_png(path.c_str(), w, h, 4, flipped.data(), w * 4);
     printf("Screenshot saved to %s\n", path.c_str());
+}
+
+void EngineCore::setPlayMode(bool play) {
+    /* play mode: hide every overlay and the cursor, mouse captured for looking
+     * around; leaving it brings the editor back as it was */
+    if (play == m_playMode) {
+        return;
+    }
+    m_playMode = play;
+    if (m_playMode) {
+        m_warpBeforePlayMode = inputManager.getWarpMouse();
+        inputManager.setWarpMouse(true);
+        SDL_ShowCursor(SDL_DISABLE);
+    } else {
+        inputManager.setWarpMouse(m_warpBeforePlayMode);
+        SDL_ShowCursor(showMouse ? SDL_ENABLE : SDL_DISABLE);
+    }
 }
 
 void EngineCore::startMenuLoop() {

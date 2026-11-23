@@ -5668,7 +5668,7 @@
      1.3
     ],
     "flicker": 0.05,
-    "flickerSpeed": 28
+    "flickerSpeed": 7
    }
   },
   {
@@ -5709,7 +5709,7 @@
      1.3
     ],
     "flicker": 0.05,
-    "flickerSpeed": 28
+    "flickerSpeed": 7
    }
   },
   {
@@ -5750,7 +5750,7 @@
      1.3
     ],
     "flicker": 0.03,
-    "flickerSpeed": 28
+    "flickerSpeed": 7
    }
   }
  ],

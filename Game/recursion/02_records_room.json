@@ -12614,8 +12614,8 @@
      10,
      4
     ],
-    "flicker": 0.9,
-    "flickerSpeed": 4
+    "flicker": 0.4,
+    "flickerSpeed": 3
    }
   },
   {
@@ -12656,7 +12656,7 @@
      1.3
     ],
     "flicker": 0.05,
-    "flickerSpeed": 28
+    "flickerSpeed": 7
    }
   },
   {
@@ -12697,7 +12697,7 @@
      1.3
     ],
     "flicker": 0.35,
-    "flickerSpeed": 28
+    "flickerSpeed": 7
    }
   }
  ],

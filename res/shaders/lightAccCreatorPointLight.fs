@@ -29,11 +29,19 @@ uniform float shadowFar;
 uniform samplerCube shadowCube;  /* distance to the light / shadowFar */
 uniform mat4 inverseViewMatrix;
 
-float pointShadow(vec3 viewPosition, float nDotL) {
-    vec3 toFragment = (inverseViewMatrix * vec4(viewPosition, 1.0)).xyz - lightPosition;
+float pointShadow(vec3 viewPosition, vec3 viewNormal, float nDotL) {
+    vec3 worldPosition = (inverseViewMatrix * vec4(viewPosition, 1.0)).xyz;
+    vec3 worldNormal = normalize(mat3(inverseViewMatrix) * viewNormal);
+    float sinAngle = sqrt(max(1.0 - nDotL * nDotL, 0.0));
+    /* normal offset: look the shadow up a little off the surface, more at
+     * grazing angles (a ceiling right above a tube), where the depth bias
+     * alone fails past some distance and cuts the light off in a hard ring.
+     * It is larger than the sampling disk, so no tap lands behind the surface */
+    float d0 = length(worldPosition - lightPosition);
+    vec3 toFragment = worldPosition + worldNormal * (0.5 + d0 * 0.016) * sinAngle - lightPosition;
     float d = length(toFragment);
     /* slope-scaled: surfaces lit at grazing angles need more bias (no acne) */
-    float slope = sqrt(max(1.0 - nDotL * nDotL, 0.0)) / max(nDotL, 0.1);
+    float slope = sinAngle / max(nDotL, 0.1);
     float bias = 0.5 + d * (0.006 + 0.012 * min(slope, 6.0));
     float disk = d * 0.008;
     const vec3 offsets[4] = vec3[](vec3(1, 1, 1), vec3(-1, -1, 1), vec3(-1, 1, -1), vec3(1, -1, -1));
@@ -128,6 +136,6 @@ void main() {
         }
     }
     if (castsShadow != 0) {
-        outLight *= pointShadow(viewPosition, max(dotProduct, 0.0));
+        outLight *= pointShadow(viewPosition, normalize(eyeSpaceNormal), max(dotProduct, 0.0));
     }
 }

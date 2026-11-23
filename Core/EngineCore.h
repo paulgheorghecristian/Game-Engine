@@ -75,9 +75,11 @@ class EngineCore
 
         float mouseMoveSpeed, mouseRotationSpeed;
         bool warpMouse, showMouse;
-        /* F1: play mode, no overlays (profiler, FPS, ImGui) and no cursor */
+        /* play mode (the default once the game starts): no overlays (profiler,
+         * FPS, ImGui) and no cursor; F1 toggles it, to open the editor GUI */
         bool m_playMode = false;
         bool m_warpBeforePlayMode = false;
+        void setPlayMode(bool play);
         /* F12: record what is rendered to ~/Videos (MP4, without overlays) */
         FrameRecorder m_recorder;
         /* the map's sound ("Audio" block) and the Kugelblitz's */
