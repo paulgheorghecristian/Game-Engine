@@ -7304,58 +7304,56 @@
   }
  ],
  "ParticleEmitters": [],
- "Audio": {
-  "sources": [
-   {
-    "sound": "hum_loop",
-    "position": [
-     79.4,
-     67.0,
-     -62.0
-    ],
-    "volume": 0.366,
-    "radius": 149
-   },
-   {
-    "sound": "hum_loop",
-    "position": [
-     0,
-     67.0,
-     -248.0
-    ],
-    "volume": 0.39,
-    "radius": 149
-   },
-   {
-    "sound": "hum_loop",
-    "position": [
-     0,
-     67.0,
-     0.0
-    ],
-    "volume": 0.6299999999999999,
-    "radius": 149
-   },
-   {
-    "sound": "hum_loop",
-    "position": [
-     0,
-     67.0,
-     124.0
-    ],
-    "volume": 0.39,
-    "radius": 149
-   },
-   {
-    "sound": "hum_loop",
-    "position": [
-     0,
-     67.0,
-     248.0
-    ],
-    "volume": 0.39,
-    "radius": 149
-   }
-  ]
- }
+ "Audio": [
+  {
+   "sound": "hum_loop",
+   "position": [
+    79.4,
+    67.0,
+    -62.0
+   ],
+   "volume": 0.366,
+   "radius": 149
+  },
+  {
+   "sound": "hum_loop",
+   "position": [
+    0,
+    67.0,
+    -248.0
+   ],
+   "volume": 0.39,
+   "radius": 149
+  },
+  {
+   "sound": "hum_loop",
+   "position": [
+    0,
+    67.0,
+    0.0
+   ],
+   "volume": 0.6299999999999999,
+   "radius": 149
+  },
+  {
+   "sound": "hum_loop",
+   "position": [
+    0,
+    67.0,
+    124.0
+   ],
+   "volume": 0.39,
+   "radius": 149
+  },
+  {
+   "sound": "hum_loop",
+   "position": [
+    0,
+    67.0,
+    248.0
+   ],
+   "volume": 0.39,
+   "radius": 149
+  }
+ ]
 }

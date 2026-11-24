@@ -5755,38 +5755,36 @@
   }
  ],
  "ParticleEmitters": [],
- "Audio": {
-  "sources": [
-   {
-    "sound": "hum_loop",
-    "position": [
-     -106.6,
-     67.0,
-     0
-    ],
-    "volume": 0.39,
-    "radius": 149
-   },
-   {
-    "sound": "hum_loop",
-    "position": [
-     106.6,
-     67.0,
-     0
-    ],
-    "volume": 0.39,
-    "radius": 149
-   },
-   {
-    "sound": "hum_loop",
-    "position": [
-     0,
-     67.0,
-     0
-    ],
-    "volume": 0.374,
-    "radius": 149
-   }
-  ]
- }
+ "Audio": [
+  {
+   "sound": "hum_loop",
+   "position": [
+    -106.6,
+    67.0,
+    0
+   ],
+   "volume": 0.39,
+   "radius": 149
+  },
+  {
+   "sound": "hum_loop",
+   "position": [
+    106.6,
+    67.0,
+    0
+   ],
+   "volume": 0.39,
+   "radius": 149
+  },
+  {
+   "sound": "hum_loop",
+   "position": [
+    0,
+    67.0,
+    0
+   ],
+   "volume": 0.374,
+   "radius": 149
+  }
+ ]
 }

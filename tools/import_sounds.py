@@ -12,8 +12,8 @@ usage:
   --loop   make it a seamless loop (for *_loop sounds)
   --gain   extra level in dB after normalising (default 0)
 
-The names the engine uses: wind_loop, crickets_loop, fire_loop (--loop),
-step_grass_1..4, land, wade_1..3, splash, hiss, boom_1..3. Record where each
+A map names the sounds it uses (its "Audio" list, Footsteps, its timelines), e.g.
+wind_loop, crickets_loop, fire_loop (--loop), step_grass_1..4. Record where each
 came from in res/sounds/CREDITS.md.
 """
 import argparse, math, os, struct, subprocess, sys, tempfile, wave

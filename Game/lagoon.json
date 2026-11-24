@@ -189,22 +189,28 @@
    "cloudClear": 0.7
   }
  ],
- "Audio": {
-  "wind": 0.15,
-  "crickets": 0.25,
-  "sources": [
-   {
-    "sound": "fire_loop",
-    "position": [
-     720.7,
-     32.4,
-     -360.0
-    ],
-    "volume": 1.0,
-    "radius": 480
-   }
-  ]
- },
+ "Audio": [
+  {
+   "sound": "wind_loop",
+   "volume": 0.15,
+   "follows": "wind"
+  },
+  {
+   "sound": "crickets_loop",
+   "volume": 0.25,
+   "follows": "night"
+  },
+  {
+   "sound": "fire_loop",
+   "position": [
+    720.7,
+    32.4,
+    -360.0
+   ],
+   "volume": 1.0,
+   "radius": 480
+  }
+ ],
  "Entities": [
   {
    "Transform": {

@@ -1,5 +1,7 @@
 #include "SoundScape.h"
 
+#include <iostream>
+
 #include "AudioMaster.h"
 #include "BlackHole.h"
 #include "Camera.h"
@@ -13,22 +15,32 @@ static float jsonNumber(const rapidjson::Value &json, const char *key, float def
 void SoundScape::load(const rapidjson::Value &json)
 {
     clear();
-    if (!json.IsObject()) {
+    if (!json.IsArray()) {
+        if (!json.IsNull()) std::cout << "SoundScape: \"Audio\" is a list of sounds (see Audio/SoundScape.h): ignored" << std::endl;
         return;
     }
-    m_wind = jsonNumber(json, "wind", 0.0f);
-    m_crickets = jsonNumber(json, "crickets", 0.0f);
-    if (json.HasMember("sources") && json["sources"].IsArray()) {
-        for (const auto &s : json["sources"].GetArray()) {
-            if (!s.HasMember("sound") || !s.HasMember("position")) continue;
-            Source source;
-            source.sound = s["sound"].GetString();
+    for (const auto &s : json.GetArray()) {
+        if (!s.IsObject() || !s.HasMember("sound") || !s["sound"].IsString()) continue;
+        Source source;
+        source.sound = s["sound"].GetString();
+        if (s.HasMember("position") && s["position"].IsArray() && s["position"].Size() == 3) {
             const auto &p = s["position"].GetArray();
-            source.position = glm::vec3(p[0].GetFloat(), p[1].GetFloat(), p[2].GetFloat());
-            source.volume = jsonNumber(s, "volume", 1.0f);
-            source.radius = jsonNumber(s, "radius", 300.0f);
-            m_sources.push_back(source);
+            if (p[0].IsNumber() && p[1].IsNumber() && p[2].IsNumber()) {
+                source.position = glm::vec3(p[0].GetFloat(), p[1].GetFloat(), p[2].GetFloat());
+                source.placed = true;
+            }
         }
+        source.volume = jsonNumber(s, "volume", 1.0f);
+        source.radius = jsonNumber(s, "radius", 300.0f);
+        source.pitch = jsonNumber(s, "pitch", 1.0f);
+        if (s.HasMember("loop") && s["loop"].IsBool()) source.loop = s["loop"].GetBool();
+        if (s.HasMember("follows") && s["follows"].IsString()) {
+            std::string follows = s["follows"].GetString();
+            if (follows == "wind") source.follows = WIND;
+            else if (follows == "night") source.follows = NIGHT;
+            else std::cout << "SoundScape: " << source.sound << " follows \"" << follows << "\": not something it can follow (wind, night)" << std::endl;
+        }
+        m_sources.push_back(source);
     }
 }
 
@@ -36,11 +48,19 @@ void SoundScape::clear()
 {
     AudioMaster *audio = AudioMaster::getInstance();
     for (Source &s : m_sources) audio->stop(s.voice);
-    audio->stop(m_windVoice);
-    audio->stop(m_cricketVoice);
     m_sources.clear();
-    m_windVoice = m_cricketVoice = 0;
     m_started = false;
+}
+
+/* its volume now: its own, with what it follows */
+float SoundScape::loudness(const Source &source) const
+{
+    RenderingMaster *rm = RenderingMaster::getInstance();
+    switch (source.follows) {
+        case WIND: return source.volume * glm::clamp(0.4f + 0.6f * rm->getMapWind(), 0.0f, 1.6f);
+        case NIGHT: return source.volume * rm->getNightFactor();
+        default: return source.volume;
+    }
 }
 
 /* the debris booms: at these points of the collapse (during the death
@@ -59,16 +79,14 @@ void SoundScape::update(Camera *camera)
 
     if (!m_started) {
         m_started = true;
-        if (m_wind > 0.0f) m_windVoice = audio->play("wind_loop", 0.0f, 1.0f, true);
-        if (m_crickets > 0.0f) m_cricketVoice = audio->play("crickets_loop", 0.0f, 1.0f, true);
         for (Source &s : m_sources) {
-            s.voice = audio->play3D(s.sound, s.position, s.volume, s.radius, 1.0f, true);
+            s.voice = s.placed ? audio->play3D(s.sound, s.position, loudness(s), s.radius, s.pitch, s.loop)
+                               : audio->play(s.sound, loudness(s), s.pitch, s.loop);
         }
     }
-    /* wind with the map's own wind (not the aftermath's: a timeline's sounds are its own);
-     * crickets only at night */
-    if (m_windVoice != 0) audio->setVolume(m_windVoice, m_wind * glm::clamp(0.4f + 0.6f * rm->getMapWind(), 0.0f, 1.6f));
-    if (m_cricketVoice != 0) audio->setVolume(m_cricketVoice, m_crickets * rm->getNightFactor());
+    for (Source &s : m_sources) {
+        if (s.follows != STEADY && s.voice != 0) audio->setVolume(s.voice, loudness(s));
+    }
 
     /* the sky's Kugelblitz */
     BlackHole *kugelblitz = nullptr;

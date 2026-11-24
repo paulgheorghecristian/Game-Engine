@@ -376,9 +376,9 @@ game = {
               "murkDepth": 45, "softEdge": 3, "reflectivity": 1.0},
     "BlackHoles": black_holes,
     # sound: wind, crickets at night, the campfire crackling (in 3D)
-    "Audio": {"wind": 0.15, "crickets": 0.25,
-              "sources": [{"sound": "fire_loop", "position": [round(fx, 1), round(fy + 6, 1), round(fz, 1)],
-                           "volume": 1.0, "radius": 480}]},
+    "Audio": [{"sound": "wind_loop", "volume": 0.15, "follows": "wind"},
+              {"sound": "crickets_loop", "volume": 0.25, "follows": "night"},
+              {"sound": "fire_loop", "position": [round(fx, 1), round(fy + 6, 1), round(fz, 1)], "volume": 1.0, "radius": 480}],
     "Entities": entities,
     "Lights": lights,
     "ParticleEmitters": emitters,

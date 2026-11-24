@@ -11231,48 +11231,46 @@
   }
  ],
  "ParticleEmitters": [],
- "Audio": {
-  "sources": [
-   {
-    "sound": "hum_loop",
-    "position": [
-     0,
-     64.5,
-     396.8
-    ],
-    "volume": 0.39,
-    "radius": 149
-   },
-   {
-    "sound": "hum_loop",
-    "position": [
-     0,
-     64.5,
-     198.4
-    ],
-    "volume": 0.39,
-    "radius": 149
-   },
-   {
-    "sound": "hum_loop",
-    "position": [
-     0,
-     64.5,
-     0.0
-    ],
-    "volume": 0.6299999999999999,
-    "radius": 149
-   },
-   {
-    "sound": "hum_loop",
-    "position": [
-     0,
-     64.5,
-     -396.8
-    ],
-    "volume": 0.39,
-    "radius": 149
-   }
-  ]
- }
+ "Audio": [
+  {
+   "sound": "hum_loop",
+   "position": [
+    0,
+    64.5,
+    396.8
+   ],
+   "volume": 0.39,
+   "radius": 149
+  },
+  {
+   "sound": "hum_loop",
+   "position": [
+    0,
+    64.5,
+    198.4
+   ],
+   "volume": 0.39,
+   "radius": 149
+  },
+  {
+   "sound": "hum_loop",
+   "position": [
+    0,
+    64.5,
+    0.0
+   ],
+   "volume": 0.6299999999999999,
+   "radius": 149
+  },
+  {
+   "sound": "hum_loop",
+   "position": [
+    0,
+    64.5,
+    -396.8
+   ],
+   "volume": 0.39,
+   "radius": 149
+  }
+ ]
 }

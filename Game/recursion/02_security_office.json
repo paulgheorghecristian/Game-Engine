@@ -5462,18 +5462,16 @@
   }
  ],
  "ParticleEmitters": [],
- "Audio": {
-  "sources": [
-   {
-    "sound": "hum_loop",
-    "position": [
-     126.5,
-     67.0,
-     0
-    ],
-    "volume": 0.59,
-    "radius": 149
-   }
-  ]
- }
+ "Audio": [
+  {
+   "sound": "hum_loop",
+   "position": [
+    126.5,
+    67.0,
+    0
+   ],
+   "volume": 0.59,
+   "radius": 149
+  }
+ ]
 }

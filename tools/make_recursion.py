@@ -344,10 +344,9 @@ def chair(ents, x, z, yaw=0):
 def scene(ents, lights, env, start_pos, emitters=None, audio=None, footsteps=None, extra=None):
     g = {"ConfigFilePath": "res/configs/config.json", "gravity": -10.0, "PlayerStart": start_pos,
          "Environment": env, "Entities": ents, "Lights": lights, "ParticleEmitters": emitters or []}
-    audio = dict(audio or {})
-    audio["sources"] = audio.get("sources", []) + HUMS
+    audio = list(audio or []) + HUMS                  # the map's own sounds (Audio/SoundScape.h)
     HUMS.clear()
-    if audio["sources"]: g["Audio"] = audio
+    if audio: g["Audio"] = audio
     if footsteps: g["Footsteps"] = footsteps
     if extra: g.update(extra)
     return g

@@ -112,42 +112,48 @@
   "reflectivity": 1.0,
   "reflectionGlow": 1.6
  },
- "Audio": {
-  "wind": 0.3,
-  "crickets": 0.12,
-  "sources": [
-   {
-    "sound": "fire_loop",
-    "position": [
-     -150.0,
-     12.723124005871489,
-     10.0
-    ],
-    "volume": 0.9,
-    "radius": 380
-   },
-   {
-    "sound": "fire_loop",
-    "position": [
-     155.0,
-     11.93713011348659,
-     30.0
-    ],
-    "volume": 0.9,
-    "radius": 380
-   },
-   {
-    "sound": "fire_loop",
-    "position": [
-     15.0,
-     12.709028379120637,
-     118.0
-    ],
-    "volume": 0.9,
-    "radius": 380
-   }
-  ]
- },
+ "Audio": [
+  {
+   "sound": "wind_loop",
+   "volume": 0.3,
+   "follows": "wind"
+  },
+  {
+   "sound": "crickets_loop",
+   "volume": 0.12,
+   "follows": "night"
+  },
+  {
+   "sound": "fire_loop",
+   "position": [
+    -150.0,
+    12.723124005871489,
+    10.0
+   ],
+   "volume": 0.9,
+   "radius": 380
+  },
+  {
+   "sound": "fire_loop",
+   "position": [
+    155.0,
+    11.93713011348659,
+    30.0
+   ],
+   "volume": 0.9,
+   "radius": 380
+  },
+  {
+   "sound": "fire_loop",
+   "position": [
+    15.0,
+    12.709028379120637,
+    118.0
+   ],
+   "volume": 0.9,
+   "radius": 380
+  }
+ ],
  "Footsteps": {
   "sound": "step_sand",
   "variants": 6,
