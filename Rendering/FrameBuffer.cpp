@@ -1,6 +1,11 @@
 #include "FrameBuffer.h"
 
-FrameBuffer::FrameBuffer() : width(-1), height(-1), numOfRenderTargets(-1)
+/* an empty one (a light without a shadow map has it): it owns nothing. Its
+ * ids must be 0: left as they came, its destructor deleted whatever textures
+ * and framebuffer those numbers happened to name (the scene's own, at random:
+ * the picture went black for good after a fire's light was deleted) */
+FrameBuffer::FrameBuffer() : width(-1), height(-1), frameBufferId(0), depthBufferId(0), colorBufferId(0),
+                             previousViewport{0, 0, 0, 0}, numOfRenderTargets(0), m_depthForVariance(false)
 {
 }
 
@@ -166,6 +171,9 @@ GLuint FrameBuffer::getFrameBufferObject()
 
 FrameBuffer::~FrameBuffer()
 {
+    if (frameBufferId == 0 && depthBufferId == 0 && renderTargets.empty()) {
+        return;     /* never made: nothing bound, nothing to delete */
+    }
     unbind ();
     if (!renderTargets.empty())
         glDeleteTextures (renderTargets.size(), renderTargets.data());

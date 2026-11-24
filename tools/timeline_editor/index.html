@@ -1,0 +1,1416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Timeline editor</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #111317; --panel: #1a1d23; --line: #2c313a; --text: #d8dce3; --dim: #8a92a0;
+    --accent: #e8913a; --blue: #4fa3e0; --bad: #e05a4f; --good: #6cbf6c;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 system-ui, sans-serif; overflow: hidden;
+         display: flex; flex-direction: column; }
+  button, select, input[type=number] { background: var(--panel); color: var(--text); border: 1px solid var(--line);
+                                       border-radius: 5px; padding: 5px 10px; font: inherit; }
+  button { cursor: pointer; }
+  button:hover:not(:disabled) { border-color: var(--dim); }
+  button:disabled { opacity: .45; cursor: default; }
+  .primary { border-color: var(--accent); color: var(--accent); }
+  .danger { color: var(--bad); }
+  header { display: flex; gap: 14px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 16px; margin: 0; }
+  header .map { color: var(--dim); }
+  header .spacer { flex: 1; }
+  #status { color: var(--dim); }
+  #status.unsaved { color: var(--accent); } #status.ok { color: var(--good); } #status.bad { color: var(--bad); }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 500px; gap: 14px; padding: 14px; flex: 1; min-height: 0; }
+  main.wide { grid-template-columns: minmax(0, 1fr); }
+  main.wide > aside { display: none; }
+  main.bigpic #curveBox, main.bigpic #split { display: none; }
+  main > section { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  main > section > .panel:first-child { flex: 3 1 0; min-height: 230px; display: flex; flex-direction: column; }     /* (the picture keeps some room, however tall the lanes) */
+  main > aside { display: flex; flex-direction: column; min-height: 0; }
+  [data-pane] { flex: 1; min-height: 0; overflow: auto; }
+  [data-pane="effects"] { display: flex; flex-direction: column; overflow: hidden; }
+  [data-pane][hidden] { display: none; }
+  [hidden] { display: none !important; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  #view { width: 100%; flex: 1 1 0; min-height: 60px; height: 0; background: transparent; display: block; border-radius: 5px; object-fit: contain; }
+  .transport { display: flex; gap: 12px; align-items: center; margin-top: 10px; }
+  #play { min-width: 90px; font-size: 15px; }
+  #when b { color: var(--accent); font-variant-numeric: tabular-nums; }
+  .scrub { margin: 8px 0 0; }
+  .scrub input { width: 100%; margin: 0; }
+  .marks { position: relative; height: 18px; font-size: 11px; color: var(--dim); margin: 0 8px; }
+  .marks span { position: absolute; transform: translateX(-50%); white-space: nowrap; cursor: pointer; line-height: 14px; }
+  .marks span:hover { color: var(--text); }
+  details { margin-top: 6px; color: var(--dim); font-size: 13px; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+  .tabs button { flex: 1; }
+  .tabs button.on { border-color: var(--blue); color: var(--blue); }
+  #effects { flex: 1; min-height: 0; overflow: auto; margin-top: 6px; }
+  .group { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .07em; margin: 10px 4px 2px; }
+  .effect { padding: 5px 6px; border-radius: 5px; }
+  .effect.on { background: #232a34; }
+  .effect .top { display: grid; grid-template-columns: 26px 118px 1fr 72px 22px; gap: 6px; align-items: center; }
+  .effect.unset .name { color: var(--dim); font-weight: 500; }
+  .effect.changed .name::after { content: ' •'; color: var(--accent); }
+  .effect .reset { visibility: hidden; padding: 0; width: 22px; height: 22px; line-height: 1; color: var(--accent); }
+  .effect.changed .reset { visibility: visible; }
+  .effect .mode { padding: 1px 0; width: 26px; text-align: center; color: var(--blue); }
+  .effect .name { font-weight: 600; cursor: pointer; overflow: hidden; text-overflow: ellipsis; }
+  .effect input[type=range] { width: 100%; margin: 0; }
+  .effect input[type=number] { width: 100%; box-sizing: border-box; padding: 2px 4px; -moz-appearance: textfield; appearance: textfield; }
+  .effect input[type=number]::-webkit-inner-spin-button, .effect input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .effect .about { color: var(--dim); font-size: 11.5px; margin: 1px 0 0 32px; }
+  .muted { color: var(--dim); font-size: 13px; }
+  #curveBox h3 { margin: 0; font-size: 14px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }     /* one line: the full text is in its tooltip and beside the slider */
+  #curveBox .row { height: 32px; }
+  #curveBox .row button { white-space: nowrap; flex-shrink: 0; }     /* (the same height with and without its button) */
+  #curveBox { flex: 2 1 0; min-height: 120px; display: flex; flex-direction: column; }
+  #split { height: 14px; flex-shrink: 0; cursor: row-resize; position: relative; }
+  #split::after { content: ''; position: absolute; left: 50%; top: 5px; width: 48px; margin-left: -24px; height: 4px; border-radius: 2px; background: var(--line); }
+  #split:hover::after { background: var(--dim); }
+  #unsolo { border-color: var(--accent); color: var(--accent); padding: 2px 9px; margin-right: 8px; max-width: 45%; overflow: hidden; text-overflow: ellipsis; }
+  #curveBox .zoom { display: flex; gap: 4px; flex-shrink: 0; }
+  #curveBox .zoom button { padding: 2px 9px; }
+  #ruler { width: 100%; height: 22px; display: block; margin-top: 4px; cursor: pointer; flex-shrink: 0; }
+  #lanes { flex: 1; min-height: 0; overflow-y: scroll; overflow-x: hidden; scrollbar-width: thin; }
+  #lanes canvas.lane { display: block; width: 100%; height: 58px; margin-bottom: 2px; border-radius: 3px; cursor: crosshair; }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { padding: 3px 3px; text-align: left; }
+  th { color: var(--dim); font-weight: normal; font-size: 12px; }
+  td input[type=number] { width: 100%; box-sizing: border-box; padding: 3px 4px; }
+  td select { width: 100%; box-sizing: border-box; padding: 3px 4px; }
+  td button { white-space: nowrap; }
+  #sounds { table-layout: fixed; }
+  #sounds th:nth-child(1) { width: 62px; } #sounds th:nth-child(2) { width: 106px; } #sounds th:nth-child(3) { width: 50px; }
+  #sounds th:nth-child(4) { width: 28px; } #sounds th:nth-child(5) { width: 86px; } #sounds th:nth-child(7) { width: 28px; }
+  #sounds tr.sound { cursor: pointer; }
+  #sounds tr.sound.on td { background: #1c2733; }
+  #sounds .loud { display: flex; gap: 3px; }
+  #sounds .loud button { padding: 3px 5px; }
+  #sounds .loud .mode { width: 22px; flex-shrink: 0; color: var(--blue); }
+  #sounds .loud input, #sounds .loud button:not(.mode) { flex: 1; min-width: 0; }
+  /* (no up/down arrows in these narrow boxes: they hid the digits) */
+  #sounds input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+  #sounds input[type=number]::-webkit-inner-spin-button, #sounds input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .file { padding: 8px; border: 1px solid var(--line); border-radius: 5px; margin-bottom: 8px; }
+  .file .path { font-family: ui-monospace, monospace; font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Timeline editor</h1>
+  <span class="map" id="map"></span>
+  <span class="spacer"></span>
+  <span id="status"></span>
+  <button id="undo" disabled title="undo the last change made on this page (Ctrl+Z)">Undo</button>
+  <button id="discard" disabled title="throw away every unsaved change: back to the timeline as it is saved">Discard changes</button>
+  <button id="save" class="primary" disabled title="write the changes into the timeline's file">Save</button>
+  <button id="saveas" title="write this timeline into a new file; the one it came from stays as it was last saved">Save as…</button>
+  <button id="panelToggle" title="hide the effects, sounds and files on the right: more room for the picture and the time line">Hide panel ▸</button>
+</header>
+<main>
+  <section>
+    <div class="panel">
+      <img id="view" alt="what the engine renders" title="double-click: the picture as big as it can be, the lanes put away (double-click again: back)">
+      <div id="controls">
+        <div class="transport">
+          <button id="play" class="primary">Play</button>
+          <span id="when">–</span>
+        </div>
+        <div class="scrub">
+          <input id="scrub" type="range" step="0.05" value="0">
+          <div class="marks" id="marks"></div>
+        </div>
+      </div>
+      <details>
+        <summary>Camera</summary>
+        <div class="row" style="margin-top:6px">turn <input id="yaw" type="range" min="-180" max="180" step="1" style="flex:1">
+          up/down <input id="pitch" type="range" min="-89" max="89" step="1" style="flex:1"></div>
+      </details>
+    </div>
+    <div id="split" title="drag: more room for the picture or for the time line"></div>
+    <div class="panel" id="curveBox">
+      <div class="row">
+        <h3 id="curveName">Every effect this timeline sets and every sound, on one time line</h3>
+        <span style="flex:1"></span>
+        <button id="removeEffect" class="danger" hidden title="take it out of this timeline: back to its standard value">Clear</button>
+        <button id="unsolo" hidden title="stop isolating: everything plays again">Play everything</button>
+        <span class="zoom">
+          <button id="zoomOut" disabled title="show more of the time line (Ctrl + mouse wheel)">−</button>
+          <button id="zoomIn" title="show less of the time line, bigger (Ctrl + mouse wheel)">+</button>
+          <button id="fit" disabled title="show the whole time line">All</button>
+        </span>
+      </div>
+      <canvas id="ruler" height="22"></canvas>
+      <div id="lanes"><div id="noLanes" class="muted" style="padding:10px" hidden>This timeline sets no effect and has no sound yet: move a slider on the right, or add a sound.</div></div>
+      <div class="muted" style="margin-top:4px" id="curveHelp">Drag a dot, a flat line or a sound · double-click: add a dot · right-click: remove it · click: go there · <b>solo</b> (a lane's top right): play only that · Ctrl + wheel: zoom, Shift + wheel: move along</div>
+    </div>
+  </section>
+  <aside class="panel">
+    <div class="tabs">
+      <button data-tab="effects" class="on">Effects</button>
+      <button data-tab="sounds">Sounds</button>
+      <button data-tab="files">Files</button>
+    </div>
+    <div data-pane="effects">
+      <div class="muted">Go to a moment, then move a slider: it sets that effect <b>at that moment</b>
+        (<span style="color:var(--blue)">∿</span>), or all the time (<span style="color:var(--blue)">—</span>).
+        Click the symbol to switch.</div>
+      <div id="effects"></div>
+    </div>
+    <div data-pane="sounds" hidden>
+      <div class="muted" style="margin-bottom:6px" id="soundsHelp"></div>
+      <table id="sounds"></table>
+      <button id="addSound" style="margin-top:8px">Add a sound at this moment</button>
+    </div>
+    <div data-pane="files" hidden>
+      <div class="muted" style="margin-bottom:8px" id="filesHelp"></div>
+      <div id="files"></div>
+      <label><button id="addFileButton">Add a timeline file…</button><input id="addFile" type="file" accept=".json" hidden></label>
+      <div class="muted" style="margin-top:6px" id="addHelp"></div>
+    </div>
+  </aside>
+</main>
+<script src="/live.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const r3 = (x) => Math.round(x * 1000) / 1000, r4 = (x) => Math.round(x * 10000) / 10000;
+/* a value rounded to what its range calls for (0..3000: whole numbers; 0..1.5: three decimals) */
+function tidy(name, x) {
+  const [lo, hi] = rangeOf(name);
+  const decimals = Math.min(4, Math.max(0, 3 - Math.floor(Math.log10(Math.max(hi - lo, 1e-6)))));
+  const scale = Math.pow(10, decimals);
+  return Math.round(x * scale) / scale;
+}
+/* the timeline as a whole, as the engine reports it in its state (nothing of it is written here).
+ * One clock for everything: 0 is the start, LENGTH its end. STARTS: where each sequence's own 0 is
+ * on that clock (a sequence's times in its file count from there). MOMENTS: the named moments.
+ * SILENT: nothing is heard before a sequence starts */
+const BEFORE = 0;
+let LENGTH = 30, MOMENTS = [], STARTS = [], SILENT = false, FIRST_SOUND = -1, timelineSeen = '';
+function useTimeline(e) {
+  if (!e || typeof e.length !== 'number') return;
+  const key = JSON.stringify([e.length, e.moments, e.starts, e.silent, e.firstSound]);
+  if (key === timelineSeen) return;
+  const startsMoved = JSON.stringify(e.starts || []) !== JSON.stringify(STARTS);
+  timelineSeen = key;
+  LENGTH = e.length; STARTS = e.starts || []; SILENT = !!e.silent;
+  FIRST_SOUND = typeof e.firstSound === 'number' ? e.firstSound : -1;
+  MOMENTS = (e.moments || []).slice().sort((a, b) => a.t - b.t);
+  $('scrub').min = BEFORE; $('scrub').max = LENGTH;
+  if (startsMoved && state) { renderSounds(); refreshValues(); }      /* (their times are shown on the clock) */
+  if (view) setView(view[0], view[1]);
+  renderMarks(); drawCurve(); $('scrub').value = nowT; $('when').innerHTML = describe();
+}
+/* the shown sequence: where its 0 is on the clock, and "now" on its own clock */
+function flatIndex() {
+  /* the shown sequence among all of them, in the order the engine has them */
+  let index = current.seq;
+  for (let i = 0; i < current.entry && i < state.entries.length; i++) index += state.entries[i].sequences.length;
+  return index;
+}
+function seqStart() { return STARTS[flatIndex()] || 0; }
+const localNow = () => Math.max(nowT - seqStart(), 0);
+const momentAt = (id) => { const m = MOMENTS.find((x) => x.id === id); return m ? m.t : 0; };
+/* the effects a timeline can set: their groups, ranges and descriptions come from the engine
+ * (state.params, from Core/Aftermath's list), filled in when the page starts */
+let GROUPS = [], RANGE = {}, ABOUT = {}, TIME = {};
+function useParams(params) {
+  GROUPS = []; RANGE = {}; ABOUT = {}; TIME = {};
+  for (const p of params) {
+    let group = GROUPS.find(([label]) => label === p.group);
+    if (!group) GROUPS.push(group = [p.group, []]);
+    group[1].push(p.name);
+    RANGE[p.name] = [p.min, p.max, p.standard];
+    ABOUT[p.name] = p.about;
+    if (p.after) TIME[p.name] = p.after;   /* its value is seconds after that moment: drawn along the time axis */
+  }
+}
+/* a sound's ranges and where it can be placed: the engine's description too (state.schema) */
+const soundSpec = (field) => ((state.schema || {}).sound || {})[field] || null;      /* (null: the engine did not say) */
+const soundStandard = (field) => (soundSpec(field) || {}).standard;
+const rangeOf = (name) => name.startsWith('sound:') ? (soundSpec('volume') ? [soundSpec('volume').min, soundSpec('volume').max] : [0, 1]) : (RANGE[name] || [0, 2]);
+
+let state = null;
+let current = { entry: 0, seq: 0 };   /* which timeline file (and sequence in it) is shown */
+let selected = null;                  /* the effect whose curve is shown ('sound:<i>': a sound's loudness) */
+let nowT = 0, playing = false, unsaved = false;
+const history = [];
+const curveKept = {};        /* an effect's curve while it is set to "the same all the time" (per sequence) */
+function timelinesReplaced() {
+  clearTimeout(applyTimer); applyTimer = null;
+  history.length = 0;
+  clearTimeout(settleTimer); settleTimer = null;
+  before = JSON.stringify(state.entries);
+  for (const k of Object.keys(curveKept)) delete curveKept[k];
+  clearSolo();                 /* (the files changed: what was isolated may be another one now) */
+}
+
+/* ---- the data: a value is a number (all the time), [[t, v], ...] or {keys, curve} ---- */
+function keysOf(v) {
+  /* (in time order, as the engine reads them) */
+  if (typeof v === 'number') return { constant: v };
+  const byTime = (keys) => keys.filter((k) => Array.isArray(k) && k.length >= 2).map((k) => k.slice()).sort((a, b) => a[0] - b[0]);
+  if (Array.isArray(v)) return { keys: byTime(v), curve: 'smooth' };
+  return { keys: byTime((v && v.keys) || []), curve: (v && v.curve) || 'smooth' };
+}
+/* a key's own curve handles [lx, ly, rx, ry] (keys made elsewhere can have them), or null */
+const handlesOf = (k) => (k.length >= 6 && [2, 3, 4, 5].every((i) => typeof k[i] === 'number')) ? k.slice(2, 6) : null;
+function unitBezier(x1, y1, x2, y2, x) {
+  /* the engine's: y on the bezier from (0,0) to (1,1) with these handles, at x */
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+  const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  let s = x;
+  for (let i = 0; i < 8; i++) {
+    const fx = ((ax * s + bx) * s + cx) * s - x;
+    if (Math.abs(fx) < 1e-5) break;
+    const d = (3 * ax * s + 2 * bx) * s + cx;
+    if (Math.abs(d) < 1e-6) break;
+    s -= fx / d;
+  }
+  if (s < 0 || s > 1) {
+    let lo = 0, hi = 1; s = x;
+    for (let i = 0; i < 24; i++) {
+      const fx = ((ax * s + bx) * s + cx) * s;
+      if (Math.abs(fx - x) < 1e-5) break;
+      if (fx < x) lo = s; else hi = s;
+      s = (lo + hi) * 0.5;
+    }
+  }
+  return ((ay * s + by) * s + cy) * s;
+}
+function pack(keys, curve) {
+  const tidy = keys.map((k) => [r3(k[0]), r4(k[1]), ...k.slice(2)]);
+  return curve && curve !== 'smooth' ? { keys: tidy, curve } : tidy;
+}
+function valueAt(v, t) {
+  const k = keysOf(v);
+  if (k.constant !== undefined) return k.constant;
+  const keys = k.keys;
+  if (!keys.length) return 0;
+  if (t <= keys[0][0]) return keys[0][1];
+  if (t >= keys[keys.length - 1][0]) return keys[keys.length - 1][1];
+  let i = 1;
+  while (i < keys.length && keys[i][0] < t) i++;
+  const a = keys[i - 1], b = keys[i];
+  const ha = handlesOf(a), hb = handlesOf(b), linear = k.curve === 'linear';
+  if (a.includes('hold') || (k.curve === 'step' && !ha)) return a[1];
+  let u = (t - a[0]) / Math.max(b[0] - a[0], 1e-6);
+  if (ha || hb) {
+    /* a key without its own handles: the curve's */
+    u = unitBezier(ha ? ha[2] : 1 / 3, ha ? ha[3] : (linear ? 1 / 3 : 0), hb ? hb[0] : 2 / 3, hb ? hb[1] : (linear ? 2 / 3 : 1), u);
+  } else if (!linear) {
+    u = u * u * (3 - 2 * u);
+  }
+  return a[1] + (b[1] - a[1]) * u;
+}
+function seq() {
+  const e = state.entries[current.entry];
+  return e ? e.sequences[current.seq] : null;
+}
+function getValue(name) {
+  const s = seq();
+  if (!s) return undefined;
+  if (name.startsWith('sound:')) { const snd = (s.sounds || [])[+name.slice(6)]; return snd ? (snd.volume === undefined ? soundStandard('volume') : snd.volume) : undefined; }
+  /* not in the timeline: its standard value (what the engine uses then) */
+  return s.params[name] !== undefined ? s.params[name] : (RANGE[name] ? RANGE[name][2] : undefined);
+}
+const inTimeline = (name) => !!seq() && !!seq().params && seq().params[name] !== undefined;
+const paramsOf = (sq) => (sq && sq.params) || {};
+function setValue(name, v) {
+  if (name.startsWith('sound:')) seq().sounds[+name.slice(6)].volume = v;
+  else (seq().params = seq().params || {})[name] = v;
+}
+function aboutOf(name) { return ABOUT[name] || ''; }
+/* how long a sound plays, in the timeline's seconds (its file's length, faster or slower with its pitch; a loop: on and on) */
+function soundLength(snd) {
+  const shape = (state.shapes || {})[snd.sound];
+  const pitch = snd.pitch === undefined ? (soundStandard('pitch') || 1) : snd.pitch;
+  return shape ? shape.length / Math.max(pitch, 0.05) : 1;
+}
+/* a sound's loudness: the same all the time, or changing while it plays (and back) */
+function toggleSoundCurve(i) {
+  const snd = seq().sounds[i], kept = flatIndex() + ':sound:' + i;
+  const v = snd.volume === undefined ? soundStandard('volume') : snd.volume;
+  if (typeof v === 'number') {
+    const at = snd.at || 0, end = at + (snd.loop ? Math.max(soundLength(snd), 4) : soundLength(snd));
+    snd.volume = curveKept[kept] !== undefined ? JSON.parse(curveKept[kept]) : [[r3(at), v], [r3(end), v]];
+    delete curveKept[kept];
+  } else {
+    curveKept[kept] = JSON.stringify(v);
+    snd.volume = r3(Math.max(...keysOf(v).keys.map((k) => k[1]), 0));
+  }
+  selected = 'sound:' + i;
+  showSelected(); changed(); renderSounds();
+}
+
+/* ---- changes: remembered for Undo, sent to the engine a moment after the last ---- */
+let applyTimer = null, settleTimer = null, before = null;
+/* the last change, if it is still waiting to go to the editor: now (before the file list changes) */
+async function sendPending() {
+  if (!applyTimer) return;
+  clearTimeout(applyTimer); applyTimer = null;
+  await post('/api/apply', { entries: state.entries });
+}
+function changed() {
+  if (!settleTimer && before !== null) history.push(before);      /* one Undo step per burst of changes */
+  clearTimeout(settleTimer);
+  settleTimer = setTimeout(() => { settleTimer = null; before = JSON.stringify(state.entries); }, 500);
+  showStatus();
+  clearTimeout(applyTimer);
+  applyTimer = setTimeout(() => { applyTimer = null; post('/api/apply', { entries: state.entries }); }, 80);
+  refreshValues(); drawCurve();
+}
+$('undo').onclick = () => {
+  if (!history.length) return;
+  clearTimeout(settleTimer); settleTimer = null;
+  state.entries = JSON.parse(history.pop());
+  before = JSON.stringify(state.entries);
+  post('/api/apply', { entries: state.entries });
+  renderAll(); showStatus();
+};
+async function post(path, body) {
+  let r;
+  try {
+    r = await (await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })).json();
+  } catch (error) {
+    r = { ok: false, error: 'the editor did not answer (' + error.message + ')' };
+  }
+  if (r && r.ok === false) showStatus(r.error, 'bad');
+  return r;
+}
+/* ---- what is not saved: the timelines compared with how they are on disk (state.saved), whoever
+ *      changed them (this page, before or after a reload) ---- */
+function canon(v) {
+  if (typeof v === 'number') return Math.round(v * 1e6) / 1e6;
+  if (Array.isArray(v)) return v.map(canon);
+  if (v && typeof v === 'object') { const o = {}; for (const k of Object.keys(v).sort()) o[k] = canon(v[k]); return o; }
+  return v;
+}
+function sameValue(a, b) { return JSON.stringify(canon(a)) === JSON.stringify(canon(b)); }
+/* nothing there: missing, an empty list or an empty object (a file without "sounds" = one with none) */
+const empty = (v) => v === undefined || v === null || (Array.isArray(v) && !v.length) || (typeof v === 'object' && !Array.isArray(v) && !Object.keys(v).length);
+function savedSeq() {
+  const entry = (state.saved || [])[current.entry];
+  return entry ? entry.sequences[current.seq] : undefined;
+}
+function changes() {
+  /* the names of what differs from the saved timelines */
+  const names = [];
+  const saved = state.saved || [];
+  state.entries.forEach((entry, ei) => entry.sequences.forEach((now, si) => {
+    const was = (saved[ei] && saved[ei].sequences[si]) || {};
+    for (const name of new Set([...Object.keys(now.params || {}), ...Object.keys(was.params || {})])) {
+      if (!sameValue((now.params || {})[name], (was.params || {})[name])) names.push(name);
+    }
+    for (const part of new Set([...Object.keys(now), ...Object.keys(was)])) {
+      if (part !== 'params' && !(empty(now[part]) && empty(was[part])) && !sameValue(now[part], was[part])) names.push(part);
+    }
+  }));
+  return names;
+}
+let statusTimer = null;
+function showStatus(text, kind) {
+  clearTimeout(statusTimer);
+  if (text !== undefined) statusTimer = setTimeout(() => showStatus(), kind === 'bad' ? 8000 : 4000);
+  const names = changes();
+  unsaved = names.length > 0;
+  const list = names.slice(0, 4).join(', ') + (names.length > 4 ? ' and ' + (names.length - 4) + ' more' : '');
+  $('status').textContent = text !== undefined ? text : (unsaved ? 'not saved: ' + list : '');
+  $('status').title = unsaved ? 'changed since the last save: ' + names.join(', ') : '';
+  $('status').className = kind || (unsaved ? 'unsaved' : '');
+  $('save').disabled = !unsaved;
+  $('discard').disabled = !unsaved;
+  $('undo').disabled = !history.length;
+}
+$('save').onclick = async () => {
+  clearTimeout(applyTimer); applyTimer = null;          /* (the entries go with it) */
+  const r = await post('/api/save', { entries: state.entries });
+  if (r.ok) { state.saved = JSON.parse(JSON.stringify(state.entries)); refreshValues(); showStatus('saved', 'ok'); }
+};
+/* a name for a copy: the file's, with the next number */
+function suggestName(file) {
+  const base = (file || 'timeline.json').split('/').pop().replace(/\.json$/, '');
+  const taken = new Set([...state.entries.map((e) => e.file), ...(state.others || []).map((o) => o.file)]
+                        .filter(Boolean).map((f) => f.split('/').pop().replace(/\.json$/, '')));
+  const m = base.match(/^(.*)_(\d+)$/);
+  const stem = m ? m[1] : base;
+  for (let n = m ? parseInt(m[2], 10) + 1 : 2; ; n++) if (!taken.has(stem + '_' + n)) return stem + '_' + n;
+}
+$('saveas').onclick = async () => {
+  const entry = state.entries[current.entry];
+  if (!entry) return;
+  const from = entry.file ? entry.file.split('/').pop() : 'the map';
+  const name = prompt('Save this timeline as a new file in ' + state.folder + '.\n\n' +
+                      'The map will play the new file from now on. ' + from + ' stays as it was last saved.' +
+                      '\n\nName of the new file:', suggestName(entry.file));
+  if (name === null) return;
+  clearTimeout(applyTimer); applyTimer = null;          /* (the entries go with it) */
+  const r = await post('/api/saveas', { entry: current.entry, name, entries: state.entries });
+  if (!r.ok) { showStatus(r.error, 'bad'); return; }
+  state.entries = r.entries; state.saved = r.saved; state.others = r.others;
+  timelinesReplaced();
+  renderAll(); showStatus('saved as ' + r.file.split('/').pop() + ' (the map plays it now)', 'ok');
+};
+$('discard').onclick = async () => {
+  const names = changes();
+  if (!names.length) return;
+  if (!confirm('Throw away the unsaved changes (' + names.join(', ') + ') and go back to the timeline as it is saved?')) return;
+  clearTimeout(applyTimer); applyTimer = null;          /* (a change still waiting is thrown away too) */
+  const r = await post('/api/revert', {});
+  if (!r.ok) return;
+  state.entries = r.entries; state.saved = r.saved;
+  timelinesReplaced();
+  renderAll(); showStatus('back to the saved timeline', 'ok');
+};
+window.addEventListener('beforeunload', (e) => { if (unsaved) { e.preventDefault(); e.returnValue = ''; } });
+
+for (const b of document.querySelectorAll('[data-tab]')) {
+  b.onclick = () => {
+    for (const o of document.querySelectorAll('[data-tab]')) o.classList.toggle('on', o === b);
+    for (const p of document.querySelectorAll('[data-pane]')) p.hidden = p.dataset.pane !== b.dataset.tab;
+  };
+}
+
+/* ---- the effects: one slider each ---- */
+const rows = {};
+function renderEffects() {
+  const list = $('effects');
+  list.innerHTML = '';
+  for (const k of Object.keys(rows)) delete rows[k];
+  const s = seq();
+  if (!s) { list.innerHTML = '<div class="muted" style="margin-top:10px">This map plays no timeline. Add one in Files.</div>'; return; }
+  const groups = GROUPS.map(([label, list]) => [label, list.slice()]);
+  groups.push(['Other', Object.keys(paramsOf(s)).filter((n) => !GROUPS.some(([, list]) => list.includes(n)))]);
+  for (const [label, group] of groups) {
+    if (!group.length) continue;
+    const h = document.createElement('div');
+    h.className = 'group'; h.textContent = label;
+    list.appendChild(h);
+    for (const name of group) list.appendChild(effectRow(name));
+  }
+  refreshValues();
+}
+function effectRow(name) {
+  const [lo, hi] = rangeOf(name);
+  const row = document.createElement('div');
+  row.className = 'effect';
+  row.innerHTML = '<div class="top"><button class="mode"></button><span class="name"></span>' +
+                  '<input type="range"><input type="number"><button class="reset">↺</button></div><div class="about"></div>';
+  const [mode, label, range, number, reset] = row.firstChild.children;
+  reset.title = 'changed and not saved: click to put ' + name + ' back as it is saved';
+  reset.onclick = () => {
+    const was = savedSeq();
+    if (paramsOf(was)[name] !== undefined) setValue(name, JSON.parse(JSON.stringify(was.params[name])));
+    else delete paramsOf(seq())[name];
+    delete curveKept[flatIndex() + ':' + name];
+    showSelected(); changed();
+  };
+  label.textContent = name; label.title = 'show how it changes over time';
+  row.lastChild.textContent = aboutOf(name);
+  range.min = lo; range.max = hi; range.step = (hi - lo) / 400;
+  number.step = (hi - lo) / 100;
+  range.oninput = () => setNow(name, parseFloat(range.value));
+  number.onchange = () => { setNow(name, parseFloat(number.value) || 0); number.value = tidy(name, valueAt(getValue(name), localNow())); };
+  label.onclick = () => select(name);
+  mode.onclick = () => toggleMode(name);
+  rows[name] = { row, mode, range, number };
+  return row;
+}
+function refreshValues() {
+  const was = savedSeq();
+  for (const name of Object.keys(rows)) {
+    const v = getValue(name);
+    rows[name].row.classList.toggle('changed', !sameValue(paramsOf(seq())[name], paramsOf(was)[name]));
+    rows[name].row.classList.toggle('unset', !inTimeline(name));
+    rows[name].row.title = inTimeline(name) ? '' : 'not used by this timeline yet: shown at its standard value; move it to use it';
+    if (v === undefined) continue;
+    const { row, mode, range, number } = rows[name];
+    const constant = typeof v === 'number';
+    mode.textContent = constant ? '—' : '∿';
+    mode.title = constant ? 'the same all the time (click: let it change over time)' : 'changes over time (click: the same all the time)';
+    const value = valueAt(v, localNow());
+    if (document.activeElement !== range) range.value = value;
+    if (document.activeElement !== number) number.value = tidy(name, value);
+    row.classList.toggle('on', selected === name);
+  }
+}
+/* the slider: the effect's value at this moment (a dot there), or all the time */
+function setNow(name, v) {
+  if (playing) setPlaying(false);
+  const k = keysOf(getValue(name));
+  if (k.constant === undefined && nowT < seqStart() - 1e-6) {
+    /* before this timeline starts: there is no moment of it here */
+    showStatus('this timeline starts at ' + r3(seqStart()) + ' s: go there or later to set ' + name + ' at a moment', 'bad');
+    refreshValues();
+    return;
+  }
+  v = tidy(name, v);
+  if (k.constant !== undefined) {
+    setValue(name, v);
+  } else {
+    const t = r3(Math.round(localNow() * 20) / 20);
+    const near = k.keys.findIndex((key) => Math.abs(key[0] - t) < 0.15);
+    if (near >= 0) k.keys[near][1] = v; else k.keys.push([t, v]);
+    k.keys.sort((a, b) => a[0] - b[0]);
+    setValue(name, pack(k.keys, k.curve));
+  }
+  select(name);
+  changed();
+}
+function toggleMode(name) {
+  const kept = flatIndex() + ':' + name;
+  const v = getValue(name), now = tidy(name, valueAt(v, localNow()));
+  if (typeof v === 'number') {
+    /* back to changing over time: the curve it had, if it had one */
+    setValue(name, curveKept[kept] !== undefined ? JSON.parse(curveKept[kept]) : [[r3(localNow()), now]]);
+    delete curveKept[kept];
+  } else {
+    curveKept[kept] = JSON.stringify(v);
+    setValue(name, now);
+  }
+  select(name);
+  changed();
+}
+function select(name) {
+  selected = name;
+  showSelected(); refreshValues(); highlightSoundRows();
+  const lane = laneOf(name);
+  if (lane) lane.canvas.scrollIntoView({ block: 'nearest' });
+}
+function showSelected() {
+  const has = selected && getValue(selected) !== undefined;
+  if (!has) selected = null;
+  const snd = has && soundOf(selected);
+  $('curveName').title = has && !snd ? aboutOf(selected) : '';
+  $('curveName').textContent = !has ? 'Every effect this timeline sets and every sound, on one time line'
+    : (snd ? 'sound: ' + snd.sound : selected + ': ' + aboutOf(selected));
+  $('removeEffect').hidden = !has || !!snd || !inTimeline(selected);
+  drawCurve();
+}
+$('removeEffect').onclick = () => {
+  if (!selected) return;
+  delete paramsOf(seq())[selected];          /* (Undo brings it back) */
+  showSelected(); changed();
+};
+
+/* ---- isolating ("solo"): only the lanes switched to solo play in the engine (what everything else
+ *      is then, the engine says). Not part of the timeline: nothing in it changes, nothing is saved ---- */
+const solo = new Set();                        /* '<sequence>|<lane name>' (the sequence: flatIndex()) */
+const soloKey = (name) => flatIndex() + '|' + name;
+const isSolo = (name) => solo.has(soloKey(name));
+function sendSolo() {
+  const params = [], sounds = [];
+  for (const key of solo) {
+    const bar = key.indexOf('|'), at = +key.slice(0, bar), name = key.slice(bar + 1);
+    if (name.startsWith('sound:')) sounds.push([at, +name.slice(6)]); else params.push([at, name]);
+  }
+  post('/api/solo', { params, sounds });
+  showSolo();
+}
+function toggleSolo(name) {
+  const key = soloKey(name);
+  if (solo.has(key)) solo.delete(key); else solo.add(key);
+  sendSolo(); drawLanes();
+}
+function clearSolo() { if (!solo.size) return; solo.clear(); sendSolo(); drawLanes(); }
+$('unsolo').onclick = clearSolo;
+/* a sound taken out of the shown timeline: isolated no more; the ones after it move up one */
+function soundRemoved(i) {
+  const prefix = flatIndex() + '|sound:', keys = [...solo];
+  solo.clear();
+  for (const key of keys) {
+    if (!key.startsWith(prefix)) { solo.add(key); continue; }
+    const j = +key.slice(prefix.length);
+    if (j !== i) solo.add(prefix + (j > i ? j - 1 : j));
+  }
+  if (keys.length) sendSolo();
+}
+/* lanes no longer there (an effect cleared, an Undo): not isolated any more */
+function pruneSolo(names) {
+  const prefix = flatIndex() + '|';
+  let gone = false;
+  for (const key of [...solo]) if (key.startsWith(prefix) && !names.includes(key.slice(prefix.length))) { solo.delete(key); gone = true; }
+  if (gone) sendSolo();
+}
+/* what is isolated, in words */
+function soloNames() {
+  const out = [];
+  for (const key of solo) {
+    const bar = key.indexOf('|'), at = +key.slice(0, bar), name = key.slice(bar + 1);
+    let sq = null;
+    for (let e = 0, n = 0; e < state.entries.length && !sq; e++) for (const x of state.entries[e].sequences) { if (n++ === at) { sq = x; break; } }
+    const snd = name.startsWith('sound:') && sq && (sq.sounds || [])[+name.slice(6)];
+    out.push(snd ? '♪ ' + snd.sound : name);
+  }
+  return out;
+}
+function showSolo() {
+  $('unsolo').hidden = !solo.size;
+  if (solo.size) $('unsolo').textContent = 'Only ' + soloNames().join(', ') + ' plays · play everything';
+  $('when').innerHTML = describe();
+}
+const SOLO_W = 38, SOLO_H = 13;                 /* the solo button, top right in each lane */
+const onSolo = (canvas, p) => p[0] >= canvas.width - SOLO_W - 6 && p[1] <= SOLO_H + 3;
+
+/* ---- the timeline: one lane per effect the shown timeline sets and per sound, all on one time
+ *      axis (the slider's: lined up with it when the whole timeline is shown; zoomed in, a part) ---- */
+const LANE_H = 58, TOP = 15, BOTTOM = 5;       /* a lane: its name above, its values below */
+const lanesBox = $('lanes'), ruler = $('ruler'), rulerCtx = ruler.getContext('2d');
+const lanes = [];                              /* { name, canvas, ctx }, in the order shown */
+let view = null;                               /* the part of the timeline shown [from, to] (null: all of it) */
+const viewFrom = () => view ? view[0] : BEFORE, viewTo = () => view ? view[1] : LENGTH;
+const laneOf = (name) => lanes.find((l) => l.name === name) || null;
+const soundOf = (name) => (name && name.startsWith('sound:') && seq() && (seq().sounds || [])[+name.slice(6)]) || null;
+const laneWidth = () => Math.max(200, Math.round(lanesBox.clientWidth));
+const EDGE = 8;                                /* (half the slider's handle: the slider's ends line up) */
+const px = (t, w) => EDGE + (t - viewFrom()) / (viewTo() - viewFrom()) * (w - 2 * EDGE);
+const pt = (x, w) => viewFrom() + (x - EDGE) / (w - 2 * EDGE) * (viewTo() - viewFrom());
+/* which lanes: the effects the timeline sets (in the engine's groups, then any others), the one
+ * selected on the right even if not set yet, then the sounds */
+function laneNames() {
+  const s = seq();
+  if (!s) return [];
+  const names = [];
+  for (const [, group] of GROUPS) for (const n of group) if (inTimeline(n) || n === selected) names.push(n);
+  for (const n of Object.keys(paramsOf(s))) if (!names.includes(n)) names.push(n);
+  (s.sounds || []).forEach((_, i) => names.push('sound:' + i));
+  return names;
+}
+function renderLanes() {
+  if (!state) return;
+  const names = laneNames();
+  if (names.join('|') !== lanes.map((l) => l.name).join('|')) {
+    /* (lanes kept by name: one being dragged stays the same) */
+    const old = new Map(lanes.map((l) => [l.name, l]));
+    lanes.length = 0;
+    for (const name of names) {
+      let lane = old.get(name);
+      if (!lane) {
+        const canvas = document.createElement('canvas');
+        canvas.className = 'lane';
+        lane = { name, canvas, ctx: canvas.getContext('2d') };
+        hookLane(lane);
+      }
+      old.delete(name);
+      lane.canvas.dataset.name = name;
+      lanes.push(lane);
+    }
+    for (const lane of old.values()) lane.canvas.remove();
+    pruneSolo(names);
+    for (const lane of lanes) lanesBox.appendChild(lane.canvas);     /* (in order) */
+    $('noLanes').hidden = lanes.length > 0;
+    lineUpSlider();
+  }
+  drawLanes();
+}
+const drawCurve = () => renderLanes();
+/* the slider over the picture as wide as the lanes (the lanes' scroll bar takes some room) */
+function lineUpSlider() {
+  const gutter = lanesBox.offsetWidth - lanesBox.clientWidth;
+  $('controls').style.paddingRight = gutter + 'px';
+  if (state) renderMarks();
+}
+new ResizeObserver(() => { lineUpSlider(); drawLanes(); }).observe(lanesBox);
+lanesBox.addEventListener('scroll', () => drawLanes());
+
+/* a lane's values: what it shows from bottom to top */
+function span(name) {
+  const k = keysOf(getValue(name)), [lo, hi] = rangeOf(name);
+  const vs = k.constant !== undefined ? [k.constant] : k.keys.map((x) => x[1]);
+  return [Math.min(lo, ...vs), Math.max(hi * 0.25, ...vs) * 1.15];
+}
+const py = (name, v, range) => { const [lo, hi] = range || span(name); return LANE_H - BOTTOM - (v - lo) / ((hi - lo) || 1) * (LANE_H - TOP - BOTTOM); };
+const valueY = (name, y, range) => { const [lo, hi] = range || span(name); return lo + (LANE_H - BOTTOM - y) / (LANE_H - TOP - BOTTOM) * ((hi - lo) || 1); };
+/* an effect whose value is a moment in time (seconds after a named moment): that time on the clock, or null */
+function momentOf(name) {
+  if (!TIME[name]) return null;
+  const v = getValue(name);
+  return typeof v === 'number' ? momentAt(TIME[name]) + v : null;
+}
+/* where a sound plays in a lane: [x from, x to] */
+function soundSpan(name, w) {
+  const snd = soundOf(name);
+  if (!snd) return null;
+  const from = (snd.at || 0) + seqStart();
+  return [px(from, w), snd.loop ? w : Math.max(px(from + soundLength(snd), w), px(from, w) + 2)];
+}
+/* the time grid: a step that leaves room between lines */
+function gridStep(w) {
+  const perPixel = (viewTo() - viewFrom()) / (w - 2 * EDGE);
+  return [0.1, 0.25, 0.5, 1, 2, 5, 10, 20, 30, 60].find((s) => s / perPixel >= 60) || 120;
+}
+function drawGrid(ctx, w, h) {
+  const step = gridStep(w), start = seqStart();
+  if (start > viewFrom()) { ctx.fillStyle = '#15171c'; ctx.fillRect(0, 0, px(start, w), h); }     /* before this timeline starts */
+  ctx.strokeStyle = '#22262d'; ctx.lineWidth = 1;
+  for (let s = Math.ceil(viewFrom() / step) * step; s <= viewTo() + 1e-6; s += step) {
+    const x = Math.round(px(s, w)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+  }
+  ctx.strokeStyle = '#5a3d3d'; ctx.setLineDash([4, 4]);
+  for (const m of MOMENTS) if (m.t > 0) { const x = Math.round(px(m.t, w)) + 0.5; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  ctx.setLineDash([]);
+}
+function drawRuler() {
+  const w = laneWidth(), h = 22, ctx = rulerCtx;
+  if (ruler.width !== w) ruler.width = w;
+  if (ruler.height !== h) ruler.height = h;
+  ctx.clearRect(0, 0, w, h);
+  ctx.font = '11px system-ui';
+  const step = gridStep(w), start = seqStart();
+  if (start > viewFrom()) {
+    ctx.fillStyle = '#15171c'; ctx.fillRect(0, 0, px(start, w), h);
+    const at = MOMENTS.find((m) => Math.abs(m.t - start) < 0.05);
+    let text = 'this timeline starts at ' + (at ? at.label : r3(start) + ' s');
+    const room = px(start, w) - 12;
+    ctx.fillStyle = '#5d6572';
+    while (text.length > 4 && ctx.measureText(text).width > room) text = text.slice(0, -2).trimEnd() + '…';
+    if (ctx.measureText(text).width <= room) ctx.fillText(text, 6, 15);
+  }
+  ctx.fillStyle = '#8a92a0'; ctx.strokeStyle = '#3a404a';
+  for (let s = Math.ceil(viewFrom() / step) * step; s <= viewTo() + 1e-6; s += step) {
+    const x = Math.round(px(s, w)) + 0.5, label = r3(s) + ' s', wide = ctx.measureText(label).width;
+    ctx.beginPath(); ctx.moveTo(x, h - 6); ctx.lineTo(x, h); ctx.stroke();
+    if (start <= viewFrom() || x > px(start, w)) ctx.fillText(label, x + 3 + wide > w ? x - wide - 3 : x + 3, 13);
+  }
+  ctx.strokeStyle = '#e8913a'; ctx.lineWidth = 2;
+  const now = px(nowT, w);
+  ctx.beginPath(); ctx.moveTo(now, 0); ctx.lineTo(now, h); ctx.stroke(); ctx.lineWidth = 1;
+}
+function drawLanes() {
+  if (!state) return;
+  drawRuler();
+  const box = lanesBox.getBoundingClientRect();
+  for (const lane of lanes) {
+    const r = lane.canvas.getBoundingClientRect();
+    if (r.bottom < box.top - 2 || r.top > box.bottom + 2) continue;        /* (scrolled away: drawn when seen) */
+    drawLane(lane);
+  }
+}
+function drawLane(lane) {
+  const { name, canvas, ctx } = lane, w = laneWidth(), h = LANE_H, start = seqStart();
+  if (canvas.width !== w) canvas.width = w;
+  if (canvas.height !== h) canvas.height = h;
+  const on = name === selected, v = getValue(name);
+  ctx.fillStyle = on ? '#16202b' : '#0d0f12'; ctx.fillRect(0, 0, w, h);
+  if (v === undefined) return;
+  const soloed = isSolo(name);
+  ctx.globalAlpha = solo.size && !soloed ? 0.35 : 1;        /* (isolating, and not this one: not heard or seen) */
+  drawGrid(ctx, w, h);
+  const range = span(name), y = (x) => py(name, x, range);
+  const snd = soundOf(name), k = keysOf(v);
+  ctx.font = '12px system-ui';
+  if (momentOf(name) !== null) {
+    /* its value is a moment: a marker at that time, dragged left and right */
+    const x = px(momentOf(name), w);
+    ctx.strokeStyle = '#4fa3e0'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x, TOP); ctx.lineTo(x, h); ctx.stroke(); ctx.lineWidth = 1;
+    ctx.fillStyle = '#9fd0f5'; ctx.beginPath(); ctx.arc(x, (h + TOP) / 2, 6, 0, 7); ctx.fill();
+  } else {
+    if (snd) {
+      /* the sound itself, where it plays: its shape, as loud as its line says */
+      const shape = (state.shapes || {})[snd.sound], from = (snd.at || 0) + start, length = soundLength(snd);
+      const [x0, x1] = soundSpan(name, w);
+      ctx.fillStyle = 'rgba(79, 163, 224, 0.12)'; ctx.fillRect(x0, TOP - 2, x1 - x0, h - TOP + 2);
+      ctx.fillStyle = 'rgba(79, 163, 224, 0.5)';
+      const peaks = (shape && shape.peaks) || [], floor = y(range[0]);
+      for (let x = Math.max(x0, 0); x < Math.min(x1, w) && peaks.length; x += 2) {
+        const along = ((pt(x, w) - from) / length) % 1, peak = peaks[Math.min(Math.floor(along * peaks.length), peaks.length - 1)];
+        const top = y(range[0] + (valueAt(v, pt(x, w) - start) - range[0]) * peak);
+        ctx.fillRect(x, top, 1.5, floor - top);
+      }
+    }
+    /* its line: brighter where it counts (a sound: while it plays) */
+    const [a, b] = snd ? soundSpan(name, w) : [px(start, w), w];
+    for (const [from, to, colour] of [[Math.max(px(start, w), 0), w, snd ? '#2f5f84' : '#4fa3e0'], [a, b, '#4fa3e0']]) {
+      if (to <= from) continue;
+      ctx.strokeStyle = colour; ctx.lineWidth = 2; ctx.beginPath();
+      for (let x = from, first = true; x <= to + 2; x += 3, first = false) { const yy = y(valueAt(v, pt(Math.min(x, to), w) - start)); first ? ctx.moveTo(x, yy) : ctx.lineTo(Math.min(x, to), yy); }
+      ctx.stroke(); ctx.lineWidth = 1;
+    }
+    ctx.fillStyle = '#9fd0f5';
+    for (const key of (k.keys || [])) { ctx.beginPath(); ctx.arc(px(key[0] + start, w), y(key[1]), 4.5, 0, 7); ctx.fill(); }
+  }
+  ctx.strokeStyle = '#e8913a'; ctx.lineWidth = 2;
+  const nx = px(nowT, w);
+  ctx.beginPath(); ctx.moveTo(nx, 0); ctx.lineTo(nx, h); ctx.stroke(); ctx.lineWidth = 1;
+  /* its name and its value now, top left (over everything, the time line too) */
+  const now = snd ? (nowT >= (snd.at || 0) + start ? r3(valueAt(v, localNow())) : null) : (momentOf(name) !== null ? r4(v) + ' s' : tidy(name, valueAt(v, localNow())));
+  const label = (snd ? '♪ ' + snd.sound + (snd.loop ? ' (loop)' : '') + ' · at ' + r3((snd.at || 0) + start) + ' s' : name)
+              + (now !== null ? '  ' + (snd ? 'loudness ' : '') + now : '') + (!snd && !inTimeline(name) ? '  (not set: its standard value)' : '');
+  ctx.fillStyle = on ? 'rgba(22, 32, 43, 0.85)' : 'rgba(13, 15, 18, 0.85)';
+  ctx.fillRect(2, 1, ctx.measureText(label).width + 8, TOP - 1);
+  ctx.fillStyle = on ? '#d8dce3' : (!snd && !inTimeline(name) ? '#5d6572' : '#aab2bf');
+  ctx.fillText(label, 6, TOP - 3);
+  /* the solo button */
+  ctx.globalAlpha = 1;
+  const bx = w - SOLO_W - 4, by = 1;
+  ctx.beginPath(); ctx.roundRect(bx + 0.5, by + 0.5, SOLO_W, SOLO_H, 3);
+  if (soloed) { ctx.fillStyle = '#e8913a'; ctx.fill(); } else { ctx.fillStyle = 'rgba(13, 15, 18, 0.85)'; ctx.fill(); ctx.strokeStyle = '#3a404a'; ctx.stroke(); }
+  ctx.font = '11px system-ui'; ctx.fillStyle = soloed ? '#111317' : '#8a92a0';
+  ctx.fillText('solo', bx + (SOLO_W - ctx.measureText('solo').width) / 2, by + 10.5);
+}
+
+/* ---- using the lanes with the mouse ---- */
+function mouseIn(canvas, e) { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left) * canvas.width / r.width, (e.clientY - r.top) * canvas.height / r.height]; }
+function nearestDot(name, p, w) {
+  if (momentOf(name) !== null) return -1;
+  const k = keysOf(getValue(name));
+  if (!k.keys) return -1;
+  const range = span(name);
+  let best = -1, d = 12;
+  k.keys.forEach((key, i) => { const dd = Math.hypot(px(key[0] + seqStart(), w) - p[0], py(name, key[1], range) - p[1]); if (dd < d) { d = dd; best = i; } });
+  return best;
+}
+const snap = (t) => Math.round(t * 20) / 20;
+let drag = null;        /* { lane, kind: 'dot' | 'moment' | 'level' | 'sound' | 'time', ... } */
+function hookLane(lane) {
+  const canvas = lane.canvas;
+  canvas.onmousedown = (e) => {
+    if (e.button !== 0) return;
+    const name = lane.name, w = canvas.width, p = mouseIn(canvas, e);
+    if (onSolo(canvas, p)) { toggleSolo(name); return; }
+    if (selected !== name) select(name);
+    const stop = () => { if (playing) setPlaying(false); };
+    if (momentOf(name) !== null && Math.abs(px(momentOf(name), w) - p[0]) < 12) { drag = { lane, kind: 'moment' }; stop(); return; }
+    const dot = nearestDot(name, p, w);
+    if (dot >= 0) { drag = { lane, kind: 'dot', dot, range: span(name) }; stop(); return; }
+    const v = getValue(name);
+    if (typeof v === 'number' && momentOf(name) === null && Math.abs(py(name, v) - p[1]) < 7 && p[0] >= px(seqStart(), w)) {
+      drag = { lane, kind: 'level', range: span(name) }; stop(); return;                /* a value all the time: up or down */
+    }
+    const snd = soundOf(name), within = soundSpan(name, w);
+    if (snd && p[0] >= within[0] - 4 && p[0] <= within[1] + 4) {
+      /* the sound: moved along when dragged (a click without moving: go to that moment) */
+      drag = { lane, kind: 'sound', x: p[0], at: snd.at || 0, volume: snd.volume === undefined ? undefined : JSON.stringify(snd.volume), moved: false };
+      return;
+    }
+    drag = { lane, kind: 'time' };
+    goTo(Math.min(Math.max(pt(p[0], w), BEFORE), LENGTH));
+  };
+  canvas.ondblclick = (e) => {
+    /* a new dot where it was double-clicked; a value the same all the time starts to change */
+    const name = lane.name, w = canvas.width;
+    if (momentOf(name) !== null || onSolo(canvas, mouseIn(canvas, e))) return;
+    const snd = soundOf(name), v = getValue(name);
+    let k = keysOf(v);
+    if (k.constant !== undefined) k = { keys: [[snd ? (snd.at || 0) : 0, k.constant]], curve: 'smooth' };
+    const p = mouseIn(canvas, e), [min, max] = rangeOf(name);
+    const t = snap(pt(p[0], w) - seqStart());
+    if (t < 0 || k.keys.some((key) => Math.abs(key[0] - t) < 0.1)) return;
+    const value = valueY(name, p[1]);
+    k.keys.push([t, Math.min(Math.max(snd ? r3(value) : tidy(name, value), min), max)]);
+    k.keys.sort((a, b) => a[0] - b[0]);
+    setValue(name, pack(k.keys, k.curve));
+    changed();
+    if (snd) renderSounds();
+  };
+  canvas.onmousemove = (e) => {
+    /* over the solo button: it says what it does */
+    const over = onSolo(canvas, mouseIn(canvas, e));
+    canvas.style.cursor = over ? 'pointer' : '';
+    canvas.title = !over ? '' : isSolo(lane.name) ? 'isolated: only the lanes switched to solo play (click: not any more)'
+                                                 : 'solo: play only this (with any other lane switched to solo); click again: everything';
+  };
+  canvas.oncontextmenu = (e) => {
+    e.preventDefault();
+    const name = lane.name, i = nearestDot(name, mouseIn(canvas, e), canvas.width);
+    if (i < 0) return;
+    const k = keysOf(getValue(name));
+    if (k.keys.length <= 1) return;
+    k.keys.splice(i, 1);
+    setValue(name, pack(k.keys, k.curve));
+    changed();
+  };
+}
+window.addEventListener('mousemove', (e) => {
+  if (!drag) return;
+  const { lane, kind } = drag, name = lane.name, canvas = lane.canvas, w = canvas.width, p = mouseIn(canvas, e);
+  const [min, max] = rangeOf(name);
+  if (kind === 'time') { goTo(Math.min(Math.max(pt(p[0], w), BEFORE), LENGTH)); return; }
+  if (kind === 'moment') {
+    setValue(name, Math.min(Math.max(snap(pt(p[0], w) - momentAt(TIME[name])), min), max));
+    changed(); return;
+  }
+  if (kind === 'level') {
+    const v = valueY(name, p[1], drag.range);
+    setValue(name, Math.min(Math.max(soundOf(name) ? r3(v) : tidy(name, v), min), max));
+    changed(); if (soundOf(name)) renderSounds();
+    return;
+  }
+  if (kind === 'sound') {
+    const snd = soundOf(name);
+    if (!snd) { drag = null; return; }
+    if (!drag.moved && Math.abs(p[0] - drag.x) < 4) return;
+    if (!drag.moved && playing) setPlaying(false);
+    drag.moved = true;
+    /* (not before the timeline's own 0; its loudness curve goes with it) */
+    const shift = Math.max(snap(pt(p[0], w) - pt(drag.x, w)), -drag.at);
+    snd.at = r3(drag.at + shift);
+    const volume = drag.volume === undefined ? undefined : JSON.parse(drag.volume);
+    if (volume !== undefined && typeof volume !== 'number') {
+      const k = keysOf(volume);
+      snd.volume = pack(k.keys.map((key) => [key[0] + shift, ...key.slice(1)]), k.curve);
+    }
+    changed(); renderSounds();
+    return;
+  }
+  if (kind === 'dot') {
+    const k = keysOf(getValue(name)), keys = k.keys, i = drag.dot;
+    if (!keys || !keys[i]) { drag = null; return; }
+    const left = i > 0 ? keys[i - 1][0] + 0.05 : 0, right = i < keys.length - 1 ? keys[i + 1][0] - 0.05 : LENGTH - seqStart();
+    keys[i][0] = Math.min(Math.max(snap(pt(p[0], w) - seqStart()), left), right);
+    keys[i][1] = Math.min(Math.max(valueY(name, p[1], drag.range), min), max);
+    setValue(name, pack(keys, k.curve));
+    changed(); if (soundOf(name)) renderSounds();
+  }
+});
+window.addEventListener('mouseup', () => {
+  if (drag && drag.kind === 'sound' && !drag.moved) goTo(Math.min(Math.max(pt(drag.x, drag.lane.canvas.width), BEFORE), LENGTH));
+  drag = null;
+});
+/* the ruler: click or drag to go to a moment */
+ruler.onmousedown = (e) => {
+  if (e.button !== 0) return;
+  const move = (ev) => goTo(Math.min(Math.max(pt(mouseIn(ruler, ev)[0], ruler.width), BEFORE), LENGTH));
+  move(e);
+  const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+  window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+};
+/* zoom: Ctrl + wheel (round the mouse), the buttons; Shift + wheel (or sideways): along in time */
+function setView(from, to) {
+  const length = LENGTH - BEFORE, wide = Math.min(Math.max(to - from, 1), length);
+  if (wide >= length - 1e-6) view = null;
+  else { from = Math.min(Math.max(from, BEFORE), LENGTH - wide); view = [from, from + wide]; }
+  $('zoomOut').disabled = $('fit').disabled = view === null;
+  drawLanes();
+}
+function zoom(factor, around) {
+  const from = viewFrom(), to = viewTo(), at = around === undefined ? (from + to) / 2 : around;
+  setView(at - (at - from) * factor, at + (to - at) * factor);
+}
+for (const el of [lanesBox, ruler]) {
+  el.addEventListener('wheel', (e) => {
+    const w = laneWidth(), r = el.getBoundingClientRect();
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      zoom(e.deltaY > 0 ? 1.25 : 0.8, pt((e.clientX - r.left) * w / r.width, w));
+    } else if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      if (!view) return;
+      e.preventDefault();
+      const d = (e.shiftKey ? e.deltaY || e.deltaX : e.deltaX) / w * (viewTo() - viewFrom());
+      setView(viewFrom() + d, viewTo() + d);
+    }
+  }, { passive: false });
+}
+$('zoomIn').onclick = () => zoom(0.5, nowT >= viewFrom() && nowT <= viewTo() ? nowT : undefined);
+$('zoomOut').onclick = () => zoom(2);
+$('fit').onclick = () => setView(BEFORE, LENGTH);
+/* playing while zoomed in: the shown part follows the time */
+function keepNowInView() {
+  if (!view || nowT >= viewFrom() && nowT <= viewTo()) return;
+  const wide = viewTo() - viewFrom();
+  setView(nowT - wide * 0.1, nowT + wide * 0.9);
+}
+/* the panel on the right: hidden for more room (remembered) */
+function showPanel(on) {
+  document.querySelector('main').classList.toggle('wide', !on);
+  $('panelToggle').textContent = on ? 'Hide panel ▸' : '◂ Show panel';
+  $('panelToggle').title = on ? 'hide the effects, sounds and files on the right: more room for the picture and the time line'
+                              : 'show the effects, sounds and files again';
+  try { localStorage.setItem('panelHidden', on ? '' : '1'); } catch (error) { /* (not kept) */ }
+}
+$('panelToggle').onclick = () => showPanel(document.querySelector('main').classList.contains('wide'));
+try { if (localStorage.getItem('panelHidden')) showPanel(false); } catch (error) { /* (shown) */ }
+/* the line between the picture and the lanes: dragged up or down */
+(function splitter() {
+  const bar = $('split'), box = $('curveBox');
+  try { const h = parseFloat(localStorage.getItem('lanesHeight')); if (h > 0) box.style.flex = '0 1 ' + h + 'px'; } catch (error) { /* (no storage: the standard size) */ }
+  bar.onmousedown = (e) => {
+    e.preventDefault();
+    const startY = e.clientY, startH = box.getBoundingClientRect().height;
+    const move = (ev) => {
+      const room = box.parentElement.getBoundingClientRect().height - 230 - 14;
+      const h = Math.min(Math.max(startH - (ev.clientY - startY), 120), room);
+      box.style.flex = '0 1 ' + h + 'px';
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up);
+      try { localStorage.setItem('lanesHeight', box.getBoundingClientRect().height); } catch (error) { /* (not kept) */ }
+    };
+    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+  };
+  /* double-click on the picture: the lanes put away, the picture as big as the window lets it; again: back */
+  $('view').ondblclick = () => document.querySelector('main').classList.toggle('bigpic');
+})();
+
+/* ---- time. Paused: this page says what moment the engine shows (drag, click). Playing: the
+ *      engine runs in real time, with sound, and the page follows it ---- */
+/* the named moments under the slider: the engine's (worked out there from the map and the timeline) */
+function moments() { return MOMENTS; }
+function renderMarks() {
+  const box = $('marks');
+  box.innerHTML = '';
+  for (const m of moments()) {
+    const s = document.createElement('span');
+    s.textContent = m.label;
+    const along = (m.t - BEFORE) / (LENGTH - BEFORE);
+    s.style.left = (along * 100) + '%';
+    if (along < 0.08) s.style.transform = 'translateX(-8px)';              /* at the start: from its place rightwards */
+    else if (along > 0.92) s.style.transform = 'translateX(calc(-100% + 8px))';   /* at the end: leftwards */
+    s.onclick = () => goTo(m.t);
+    box.appendChild(s);
+  }
+  /* two that would print over each other (moments close together): the later one a line lower */
+  let lastRight = -1e9, lowered = false;
+  for (const s of box.children) {
+    const r = s.getBoundingClientRect();
+    if (r.left < lastRight + 6 && !lowered) { s.style.top = '15px'; lowered = true; }
+    else { lowered = false; lastRight = r.right; }
+  }
+  box.style.height = [...box.children].some((s) => s.style.top) ? '32px' : '';
+}
+function firstSound() {
+  /* when the first sound of the timelines starts, on the clock (null: none), as the engine has them */
+  return FIRST_SOUND >= 0 ? r3(FIRST_SOUND) : null;
+}
+function quiet() {
+  /* playing, and nothing to hear yet: say so (it looks like the sound is broken) */
+  if (!playing) return '';
+  const first = firstSound();
+  if (nowT < seqStart() && !SILENT) return '';      /* (before the timeline starts, the scene's own sounds) */
+  if (first === null) return ' · <span class="muted">no sound: the timelines have none</span>';
+  return nowT < first ? ' · <span class="muted">silent on purpose until its first sound, at ' + first + ' s</span>' : '';
+}
+function describe() { return describeTime() + quiet() + (solo.size ? ' · <span style="color:var(--accent)">only ' + soloNames().join(', ') + ' plays</span>' : ''); }
+function describeTime() {
+  if (trouble) return '<span style="color:var(--bad)">' + trouble + '</span>';
+  /* the time, then where that is among the named moments: after the last one, before the next */
+  const past = MOMENTS.filter((m) => m.t <= nowT + 1e-6).pop(), next = MOMENTS.find((m) => m.t > nowT + 1e-6);
+  const parts = ['<b>' + nowT.toFixed(1) + ' s</b>'];
+  if (past) parts.push(nowT - past.t < 0.05 ? 'at ' + past.label : (nowT - past.t).toFixed(1) + ' s after ' + past.label);
+  if (next) parts.push(next.label + ' in ' + (next.t - nowT).toFixed(1) + ' s');
+  return parts.join(' · ');
+}
+let seekTimer = null;
+function sendSeek() {
+  if (seekTimer) return;
+  seekTimer = setTimeout(() => { seekTimer = null; Live.seek(nowT); }, 30);
+}
+function showTime() {
+  if (playing) keepNowInView();
+  if (document.activeElement !== $('scrub') || playing) $('scrub').value = nowT;
+  $('when').innerHTML = describe();
+  refreshValues(); drawCurve();
+}
+function goTo(t) {
+  if (playing) setPlaying(false);
+  nowT = t;
+  sendSeek();
+  showTime();
+}
+$('scrub').oninput = () => {
+  if (playing) setPlaying(false);
+  nowT = parseFloat($('scrub').value);
+  sendSeek();
+  $('when').innerHTML = describe();
+  refreshValues(); drawCurve();
+};
+let playSince = 0;
+function setPlaying(on) {
+  playing = on;
+  $('play').textContent = on ? 'Pause' : 'Play';
+  if (on) { playSince = performance.now(); Live.play(nowT >= LENGTH - 0.05 ? (nowT = BEFORE) : nowT); }
+  else Live.pause();
+  $('when').innerHTML = describe();
+}
+$('play').onclick = () => setPlaying(!playing);
+window.addEventListener('keydown', (e) => {
+  const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) && e.target.type !== 'range' && e.target.type !== 'checkbox';
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.code === 'KeyZ' && !typing) { e.preventDefault(); $('undo').click(); return; }
+  if (e.code === 'Space' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault();
+    if (e.target instanceof HTMLButtonElement || e.target instanceof HTMLSelectElement) e.target.blur();
+    if (!e.repeat) setPlaying(!playing);
+  }
+});
+$('play').title = 'play / pause (space bar)';
+let camTimer = null, cameraMoved = false, cameraShown = false;
+/* the sliders start where the engine's camera is looking (its state: [x, y, z, turn, up/down]) */
+function useCamera(e) {
+  if (cameraShown || cameraMoved || !e || !Array.isArray(e.camera)) return;
+  cameraShown = true;
+  let turn = e.camera[3] % 360;
+  if (turn > 180) turn -= 360; else if (turn < -180) turn += 360;
+  $('yaw').value = turn; $('pitch').value = e.camera[4];
+}
+const sendCamera = () => post('/api/camera', { yaw: parseFloat($('yaw').value), pitch: parseFloat($('pitch').value) });
+for (const id of ['yaw', 'pitch']) {
+  $(id).oninput = () => {
+    clearTimeout(camTimer);
+    cameraMoved = true;
+    camTimer = setTimeout(sendCamera, 40);
+  };
+}
+/* the engine: its picture and its time, kept where this page says (see live.js) */
+let trouble = null;
+function follow() {
+  Live.start({
+    img: $('view'),
+    wanted: () => ({ playing, t: nowT }),
+    /* the engine was restarted: the editor gives it the timeline; the camera is the page's */
+    resync: async () => {
+      if (cameraMoved) await sendCamera();
+      showStatus();
+    },
+    /* the editor was restarted: start again from what it has (the saved files), not an old copy */
+    reload: () => {
+      try { sessionStorage.setItem('timelineEditorAt', String(nowT)); } catch (error) { /* (then from 0) */ }
+      unsaved = false; location.reload();
+    },
+    onEngine: (e) => {
+      useTimeline(e);
+      useCamera(e);
+      if (playing) {
+        /* (just after Play the engine's state can still be the old one: not the end yet) */
+        if (performance.now() - playSince < 700 && Math.abs(e.t - nowT) > 1) return;
+        nowT = Math.min(e.t, LENGTH);
+        if (e.t >= LENGTH) setPlaying(false);
+        showTime();
+      }
+    },
+    message: (text) => { trouble = text; $('when').innerHTML = describe(); },
+  });
+}
+
+/* ---- sounds ---- */
+function highlightSoundRows() {
+  for (const row of document.querySelectorAll('#sounds tr.sound')) row.classList.toggle('on', row.dataset.name === selected);
+}
+function renderSounds() {
+  const table = $('sounds'), s = seq();
+  table.innerHTML = '<tr><th>at (s)</th><th>sound</th><th>pitch</th><th>loop</th><th>loudness</th><th>heard from</th><th></th></tr>';
+  if (!s) return;
+  const anchors = (state.schema || {}).anchors || [];
+  (s.sounds || []).forEach((snd, i) => {
+    const tr = document.createElement('tr');
+    const cell = (el) => { const td = document.createElement('td'); td.appendChild(el); tr.appendChild(td); return el; };
+    const num = (v, spec, set) => {
+      const e = document.createElement('input'); e.type = 'number'; e.value = v;
+      if (spec) { e.min = spec.min; e.max = spec.max; e.step = (spec.max - spec.min) / 60; } else e.step = 0.1;
+      e.onchange = () => {
+        let x = parseFloat(e.value);
+        if (!isFinite(x)) { e.value = v; return; }                          /* (cleared: as it was) */
+        if (spec) x = Math.min(Math.max(x, spec.min), spec.max);
+        set(x); v = x; e.value = x; changed();
+      };
+      return e;
+    };
+    cell(num(r3((snd.at || 0) + seqStart()), null, (v) => snd.at = r3(Math.max(v - seqStart(), 0))));      /* (shown on the clock) */
+    const pick = document.createElement('select');
+    for (const name of state.sounds) { const o = document.createElement('option'); o.textContent = name; pick.appendChild(o); }
+    pick.value = snd.sound; pick.onchange = () => { snd.sound = pick.value; changed(); };
+    cell(pick);
+    cell(num(snd.pitch === undefined ? soundStandard('pitch') : snd.pitch, soundSpec('pitch'), (v) => snd.pitch = v));
+    const loop = document.createElement('input'); loop.type = 'checkbox'; loop.checked = !!snd.loop;
+    loop.onchange = () => { snd.loop = loop.checked; changed(); };
+    cell(loop);
+    /* loudness: the same all the time (a number), or changing while it plays (∿: its line in the graph) */
+    const loud = document.createElement('div'); loud.className = 'loud';
+    const level = typeof snd.volume === 'number' || snd.volume === undefined;
+    const mode = document.createElement('button'); mode.className = 'mode';
+    mode.textContent = level ? '—' : '∿';
+    mode.title = level ? 'the same all the time (click: let it change while it plays)' : 'changes while it plays (click: the same all the time)';
+    mode.onclick = () => toggleSoundCurve(i);
+    loud.appendChild(mode);
+    if (level) {
+      loud.appendChild(num(snd.volume === undefined ? soundStandard('volume') : snd.volume, soundSpec('volume'), (v) => snd.volume = v));
+    } else {
+      const edit = document.createElement('button');
+      edit.textContent = 'curve'; edit.title = 'its loudness changes over time: show it in the time line below';
+      edit.onclick = () => select('sound:' + i);
+      loud.appendChild(edit);
+    }
+    cell(loud);
+    /* where it is heard from: the places the engine offers (none: all round) */
+    const from = document.createElement('select');
+    for (const a of anchors) { const o = document.createElement('option'); o.value = a.name; o.textContent = a.label; o.title = a.about || ''; from.appendChild(o); }
+    const explain = () => { const a = anchors.find((x) => x.name === from.value); from.title = a ? (a.about || a.label) : ''; };
+    if (snd.anchor && !anchors.some((a) => a.name === snd.anchor)) { const o = document.createElement('option'); o.value = o.textContent = snd.anchor; from.appendChild(o); }
+    from.value = snd.anchor || '';
+    explain();
+    from.onchange = () => {
+      explain();
+      if (from.value) { snd.anchor = from.value; if (snd.radius === undefined && soundStandard('radius') !== undefined) snd.radius = soundStandard('radius'); }
+      else { delete snd.anchor; delete snd.radius; }
+      changed();
+    };
+    cell(from);
+    const del = document.createElement('button'); del.textContent = '×'; del.className = 'danger'; del.title = 'remove this sound';
+    del.style.padding = '3px 7px';
+    del.onclick = () => { s.sounds.splice(i, 1); soundRemoved(i); if (selected && selected.startsWith('sound:')) selected = null; showSelected(); changed(); renderSounds(); };
+    cell(del);
+    /* clicking a sound's row shows it in the graph below */
+    tr.className = 'sound' + (selected === 'sound:' + i ? ' on' : '');
+    tr.title = 'click to see it in the graph below';
+    tr.dataset.name = 'sound:' + i;
+    tr.onmousedown = () => { if (selected !== 'sound:' + i) select('sound:' + i); };     /* (the table is not rebuilt: a box being clicked keeps its focus) */
+    table.appendChild(tr);
+  });
+}
+$('addSound').onclick = () => {
+  const s = seq();
+  if (!s) return;
+  if (nowT < seqStart() - 1e-6) { showStatus('this timeline starts at ' + r3(seqStart()) + ' s: go there or later to add a sound', 'bad'); return; }
+  s.sounds = s.sounds || [];
+  const sound = { at: r3(localNow()), sound: state.sounds[0] };
+  if (soundStandard('volume') !== undefined) sound.volume = soundStandard('volume');
+  if (soundStandard('pitch') !== undefined) sound.pitch = soundStandard('pitch');
+  s.sounds.push(sound);
+  selected = 'sound:' + (s.sounds.length - 1);
+  showSelected(); changed(); renderSounds();
+};
+
+/* ---- files ---- */
+function renderFiles() {
+  const box = $('files');
+  box.innerHTML = '';
+  if (!state.entries.length) { box.innerHTML = '<div class="muted">No timeline files: the map plays nothing.</div>'; return; }
+  state.entries.forEach((entry, ei) => (entry.sequences.length ? entry.sequences : [null]).forEach((s, si) => {
+    const div = document.createElement('div');
+    div.className = 'file';
+    const isCurrent = ei === current.entry && si === current.seq;
+    div.innerHTML = '<div><b></b></div><div class="path"></div><div class="row" style="margin-top:6px"></div>';
+    div.querySelector('b').textContent = !s ? 'nothing in it (the file is missing or empty)'
+      : (s.name || 'timeline') + (isCurrent ? '  (the one shown)' : '');
+    div.querySelector('.path').textContent = entry.file || 'kept inside the map';
+    const about = entry.file && state.notes && state.notes[entry.file];
+    if (about) {
+      const note = document.createElement('div');
+      note.className = 'muted'; note.style.marginTop = '4px'; note.textContent = about;
+      div.insertBefore(note, div.lastChild);
+    }
+    const row = div.querySelector('.row');
+    if (!isCurrent && s) {
+      const edit = document.createElement('button'); edit.textContent = 'Show this one';
+      edit.onclick = () => { current = { entry: ei, seq: si }; selected = null; renderAll(); };
+      row.appendChild(edit);
+    }
+    if (entry.file && si === 0 && (state.entries.length > 1 || !s)) {
+      const remove = document.createElement('button'); remove.textContent = 'Stop playing it in this map'; remove.className = 'danger';
+      remove.onclick = async () => {
+        if (!confirm('The map stops playing ' + entry.file + '.\nThe file itself stays on disk; "Add a timeline file" brings it back.')) return;
+        await sendPending();
+        const r = await post('/api/remove', { entry: ei });
+        if (!r.ok) return;
+        state.entries = r.entries; state.saved = r.saved; state.others = r.others; current = { entry: 0, seq: 0 }; selected = null;
+        timelinesReplaced(); renderAll();
+        showStatus('the map no longer plays ' + r.removed, 'ok');
+      };
+      row.appendChild(remove);
+    }
+    box.appendChild(div);
+  }));
+  /* the other timeline files on disk: an earlier version to go back to, one made with Save as */
+  const others = state.others || [];
+  if (others.length && state.entries[current.entry]) {
+    const playing = state.entries[current.entry].file ? state.entries[current.entry].file.split('/').pop() : 'the one in the map';
+    const head = document.createElement('div');
+    head.className = 'muted'; head.style.margin = '14px 0 6px';
+    head.textContent = 'Other versions on disk (made with "Save as…"). The map plays one at a time; nothing switches unless you press a button here:';
+    box.appendChild(head);
+    for (const other of others) {
+      if (other.note) (state.notes = state.notes || {})[other.file] = other.note;      /* (kept for when the map plays it) */
+      const div = document.createElement('div');
+      div.className = 'file';
+      div.innerHTML = '<div><b></b></div><div class="path"></div><div class="row" style="margin-top:6px"><button></button></div>';
+      div.querySelector('b').textContent = other.name || other.file.split('/').pop();
+      div.querySelector('.path').textContent = other.file + '  ·  saved ' + other.modified;
+      if (other.note) {
+        const note = document.createElement('div');
+        note.className = 'muted'; note.style.marginTop = '4px'; note.textContent = other.note;
+        div.insertBefore(note, div.lastChild);
+      }
+      const button = div.querySelector('button');
+      button.textContent = 'Play this one instead of ' + playing;
+      button.onclick = async () => {
+        const lost = changes();
+        if (lost.length && !confirm('Unsaved changes (' + lost.join(', ') + ') will be lost. Switch anyway?')) return;
+        clearTimeout(applyTimer); applyTimer = null;          /* (its unsaved changes are dropped) */
+        const r = await post('/api/switch', { entry: current.entry, file: other.file });
+        if (!r.ok) { showStatus(r.error, 'bad'); return; }
+        state.entries = r.entries; state.saved = r.saved; state.others = r.others;
+        timelinesReplaced();
+        selected = null; renderAll();
+        showStatus('the map now plays ' + other.file.split('/').pop(), 'ok');
+      };
+      box.appendChild(div);
+    }
+  }
+}
+$('addFileButton').onclick = () => $('addFile').click();
+$('addFile').onchange = async () => {
+  const file = $('addFile').files[0];
+  $('addFile').value = '';
+  if (!file) return;
+  await sendPending();
+  const r = await post('/api/add', { filename: file.name, content: await file.text() });
+  if (!r.ok) { showStatus(r.error, 'bad'); return; }
+  state.entries = r.entries; state.saved = r.saved; state.others = r.others;
+  current = { entry: state.entries.length - 1, seq: 0 };
+  timelinesReplaced();
+  selected = null; renderAll();
+  showStatus('the map now also plays ' + r.file, 'ok');
+};
+
+function pickCurrent() {
+  /* the one shown: as it was if it still exists, else the first that has a timeline */
+  const has = (c) => state.entries[c.entry] && state.entries[c.entry].sequences[c.seq];
+  if (has(current)) return;
+  if (state.entries[current.entry] && state.entries[current.entry].sequences.length) { current = { entry: current.entry, seq: 0 }; return; }
+  const first = state.entries.findIndex((e) => e.sequences.length);
+  current = { entry: Math.max(first, 0), seq: 0 };
+}
+function renderAll() {
+  pickCurrent();
+  /* the help lines: with the server's folder and the engine's name for the timeline's 0 */
+  $('soundsHelp').textContent = 'Each sound starts at its time: seconds from the start. Click a sound to find it in the time line below, where you can move it and set how loud it is.';
+  $('filesHelp').textContent = 'The map plays these timeline files (they live in ' + state.folder + '). Save writes your changes into them.';
+  $('addHelp').textContent = 'Adding copies the file into ' + state.folder + ' and makes the map play it too.';
+  const s = seq();
+  $('map').textContent = state.map.split('/').pop() + (s ? '  ·  ' + (state.entries[current.entry].file || 'in the map').split('/').pop() : '');
+  renderEffects(); renderSounds(); renderFiles(); renderMarks(); showSelected(); showTime();
+}
+
+(async function start() {
+  state = await (await fetch('/api/state')).json();
+  useParams(state.params || []);
+  useTimeline(state.engine);
+  before = JSON.stringify(state.entries);
+  renderAll();
+  showStatus();
+  post('/api/solo', { params: [], sounds: [] });      /* (nothing isolated: an engine still isolating from before plays all again) */
+  {
+    /* paused, silent until Play: at 0, or where the page was before it reloaded (the editor restarted) */
+    let at = 0;
+    try { at = parseFloat(sessionStorage.getItem('timelineEditorAt')) || 0; sessionStorage.removeItem('timelineEditorAt'); } catch (error) { /* 0 */ }
+    nowT = Math.min(Math.max(at, 0), LENGTH);
+    await Live.pause();
+    await Live.seek(nowT);
+    showTime();
+  }
+  follow();
+})();
+</script>
+</body>
+</html>

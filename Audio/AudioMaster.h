@@ -39,10 +39,18 @@ class AudioMaster
         void setPosition(int voice, const glm::vec3 &position);   /* a 3D voice moves */
         void stop(int voice);                       /* fades out, then ends */
         bool isPlaying(int voice) const;
+        /* a voice ended at once, no fade (a sound that belongs to another moment after a jump) */
+        void cut(int voice);
+        /* everything held where it is / carrying on (the timeline editor's pause) */
+        void setPaused(bool paused);
+        /* the names of what is playing now, for whoever checks (e.g. "blast,storm_loop") */
+        std::string playing();
 
         /* the listener (camera); call once a frame: updates 3D voices */
         void setListener(const glm::vec3 &position, const glm::vec3 &forward, const glm::vec3 &up);
         void setMasterVolume(float volume) { m_master = volume; }
+        /* a fade over everything, on top of the master volume (1: none, 0: silent) */
+        void setFade(float gain) { m_fade = gain; }
         /* recording (F12): keeps a copy of everything mixed from now on */
         void startCapture();
         /* the mix since startCapture: interleaved stereo float at sampleRate() */
@@ -60,6 +68,7 @@ class AudioMaster
         struct Voice {
             int id = 0;
             const Sound *sound = nullptr;
+            std::string name;
             double position = 0.0;        /* in samples */
             float pitch = 1.0f;
             bool loop = false;
@@ -78,7 +87,8 @@ class AudioMaster
         std::map<std::string, Sound> m_sounds;
         std::vector<Voice> m_voices;
         int m_nextId = 1;
-        float m_master = 0.8f;
+        bool m_paused = false;
+        float m_master = 0.8f, m_fade = 1.0f;
         glm::vec3 m_listener = glm::vec3(0.0f), m_listenerRight = glm::vec3(1, 0, 0);
         bool m_capturing = false;
         std::vector<float> m_capture;

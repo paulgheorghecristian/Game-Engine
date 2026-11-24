@@ -128,7 +128,7 @@ uniform vec2 jetAxis;           /* the jets' direction across the disc (unit) */
 uniform float collapseFlash;    /* the ignition flash, 1 at ignition fading in real time */
 uniform float collapseTime;     /* seconds since Play / Restart: every playthrough is identical */
 uniform float formedTime;       /* seconds since the last of the moon fell in (< 0: not yet, or not seen) */
-uniform float debrisArrival;    /* seconds from then until its debris reaches the Earth (BlackHole::DEBRIS_ARRIVAL) */
+uniform float debrisShell;      /* the shell of its debris: 0 at the hole (none), 1 reached the horizon (us), 2 gone */
 uniform float collapseRate;     /* collapse per second while playing (to time the gulps' outbursts) */
 
 /* the hole's growth as the moon pours in (as BlackHole::kugelblitzGrowth) */
@@ -432,19 +432,25 @@ void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRa
         float t = formedTime;
         float burst = exp(-t * 1.1);
         result += vec3(1.0, 0.92, 0.8) * burst * (exp(-r * r / 0.6) * 7.0 + exp(-r * 0.3) * 0.9);
+    }
+    /* the shell of debris: how far it has got is debrisShell (the timeline's, or by default
+     * following the moon: RenderingMaster), not a clock, so it can be put anywhere in time */
+    if (debrisShell > 0.0 && debrisShell < 2.0) {
+        /* (the seconds it would have flown at the standard speed: its colour cools with them) */
+        float t = debrisShell <= 1.0 ? debrisShell * 8.0 : 8.0 + (debrisShell - 1.0) * 4.0;
 
         /* the shell expands from the moon towards us, its edge reaching the
-         * horizon (90 degrees) as it arrives, debrisArrival seconds on. It
-         * spreads across the sky at a steady angle per second (true
-         * perspective, asin(radius / distance), crawls in the middle and
-         * lurches at the end: it looked like it stopped, then sped up). In
-         * these gnomonic moon-radius units the edge is at tan(angle) / tan(moon) */
-        float reached = t / max(debrisArrival, 0.1);
+         * horizon (90 degrees) at debrisShell 1. It spreads across the sky at a
+         * steady angle as debrisShell grows steadily (true perspective,
+         * asin(radius / distance), crawls in the middle and lurches at the
+         * end: it looked like it stopped, then sped up). In these gnomonic
+         * moon-radius units the edge is at tan(angle) / tan(moon) */
+        float reached = debrisShell;
         float edgeAngle = min(reached, 0.995) * 1.5707963;
-        /* once it has passed us it keeps flying outwards (what is left in
-         * view streams away from the hole) and thins out over a few seconds */
-        float after = max(t - debrisArrival, 0.0);
-        float front = max(1.6 + t * 2.0, tan(edgeAngle) / tan(moonRadius)) * (1.0 + after * 0.8);
+        /* once it has passed us (1..2) it keeps flying outwards (what is left in
+         * view streams away from the hole) and thins out */
+        float after = max(debrisShell - 1.0, 0.0) * 4.0;
+        float front = max(1.6 + reached * 16.0, tan(edgeAngle) / tan(moonRadius)) * (1.0 + after * 0.8);
         float passed = smoothstep(0.85, 1.0, reached);                          /* it is all round us now */
         float gone = 1.0 - smoothstep(0.0, 4.0, after);
         float cool = exp(-t * 0.1);
@@ -470,12 +476,14 @@ void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRa
             vec3 fine = kbCellsWrapped(vec2(theta * 300.0, u * 1.6 + 3.0), 300.0);
             streak += smoothstep(0.28, 0.0, fine.x) * step(0.3, fine.z) * smoothstep(0.1, 0.7, u) *
                       (1.0 - smoothstep(0.85, 1.1, u)) * 0.5 * (1.0 - 0.6 * passed);
-            float glow = (shell * (0.06 + 2.4 * lump) + streak * 1.3) * fan * mix(0.35, 1.0, cool) * smoothstep(0.0, 0.3, t) *
-                         (1.0 - smoothstep(60.0, 90.0, t));
+            float glow = (shell * (0.06 + 2.4 * lump) + streak * 1.3) * fan * mix(0.35, 1.0, cool) * smoothstep(0.0, 0.3, t);
             result += hot * glow * 1.8 * gone;
             /* the dust it carries dims the stars behind it */
             color *= 1.0 - 0.3 * shell * fan * mix(0.4, 1.0, cool) * gone;
         }
+    }
+    if (formedTime >= 0.0 && formedTime < 90.0) {
+        float t = formedTime;
         /* the bound half: two arcs flung round the hole, lumpy, falling back */
         float bound = smoothstep(0.5, 3.0, t) * exp(-t * 0.03);
         float reach = 2.5 + 9.0 * (1.0 - exp(-t * 0.2));

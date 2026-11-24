@@ -47,6 +47,7 @@ class SoundScape
         int m_booms = 0;                      /* how many of the scheduled booms have played */
         float m_blastDue = -1.0f;             /* playback-clock time of the delayed blast (-1: none) */
         float m_lastPlayTime = 0.0f;
+        std::vector<int> m_oneShots;          /* the blast and booms still sounding (cut by a jump in time) */
 };
 
 #endif // SOUND_SCAPE_H

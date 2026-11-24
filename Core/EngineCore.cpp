@@ -121,6 +121,16 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
         }
     }
 
+    /* GE_REMOTE=<port>: driven from tools/timeline_editor.py (GE_SIZE: its picture) */
+    const char *remotePort = std::getenv("GE_REMOTE");
+    if (remotePort != NULL && m_benchFrames == 0) {
+        if (const char *size = std::getenv("GE_SIZE")) {
+            std::sscanf(size, "%dx%d", &screenWidth, &screenHeight);
+        }
+        isFullScreen = false;
+        this->warpMouse = false;
+    }
+
     /* this needs to be called first before doing anything with OpenGL */
     display = new Display (screenWidth, screenHeight, screenTitle, isFullScreen, updateRate, vSync);
     aspectRatio = (float) display->getWidth() / (float) display->getHeight();
@@ -415,9 +425,19 @@ void EngineCore::start() {
     unsigned int FPS = 0, UPS = 0;
     const bool printFps = std::getenv("GE_PRINT_FPS") != NULL;
 
-    /* the game starts with the GUI closed (F1 opens it) */
+    /* the game starts with the GUI closed (F1 opens it); driven by the
+     * timeline editor it leaves the mouse alone */
     inputManager.setWarpMouse(this->warpMouse);
-    setPlayMode(true);
+    if (const char *remotePort = std::getenv("GE_REMOTE")) {
+        if (m_remote.connect(std::atoi(remotePort))) {
+            inputManager.setIgnoreUser(true);      /* the editor drives it, nothing else */
+            /* what a timeline can hold, for the editor to build itself from */
+            m_remote.sendParameters("{\"parameters\": " + Aftermath::parametersJson() + ", \"anchors\": " +
+                                    Aftermath::anchorsJson() + ", \"sound\": " + Timeline::soundsJson() + "}");
+        }
+    } else {
+        setPlayMode(true);
+    }
 
     isRunning = true;
     auto start_time = HighResolutionClock::now();
@@ -467,9 +487,52 @@ void EngineCore::start() {
             unprocessed_time = 0; /* drop the backlog instead of falling further behind */
         }
 
+        /* the timeline editor: its commands; every so often a frame read back for it */
+        bool remoteFrame = false;
+        if (m_remote.connected()) {
+            remoteCommands();
+            double now = std::chrono::duration<double, std::milli>(frameStart.time_since_epoch()).count();
+            /* paused: the world stands still too, a moment after the last jump or edit (time
+             * for what that changed to show: particles, the eye) */
+            if (m_remoteTouched) {
+                m_remoteTouched = false;
+                m_remoteSettleUntil = now + 1200.0;
+            }
+            RenderingMaster::getInstance()->setWorldPaused(m_remotePaused && now >= m_remoteSettleUntil);
+            if (now >= m_remoteNextFrame) {
+                /* the next one a frame's time after this one was due (not after now: that
+                 * loses part of a frame every time and gives 25 a second for 30), without a
+                 * burst to catch up after a stall */
+                m_remoteNextFrame = std::max(m_remoteNextFrame + m_remoteFrameMs, now - m_remoteFrameMs);
+                m_remotePixels.resize((size_t) display->getWidth() * display->getHeight() * 4);
+                m_captureBeforeSwap = &m_remotePixels;
+                remoteFrame = true;
+            }
+            /* its state: just before every frame (the editor shows them together), and in between */
+            if (remoteFrame || now >= m_remoteNextState) {
+                m_remoteNextState = now + 200.0;
+                /* the scene's clock: seconds since the start */
+                float t = m_timeline.clock();
+                Camera *eye = RenderingMaster::getInstance()->getCamera();
+                glm::vec3 at = eye->getPosition(), turned = glm::degrees(eye->getRotation());
+                char numbers[240];
+                std::snprintf(numbers, sizeof(numbers),
+                              "{\"t\": %.3f, \"running\": %s, \"paused\": %s, \"volume\": %.2f, \"camera\": [%.1f, %.1f, %.1f, %.1f, %.1f], ",
+                              t, m_timeline.running() ? "true" : "false", m_remotePaused ? "true" : "false",
+                              AudioMaster::getInstance()->getMasterVolume(), at.x, at.y, at.z, turned.y, turned.x);
+                m_remote.sendState(std::string(numbers) + "\"sounds\": \"" + AudioMaster::getInstance()->playing() + "\", " +
+                                   Aftermath::timelineJson(m_timeline) + ", " + m_aftermath.appliedJson() + ", " +
+                                   RenderingMaster::getInstance()->stormState() + "}");
+            }
+        }
+
         PT_FromHere ("render");
         render ((float) (unprocessed_time / frame_time));
         PT_ToHere ("render");
+        if (remoteFrame) {
+            m_captureBeforeSwap = NULL;
+            m_remote.sendFrame(display->getWidth(), display->getHeight(), m_remotePixels.data());
+        }
         FPS++;
 
         if (m_maxRenderFps > 0) {
@@ -593,6 +656,9 @@ void EngineCore::endInterpolation() {
     for (auto &stashed : m_stashedLights) {
         stashed.first->getTransform() = stashed.second;
     }
+    m_stashedLights.clear();
+    /* the lights taken out during this frame (a fire gone out) can go now */
+    RenderingMaster::getInstance()->deleteRemovedLights();
     RenderingMaster::getInstance()->getCamera()->setPosition(m_tickCameraPosition);
 }
 
@@ -755,7 +821,9 @@ void EngineCore::render(float alpha) {
     /* the map's sequences, then what they drive, then their sounds */
     m_timeline.advance(RenderingMaster::getInstance()->getTime());
     if (m_aftermath.update(RenderingMaster::getInstance()->getCamera(), m_timeline) || m_timeline.fired("quit")) {
-        isRunning = false;   /* the Kugelblitz's ending: the game closes */
+        /* the Kugelblitz's ending: the game closes (not under tools/timeline_editor.py: there it is
+         * a moment to look at, and gone back from) */
+        if (!m_remote.connected()) isRunning = false;
     }
     m_timeline.playSounds(RenderingMaster::getInstance()->getCamera()->getPosition());
     RenderingMaster::getInstance()->prepareFrame(alpha);
@@ -999,6 +1067,12 @@ void EngineCore::update() {
         } else {
             ++it;
         }
+    }
+
+    if (RenderingMaster::getInstance()->isWorldPaused()) {
+        /* the timeline editor's pause: nothing moves; the storm's settings still apply */
+        RenderingMaster::getInstance()->update();
+        return;
     }
 
     std::vector<Light *> &lights = RenderingMaster::getInstance()->getLights();
@@ -1862,6 +1936,99 @@ void EngineCore::saveScreenshot(const std::string &path) {
     }
     stbi_write_png(path.c_str(), w, h, 4, flipped.data(), w * 4);
     printf("Screenshot saved to %s\n", path.c_str());
+}
+
+/* the sky Kugelblitz put at time t of its timeline: t >= 0 is after the last
+ * of the moon fell in (the storm), t < 0 during the collapse before it. Its
+ * own clock (what the sky animates on) is put there too, so scrubbing moves
+ * everything; from there it runs on (unless paused) */
+void EngineCore::seekScene(float t) {
+    /* everything as it is t seconds after the start, as if played from there: the timeline's
+     * clock, and the sky's Moon destruction (it waits collapseDelay, then falls in) */
+    t = std::max(t, 0.0f);
+    m_timeline.seek(t);
+    for (BlackHole *hole : RenderingMaster::getInstance()->blackHoles) {
+        if (!hole->sky || !hole->kugelblitz || hole->driven) continue;      /* (driven: the timeline puts it there) */
+        float rate = hole->collapseSpeed > 0.0f ? hole->collapseSpeed / 60.0f : 1.0f / 12.0f;
+        hole->playTime = t;
+        hole->delayElapsed = std::min(t, hole->collapseDelay);
+        float collapse = glm::clamp((t - hole->collapseDelay) * rate, 0.0f, 1.0f);
+        if (t >= hole->formationTime()) {
+            hole->collapse = 1.0f;
+            hole->playing = false;
+            hole->formedAt = hole->formationTime();
+        } else {
+            hole->collapse = std::min(collapse, 0.9999f);
+            hole->playing = true;
+            hole->formedAt = -1.0f;
+        }
+        hole->previousCollapse = hole->collapse;
+    }
+}
+
+/* tools/timeline_editor.py's commands, one JSON object a line:
+ *   {"cmd": "sequences", "json": [...]}   the timeline replaced (the clock and its sounds carry on)
+ *   {"cmd": "mute", "muted": true}        no sound (while the editor is not playing)
+ *   {"cmd": "seek", "t": 12.5}            the Kugelblitz put at that time of its timeline
+ *   {"cmd": "pause", "paused": true}      its clock stopped / running
+ *   {"cmd": "fps", "fps": 15}             how many frames a second it sends
+ *   {"cmd": "camera", "yaw": 16.8, "pitch": 10}  where the camera looks (degrees)
+ *   {"cmd": "solo", "params": [[0, "fog"]], "sounds": [[0, 3]]}   only these play (each: its sequence,
+ *                                         and its name / its index among the sequence's sounds); none: all */
+void EngineCore::remoteCommands() {
+    for (const std::string &line : m_remote.poll()) {
+        rapidjson::Document command;
+        if (command.Parse(line.c_str()).HasParseError() || !command.IsObject() || !command.HasMember("cmd") || !command["cmd"].IsString()) {
+            std::cout << "Remote: not a command: " << line.substr(0, 80) << std::endl;
+            continue;
+        }
+        std::string cmd = command["cmd"].GetString();
+        if (cmd == "sequences" && command.HasMember("json")) {
+            m_timeline.replace(command["json"]);
+            m_remoteTouched = true;
+        } else if (cmd == "mute" && command.HasMember("muted") && command["muted"].IsBool()) {
+            AudioMaster *audio = AudioMaster::getInstance();
+            if (command["muted"].GetBool()) {
+                if (m_remoteVolume < 0.0f) m_remoteVolume = audio->getMasterVolume();
+                audio->setMasterVolume(0.0f);
+            } else if (m_remoteVolume >= 0.0f) {
+                audio->setMasterVolume(m_remoteVolume);
+                m_remoteVolume = -1.0f;
+            }
+        } else if (cmd == "seek" && command.HasMember("t") && command["t"].IsNumber()) {
+            seekScene(command["t"].GetFloat());
+            m_remoteTouched = true;
+        } else if (cmd == "pause" && command.HasMember("paused") && command["paused"].IsBool()) {
+            m_remotePaused = command["paused"].GetBool();
+            RenderingMaster::getInstance()->setKugelblitzTimeScale(m_remotePaused ? 0.0f : 1.0f);
+            m_timeline.setTimeScale(m_remotePaused ? 0.0f : 1.0f);
+            AudioMaster::getInstance()->setPaused(m_remotePaused);      /* its sounds held where they are */
+        } else if (cmd == "solo") {
+            std::set<std::pair<int, std::string>> params;
+            std::set<std::pair<int, int>> sounds;
+            if (command.HasMember("params") && command["params"].IsArray()) {
+                for (const auto &p : command["params"].GetArray()) {
+                    if (p.IsArray() && p.Size() == 2 && p[0].IsInt() && p[1].IsString()) params.insert({ p[0].GetInt(), p[1].GetString() });
+                }
+            }
+            if (command.HasMember("sounds") && command["sounds"].IsArray()) {
+                for (const auto &p : command["sounds"].GetArray()) {
+                    if (p.IsArray() && p.Size() == 2 && p[0].IsInt() && p[1].IsInt()) sounds.insert({ p[0].GetInt(), p[1].GetInt() });
+                }
+            }
+            m_timeline.setSolo(params, sounds, Aftermath::isolatedOff());
+            m_remoteTouched = true;
+        } else if (cmd == "fps" && command.HasMember("fps") && command["fps"].IsNumber()) {
+            m_remoteFrameMs = 1000.0 / glm::clamp(command["fps"].GetDouble(), 1.0, 60.0);
+        } else if (cmd == "camera") {
+            Camera *camera = RenderingMaster::getInstance()->getCamera();
+            glm::vec3 r = camera->getRotation();
+            float pitch = command.HasMember("pitch") && command["pitch"].IsNumber() ? glm::radians(command["pitch"].GetFloat()) : r.x;
+            float yaw = command.HasMember("yaw") && command["yaw"].IsNumber() ? glm::radians(command["yaw"].GetFloat()) : r.y;
+            camera->setRotation(pitch, yaw, r.z);
+            m_remoteTouched = true;
+        }
+    }
 }
 
 void EngineCore::setPlayMode(bool play) {

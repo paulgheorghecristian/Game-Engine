@@ -1,6 +1,8 @@
 #include "Aftermath.h"
 
 #include <algorithm>
+#include <cstdio>
+#include <cstring>
 #include <cmath>
 #include <string>
 
@@ -129,6 +131,167 @@ static const float FIRE_HEIGHT[] = { 1.0f, 3.0f, 30.0f };
 static const int WATER_SPRAY = 3;
 static const int WALL_DUST = 4, WALL_EMBERS = 5, FALLING = 6, FALLING_COUNT = 6, STORM_DUST = 12, AT_PLAYER = 13;
 
+/* Everything the storm reads from the timeline: the one list of it. The storm
+ * code below reads them by name through value(); the timeline editor gets
+ * this list from the engine and builds its sliders from it. */
+static const std::vector<Aftermath::Parameter> PARAMETERS = {
+    /* name            group                 min  max   standard  what it does */
+    { "collapse",      "Moon",               0.0f, 1.0f, 0.0f, "How far the Moon has fallen into the black hole (0 = whole, 1 = gone: the black hole has formed). Not set: the map's own playback of it." },
+    { "wind",          "Wind",               0.0f, 1.5f, 0.0f, "How hard the gale blows: grass, trees, dust and smoke bend and stream with it." },
+    { "calm",          "Wind",               0.0f, 1.0f, 0.0f, "The map's own wind dropping (1 = almost still). Does not touch the gale (wind)." },
+    { "windTurn",      "Wind",               0.0f, 1.0f, 0.0f, "The wind turning to blow from the black hole (0 = the map's own wind, 1 = straight from the hole)." },
+    { "gustiness",     "Wind",               0.0f, 2.0f, 1.0f, "How much the gale and the rain swell and drop (0 = steady). Changes wind and rain only while they are on." },
+    { "waves",         "Wind",               0.0f, 1.5f, 0.0f, "How high the waves swell on the water." },
+    { "fog",           "Sky",                0.0f, 1.5f, 0.0f, "Storm fog: thicker, and reaching higher up." },
+    { "clouds",        "Sky",                0.0f, 1.5f, 0.0f, "Storm clouds: covering more of the sky and racing across it." },
+    { "debrisShell",   "Sky",                0.0f, 2.0f, 0.0f, "The Moon's debris spreading across the sky: 0 = at the black hole, 1 = it has reached you (the horizon), 2 = gone. Not set: it follows the Moon (it reaches you 8 s after the black hole formed)." },
+    { "ejecta",        "Sky",                0.0f, 1.0f, 0.0f, "Matter flying out of the black hole straight at you. Not set: it follows the Moon (as the last of it falls in, until the debris reaches you)." },
+    { "debrisRain",    "Debris",             0.0f, 1.5f, 0.0f, "The Moon's debris raining out of the sky, some of it straight at you." },
+    { "groundDebris",  "Debris",             0.0f, 1.5f, 0.0f, "Dust, chunks and embers flung along the ground, and spray off the water. They come from the black hole's side." },
+    { "wall",          "Debris",             0.0f, 1.5f, 0.0f, "A wall of dust and embers on the ground at the storm front. Only seen when frontDistance is small: far away it is hidden by the land." },
+    { "frontDistance", "Debris",             0.0f, 3000.0f, 0.0f, "How far away the storm front is (0 = it has reached you). The storm's roar comes from there, and the wall stands there." },
+    { "stormDust",     "Debris",             0.0f, 1.5f, 0.0f, "Thick billows of dust rushing past the camera. They come from the black hole's side." },
+    { "fires",         "Debris",             0.0f, 60.0f, 0.0f, "How many fires burn around you (a whole number; each takes a couple of seconds to grow)." },
+    { "dust",          "Dust and lightning", 0.0f, 1.0f, 0.0f, "How thick the dust fog over the land is." },
+    { "dustVeil",      "Dust and lightning", 0.0f, 1.0f, 0.0f, "How much of the picture the dust hides (1 = nothing but dust)." },
+    { "lightning",     "Dust and lightning", 0.0f, 1.0f, 0.0f, "How often lightning flashes inside the dust: the chance of a strike every 0.7 seconds (1 = every time). Thunder follows each strike." },
+    { "thunderVolume", "Dust and lightning", 0.0f, 3.0f, 1.0f, "How loud the thunder is. Only heard when lightning strikes." },
+    { "rain",          "Rain",               0.0f, 1.5f, 0.0f, "Wind-driven rain streaking past." },
+    { "lensWater",     "Rain",               0.0f, 1.5f, 0.0f, "Water drops on the camera lens." },
+    { "shake",         "Camera",             0.0f, 0.1f, 0.0f, "How hard the camera shakes (0.01 = a tremble, 0.1 = violent)." },
+    { "fadeOut",       "Camera",             0.0f, 1.0f, 0.0f, "Fades the picture and all sound out (1 = black and silent)." },
+    { "gain",          "Noise",              0.0f, 4.0f, 1.0f, "Loudness of all the storm's sounds: the ones in Sounds, and its gusts, booms, thuds and thunder." },
+    { "gusts",         "Noise",              0.0f, 6.0f, 0.0f, "How often gusts of wind rush past (1 = about one a second, 2 = twice as often)." },
+    { "gustVolume",    "Noise",              0.0f, 3.0f, 1.0f, "How loud the gusts are. Only heard when gusts is on." },
+    { "booms",         "Noise",              0.0f, 4.0f, 0.0f, "How often distant impacts boom (about that many a second)." },
+    { "boomVolume",    "Noise",              0.0f, 3.0f, 1.0f, "How loud the booms are. Only heard when booms is on." },
+    { "thuds",         "Noise",              0.0f, 4.0f, 0.0f, "How often debris thuds down close by (about that many a second)." },
+    { "thudVolume",    "Noise",              0.0f, 3.0f, 1.0f, "How loud the thuds are. Only heard when thuds is on." },
+};
+
+const std::vector<Aftermath::Parameter> &Aftermath::parameters()
+{
+    return PARAMETERS;
+}
+
+std::map<std::string, float> Aftermath::isolatedOff()
+{
+    static const char *MODIFIERS[] = { "gain", "gustiness", "gustVolume", "boomVolume", "thudVolume", "thunderVolume", "frontDistance" };
+    std::map<std::string, float> off;
+    for (const Parameter &p : PARAMETERS) {
+        if (std::none_of(std::begin(MODIFIERS), std::end(MODIFIERS), [&](const char *m) { return std::strcmp(m, p.name) == 0; })) {
+            off[p.name] = p.standard;
+        }
+    }
+    return off;
+}
+
+std::string Aftermath::parametersJson()
+{
+    std::string json = "[";
+    for (const Parameter &p : PARAMETERS) {
+        char numbers[96];
+        std::snprintf(numbers, sizeof(numbers), "\"min\": %g, \"max\": %g, \"standard\": %g", p.min, p.max, p.standard);
+        if (json.size() > 1) json += ", ";
+        json += std::string("{\"name\": \"") + p.name + "\", \"group\": \"" + p.group + "\", " + numbers +
+                (p.after ? std::string(", \"after\": \"") + p.after + "\"" : std::string()) +
+                ", \"about\": \"" + p.about + "\"}";       /* (the texts have no quotes or backslashes) */
+    }
+    return json + "]";
+}
+
+std::string Aftermath::anchorsJson()
+{
+    return "[{\"name\": \"\", \"label\": \"everywhere\", \"about\": \"Not from a place: the same all round you.\"}, "
+           "{\"name\": \"front\", \"label\": \"storm front\", \"about\": \"From the storm's front, frontDistance away: it gets louder as the front comes in.\"}, "
+           "{\"name\": \"upwind\", \"label\": \"upwind\", \"about\": \"From just upwind of you, the side the storm comes from.\"}]";
+}
+
+/* where the Moon's destruction is on the scene clock: when it starts to break up, and when the
+ * black hole has formed. From the timeline when it sets "collapse", else the map's playback */
+static float breakupOn(const Timeline &timeline, const BlackHole *hole)
+{
+    float t = timeline.firstReach("collapse", 0.0005f);
+    return t >= 0.0f ? t : hole->collapseDelay;
+}
+static float formedOn(const Timeline &timeline, const BlackHole *hole)
+{
+    float t = timeline.firstReach("collapse", 1.0f);
+    return t >= 0.0f ? t : hole->formationTime();
+}
+
+/* when the Moon's debris reaches us: the timeline's debrisShell reaching 1, or (not set)
+ * BlackHole::DEBRIS_ARRIVAL seconds after the black hole formed */
+static float impactOn(const Timeline &timeline, const BlackHole *hole)
+{
+    float t = timeline.firstReach("debrisShell", 1.0f);
+    return t >= 0.0f ? t : formedOn(timeline, hole) + BlackHole::DEBRIS_ARRIVAL;
+}
+
+void Aftermath::driveCollapse(BlackHole *hole, const Timeline &timeline)
+{
+    float collapse = timeline.get("collapse", -1.0f);
+    hole->driven = collapse >= 0.0f;
+    if (!hole->driven) return;
+    float breakup = breakupOn(timeline, hole), formed = formedOn(timeline, hole);
+    hole->collapse = glm::clamp(collapse, 0.0f, 1.0f);
+    hole->playing = false;
+    hole->playTime = timeline.clock();
+    hole->delayElapsed = hole->collapseDelay;
+    hole->drivenRate = formed > breakup ? 1.0f / (formed - breakup) : 0.0f;
+    hole->formedAt = hole->collapse >= 1.0f ? formed : -1.0f;
+}
+
+std::string Aftermath::timelineJson(const Timeline &timeline)
+{
+    const BlackHole *hole = nullptr;
+    for (const BlackHole *h : RenderingMaster::getInstance()->blackHoles) {
+        if (h->sky && h->kugelblitz) { hole = h; break; }
+    }
+    float length = timeline.sceneLength();
+    if (hole != nullptr) length = std::max(length, impactOn(timeline, hole) + 5.0f);
+    char text[200];
+    std::snprintf(text, sizeof(text), "\"length\": %.3f, \"firstSound\": %.3f, \"silent\": %s, \"starts\": [",
+                  length, timeline.firstSoundScene(), hole != nullptr && hole->silent ? "true" : "false");
+    std::string json = text;
+    std::vector<float> starts = timeline.starts();
+    for (size_t i = 0; i < starts.size(); i++) {
+        std::snprintf(text, sizeof(text), "%s%.3f", i ? ", " : "", starts[i]);
+        json += text;
+    }
+    json += "], \"moments\": [";
+    bool first = true;
+    auto moment = [&](const char *id, float t, const char *label) {
+        std::snprintf(text, sizeof(text), "%s{\"id\": \"%s\", \"t\": %.2f, \"label\": \"%s\"}", first ? "" : ", ", id, t, label);
+        json += text;
+        first = false;
+    };
+    moment("start", 0.0f, "start");
+    if (hole != nullptr) {
+        float formed = formedOn(timeline, hole), breakup = breakupOn(timeline, hole);
+        if (breakup > 0.05f) moment("breakup", breakup, "the Moon breaks up");
+        moment("formed", formed, "black hole formed");
+        moment("impact", impactOn(timeline, hole), "debris reaches you");
+    }
+    /* "all dust": the first moment the dust veil hides everything, if it ever does */
+    for (float t = 0.0f; t <= length; t += 0.1f) {
+        if (timeline.valueAtScene("dustVeil", t, 0.0f) >= 0.99f) {
+            moment("dust", t, "all dust");
+            break;
+        }
+    }
+    return json + "]";
+}
+
+/* a parameter as the timeline has it now, or its standard value */
+static float value(const Timeline &timeline, const char *name)
+{
+    for (const Aftermath::Parameter &p : PARAMETERS) {
+        if (std::strcmp(p.name, name) == 0) return timeline.get(name, p.standard);
+    }
+    return timeline.get(name);      /* (not in the list: a mistake in the code below) */
+}
+
 Aftermath::~Aftermath()
 {
     /* while shown, the emitters are in RenderingMaster's list, which deletes
@@ -140,12 +303,33 @@ Aftermath::~Aftermath()
 
 int Aftermath::play(const std::string &name, float volume, float pitch, bool loop)
 {
-    return AudioMaster::getInstance()->play(name, volume * m_gain, pitch, loop);
+    int voice = AudioMaster::getInstance()->play(name, volume * m_gain, pitch, loop);
+    return loop ? voice : remember(voice);
+}
+
+int Aftermath::remember(int voice)
+{
+    if (voice == 0) return 0;
+    if (m_voices.size() >= 48) {
+        AudioMaster *audio = AudioMaster::getInstance();
+        m_voices.erase(std::remove_if(m_voices.begin(), m_voices.end(), [audio](int v) { return !audio->isPlaying(v); }),
+                       m_voices.end());
+    }
+    m_voices.push_back(voice);
+    return voice;
+}
+
+/* a jump in time (the timeline editor, Restart): what is still sounding belongs to where we were */
+void Aftermath::cutVoices()
+{
+    AudioMaster *audio = AudioMaster::getInstance();
+    for (int voice : m_voices) audio->cut(voice);
+    m_voices.clear();
 }
 
 int Aftermath::play3D(const std::string &name, const glm::vec3 &position, float volume, float radius, float pitch)
 {
-    return AudioMaster::getInstance()->play3D(name, position, volume * m_gain, radius, pitch, false);
+    return remember(AudioMaster::getInstance()->play3D(name, position, volume * m_gain, radius, pitch, false));
 }
 
 void Aftermath::reset()
@@ -153,23 +337,23 @@ void Aftermath::reset()
     RenderingMaster *rm = RenderingMaster::getInstance();
     AudioMaster *audio = AudioMaster::getInstance();
     m_active = false;
-    rm->setStorm(0.0f, 0.0f);
+    rm->setWeather(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     rm->setStormDirection(m_stormDirection, 0.0f);
     rm->getCamera()->setShake(glm::vec3(0.0f));
     rm->setFadeOut(0.0f);
     rm->setDust(0.0f, 0.0f);
     rm->setStormWater(0.0f, 0.0f);
     rm->setLightning(0.0f, 0.5f, 0.0f, 0.0f);
-    rm->setDebrisArrival(BlackHole::DEBRIS_ARRIVAL);
+    rm->setDebris(-1.0f, -1.0f);
     putOutFires();
-    m_gusts = m_booms = m_thuds = 0;
-    m_lastBolt = -1;
-    m_nextGust = m_nextBoom = m_nextThud = -1.0f;
+    m_gusts = m_booms = m_thuds = m_thunders = 0;
+    m_lastGust = m_lastBoom = m_lastThud = m_lastThunder = 0.0f;
+    m_applied.clear();
+    m_lastBolt = NO_BOLT;
+    m_nextGust = m_nextBoom = m_nextThud = UNSCHEDULED;
     m_delayed.clear();
-    if (m_masterVolume >= 0.0f) {
-        audio->setMasterVolume(m_masterVolume);
-        m_masterVolume = -1.0f;
-    }
+    cutVoices();
+    audio->setFade(1.0f);
     if (m_debrisShown) {
         for (ParticleEmitter *emitter : m_debris) rm->removeParticleEmitter(emitter);
         m_debrisShown = false;
@@ -280,6 +464,16 @@ void Aftermath::updateFires(int count, float t, const glm::vec3 &eye)
 {
     RenderingMaster *rm = RenderingMaster::getInstance();
     const float EYE_HEIGHT = 40.0f;
+    while ((int) m_fires.size() > std::max(count, 0)) {
+        /* fewer now (the timeline edited, or scrubbed back): the last ones go out */
+        Fire &fire = m_fires.back();
+        for (ParticleEmitter *emitter : fire.emitters) {
+            rm->removeParticleEmitter(emitter);
+            delete emitter;
+        }
+        rm->removeLightFromScene(fire.light);
+        m_fires.pop_back();
+    }
     for (int k = (int) m_fires.size(); k < count; k++) {
         float angle = hash(k * 3.3f + 1.0f) * 6.2831853f;
         float reach = 80.0f + 18.0f * k;
@@ -330,16 +524,39 @@ void Aftermath::updateFires(int count, float t, const glm::vec3 &eye)
 void Aftermath::putOutFires()
 {
     RenderingMaster *rm = RenderingMaster::getInstance();
-    std::vector<Light *> &lights = rm->getLights();
     for (Fire &fire : m_fires) {
         for (ParticleEmitter *emitter : fire.emitters) {
             rm->removeParticleEmitter(emitter);
             delete emitter;
         }
-        lights.erase(std::remove(lights.begin(), lights.end(), (Light *) fire.light), lights.end());
-        delete fire.light;
+        rm->removeLightFromScene(fire.light);
     }
     m_fires.clear();
+}
+
+void Aftermath::applied(const char *name, float v)
+{
+    for (auto &a : m_applied) {
+        if (a.first == name) { a.second = v; return; }
+    }
+    m_applied.emplace_back(name, v);
+}
+
+std::string Aftermath::appliedJson() const
+{
+    std::string json = "\"applied\": {";
+    char text[96];
+    for (size_t i = 0; i < m_applied.size(); i++) {
+        std::snprintf(text, sizeof(text), "%s\"%s\": %.4f", i ? ", " : "", m_applied[i].first.c_str(),
+                      std::isfinite(m_applied[i].second) ? m_applied[i].second : -999.0f);
+        json += text;
+    }
+    std::snprintf(text, sizeof(text), "}, \"played\": {\"gusts\": [%d, %.3f], \"booms\": [%d, %.3f], ",
+                  m_gusts, m_lastGust, m_booms, m_lastBoom);
+    json += text;
+    std::snprintf(text, sizeof(text), "\"thuds\": [%d, %.3f], \"thunder\": [%d, %.3f]}",
+                  m_thuds, m_lastThud, m_thunders, m_lastThunder);
+    return json + text;
 }
 
 bool Aftermath::update(Camera *camera, Timeline &timeline)
@@ -352,44 +569,63 @@ bool Aftermath::update(Camera *camera, Timeline &timeline)
     for (BlackHole *h : rm->blackHoles) {
         if (h->sky && h->kugelblitz) { hole = h; break; }
     }
-    /* the storm runs while its sequence does (the Moon destruction finished,
-     * watched); Restart / Reset rewind the sequence, and this with it */
-    float t = timeline.time();
-    bool running = hole != nullptr && timeline.running() && t >= 0.0f;
+    /* the Moon's destruction itself, when the timeline sets it */
+    if (hole != nullptr) driveCollapse(hole, timeline);
+    /* the effects apply whenever a timeline plays, from its start, black hole or not. Their own
+     * clock (their random patterns: lightning, gusts, shake; quitAfter) counts from the black hole
+     * forming when there is one (negative before), else it is the timeline's clock. A rewind resets */
+    float t = timeline.clock();
+    if (hole != nullptr) t = hole->formedAt >= 0.0f ? hole->playTime - hole->formedAt : timeline.clock() - formedOn(timeline, hole);
+    bool running = timeline.running();
     if (!running || (m_active && t < m_lastT - 0.05f)) {
         if (m_active) reset();
         m_lastT = t;
         if (!running) return false;
     }
+    if (m_active && t > m_lastT + 0.5f) {
+        cutVoices();                /* jumped ahead */
+        m_delayed.clear();
+    }
     m_lastT = t;
     if (!m_active) {
         m_active = true;
-        /* the storm blows from the hole, along the ground */
-        m_holeDirection = hole->direction;
-        glm::vec2 flat(hole->direction.x, hole->direction.z);
+        /* the storm blows from the hole, along the ground (no hole: from the sky to the north) */
+        m_holeDirection = hole != nullptr ? hole->direction : glm::vec3(0.0f, 0.6f, -0.8f);
+        glm::vec2 flat(m_holeDirection.x, m_holeDirection.z);
         m_stormDirection = glm::length(flat) > 1e-3f ? -glm::normalize(flat) : glm::vec2(1.0f, 0.0f);
-        m_nextGust = m_nextBoom = m_nextThud = -1.0f;
+        m_nextGust = m_nextBoom = m_nextThud = UNSCHEDULED;
     }
     AudioMaster *audio = AudioMaster::getInstance();
-    m_gain = timeline.get("gain", 1.0f);
-    rm->setDebrisArrival(timeline.get("debrisArrival", BlackHole::DEBRIS_ARRIVAL));
+    m_gain = value(timeline, "gain");
+    /* the debris in the sky (not set: < 0, it follows the Moon) */
+    rm->setDebris(timeline.get("debrisShell", -1.0f), timeline.get("ejecta", -1.0f));
 
-    /* the gale: gusting round its level; the calm before it */
-    float gusting = 1.0f - timeline.get("gustiness", 1.0f) * (0.18f - 0.18f * std::sin(t * 1.9f) * std::sin(t * 0.7f + 1.0f));
-    float storm = timeline.get("storm") * gusting;
-    rm->setStorm(storm, timeline.get("calm"));
-    rm->setStormDirection(m_stormDirection, timeline.get("windTurn"));
+    /* the weather, each part on its own; the gale and the rain gusting round their levels */
+    float gusting = 1.0f - value(timeline, "gustiness") * (0.18f - 0.18f * std::sin(t * 1.9f) * std::sin(t * 0.7f + 1.0f));
+    rm->setWeather(value(timeline, "wind") * gusting, value(timeline, "fog"), value(timeline, "clouds"),
+                   value(timeline, "waves"), value(timeline, "calm"));
+    applied("wind", value(timeline, "wind") * gusting);
+    applied("fog", value(timeline, "fog"));
+    applied("clouds", value(timeline, "clouds"));
+    applied("waves", value(timeline, "waves"));
+    applied("calm", value(timeline, "calm"));
+    applied("windTurn", value(timeline, "windTurn"));
+    applied("gain", m_gain);
+    rm->setStormDirection(m_stormDirection, value(timeline, "windTurn"));
 
     glm::vec3 shake(std::sin(t * 37.0f) * 0.6f + std::sin(t * 23.0f + 1.0f) * 0.4f,
                     std::sin(t * 29.0f + 2.0f) * 0.6f + std::sin(t * 17.0f + 4.0f) * 0.4f,
                     std::sin(t * 31.0f + 3.0f) * 0.5f);
-    camera->setShake(shake * timeline.get("shake"));
+    camera->setShake(shake * value(timeline, "shake"));
+    applied("shake", value(timeline, "shake"));
 
     /* the dust, the lightning in it (a chance every 0.7 s; a flash flickers
      * twice, thunder follows, later the further away) */
-    float dust = timeline.get("dust");
-    rm->setDust(dust, timeline.get("dustVeil"));
-    float chance = timeline.get("lightning");
+    float dust = value(timeline, "dust");
+    rm->setDust(dust, value(timeline, "dustVeil"));
+    applied("dust", dust);
+    applied("dustVeil", value(timeline, "dustVeil"));
+    float chance = value(timeline, "lightning");
     float flash = 0.0f, boltX = 0.5f, boltSeed = 0.0f, boltReach = 0.0f;
     const float SLOT = 0.7f;
     int slot = (int) std::floor(t / SLOT);
@@ -402,8 +638,8 @@ bool Aftermath::update(Camera *camera, Timeline &timeline)
             m_lastBolt = k;
             float delay = 0.25f + 2.2f * hash(k * 5.3f + 3.0f);
             const char *thunder[] = { "boom_1", "boom_2", "boom_3" };
-            m_delayed.push_back({ t + delay, thunder[k % 3],
-                                  glm::mix(1.0f, 0.45f, delay / 2.5f) * timeline.get("thunderVolume", 1.0f),
+            m_delayed.push_back({ t + delay, thunder[((k % 3) + 3) % 3],
+                                  glm::mix(1.0f, 0.45f, delay / 2.5f) * value(timeline, "thunderVolume"),
                                   0.8f + 0.35f * hash(k * 2.9f + 4.0f) });
         }
         float f = std::exp(-dt * 9.0f) + (dt > 0.13f ? 0.7f * std::exp(-(dt - 0.13f) * 7.0f) : 0.0f);
@@ -415,14 +651,23 @@ bool Aftermath::update(Camera *camera, Timeline &timeline)
         }
     }
     rm->setLightning(std::min(flash, 1.0f), boltX, boltSeed, boltReach);
-    rm->setStormWater(timeline.get("rain") * gusting, timeline.get("lensWater"));
+    rm->setStormWater(value(timeline, "rain") * gusting, value(timeline, "lensWater"));
+    applied("lightning", chance);
+    applied("rain", value(timeline, "rain") * gusting);
+    applied("lensWater", value(timeline, "lensWater"));
 
     /* what the storm throws, and the fires the debris lights */
     glm::vec3 downwind(m_stormDirection.x, 0.0f, m_stormDirection.y);
-    float frontDistance = timeline.get("frontDistance");
-    placeDebris(camera, downwind, timeline.get("groundDebris"), timeline.get("wall"), frontDistance,
-                timeline.get("stormDust"), timeline.get("debrisRain"), t);
-    updateFires((int) timeline.get("fires"), t, camera->getPosition());
+    float frontDistance = value(timeline, "frontDistance");
+    placeDebris(camera, downwind, value(timeline, "groundDebris"), value(timeline, "wall"), frontDistance,
+                value(timeline, "stormDust"), value(timeline, "debrisRain"), t);
+    updateFires((int) value(timeline, "fires"), t, camera->getPosition());
+    applied("groundDebris", value(timeline, "groundDebris"));
+    applied("wall", value(timeline, "wall"));
+    applied("frontDistance", frontDistance);
+    applied("stormDust", value(timeline, "stormDust"));
+    applied("debrisRain", value(timeline, "debrisRain"));
+    applied("fires", (float) m_fires.size());
 
     /* the timeline's sounds ride the front in, and the upwind side */
     glm::vec3 eye = camera->getPosition();
@@ -430,17 +675,16 @@ bool Aftermath::update(Camera *camera, Timeline &timeline)
     timeline.setAnchor("upwind", eye - downwind * 60.0f);
 
     /* the picture and the sound fading out; the hole's quitAfter: then close */
-    float fade = timeline.get("fadeOut");
+    float fade = value(timeline, "fadeOut");
     bool quit = false;
-    if (hole->quitAfter > 0.0f) {
+    if (hole != nullptr && hole->quitAfter > 0.0f) {
         fade = std::max(fade, smoothstep(hole->quitAfter - 2.0f, hole->quitAfter, t));
         quit = t >= hole->quitAfter;
     }
+    fade = glm::clamp(fade, 0.0f, 1.0f);
     rm->setFadeOut(fade);
-    if (fade > 0.0f) {
-        if (m_masterVolume < 0.0f) m_masterVolume = audio->getMasterVolume();
-        audio->setMasterVolume(m_masterVolume * (1.0f - fade));
-    }
+    applied("fadeOut", fade);
+    audio->setFade(1.0f - glm::clamp(fade, 0.0f, 1.0f));
 
     /* its own sounds: thunder, gusts, booms, thuds (scheduled, not scripted) */
     if (!audio->isAvailable()) {
@@ -448,52 +692,57 @@ bool Aftermath::update(Camera *camera, Timeline &timeline)
     }
     for (size_t i = 0; i < m_delayed.size();) {
         if (t >= m_delayed[i].at) {
-            play(m_delayed[i].sound, m_delayed[i].volume, m_delayed[i].pitch);
+            if (t - m_delayed[i].at < 1.0f) {
+                play(m_delayed[i].sound, m_delayed[i].volume, m_delayed[i].pitch);
+                m_thunders++;
+                m_lastThunder = m_delayed[i].volume * m_gain;
+            }
             m_delayed.erase(m_delayed.begin() + i);
         } else {
             i++;
         }
     }
     glm::vec3 across = glm::normalize(glm::cross(glm::vec3(0, 1, 0), downwind));
-    float gusts = timeline.get("gusts");
+    float gusts = value(timeline, "gusts");
     if (gusts > 0.0f) {
-        if (m_nextGust < 0.0f) m_nextGust = t + 0.4f;
+        if (m_nextGust == UNSCHEDULED || t - m_nextGust > 2.0f) m_nextGust = t + 0.4f;   /* (a jump ahead: not a burst of the ones missed) */
         while (t >= m_nextGust) {
             /* a gust rushing past, from upwind and to one side */
             float side = hash(m_gusts * 3.1f) * 2.0f - 1.0f;
-            float volume = (0.55f + 0.45f * hash(m_gusts * 5.7f + 1.0f)) * glm::clamp(storm * 1.4f, 0.0f, 1.0f) *
-                           timeline.get("gustVolume", 1.0f);
+            float volume = (0.55f + 0.45f * hash(m_gusts * 5.7f + 1.0f)) * value(timeline, "gustVolume");
             float pitch = 0.85f + 0.25f * hash(m_gusts * 7.3f + 2.0f);
+            m_lastGust = volume * m_gain;
             if (volume > 0.05f) {
                 play3D("gust_" + std::to_string(1 + m_gusts % 3), eye - downwind * 90.0f + across * (side * 140.0f),
                        volume, 700.0f, pitch);
             }
             m_gusts++;
-            /* often in the gale, rarely once it settles */
-            m_nextGust += (1.2f + 2.6f * hash(m_gusts * 11.1f)) / glm::max(storm, 0.25f) * 0.5f / gusts;
+            m_nextGust += (1.2f + 2.6f * hash(m_gusts * 11.1f)) * 0.5f / gusts;
         }
     }
-    float booms = timeline.get("booms");
+    float booms = value(timeline, "booms");
     if (booms > 0.0f) {
-        if (m_nextBoom < 0.0f) m_nextBoom = t;
+        if (m_nextBoom == UNSCHEDULED || t - m_nextBoom > 5.0f) m_nextBoom = t;
         if (t >= m_nextBoom) {
             /* debris coming down further off */
             const char *names[] = { "boom_1", "boom_2", "boom_3", "blast" };
             int b = m_booms % 4;
-            float volume = timeline.get("boomVolume", 1.0f) * (b == 3 ? 0.7f : 1.0f);
+            float volume = value(timeline, "boomVolume") * (b == 3 ? 0.7f : 1.0f);
             play(names[b], volume, 0.6f + 0.3f * hash(m_booms * 3.7f + 9.0f));
+            m_lastBoom = volume * m_gain;
             m_booms++;
             m_nextBoom = t + (0.6f + 0.8f * hash(m_booms * 5.9f)) / booms;
         }
     }
-    float thuds = timeline.get("thuds");
+    float thuds = value(timeline, "thuds");
     if (thuds > 0.0f) {
-        if (m_nextThud < 0.0f) m_nextThud = t;
+        if (m_nextThud == UNSCHEDULED || t - m_nextThud > 5.0f) m_nextThud = t;
         if (t >= m_nextThud) {
             /* debris thudding down close by */
             float a = hash(m_thuds * 4.3f) * 6.2831853f, d = 40.0f + 90.0f * hash(m_thuds * 6.1f + 1.0f);
             play3D("land", eye + glm::vec3(std::cos(a) * d, -10.0f, std::sin(a) * d),
-                   0.5f + 0.5f * hash(m_thuds * 8.9f + 2.0f), 300.0f, 0.5f + 0.3f * hash(m_thuds * 2.2f + 3.0f));
+                   (0.5f + 0.5f * hash(m_thuds * 8.9f + 2.0f)) * value(timeline, "thudVolume"), 300.0f, 0.5f + 0.3f * hash(m_thuds * 2.2f + 3.0f));
+            m_lastThud = (0.5f + 0.5f * hash(m_thuds * 8.9f + 2.0f)) * value(timeline, "thudVolume") * m_gain;
             m_thuds++;
             m_nextThud = t + (0.36f + 1.3f * hash(m_thuds * 3.3f)) / thuds;
         }

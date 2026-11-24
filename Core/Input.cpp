@@ -58,6 +58,11 @@ void Input::pollEvents(Display *display) {
     SDL_Event event;
 
     while (SDL_PollEvent(&event)){
+        if (m_ignoreUser && (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP || event.type == SDL_MOUSEMOTION ||
+                             event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP ||
+                             event.type == SDL_MOUSEWHEEL)) {
+            continue;
+        }
         switch (event.type){
             case SDL_QUIT:{
                 Display::isWindowClosed = true;

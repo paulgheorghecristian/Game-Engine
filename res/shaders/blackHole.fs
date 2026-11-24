@@ -263,14 +263,15 @@ vec3 traceOut(vec3 p, vec3 d) {
     return textureLod(skySampler, d, traceLod * 0.5).rgb;
 }
 
-/* the sky behind the hole in direction d (the cube far off the hole) */
-vec3 lensSky(vec3 d) {
+/* the sky behind the hole in direction d (the cube far off the hole);
+ * blur > 1: a wider footprint, that many times (its fine detail averaged out) */
+vec3 lensSky(vec3 d, float blur) {
     vec4 clip = lensSkyViewProjection * vec4(d, 0.0);
     vec2 uv = clip.xy / max(clip.w, 1e-6) * 0.5 + 0.5;
     vec2 duvx = dFdx(uv), duvy = dFdy(uv);
     vec3 ddx = dFdx(d), ddy = dFdy(d);
     float px = 1.0 / float(textureSize(lensSkySampler, 0).y);
-    float soften = mix(1.0, 3.0, smoothstep(1.5, 6.0, max(length(duvx), length(duvy)) / px));
+    float soften = mix(1.0, 3.0, smoothstep(1.5, 6.0, max(length(duvx), length(duvy)) / px)) * blur;
     /* inside the snapshot: it; outside: the sky cube, which does not quite
      * match it (a big hole bends rays past the snapshot's edge, and a hard
      * seam showed as an arc in the sky): cross-fade over its outer band */
@@ -305,13 +306,18 @@ vec3 lensSky(vec3 d) {
  * far out avoids a visible circle where the clean lens sky meets the hazy
  * real one) */
 vec3 skyBehind(vec3 view, vec3 bent, vec3 scene) {
-    vec3 lensed = lensSky(bent);
-    vec3 here = lensSky(view);
+    vec3 lensed = lensSky(bent, 1.0);
+    vec3 here = lensSky(view, 1.0);
     /* what is in front, as a filter and a glow: where the real pixel is darker
      * than the clean sky (overcast cloud) the bent sky is dimmed as much;
      * where it is brighter (haze, sunset glow, particles) the excess is added.
-     * Holds however far the light is bent, on clear and overcast skies alike */
-    vec3 dim = clamp(scene / max(here, vec3(1e-3)), 0.0, 1.0);
+     * Holds however far the light is bent, on clear and overcast skies alike.
+     * The filter is measured against the clean sky without its points of
+     * light (stars, the sparks in the Moon's debris): they never fall on the
+     * same pixels in the two, and each one that missed read as "dimmed here",
+     * in its own colour (blue squares punched in the bright rings) */
+    vec3 smooth_ = min(here, lensSky(view, 12.0));
+    vec3 dim = clamp(scene / max(smooth_, vec3(1e-3)), 0.0, 1.0);
     vec3 glow = max(scene - here, vec3(0.0));
     return lensed * dim + glow;
 }

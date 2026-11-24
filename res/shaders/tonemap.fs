@@ -228,7 +228,9 @@ void main() {
     float adaptedExposure = exposure;
     if (autoExposure > 0.0) {
         vec2 adapted = texture(adaptationSampler, vec2(0.5)).rg;
-        adaptedExposure *= clamp(pow(max(adapted.g, 1e-4) / max(adapted.r, 1e-4), autoExposure), 0.45, 2.2);
+        /* (a broken adapted value, not a number or infinite, told from its bits: no adaptation) */
+        bool lost = (floatBitsToInt(adapted.r) & 0x7F800000) == 0x7F800000 || (floatBitsToInt(adapted.g) & 0x7F800000) == 0x7F800000;
+        if (!lost) adaptedExposure *= clamp(pow(max(adapted.g, 1e-4) / max(adapted.r, 1e-4), autoExposure), 0.45, 2.2);
     }
     vec3 linear = pow(max(color, vec3(0.0)), vec3(2.2)) * adaptedExposure;
     vec3 mapped = pow(aces(linear), vec3(1.0 / 2.2));

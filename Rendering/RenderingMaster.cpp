@@ -20,6 +20,7 @@
 #include "WaterRenderer.h"
 
 #include <typeinfo>
+#include <algorithm>
 
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
@@ -474,8 +475,9 @@ void RenderingMaster::drawDeferredShadingBuffers()
 }
 
 void RenderingMaster::update() {
-    m_time += updateDt / 1000.0f;
-    if (m_baseEnvironment.dayLength <= 0.0f && (m_storm != m_appliedStorm || m_calm != m_appliedCalm || m_dust != m_appliedDust)) {
+    if (!m_worldPaused) m_time += updateDt / 1000.0f;
+    const float weather[5] = { m_wind, m_fog, m_clouds, m_calm, m_dust };
+    if (m_baseEnvironment.dayLength <= 0.0f && !std::equal(weather, weather + 5, m_appliedWeather)) {
         applyEnvironment(m_baseEnvironment);   /* a fixed time of day still gets the storm */
     }
 
@@ -504,10 +506,11 @@ void RenderingMaster::update() {
     Material::s_nightFactor = Light::s_nightFactor;
     ParticleEmitter::s_nightFactor = Light::s_nightFactor;
 
-    if (smokeRenderer != NULL) {
+    if (smokeRenderer != NULL && !m_worldPaused) {
         smokeRenderer->update(*camera, updateDt);
     }
     for (ParticleEmitter *emitter : particleEmitters) {
+        if (m_worldPaused) break;
         /* a beam emitter whose light was deleted in the editor */
         if (emitter->getLinkedLight() != nullptr &&
             std::find(lights.begin(), lights.end(), (Light *) emitter->getLinkedLight()) == lights.end()) {
@@ -526,7 +529,7 @@ void RenderingMaster::update() {
 
 void RenderingMaster::prepareFrame(float alpha) {
     m_renderAlpha = glm::clamp(alpha, 0.0f, 1.0f);
-    m_renderTime = m_time - (1.0f - m_renderAlpha) * (float) (updateDt / 1000.0);
+    if (!m_worldPaused) m_renderTime = m_time - (1.0f - m_renderAlpha) * (float) (updateDt / 1000.0);
 
     /* temporal anti-aliasing: this frame's sub-pixel shift (Halton 2,3; the
      * projection's off-axis terms, which nothing else uses) */
@@ -569,6 +572,7 @@ void RenderingMaster::prepareFrame(float alpha) {
         if (skyHole != nullptr && skyHole->kugelblitz) {
             skyHole->direction = m_environment.moonDirection;
             float dt = m_lastCollapseTime < 0.0f ? 0.0f : glm::clamp(m_renderTime - m_lastCollapseTime, 0.0f, 0.1f);   /* hitches (loading) must not eat the countdown */
+            dt *= m_kugelblitzTimeScale;   /* 0: paused (the timeline editor) */
             /* playback: from 0 it waits collapseDelay seconds, then ignites
              * and runs at collapseSpeed until the moon is gone */
             if (skyHole->playing) {
@@ -594,25 +598,43 @@ void RenderingMaster::prepareFrame(float alpha) {
             if (collapse < 1.0f) {
                 skyHole->formedAt = -1.0f;
             } else if (skyHole->formedAt < 0.0f && skyHole->previousCollapse >= 0.0f && skyHole->previousCollapse < 1.0f) {
-                skyHole->formedAt = skyHole->playTime;
+                /* the moment within this frame it reached 1 (not the frame's start: played or jumped
+                 * to, the same moment then looks the same) */
+                float rate = skyHole->collapseSpeed / 60.0f;
+                skyHole->formedAt = rate > 0.0f ? skyHole->playTime + (1.0f - skyHole->previousCollapse) / rate
+                                                : skyHole->playTime;
             }
             skyHole->previousCollapse = collapse;
-            skyHole->playTime += dt;
+            if (!skyHole->driven) skyHole->playTime += dt;      /* (driven: it is the timeline's clock) */
             float playTime = skyHole->playTime;
             skyShader->updateUniform("collapseTime", playTime);
             float formed = skyHole->formedAt >= 0.0f ? playTime - skyHole->formedAt : -1.0f;
             skyShader->updateUniform("formedTime", formed);
-            float arrival = m_debrisArrival;
-            skyShader->updateUniform("debrisArrival", arrival);
-            float rate = skyHole->collapseSpeed / 60.0f;
+            /* the debris shell: the timeline's, or following the moon (reaching us DEBRIS_ARRIVAL
+             * seconds after it formed, then thinning out over 4 more) */
+            const float ARRIVAL = BlackHole::DEBRIS_ARRIVAL;
+            float shell = m_debrisShell >= 0.0f ? m_debrisShell
+                        : formed < 0.0f ? 0.0f
+                        : formed <= ARRIVAL ? formed / ARRIVAL : std::min(1.0f + (formed - ARRIVAL) / 4.0f, 2.0f);
+            skyShader->updateUniform("debrisShell", shell);
+            m_shownShell = shell;
+            float rate = skyHole->driven && skyHole->drivenRate > 0.0f ? skyHole->drivenRate : skyHole->collapseSpeed / 60.0f;
             skyShader->updateUniform("collapseRate", rate);
-            /* matter thrown straight at us: as the last of the moon falls in,
-             * until its debris arrives */
-            m_frontEjecta = glm::smoothstep(0.85f, 0.95f, collapse) *
+            /* matter thrown straight at us: the timeline's, or following the moon (as the last
+             * of it falls in, until DEBRIS_ARRIVAL seconds after it formed: not the timeline's
+             * shell, each is on its own) */
+            m_frontEjecta = m_ejecta >= 0.0f ? m_ejecta
+                          : glm::smoothstep(0.85f, 0.95f, collapse) *
                             (formed < 0.0f ? (collapse >= 1.0f ? 0.0f : 1.0f)
-                                           : 1.0f - glm::smoothstep(arrival - 1.5f, arrival, formed));
+                                           : 1.0f - glm::smoothstep(ARRIVAL - 1.5f, ARRIVAL, formed));
             skyShader->updateUniform("frontEjecta", m_frontEjecta);
-            float flash = std::exp(-std::max(m_renderTime - skyHole->ignitionTime, 0.0f) * 1.4f);
+            /* the ignition flash and its shock ring: by the destruction's own clock (seconds
+             * since it ignited = how far it has got), so it stops when that is paused and is
+             * the same wherever it is looked at; dragged by hand (no speed): in real time */
+            float flashRate = skyHole->driven && skyHole->drivenRate > 0.0f ? skyHole->drivenRate : skyHole->collapseSpeed / 60.0f;
+            float flash = flashRate > 0.0f
+                ? (collapse > IGNITION ? std::exp(-collapse / flashRate * 1.4f) : 0.0f)
+                : std::exp(-std::max(m_renderTime - skyHole->ignitionTime, 0.0f) * 1.4f);
             skyShader->updateUniform("collapseFlash", flash);
             /* the jets leave along the spin axis (the disk's normal), as seen on the moon's disc */
             glm::vec3 moonDir = glm::normalize(m_environment.moonDirection);
@@ -629,6 +651,7 @@ void RenderingMaster::prepareFrame(float alpha) {
         if (collapse < 0.0f) {
             float noFlash = 0.0f, notFormed = -1.0f;
             m_frontEjecta = 0.0f;
+            m_shownShell = 0.0f;
             skyShader->updateUniform("collapseFlash", noFlash);
             skyShader->updateUniform("formedTime", notFormed);
         }
@@ -778,8 +801,27 @@ void RenderingMaster::addLightToScene(Light *light)
     lights.push_back (light);
 }
 
+void RenderingMaster::removeLightFromScene(Light *light)
+{
+    auto it = std::find(lights.begin(), lights.end(), light);
+    if (it == lights.end()) {
+        return;
+    }
+    lights.erase(it);
+    m_removedLights.push_back(light);
+}
+
+void RenderingMaster::deleteRemovedLights()
+{
+    for (Light *light : m_removedLights) {
+        delete light;
+    }
+    m_removedLights.clear();
+}
+
 void RenderingMaster::resetLights()
 {
+    deleteRemovedLights();
     auto it = lights.begin();
     for (; it != lights.end();) {
         if (dynamic_cast<DirectionalLight*>(*it) == nullptr) {
@@ -1429,28 +1471,50 @@ float RenderingMaster::getNightFactor() const
     return 1.0f - m_environment.sunVisibility;
 }
 
+std::string RenderingMaster::stormState()
+{
+    /* the eye adaptation's values (fast, usual, broken pixels seen lately) */
+    float adapted[4] = { 0, 0, 0, 0 };
+    if (m_adaptationA != nullptr) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_adaptationA->getFrameBufferObject());
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+        glReadPixels(0, 0, 1, 1, GL_RGBA, GL_FLOAT, adapted);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    }
+    auto number = [](float x) { return std::isfinite(x) ? x : -999.0f; };     /* JSON has no NaN */
+    char text[640];
+    std::snprintf(text, sizeof(text),
+                  "\"shell\": %.3f, \"ejecta\": %.3f, \"wind\": %.3f, \"stormFog\": %.3f, \"stormClouds\": %.3f, \"waves\": %.3f, \"dust\": %.3f, \"veil\": %.3f, \"fade\": %.3f, \"rain\": %.3f, \"lightning\": %.3f, "
+                  "\"fog\": %.5f, \"clouds\": %.3f, \"lights\": %d, \"emitters\": %d, "
+                  "\"eye\": [%.4f, %.4f], \"brokenPixels\": %.2f, \"worldTime\": %.3f, \"worldPaused\": %s",
+                  m_shownShell, m_frontEjecta, m_wind, m_fog, m_clouds, m_waves, m_dust, m_dustVeil, m_fadeOut, m_rain, m_lightning, m_environment.fogDensity,
+                  m_environment.cloudCoverage, (int) lights.size(), (int) particleEmitters.size(),
+                  number(adapted[0]), number(adapted[1]), number(adapted[2]), m_time, m_worldPaused ? "true" : "false");
+    return text;
+}
+
 void RenderingMaster::applyEnvironment(const Environment &base)
 {
     /* the aftermath's storm on top of the time of day */
     Environment environment = base;
-    environment.wind = environment.wind * (1.0f - 0.85f * m_calm) + 4.5f * m_storm;
-    environment.fogDensity *= 1.0f + 3.0f * m_storm;
-    environment.fogHeightFalloff *= 1.0f - 0.6f * m_storm;
-    environment.cloudCoverage = std::min(1.0f, environment.cloudCoverage + 0.35f * m_storm);
-    environment.cloudSpeed *= 1.0f + 3.0f * m_storm;
+    m_mapWind = base.wind;
+    environment.wind = environment.wind * (1.0f - 0.85f * m_calm) + 4.5f * m_wind;
+    environment.fogDensity *= 1.0f + 3.0f * m_fog;
+    environment.fogHeightFalloff *= std::max(1.0f - 0.6f * m_fog, 0.05f);
+    environment.cloudCoverage = std::min(1.0f, environment.cloudCoverage + 0.35f * m_clouds);
+    environment.cloudSpeed *= 1.0f + 3.0f * m_clouds;
     /* the storm's dust: a thick brown fog, the same at every height */
     if (m_dust > 0.0f) {
         environment.fogDensity = glm::mix(environment.fogDensity, 0.02f, m_dust * m_dust);
         environment.fogHeightFalloff *= 1.0f - m_dust;
         environment.fogColor = glm::mix(environment.fogColor, glm::vec3(0.11f, 0.08f, 0.055f), m_dust);
     }
-    m_appliedDust = m_dust;
     if (!environment.moon) {
         environment.moonColor = glm::vec3(0.0f);   /* no halo, no moonlit clouds or haze */
         environment.fogMoonGlow = 0.0f;
     }
-    m_appliedStorm = m_storm;
-    m_appliedCalm = m_calm;
+    const float applied[5] = { m_wind, m_fog, m_clouds, m_calm, m_dust };
+    std::copy(applied, applied + 5, m_appliedWeather);
     m_environment = environment;
     const Environment &e = m_environment;
 
@@ -1720,10 +1784,12 @@ void RenderingMaster::renderTemporalAA()
     m_taaShader->updateUniform("reprojection", (void *) &reprojection);
     m_taaShader->updateUniform("texelSize", (void *) &texel);
     m_taaShader->updateUniform("historyValid", valid);
-    float grain = m_environment.filmGrain, time = m_renderTime;
+    /* (drawn over the finished picture: they fade out with it, or a fade to black is not black) */
+    float grain = m_environment.filmGrain * (1.0f - m_fadeOut), time = m_renderTime;
     m_taaShader->updateUniform("filmGrain", grain);
     m_taaShader->updateUniform("time", time);
-    m_taaShader->updateUniform("rainAmount", m_rain);
+    float rain = m_rain * (1.0f - m_fadeOut);
+    m_taaShader->updateUniform("rainAmount", rain);
     bindTexture(0, fxaaFrameBuffer.getRenderTargets()[0]);
     bindTexture(1, history->getRenderTargets()[0]);
     bindTexture(2, depthTexture->getTextureId());
@@ -1769,7 +1835,7 @@ void RenderingMaster::updateAdaptation()
         glBindTexture(GL_TEXTURE_2D, luminance);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
-        m_lastAdaptationTime = m_renderTime;
+        m_lastAdaptationTime = SDL_GetTicks() / 1000.0;
     }
     m_luminanceFB->bindSingleRenderTarget(0);
     m_luminanceShader->bind();
@@ -1779,8 +1845,9 @@ void RenderingMaster::updateAdaptation()
     glBindTexture(GL_TEXTURE_2D, m_luminanceFB->getRenderTargets()[0]);
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    float dt = glm::clamp(m_renderTime - m_lastAdaptationTime, 0.0f, 0.25f);
-    m_lastAdaptationTime = m_renderTime;
+    double realTime = SDL_GetTicks() / 1000.0;
+    float dt = glm::clamp((float) (realTime - m_lastAdaptationTime), 0.0f, 0.25f);
+    m_lastAdaptationTime = realTime;
     float lod = std::log2((float) SIZE);
     m_adaptationShader->updateUniform("luminanceLod", lod);
     m_adaptationShader->updateUniform("dt", dt);

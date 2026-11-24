@@ -4,6 +4,7 @@
 #include "FrameRecorder.h"
 #include "SoundScape.h"
 #include "Timeline.h"
+#include "RemoteControl.h"
 #include "Aftermath.h"
 #include "Display.h"
 #include "Input.h"
@@ -123,6 +124,16 @@ class EngineCore
         std::string m_screenshotPath;
         void saveScreenshot(const std::string &path);
         std::vector<unsigned char> *m_captureBeforeSwap = NULL;
+        /* driven from tools/timeline_editor.py (GE_REMOTE=<port>) */
+        RemoteControl m_remote;
+        std::vector<unsigned char> m_remotePixels;
+        double m_remoteNextFrame = 0.0, m_remoteNextState = 0.0, m_remoteFrameMs = 1000.0 / 30.0;
+        void remoteCommands();
+        void seekScene(float t);
+        bool m_remotePaused = false;
+        bool m_remoteTouched = false;          /* a jump or an edit since the last frame */
+        double m_remoteSettleUntil = 0.0;      /* paused: the world still runs until then */
+        float m_remoteVolume = -1.0f;      /* the volume before the editor muted it (-1: not muted) */
 };
 
 #endif // ENGINECORE_H

@@ -56,7 +56,6 @@ void SoundScape::update(Camera *camera)
     }
     audio->setListener(camera->getPosition(), camera->getForward(), glm::vec3(0, 1, 0));
     RenderingMaster *rm = RenderingMaster::getInstance();
-    const Environment &env = rm->getEnvironment();
 
     if (!m_started) {
         m_started = true;
@@ -66,8 +65,9 @@ void SoundScape::update(Camera *camera)
             s.voice = audio->play3D(s.sound, s.position, s.volume, s.radius, 1.0f, true);
         }
     }
-    /* wind with the map's wind; crickets only at night */
-    if (m_windVoice != 0) audio->setVolume(m_windVoice, m_wind * glm::clamp(0.4f + 0.6f * env.wind, 0.0f, 1.6f));
+    /* wind with the map's own wind (not the aftermath's: a timeline's sounds are its own);
+     * crickets only at night */
+    if (m_windVoice != 0) audio->setVolume(m_windVoice, m_wind * glm::clamp(0.4f + 0.6f * rm->getMapWind(), 0.0f, 1.6f));
     if (m_cricketVoice != 0) audio->setVolume(m_cricketVoice, m_crickets * rm->getNightFactor());
 
     /* the sky's Kugelblitz */
@@ -78,16 +78,21 @@ void SoundScape::update(Camera *camera)
     if (kugelblitz == nullptr) {
         return;
     }
-    if (kugelblitz->silent) {
-        /* no sound crosses space: nothing until its debris arrives (Core/Aftermath) */
+    if (kugelblitz->silent || kugelblitz->driven) {
+        /* no sound crosses space: nothing until its debris arrives (Core/Aftermath); or a
+         * timeline plays the Moon's destruction: its sounds are the timeline's */
         m_lastCollapse = kugelblitz->collapse;
         m_lastPlayTime = kugelblitz->playTime;
         return;
     }
     /* ignition: the flash first, the deep blast a few seconds later */
     const float BLAST_DELAY = 6.5f;   /* seconds */
-    if (kugelblitz->playTime < m_lastPlayTime) {
-        m_blastDue = -1.0f;           /* Restart / Reset: a pending blast is cancelled */
+    if (kugelblitz->playTime < m_lastPlayTime || kugelblitz->playTime > m_lastPlayTime + 0.5f) {
+        /* Restart / Reset, or a jump in time: a pending blast is cancelled, what is still
+         * sounding belongs to where we were */
+        if (kugelblitz->playTime < m_lastPlayTime) m_blastDue = -1.0f;
+        for (int voice : m_oneShots) audio->cut(voice);
+        m_oneShots.clear();
     }
     m_lastPlayTime = kugelblitz->playTime;
     if (kugelblitz->ignitionTime > m_lastIgnition + 0.5f) {
@@ -95,7 +100,7 @@ void SoundScape::update(Camera *camera)
         m_lastIgnition = kugelblitz->ignitionTime;
     }
     if (m_blastDue >= 0.0f && kugelblitz->playTime >= m_blastDue) {
-        audio->play("blast", 1.0f);
+        m_oneShots.push_back(audio->play("blast", 1.0f));
         m_blastDue = -1.0f;
     }
     /* booms as the collapse passes their points (rewinding re-arms them) */
@@ -112,7 +117,8 @@ void SoundScape::update(Camera *camera)
         /* nearer the end, louder and more often: more debris coming in */
         float volume = 0.7f + 0.3f * (float) m_booms / (BOOMS - 1);
         float pitch = 0.9f + 0.15f * (float) ((m_booms * 7) % 5) / 4.0f;
-        audio->play("boom_" + std::to_string(1 + m_booms % 3), volume, pitch);
+        if (m_oneShots.size() > 16) m_oneShots.erase(m_oneShots.begin());
+        m_oneShots.push_back(audio->play("boom_" + std::to_string(1 + m_booms % 3), volume, pitch));
         m_booms++;
     }
     m_lastCollapse = collapse;

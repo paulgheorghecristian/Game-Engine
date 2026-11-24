@@ -117,6 +117,11 @@ class RenderingMaster
         void imguiDrawCalls();
 
         std::vector<Light *> &getLights();
+        /* a light taken out of the scene and deleted: not at once but when
+         * the frame is over (deleteRemovedLights), as the frame under way may
+         * still hold it (its interpolated transform, to put back) */
+        void removeLightFromScene(Light *light);
+        void deleteRemovedLights();
 
         /* per-map atmosphere (sky, fog, ambient, emissive); defaults = original look */
         void setEnvironment(const Environment &environment);
@@ -269,6 +274,7 @@ class RenderingMaster
         double updateDt;
 
         std::vector<Light *> lights;
+        std::vector<Light *> m_removedLights;
 
         FrameBuffer volumetricLightFB;
         Texture volumetricLightTxt;
@@ -293,11 +299,22 @@ class RenderingMaster
     private:
         bool m_skyCloudCut = false;   /* a sky black hole with clouds: split the cloud layer */
         float m_frontEjecta = 0.0f;   /* a Kugelblitz throwing matter at us (sky pass 4, over the hole) */
+        float m_shownShell = 0.0f;    /* how far its debris shell has got, as drawn (0..2) */
     public:
-        /* the Kugelblitz aftermath (Core/Aftermath): storm 0..1 adds wind,
-         * fog, clouds and waves; calm 0..1 stills the wind before it hits */
-        void setStorm(float storm, float calm) { m_storm = storm; m_calm = calm; }
-        float getStorm() const { return m_storm; }
+        /* the Kugelblitz aftermath's weather (Core/Aftermath), each on its own, about 0..1:
+         * wind blowing, fog thickening, clouds covering and racing, waves swelling;
+         * calm 0..1 stills the map's own wind */
+        void setWeather(float wind, float fog, float clouds, float waves, float calm) {
+            m_wind = wind; m_fog = fog; m_clouds = clouds; m_waves = waves; m_calm = calm;
+        }
+        /* everything that moves by itself stopped (time, particles): the timeline editor's pause */
+        void setWorldPaused(bool paused) { m_worldPaused = paused; }
+        bool isWorldPaused() const { return m_worldPaused; }
+        /* what the storm has set by now, as JSON members (the timeline editor's state line) */
+        std::string stormState();
+        float getWaves() const { return m_waves; }
+        /* the map's own wind (its time of day), without the aftermath's wind or calm */
+        float getMapWind() const { return m_mapWind; }
         /* the storm's wind direction (xz) and how far the wind has turned to it (0..1) */
         void setStormDirection(const glm::vec2 &direction, float turn) { m_stormDirection = direction; m_stormTurn = turn; }
         /* 0: normal, 1: the picture is black (the ending) */
@@ -307,8 +324,12 @@ class RenderingMaster
         void setDust(float dust, float veil) { m_dust = dust; m_dustVeil = veil; }
         /* the storm's water: rain 0..1 streaking past, lens 0..1 drops on the lens */
         void setStormWater(float rain, float lens) { m_rain = rain; m_lensWater = lens; }
-        /* when a Kugelblitz's debris reaches the Earth (its timeline's "debrisArrival") */
-        void setDebrisArrival(float seconds) { m_debrisArrival = seconds; }
+        /* a Kugelblitz's debris in the sky (its timeline's "debrisShell": 0 at the hole, 1 reached
+         * us, 2 gone) and the matter it throws straight at us ("ejecta", 0..1). < 0: not set, they
+         * follow the Moon (the shell reaches us BlackHole::DEBRIS_ARRIVAL seconds after it formed) */
+        void setDebris(float shell, float ejecta) { m_debrisShell = shell; m_ejecta = ejecta; }
+        /* the sky Kugelblitz's playback clock: 1 normal, 0 paused (tools/timeline_editor.py) */
+        void setKugelblitzTimeScale(float scale) { m_kugelblitzTimeScale = scale; }
         /* lightning in the dust: flash 0..1 (blinding), seen as a glow inside
          * the dust at screen x boltX, height reach (0..1), shaped by seed */
         void setLightning(float flash, float boltX, float seed, float reach) {
@@ -316,11 +337,13 @@ class RenderingMaster
         }
     private:
         float m_lightning = 0.0f, m_boltX = 0.5f, m_boltSeed = 0.0f, m_boltReach = 0.0f;
-        float m_dust = 0.0f, m_dustVeil = 0.0f, m_appliedDust = 0.0f;
+        float m_dust = 0.0f, m_dustVeil = 0.0f;
         float m_rain = 0.0f, m_lensWater = 0.0f;
-        float m_debrisArrival = 8.0f;
-        float m_storm = 0.0f, m_calm = 0.0f;
-        float m_appliedStorm = 0.0f, m_appliedCalm = 0.0f;
+        float m_debrisShell = -1.0f, m_ejecta = -1.0f;
+        float m_kugelblitzTimeScale = 1.0f;
+        bool m_worldPaused = false;
+        float m_wind = 0.0f, m_fog = 0.0f, m_clouds = 0.0f, m_waves = 0.0f, m_calm = 0.0f, m_mapWind = 0.0f;
+        float m_appliedWeather[5] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };   /* wind, fog, clouds, calm, dust */
         glm::vec2 m_stormDirection = glm::vec2(1.0f, 0.0f);
         float m_stormTurn = 0.0f;
         float m_fadeOut = 0.0f;
@@ -331,7 +354,7 @@ class RenderingMaster
         void updateAdaptation();
         FrameBuffer *m_luminanceFB = nullptr, *m_adaptationA = nullptr, *m_adaptationB = nullptr;
         Shader *m_luminanceShader = nullptr, *m_adaptationShader = nullptr;
-        float m_lastAdaptationTime = 0.0f;
+        double m_lastAdaptationTime = 0.0;      /* (real time: the eye adapts while the world is paused too) */
         /* temporal anti-aliasing */
         void renderTemporalAA();
         FrameBuffer *m_taaHistory[2] = {nullptr, nullptr};

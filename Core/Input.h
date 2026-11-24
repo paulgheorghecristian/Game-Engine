@@ -31,6 +31,9 @@ class Input
         const glm::vec2 &getMouseDelta();
         const glm::vec2 &getMouseDelta2();
         void setWarpMouse(bool warpMouse);
+        /* keys and the mouse ignored (the timeline editor drives the engine:
+         * a key typed in its window must not walk the player off) */
+        void setIgnoreUser(bool ignore) { m_ignoreUser = ignore; }
         bool getWarpMouse();
 
         /* Scripted input (benchmark scenarios): real mouse motion/warping is
@@ -56,6 +59,7 @@ class Input
         glm::vec2 mousePosition, lastMousePosition, delta, delta2;
         glm::vec2 correctedMousePosition;
         volatile bool warpMouse;
+        bool m_ignoreUser = false;
         bool m_scripted = false;
         glm::vec2 m_injectedDelta = glm::vec2(0);
         std::vector<std::pair<int, bool>> m_injectedKeys;

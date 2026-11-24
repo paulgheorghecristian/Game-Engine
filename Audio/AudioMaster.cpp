@@ -91,6 +91,7 @@ int AudioMaster::play(const std::string &name, float volume, float pitch, bool l
     Voice voice;
     voice.id = m_nextId++;
     voice.sound = &m_sounds[name];
+    voice.name = name;
     voice.pitch = pitch;
     voice.loop = loop;
     voice.target = volume;
@@ -169,6 +170,10 @@ void AudioMaster::setPosition(int voice, const glm::vec3 &position)
 void AudioMaster::stop(int voice)
 {
     if (m_device == 0) return;
+    if (m_paused) {
+        cut(voice);         /* held: nothing would fade it out, and it must not be heard on carrying on */
+        return;
+    }
     SDL_LockAudioDevice(m_device);
     for (Voice &v : m_voices) {
         if (v.id == voice) {
@@ -177,6 +182,39 @@ void AudioMaster::stop(int voice)
         }
     }
     SDL_UnlockAudioDevice(m_device);
+}
+
+void AudioMaster::cut(int voice)
+{
+    if (m_device == 0 || voice == 0) return;
+    SDL_LockAudioDevice(m_device);
+    for (size_t i = 0; i < m_voices.size(); i++) {
+        if (m_voices[i].id == voice) {
+            m_voices.erase(m_voices.begin() + i);
+            break;
+        }
+    }
+    SDL_UnlockAudioDevice(m_device);
+}
+
+void AudioMaster::setPaused(bool paused)
+{
+    m_paused = paused;
+    if (m_device != 0) SDL_PauseAudioDevice(m_device, paused ? 1 : 0);
+}
+
+std::string AudioMaster::playing()
+{
+    std::string names;
+    if (m_device == 0) return names;
+    SDL_LockAudioDevice(m_device);
+    for (const Voice &v : m_voices) {
+        if (v.stopping) continue;
+        if (!names.empty()) names += ",";
+        names += v.name;
+    }
+    SDL_UnlockAudioDevice(m_device);
+    return names;
 }
 
 bool AudioMaster::isPlaying(int voice) const
@@ -242,7 +280,7 @@ void AudioMaster::mix(float *out, int frames)
             }
             size_t i1 = i0 + 1 < n ? i0 + 1 : (voice.loop ? 0 : i0);
             float frac = (float) (voice.position - (double) i0);
-            float sample = (s[i0] + (s[i1] - s[i0]) * frac) * voice.volume * m_master;
+            float sample = (s[i0] + (s[i1] - s[i0]) * frac) * voice.volume * m_master * m_fade;
             out[2 * i] += sample * left;
             out[2 * i + 1] += sample * right;
             voice.position += voice.pitch;

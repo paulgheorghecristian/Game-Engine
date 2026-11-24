@@ -105,6 +105,16 @@ class BlackHole
          * stage you can stop on; it fades in real time */
         float ignitionTime = -1e9f;
         float previousCollapse = -1.0f;
+        /* a Kugelblitz played from the start: its playTime when the last of the moon has fallen in
+         * (the wait, then the collapse at collapseSpeed per minute; none set: 12 s) */
+        float formationTime() const {
+            float rate = collapseSpeed > 0.0f ? collapseSpeed / 60.0f : 1.0f / 12.0f;
+            return collapseDelay + 1.0f / rate;
+        }
+        /* a timeline sets its collapse ("collapse"; Core/Aftermath): then it follows that, not its
+         * own playback above, and drivenRate is how fast the curve rises (per second) */
+        bool driven = false;
+        float drivenRate = 0.0f;
         float formedAt = -1.0f;       /* playTime when the last of the moon fell in, seen playing (-1: not) */
         /* how far it has grown: 0 while it is inside the intact moon (and
          * too small to see), 1 when the moon is gone */
@@ -122,8 +132,8 @@ class BlackHole
          * black holes' jets), lands ~8 s after the flash is seen (see
          * Game/recursion/STORY.md): seconds of silence while it crosses. The
          * sky's debris shell fills the sky by then (skyShader.fs), as the
-         * storm hits. A map's timeline sets it ("debrisArrival",
-         * Core/Timeline): this is when none does */
+         * storm hits. A map's timeline can put the shell anywhere in time instead
+         * ("debrisShell", Core/Aftermath): this is when it does not */
         static constexpr float DEBRIS_ARRIVAL = 8.0f;
         glm::mat4 lensSkyView() const;
         glm::mat4 lensSkyProjection() const;
