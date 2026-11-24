@@ -752,12 +752,13 @@ function gridStep(w) {
 function drawGrid(ctx, w, h) {
   const step = gridStep(w), start = seqStart();
   if (start > viewFrom()) { ctx.fillStyle = '#15171c'; ctx.fillRect(0, 0, px(start, w), h); }     /* before this timeline starts */
-  ctx.strokeStyle = '#22262d'; ctx.lineWidth = 1;
+  /* (translucent: they show on a lane's background whatever it is, the selected one's too) */
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.085)'; ctx.lineWidth = 1;
   for (let s = Math.ceil(viewFrom() / step) * step; s <= viewTo() + 1e-6; s += step) {
     const x = Math.round(px(s, w)) + 0.5;
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
   }
-  ctx.strokeStyle = '#5a3d3d'; ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = 'rgba(232, 120, 120, 0.35)'; ctx.setLineDash([4, 4]);
   for (const m of MOMENTS) if (m.t > 0) { const x = Math.round(px(m.t, w)) + 0.5; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
   ctx.setLineDash([]);
 }
@@ -846,12 +847,18 @@ function drawLane(lane) {
   ctx.beginPath(); ctx.moveTo(nx, 0); ctx.lineTo(nx, h); ctx.stroke(); ctx.lineWidth = 1;
   /* its name and its value now, top left (over everything, the time line too) */
   const now = snd ? (nowT >= (snd.at || 0) + start ? r3(valueAt(v, localNow())) : null) : (momentOf(name) !== null ? r4(v) + ' s' : tidy(name, valueAt(v, localNow())));
-  const label = (snd ? '♪ ' + snd.sound + (snd.loop ? ' (loop)' : '') + ' · at ' + r3((snd.at || 0) + start) + ' s' : name)
+  const label = (snd ? snd.sound + (snd.loop ? ' (loop)' : '') + ' · at ' + r3((snd.at || 0) + start) + ' s' : name)
               + (now !== null ? '  ' + (snd ? 'loudness ' : '') + now : '') + (!snd && !inTimeline(name) ? '  (not set: its standard value)' : '');
+  const indent = snd ? 12 : 0;      /* a sound's: a note in front, drawn (the font's ♪ is taller than the strip: cut off) */
   ctx.fillStyle = on ? 'rgba(22, 32, 43, 0.85)' : 'rgba(13, 15, 18, 0.85)';
-  ctx.fillRect(2, 1, ctx.measureText(label).width + 8, TOP - 1);
+  ctx.fillRect(2, 1, ctx.measureText(label).width + 8 + indent, TOP - 1);
   ctx.fillStyle = on ? '#d8dce3' : (!snd && !inTimeline(name) ? '#5d6572' : '#aab2bf');
-  ctx.fillText(label, 6, TOP - 3);
+  if (snd) {
+    ctx.beginPath(); ctx.ellipse(8.5, 10, 2.6, 2, -0.4, 0, 7); ctx.fill();
+    ctx.fillRect(10.4, 3, 1.2, 7);
+    ctx.beginPath(); ctx.moveTo(11.6, 3); ctx.quadraticCurveTo(14.5, 4.5, 13.6, 7.5); ctx.lineTo(13, 7.3); ctx.quadraticCurveTo(13.4, 5.4, 11.6, 4.8); ctx.fill();
+  }
+  ctx.fillText(label, 6 + indent, TOP - 3);
   /* the solo button */
   ctx.globalAlpha = 1;
   const bx = w - SOLO_W - 4, by = 1;

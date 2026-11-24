@@ -393,6 +393,30 @@
    ]
   ]
  },
+ "noises": {
+  "gusts": [
+   "gust_1",
+   "gust_2",
+   "gust_3"
+  ],
+  "booms": [
+   "boom_1",
+   "boom_2",
+   "boom_3",
+   {
+    "sound": "blast",
+    "volume": 0.7
+   }
+  ],
+  "thuds": [
+   "land"
+  ],
+  "thunder": [
+   "boom_1",
+   "boom_2",
+   "boom_3"
+  ]
+ },
  "sounds": [
   {
    "at": 22.5,

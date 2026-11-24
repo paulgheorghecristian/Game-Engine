@@ -644,6 +644,7 @@ void RenderingMaster::prepareFrame(float alpha) {
             glm::vec2 jet(glm::dot(axis, right), glm::dot(axis, up));
             jet = glm::length(jet) > 1e-3f ? glm::normalize(jet) : glm::vec2(0.0f, 1.0f);
             skyShader->updateUniform("collapseSite", (void *) &skyHole->collapseSite);
+            skyShader->updateUniform("holeHorizon", skyHole->horizon);
             skyShader->updateUniform("jetAxis", (void *) &jet);
         }
         m_lastCollapseTime = m_renderTime;

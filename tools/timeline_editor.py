@@ -404,12 +404,15 @@ def make_handler(engine, sequences):
 
         def reply(self, data, kind='application/json', code=200):
             body = data if isinstance(data, bytes) else json.dumps(data).encode()
-            self.send_response(code)
-            self.send_header('Content-Type', kind)
-            self.send_header('Content-Length', str(len(body)))
-            self.send_header('Cache-Control', 'no-store')
-            self.end_headers()
-            self.wfile.write(body)
+            try:
+                self.send_response(code)
+                self.send_header('Content-Type', kind)
+                self.send_header('Content-Length', str(len(body)))
+                self.send_header('Cache-Control', 'no-store')
+                self.end_headers()
+                self.wfile.write(body)
+            except (BrokenPipeError, ConnectionResetError):
+                pass            # the page went away before its answer (it reloaded): nothing to answer
 
         def body(self):
             n = int(self.headers.get('Content-Length', 0))

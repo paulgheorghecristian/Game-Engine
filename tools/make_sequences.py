@@ -72,6 +72,16 @@ def weather(points):
     return {name: [list(k) for k in points] for name in ("wind", "fog", "clouds", "waves")}
 
 
+# the sounds the storm's own noises take turns with (Core/Aftermath plays them on its schedule:
+# how often and how loud are the "gusts", "booms", "thuds", "lightning" effects)
+NOISES = {
+    "gusts": ["gust_1", "gust_2", "gust_3"],
+    "booms": ["boom_1", "boom_2", "boom_3", {"sound": "blast", "volume": 0.7}],
+    "thuds": ["land"],
+    "thunder": ["boom_1", "boom_2", "boom_3"],
+}
+
+
 def impact_sounds():
     """the debris arriving: the blast"""
     return [
@@ -100,6 +110,7 @@ def default_storm():
             "debrisRain": [[ARRIVAL - 0.4, 0], [ARRIVAL + 0.4, 1], [28, 0.15]],
             "gusts": [[ARRIVAL + 0.4, 0], [ARRIVAL + 0.45, 1]],
         },
+        "noises": NOISES,
         "sounds": [
             {"at": ARRIVAL - 1.5, "sound": "storm_loop", "loop": True, "anchor": "front", "radius": FRONT_DISTANCE * 1.25,
              "volume": ROAR_IN + [[14, 1.1], [32, 0.22]]},
@@ -146,6 +157,7 @@ def dust_out_storm(wet=0.8, fires=30, gain=1.8):
             "boomVolume": [[ARRIVAL, 0.5], [DUST_OUT, 1]],
             "thuds": [[10.5, 0], [10.6, 0.5], [DUST_OUT, 1.87]],
         },
+        "noises": NOISES,
         "sounds": [
             {"at": ARRIVAL - 1.5, "sound": "storm_loop", "loop": True, "anchor": "front", "radius": FRONT_DISTANCE * 1.25,
              "volume": ROAR_IN + [[ARRIVAL + 0.5, 0.9], [DUST_OUT, 2.14]]},
@@ -195,7 +207,8 @@ def archive_storm():
 
 
 FILES = {'Game/sequences/kugelblitz_storm.json': default_storm,
-         'Game/sequences/00_archive_storm.json': archive_storm}
+         'Game/sequences/00_archive_storm.json': archive_storm,
+         'Game/sequences/00_archive_storm_alternative.json': archive_storm}      # (00_archive_ignition_alternative's)
 
 if __name__ == '__main__':
     import sys

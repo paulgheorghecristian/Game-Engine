@@ -130,6 +130,7 @@ uniform float collapseTime;     /* seconds since Play / Restart: every playthrou
 uniform float formedTime;       /* seconds since the last of the moon fell in (< 0: not yet, or not seen) */
 uniform float debrisShell;      /* the shell of its debris: 0 at the hole (none), 1 reached the horizon (us), 2 gone */
 uniform float collapseRate;     /* collapse per second while playing (to time the gulps' outbursts) */
+uniform float holeHorizon;      /* the hole's true horizon, as a fraction of its size (1: its size; BlackHole "horizon") */
 
 /* the hole's growth as the moon pours in (as BlackHole::kugelblitzGrowth) */
 float kbGrowth() {
@@ -330,7 +331,7 @@ void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRa
          * with it (in moon radii; what is behind the shadow would only be
          * wrapped round it into a blinding ring) */
         float holeGrowth = kbGrowth();
-        float edge = 0.06 + holeGrowth * 1.5;
+        float edge = 0.06 + holeGrowth * 1.5 * holeHorizon;
         float extent = smoothstep(edge, edge * 1.6 + 0.2, r) * (1.0 - smoothstep(outer * 0.7, outer, r));
         float hot = smoothstep(2.6, 0.25, r);
         vec3 stream = mix(vec3(0.5, 0.18, 0.08), vec3(1.0, 0.68, 0.38), hot);
@@ -363,7 +364,7 @@ void kugelblitzSky(vec3 dir, vec3 moonDir, vec3 right, vec3 upAxis, float moonRa
          * to flare); a flash all the way round was lensed into a ring */
         float slot = floor(collapseTime * 2.0);
         float angle = fract(sin(slot * 91.7 + 4.3) * 43758.5453) * 6.2831853;
-        float hit = mix(0.9, 0.45, b) + kbGrowth() * 1.4;
+        float hit = mix(0.9, 0.45, b) + kbGrowth() * 1.4 * holeHorizon;
         vec2 impact = vec2(cos(angle), sin(angle)) * hit;
         float d = length(q - impact);
         result += vec3(1.0, 0.86, 0.66) * flare *

@@ -140,6 +140,25 @@ void Timeline::loadOne(const rapidjson::Value &json)
             sequence.sounds.push_back(sound);
         }
     }
+    if (json.HasMember("noises") && json["noises"].IsObject()) {
+        for (auto it = json["noises"].MemberBegin(); it != json["noises"].MemberEnd(); ++it) {
+            if (!it->value.IsArray()) continue;
+            std::vector<Noise> &set = sequence.noises[it->name.GetString()];
+            for (const auto &n : it->value.GetArray()) {
+                Noise noise;
+                if (n.IsString()) {
+                    noise.sound = n.GetString();
+                } else if (n.IsObject() && n.HasMember("sound") && n["sound"].IsString()) {
+                    noise.sound = n["sound"].GetString();
+                    if (n.HasMember("volume") && n["volume"].IsNumber()) noise.volume = n["volume"].GetFloat();
+                    if (n.HasMember("pitch") && n["pitch"].IsNumber()) noise.pitch = n["pitch"].GetFloat();
+                } else {
+                    continue;
+                }
+                set.push_back(noise);
+            }
+        }
+    }
     if (json.HasMember("events") && json["events"].IsArray()) {
         for (const auto &e : json["events"].GetArray()) {
             if (e.IsObject() && e.HasMember("event") && e["event"].IsString()) {
@@ -344,6 +363,16 @@ void Timeline::setSolo(const std::set<std::pair<int, std::string>> &params, cons
     m_soloParams = params;
     m_soloSounds = sounds;
     m_soloOff = off;
+}
+
+const std::vector<Timeline::Noise> *Timeline::noises(const std::string &name) const
+{
+    for (auto it = m_sequences.rbegin(); it != m_sequences.rend(); ++it) {
+        if (!it->running) continue;
+        auto set = it->noises.find(name);
+        if (set != it->noises.end()) return &set->second;
+    }
+    return nullptr;
 }
 
 bool Timeline::fired(const std::string &event) const

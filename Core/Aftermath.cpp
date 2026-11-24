@@ -154,18 +154,18 @@ static const std::vector<Aftermath::Parameter> PARAMETERS = {
     { "fires",         "Debris",             0.0f, 60.0f, 0.0f, "How many fires burn around you (a whole number; each takes a couple of seconds to grow)." },
     { "dust",          "Dust and lightning", 0.0f, 1.0f, 0.0f, "How thick the dust fog over the land is." },
     { "dustVeil",      "Dust and lightning", 0.0f, 1.0f, 0.0f, "How much of the picture the dust hides (1 = nothing but dust)." },
-    { "lightning",     "Dust and lightning", 0.0f, 1.0f, 0.0f, "How often lightning flashes inside the dust: the chance of a strike every 0.7 seconds (1 = every time). Thunder follows each strike." },
+    { "lightning",     "Dust and lightning", 0.0f, 1.0f, 0.0f, "How often lightning flashes inside the dust: the chance of a strike every 0.7 seconds (1 = every time). Thunder follows each strike: the timeline's thunder noises." },
     { "thunderVolume", "Dust and lightning", 0.0f, 3.0f, 1.0f, "How loud the thunder is. Only heard when lightning strikes." },
     { "rain",          "Rain",               0.0f, 1.5f, 0.0f, "Wind-driven rain streaking past." },
     { "lensWater",     "Rain",               0.0f, 1.5f, 0.0f, "Water drops on the camera lens." },
     { "shake",         "Camera",             0.0f, 0.1f, 0.0f, "How hard the camera shakes (0.01 = a tremble, 0.1 = violent)." },
     { "fadeOut",       "Camera",             0.0f, 1.0f, 0.0f, "Fades the picture and all sound out (1 = black and silent)." },
     { "gain",          "Noise",              0.0f, 4.0f, 1.0f, "Loudness of all the storm's sounds: the ones in Sounds, and its gusts, booms, thuds and thunder." },
-    { "gusts",         "Noise",              0.0f, 6.0f, 0.0f, "How often gusts of wind rush past (1 = about one a second, 2 = twice as often)." },
+    { "gusts",         "Noise",              0.0f, 6.0f, 0.0f, "How often gusts of wind rush past (1 = about one a second, 2 = twice as often). Their sounds: the timeline's gusts noises." },
     { "gustVolume",    "Noise",              0.0f, 3.0f, 1.0f, "How loud the gusts are. Only heard when gusts is on." },
-    { "booms",         "Noise",              0.0f, 4.0f, 0.0f, "How often distant impacts boom (about that many a second)." },
+    { "booms",         "Noise",              0.0f, 4.0f, 0.0f, "How often distant impacts boom (about that many a second). Their sounds: the timeline's booms noises." },
     { "boomVolume",    "Noise",              0.0f, 3.0f, 1.0f, "How loud the booms are. Only heard when booms is on." },
-    { "thuds",         "Noise",              0.0f, 4.0f, 0.0f, "How often debris thuds down close by (about that many a second)." },
+    { "thuds",         "Noise",              0.0f, 4.0f, 0.0f, "How often debris thuds down close by (about that many a second). Their sounds: the timeline's thuds noises." },
     { "thudVolume",    "Noise",              0.0f, 3.0f, 1.0f, "How loud the thuds are. Only heard when thuds is on." },
 };
 
@@ -186,6 +186,18 @@ std::map<std::string, float> Aftermath::isolatedOff()
     return off;
 }
 
+/* text as a JSON string's contents (quotes, backslashes and control characters escaped) */
+static std::string jsonText(const char *text)
+{
+    std::string out;
+    for (const char *c = text; *c; c++) {
+        if (*c == '"' || *c == '\\') { out += '\\'; out += *c; }
+        else if ((unsigned char) *c < 0x20) { char code[8]; std::snprintf(code, sizeof(code), "\\u%04x", *c); out += code; }
+        else out += *c;
+    }
+    return out;
+}
+
 std::string Aftermath::parametersJson()
 {
     std::string json = "[";
@@ -193,9 +205,9 @@ std::string Aftermath::parametersJson()
         char numbers[96];
         std::snprintf(numbers, sizeof(numbers), "\"min\": %g, \"max\": %g, \"standard\": %g", p.min, p.max, p.standard);
         if (json.size() > 1) json += ", ";
-        json += std::string("{\"name\": \"") + p.name + "\", \"group\": \"" + p.group + "\", " + numbers +
-                (p.after ? std::string(", \"after\": \"") + p.after + "\"" : std::string()) +
-                ", \"about\": \"" + p.about + "\"}";       /* (the texts have no quotes or backslashes) */
+        json += "{\"name\": \"" + jsonText(p.name) + "\", \"group\": \"" + jsonText(p.group) + "\", " + numbers +
+                (p.after ? ", \"after\": \"" + jsonText(p.after) + "\"" : std::string()) +
+                ", \"about\": \"" + jsonText(p.about) + "\"}";
     }
     return json + "]";
 }
@@ -281,6 +293,16 @@ std::string Aftermath::timelineJson(const Timeline &timeline)
         }
     }
     return json + "]";
+}
+
+/* the n-th sound of one of the timeline's "noises" sets (they take turns); nullptr: it names none,
+ * and that noise is silent (the storm names no sound of its own) */
+static const Timeline::Noise *noiseOf(const Timeline &timeline, const char *name, long n)
+{
+    const std::vector<Timeline::Noise> *set = timeline.noises(name);
+    if (set == nullptr || set->empty()) return nullptr;
+    long size = (long) set->size();
+    return &(*set)[((n % size) + size) % size];
 }
 
 /* a parameter as the timeline has it now, or its standard value */
@@ -637,10 +659,11 @@ bool Aftermath::update(Camera *camera, Timeline &timeline)
         if (k > m_lastBolt) {
             m_lastBolt = k;
             float delay = 0.25f + 2.2f * hash(k * 5.3f + 3.0f);
-            const char *thunder[] = { "boom_1", "boom_2", "boom_3" };
-            m_delayed.push_back({ t + delay, thunder[((k % 3) + 3) % 3],
-                                  glm::mix(1.0f, 0.45f, delay / 2.5f) * value(timeline, "thunderVolume"),
-                                  0.8f + 0.35f * hash(k * 2.9f + 4.0f) });
+            if (const Timeline::Noise *thunder = noiseOf(timeline, "thunder", k)) {
+                m_delayed.push_back({ t + delay, thunder->sound,
+                                      glm::mix(1.0f, 0.45f, delay / 2.5f) * value(timeline, "thunderVolume") * thunder->volume,
+                                      (0.8f + 0.35f * hash(k * 2.9f + 4.0f)) * thunder->pitch });
+            }
         }
         float f = std::exp(-dt * 9.0f) + (dt > 0.13f ? 0.7f * std::exp(-(dt - 0.13f) * 7.0f) : 0.0f);
         if (f > flash) {
@@ -711,10 +734,11 @@ bool Aftermath::update(Camera *camera, Timeline &timeline)
             float side = hash(m_gusts * 3.1f) * 2.0f - 1.0f;
             float volume = (0.55f + 0.45f * hash(m_gusts * 5.7f + 1.0f)) * value(timeline, "gustVolume");
             float pitch = 0.85f + 0.25f * hash(m_gusts * 7.3f + 2.0f);
-            m_lastGust = volume * m_gain;
-            if (volume > 0.05f) {
-                play3D("gust_" + std::to_string(1 + m_gusts % 3), eye - downwind * 90.0f + across * (side * 140.0f),
-                       volume, 700.0f, pitch);
+            const Timeline::Noise *gust = noiseOf(timeline, "gusts", m_gusts);
+            if (gust != nullptr) volume *= gust->volume;
+            m_lastGust = gust != nullptr ? volume * m_gain : 0.0f;
+            if (volume > 0.05f && gust != nullptr) {
+                play3D(gust->sound, eye - downwind * 90.0f + across * (side * 140.0f), volume, 700.0f, pitch * gust->pitch);
             }
             m_gusts++;
             m_nextGust += (1.2f + 2.6f * hash(m_gusts * 11.1f)) * 0.5f / gusts;
@@ -725,10 +749,9 @@ bool Aftermath::update(Camera *camera, Timeline &timeline)
         if (m_nextBoom == UNSCHEDULED || t - m_nextBoom > 5.0f) m_nextBoom = t;
         if (t >= m_nextBoom) {
             /* debris coming down further off */
-            const char *names[] = { "boom_1", "boom_2", "boom_3", "blast" };
-            int b = m_booms % 4;
-            float volume = value(timeline, "boomVolume") * (b == 3 ? 0.7f : 1.0f);
-            play(names[b], volume, 0.6f + 0.3f * hash(m_booms * 3.7f + 9.0f));
+            const Timeline::Noise *boom = noiseOf(timeline, "booms", m_booms);
+            float volume = boom != nullptr ? value(timeline, "boomVolume") * boom->volume : 0.0f;
+            if (boom != nullptr) play(boom->sound, volume, (0.6f + 0.3f * hash(m_booms * 3.7f + 9.0f)) * boom->pitch);
             m_lastBoom = volume * m_gain;
             m_booms++;
             m_nextBoom = t + (0.6f + 0.8f * hash(m_booms * 5.9f)) / booms;
@@ -740,9 +763,13 @@ bool Aftermath::update(Camera *camera, Timeline &timeline)
         if (t >= m_nextThud) {
             /* debris thudding down close by */
             float a = hash(m_thuds * 4.3f) * 6.2831853f, d = 40.0f + 90.0f * hash(m_thuds * 6.1f + 1.0f);
-            play3D("land", eye + glm::vec3(std::cos(a) * d, -10.0f, std::sin(a) * d),
-                   (0.5f + 0.5f * hash(m_thuds * 8.9f + 2.0f)) * value(timeline, "thudVolume"), 300.0f, 0.5f + 0.3f * hash(m_thuds * 2.2f + 3.0f));
-            m_lastThud = (0.5f + 0.5f * hash(m_thuds * 8.9f + 2.0f)) * value(timeline, "thudVolume") * m_gain;
+            const Timeline::Noise *thud = noiseOf(timeline, "thuds", m_thuds);
+            float volume = thud != nullptr ? (0.5f + 0.5f * hash(m_thuds * 8.9f + 2.0f)) * value(timeline, "thudVolume") * thud->volume : 0.0f;
+            if (thud != nullptr) {
+                play3D(thud->sound, eye + glm::vec3(std::cos(a) * d, -10.0f, std::sin(a) * d), volume, 300.0f,
+                       (0.5f + 0.3f * hash(m_thuds * 2.2f + 3.0f)) * thud->pitch);
+            }
+            m_lastThud = volume * m_gain;
             m_thuds++;
             m_nextThud = t + (0.36f + 1.3f * hash(m_thuds * 3.3f)) / thuds;
         }

@@ -34,7 +34,13 @@ class PointLight;
  *   (degrees), glow (strength of the light it casts, 0 = none), colorShift
  *   (0..1: how much the Doppler and gravitational shifts change the disk's
  *   color, not only its brightness: bluer where it comes towards the viewer,
- *   redder where it recedes and near the horizon)
+ *   redder where it recedes and near the horizon), horizon (the true event
+ *   horizon as a fraction of radius / angularRadius, 1 if not given: then
+ *   that radius is the scale of the system, its disk and lensing, and a
+ *   small horizon leaves the middle clear, the stars seen through it, as
+ *   for a hole of the Moon's mass, far smaller than a pixel), coreGlow
+ *   (brightness of the point of light where it feeds, 0 = none) and
+ *   coreSize (its size, in radii)
  *
  * "sky": true makes it a sky object like the moon: placed by "direction"
  * [x,y,z] and "angularRadius" (horizon, radians) instead of a position and a
@@ -78,6 +84,9 @@ class BlackHole
         float colorShift = 0.7f;   /* Doppler / gravitational color shift (0 = none, 1 = physical) */
         glm::vec2 diskTilt = glm::vec2(12.0f, 6.0f);
         float glow = 1.0f;
+        float horizon = 1.0f;      /* the true event horizon, as a fraction of radius (1: the radius is the horizon) */
+        float coreGlow = 0.0f;     /* the point of light where it feeds (0: none) */
+        float coreSize = 0.3f;     /* its size, in radii */
 
         bool sky = false;
         glm::vec3 direction = glm::vec3(0.0f, 0.5f, -1.0f);

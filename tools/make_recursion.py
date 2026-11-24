@@ -5,6 +5,8 @@ textures). Each is a map in Game/recursion/:
 
   00_archive_ignition     the archive's 2035 footage: the Moon eaten by the black
                           hole AURA made (plays live, slowly), grainy like old footage
+  00_archive_ignition_alternative   the same, the black hole as it would really be: the
+                          Moon's mass, too small to see; its disk and a point of light
   01_room7                Ch.1 (and the ending): the hospital-like room, bed, CRT, fuse
                           box, keypad door
   02_corridor_subject4    Ch.2: peeling corridor of cells, cell 4's window
@@ -407,6 +409,12 @@ scenes['00_archive_ignition'] = serious_lights(outdoor(LAGOON, 0.0, LAGOON_MOON,
 # the footage ends in the storm's dust: its timeline (Core/Timeline), in its own
 # file (written once by tools/make_sequences.py, tuned in tools/timeline_editor.py)
 scenes['00_archive_ignition']["Sequences"] = [{"file": "Game/sequences/00_archive_storm.json"}]
+# the same footage with the black hole as it would really be (Game/recursion/STORY.md): the Moon's
+# mass, a horizon far smaller than a pixel. What is seen is what is around it: the middle of its
+# disk clear (the stars through it, no shadow, no bent light) and a point of light where it feeds
+scenes['00_archive_ignition_alternative'] = copy.deepcopy(scenes['00_archive_ignition'])
+scenes['00_archive_ignition_alternative']['BlackHoles'][0].update({"horizon": 1e-5, "coreGlow": 6.0, "coreSize": 0.25})
+scenes['00_archive_ignition_alternative']["Sequences"] = [{"file": "Game/sequences/00_archive_storm_alternative.json"}]
 
 # --------------------------------------------------------------------------
 # 01 Room 7: the room where you wake, AURA's lab built like a hospital ward (Ch.1), 4 x 5 m

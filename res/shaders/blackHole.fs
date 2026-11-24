@@ -17,7 +17,9 @@ uniform int hasSky;
 uniform mat4 inverseProjectionMatrix, inverseViewMatrix, viewProjectionMatrix, projectionMatrix;
 uniform vec3 cameraPosition;
 uniform vec3 holePosition;
-uniform float holeRadius;         /* event horizon (Schwarzschild radius) */
+uniform float holeRadius;         /* the system's scale: the disk's radii, the steps (the event horizon when horizonScale is 1) */
+uniform float horizonScale;       /* the true event horizon (Schwarzschild radius), as a fraction of holeRadius */
+uniform float coreGlow, coreSize; /* the point of light where it feeds (0: none); its size in holeRadius */
 uniform float lensing;            /* 1 = physical bending */
 uniform float influenceRadius;    /* rays farther than this are not bent */
 uniform float boundRadius;        /* rays are marched inside this sphere (holds the disk) */
@@ -102,9 +104,10 @@ vec4 diskEmission(vec3 hit, vec3 rayDir, float rr, float footprint) {
      * towards the viewer is blueshifted, away redshifted, plus time dilation)
      * times gravitational redshift (climbing out of the well dims and reddens
      * the inner disk) */
-    float beta = clamp(0.5 / sqrt(rr), 0.0, 0.6);
+    float rh = rr / horizonScale;    /* in true horizon radii: how fast it orbits, how deep in the well */
+    float beta = clamp(0.5 / sqrt(rh), 0.0, 0.6);
     float doppler = sqrt(1.0 - beta * beta) / (1.0 - beta * dot(orbit, -rayDir));
-    float g = doppler * sqrt(max(1.0 - 1.5 / rr, 0.05));
+    float g = doppler * sqrt(max(1.0 - 1.5 / rh, 0.05));
 
     /* observed color from the shifted temperature: red rim, the disk color,
      * white-hot, and blue-white where it is blueshifted beyond that */
@@ -350,7 +353,7 @@ void main() {
         return;
     }
 
-    float rs = holeRadius;
+    float scale = holeRadius, rs = holeRadius * horizonScale;
     vec3 pos = cameraPosition + dir * t0;
     vec3 vel = dir;
     vec3 rel = pos - holePosition;
@@ -383,7 +386,7 @@ void main() {
         }
         /* longer steps outside the bending (straight there; the disk
          * crossing is found exactly whatever the step) */
-        float step = clamp(0.07 * r, rs * 0.02, r > influenceRadius ? rs * 2.5 : rs * 0.8);
+        float step = clamp(0.07 * r, scale * 0.02, r > influenceRadius ? scale * 2.5 : scale * 0.8);
         vel += acceleration * (step * 0.5);
         vec3 next = pos + normalize(vel) * step;
         acceleration = bend(next - holePosition, L2, rs);
@@ -393,11 +396,11 @@ void main() {
         float s0 = dot(rel, diskNormal), s1 = dot(relNext, diskNormal);
         if (s0 * s1 < 0.0) {
             vec3 hit = mix(rel, relNext, s0 / (s0 - s1));
-            float rr = length(hit) / rs;
+            float rr = length(hit) / scale;
             if (rr > diskInner && rr < diskOuter) {
                 /* one pixel's size there, in horizon radii */
                 float footprint = length(holePosition + hit - cameraPosition) * 2.0 /
-                                  (projectionMatrix[1][1] * float(textureSize(sceneSampler, 0).y) * rs);
+                                  (projectionMatrix[1][1] * float(textureSize(sceneSampler, 0).y) * scale);
                 /* rays grazing the capture edge (the photon ring) see the
                  * disk squeezed into a hairline: no texture there, or the
                  * ring breaks into dots */
@@ -482,6 +485,12 @@ void main() {
                           mix(1.0, 0.55, smoothstep(0.0, -0.6, vel.y));
             behind = mix(behind, around, squeezed);
         }
+    }
+    /* the point of light where it feeds, by how close the ray came to it (a hole far smaller
+     * than its disk: what is seen of it at all) */
+    if (coreGlow > 0.0) {
+        float c = closest / (coreSize * scale);
+        light += transmittance * vec3(1.0, 0.93, 0.84) * coreGlow * (exp(-c * c * 4.0) * 4.0 + 0.5 / (1.0 + c * c * 6.0));
     }
     outColor = vec4(light + transmittance * behind * rim, 1.0);
 }

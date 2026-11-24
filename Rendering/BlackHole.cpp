@@ -40,6 +40,9 @@ BlackHole::BlackHole(const rapidjson::Value &json) :
     colorShift = jsonFloat(json, "colorShift", colorShift);
     diskTilt = jsonVec2(json, "diskTilt", diskTilt);
     glow = jsonFloat(json, "glow", glow);
+    horizon = glm::clamp(jsonFloat(json, "horizon", horizon), 1e-5f, 1.0f);
+    coreGlow = std::max(0.0f, jsonFloat(json, "coreGlow", coreGlow));
+    coreSize = std::max(0.01f, jsonFloat(json, "coreSize", coreSize));
     sky = json.HasMember("sky") && json["sky"].IsBool() && json["sky"].GetBool();
     direction = jsonVec3(json, "direction", direction);
     angularRadius = jsonFloat(json, "angularRadius", angularRadius);
@@ -246,6 +249,11 @@ void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube
     s.updateUniform("diskOpacity", diskOpacity);
     s.updateUniform("diskSpeed", diskSpeed);
     s.updateUniform("colorShift", colorShift);
+    s.updateUniform("horizonScale", horizon);
+    /* (a Kugelblitz's point of light grows with it, as its disk brightens) */
+    float core = sky && kugelblitz ? coreGlow * glm::smoothstep(0.62f, 0.95f, collapse) : coreGlow;
+    s.updateUniform("coreGlow", core);
+    s.updateUniform("coreSize", coreSize);
     s.updateUniform("time", time);
     int skySource = sky && lensSky != 0 ? 1 : 0;
     s.updateUniform("skySource", skySource);
@@ -348,6 +356,9 @@ bool BlackHole::renderGUI(int index)
         ImGui::SliderFloat("Color shift", &colorShift, 0.0f, 1.0f, "%.2f");
         ImGui::DragFloat2("Disk tilt", &diskTilt.x, 0.5f);
         changed |= ImGui::SliderFloat("Glow (light)", &glow, 0.0f, 4.0f, "%.2f");
+        ImGui::SliderFloat("Horizon (of the radius)", &horizon, 1e-5f, 1.0f, "%.5f", 6.0f);     /* (a power curve: the small values get room) */
+        ImGui::SliderFloat("Core glow", &coreGlow, 0.0f, 20.0f, "%.2f");
+        ImGui::SliderFloat("Core size (radii)", &coreSize, 0.01f, 3.0f, "%.2f");
         if (changed) {
             diskOuter = std::max(diskOuter, diskInner + 0.5f);
             updateLight();
@@ -405,4 +416,9 @@ void BlackHole::save(rapidjson::Value &json, rapidjson::Document::AllocatorType 
     tilt.PushBack(diskTilt.x, allocator).PushBack(diskTilt.y, allocator);
     json.AddMember("diskTilt", tilt, allocator);
     json.AddMember("glow", glow, allocator);
+    if (horizon < 1.0f) json.AddMember("horizon", horizon, allocator);
+    if (coreGlow > 0.0f) {
+        json.AddMember("coreGlow", coreGlow, allocator);
+        json.AddMember("coreSize", coreSize, allocator);
+    }
 }

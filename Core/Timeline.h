@@ -27,6 +27,10 @@
  *    "sounds": [{"at": 8, "sound": "blast", "volume": 1, "pitch": 0.75},
  *               {"at": 6.5, "sound": "storm_loop", "loop": true, "volume": [[6.5, 0], [7.2, 1.1]],
  *                "anchor": "front", "radius": 3000}],
+ *    "noises": {"booms": ["boom_1", "boom_2", {"sound": "blast", "volume": 0.7, "pitch": 0.9}],
+ *               "thuds": ["land"]},                           sets of sounds a system plays on its
+ *                                                             own schedule, in turn (Core/Aftermath:
+ *                                                             gusts, booms, thuds, thunder)
  *    "events": [{"at": 40, "event": "quit"}]}
  *
  * A sequence's clock runs from its trigger: "kugelblitzFormed" from the
@@ -63,6 +67,11 @@ class Timeline
         float time() const { return m_time; }
         /* an event that fired this frame */
         bool fired(const std::string &event) const;
+        /* one sound of a "noises" set: its file in res/sounds, and its own volume and pitch (times
+         * whatever the system that plays it does) */
+        struct Noise { std::string sound; float volume = 1.0f, pitch = 1.0f; };
+        /* a "noises" set of the running sequences (the last one that has it wins); nullptr: none has it */
+        const std::vector<Noise> *noises(const std::string &name) const;
 
         /* the scene's clock: seconds since the start (the map loaded, its animation starting).
          * Sequences triggered by "mapStart" run on it; others start on it later */
@@ -125,6 +134,7 @@ class Timeline
             std::map<std::string, Track> params;
             std::vector<Sound> sounds;
             std::vector<Event> events;
+            std::map<std::string, std::vector<Noise>> noises;
             bool running = false;
             float t = -1.0f, startedAt = 0.0f;
             float length = -1.0f;          /* "length": seconds of it to show (-1: not given) */
