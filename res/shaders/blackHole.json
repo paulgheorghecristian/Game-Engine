@@ -30,6 +30,12 @@
                     "skySource" : "INT",
                     "lensSkySampler" : "INT",
                     "lensSkyViewProjection" : "MAT4",
-                    "time" : "FLOAT"
+                    "time" : "FLOAT",
+                    "surroundColor" : "INT",
+                    "surroundDepth" : "INT",
+                    "surroundFaces" : "INT",
+                    "surroundCenter" : "VEC3",
+                    "surroundNear" : "FLOAT",
+                    "surroundFar" : "FLOAT"
                  }
 }

@@ -36,6 +36,15 @@ uniform int skySource;
 uniform sampler2D lensSkySampler;
 uniform mat4 lensSkyViewProjection;
 uniform float time;
+/* world black holes: the land around the camera (LensSurroundings), for the
+ * rays bent off the screen: colour, and depth (90 degree faces from
+ * surroundNear to surroundFar). surroundFaces: the faces drawn this frame
+ * (bit i: face i, in GL's order; 0: none, the rays leaving the screen see
+ * the sky as before) */
+uniform samplerCube surroundColor, surroundDepth;
+uniform int surroundFaces;
+uniform vec3 surroundCenter;
+uniform float surroundNear, surroundFar;
 
 float hash(vec2 p) {
     p = fract(p * vec2(123.34, 456.21));
@@ -228,21 +237,147 @@ vec2 refineHit(vec3 a, vec3 b, vec2 uv) {
     return uv;
 }
 
+/* ---- past the screen's edges: the same tracing, against the land around
+ * the camera. A hole just beyond the edge bends the rays of the pixels by
+ * it off the screen, onto land the screen has no image of ---- */
+
+/* how far the land is from the cube's centre in direction v (1e9: none
+ * there, or its face not drawn this frame) */
+/* whether the cube holds what lies in direction v (its face drawn this frame) */
+bool surroundCovers(vec3 v) {
+    vec3 a = abs(v);
+    int face = a.x >= a.y && a.x >= a.z ? (v.x > 0.0 ? 0 : 1)
+             : a.y >= a.z ? (v.y > 0.0 ? 2 : 3) : (v.z > 0.0 ? 4 : 5);
+    return (surroundFaces & (1 << face)) != 0;
+}
+
+float surroundDistance(vec3 v) {
+    if (!surroundCovers(v)) return 1e9;
+    vec3 a = abs(v);
+    float d = textureLod(surroundDepth, v, 0.0).r;
+    if (d >= 0.99999) return 1e9;
+    float z = 2.0 * surroundNear * surroundFar /
+              (surroundFar + surroundNear - (d * 2.0 - 1.0) * (surroundFar - surroundNear));
+    return z * length(v) / max(a.x, max(a.y, a.z));
+}
+
+/* the land's colour in direction v: the cube holds nothing (alpha 0) where
+ * it saw sky, so its blurred levels are divided by how much land they hold
+ * (or the outlines darken and the colour matching below flares there) */
+vec3 surroundSample(vec3 v, float lod) {
+    vec4 c = textureLod(surroundColor, v, lod);
+    return c.a > 0.01 ? c.rgb / c.a : vec3(0.0);
+}
+
+/* crossesScene for a point off the screen: did the ray, from a (in front of
+ * the land) to p, go behind it? Found by narrowing down where it went behind,
+ * then checking the land is there (a hit) rather than much nearer (the ray
+ * passed behind something in front, a tree: not a hit). Long steps over a
+ * slope otherwise looked like the latter: stripes of missed land */
+bool crossesSurround(vec3 a, vec3 p, float tolerance) {
+    if (surroundFaces == 0) return false;
+    vec3 v = p - surroundCenter;
+    float land = surroundDistance(v);
+    if (length(v) <= land) return false;
+    vec3 b = p;
+    for (int k = 0; k < 6; k++) {
+        vec3 m = (a + b) * 0.5;
+        vec3 mv = m - surroundCenter;
+        if (length(mv) > surroundDistance(mv)) {
+            b = m;
+        } else {
+            a = m;
+        }
+    }
+    vec3 bv = b - surroundCenter;
+    float behind = length(bv) - surroundDistance(bv);
+    return behind < max(tolerance, length(bv) * 0.02);
+}
+
+/* the cube is lit more simply than the screen (no shadows, no grass, no
+ * fog particles: a hillside the screen has in shade came out bright). What
+ * to multiply its colours by in direction v to match the screen: both see
+ * the same land along the screen's edge next to v; compared there (blurred,
+ * where both see land) */
+vec3 surroundMatch(vec3 v) {
+    vec4 c = viewProjectionMatrix * vec4(surroundCenter + v, 1.0);
+    vec2 uv = c.w > 1e-4 ? c.xy / c.w * 0.5 + 0.5
+                         : 0.5 + normalize(c.xy + vec2(1e-6)) * 8.0;   /* behind: the edge on its side */
+    const float m = 0.02;
+    vec2 over = max(max(vec2(m) - uv, uv - vec2(1.0 - m)), vec2(0.0));
+    vec2 along = over.x >= over.y ? vec2(0.0, 1.0) : vec2(1.0, 0.0);   /* the edge it is past */
+    vec2 edge = clamp(uv, vec2(m), vec2(1.0 - m));
+    vec3 screenSum = vec3(0.0), cubeSum = vec3(0.0);
+    for (int ring = 0; ring < 2; ring++) {
+        float spacing = ring == 0 ? 0.025 : 0.1;
+        for (int k = -4; k <= 4; k++) {
+            vec2 p = clamp(edge + along * (float(k) * spacing), vec2(m), vec2(1.0 - m));
+            if (texture(depthSampler, p).r >= 0.99999) continue;          /* sky on screen */
+            vec4 farPoint = inverseProjectionMatrix * vec4(p * 2.0 - 1.0, 1.0, 1.0);
+            vec3 d = mat3(inverseViewMatrix) * (farPoint.xyz / farPoint.w);
+            if (surroundDistance(d) > 1e8) continue;                       /* none in the cube */
+            float w = 1.0 / (1.0 + float(k * k) * 0.25);
+            /* (lightly blurred: a wide blur on screen takes in the sky past an outline) */
+            screenSum += textureLod(sceneSampler, p, 1.0).rgb * w;
+            cubeSum += surroundSample(d, 0.5) * w;
+        }
+        if (dot(cubeSum, vec3(1.0)) > 0.0) break;   /* (the wider ring only when the near one found no land) */
+    }
+    if (dot(cubeSum, vec3(1.0)) <= 0.0) return vec3(1.0);
+    return clamp((screenSum + 1e-4) / (cubeSum + 1e-4), vec3(0.02), vec3(3.0));
+}
+
+/* the land's colour where the ray from a (in front) to b (behind it) meets it */
+vec3 surroundHit(vec3 a, vec3 b, float lod) {
+    for (int k = 0; k < 6; k++) {
+        vec3 m = (a + b) * 0.5;
+        vec3 v = m - surroundCenter;
+        if (length(v) > surroundDistance(v)) {
+            b = m;
+        } else {
+            a = m;
+        }
+    }
+    return surroundSample(b - surroundCenter, lod) * surroundMatch(b - surroundCenter);
+}
+
+/* what a ray meets on screen at uv (p: about there in the world). By the
+ * edge it fades into the same land from the cube (drawn more simply): no
+ * seam where the rays go on past the edge */
+vec3 screenHit(vec2 uv, vec3 p, float lod) {
+    vec3 color = textureLod(sceneSampler, uv, lod).rgb;
+    if (surroundFaces == 0) return color;
+    vec2 e = min(uv, 1.0 - uv);
+    float edge = min(e.x, e.y);
+    if (edge >= 0.03) return color;
+    vec3 v = p - surroundCenter;
+    if (surroundDistance(v) > 1e8) return color;
+    return mix(surroundSample(v, lod) * surroundMatch(v), color, smoothstep(0.0, 0.03, edge));
+}
+
 /* a ray leaving the sphere at p along d: march on (growing steps) until it
  * meets the scene; if it never does, it sees the sky that way */
 vec3 traceOut(vec3 p, vec3 d) {
     float t = 0.0, stepLength = boundRadius * 0.05;
     float previousDepth = (viewProjectionMatrix * vec4(p, 1.0)).w;
+    float previousDistance = length(p - surroundCenter);
     vec2 uv;
     float depth;
     for (int i = 0; i < 40; i++) {
         t += stepLength;
-        if (crossesScene(p + d * t, previousDepth, stepLength * 0.25, uv, depth)) {
-            uv = refineHit(p + d * (t - stepLength), p + d * t, uv);
-            return textureLod(sceneSampler, uv, traceLod).rgb;
+        vec3 q = p + d * t;
+        if (crossesScene(q, previousDepth, stepLength * 0.25, uv, depth)) {
+            uv = refineHit(p + d * (t - stepLength), q, uv);
+            return screenHit(uv, q, traceLod);
         }
-        if (uv.x < 0.0) break;   /* off screen or behind the camera */
+        if (uv.x < 0.0) {   /* off screen or behind the camera: the land around the camera */
+            if (surroundFaces == 0 || previousDistance > surroundFar) break;
+            if (crossesSurround(p + d * (t - stepLength), q, stepLength * 0.25)) {
+                return surroundHit(p + d * (t - stepLength), q, traceLod);
+            }
+        }
         previousDepth = depth;
+        previousDistance = length(q - surroundCenter);
         stepLength *= 1.15;
     }
     /* the sky in that direction: the screen where it shows sky there */
@@ -433,10 +568,16 @@ void main() {
         }
         vec2 hitUV;
         float depthHere;
+        float hitLod = clamp((max(1.5 * lensing, 1.0) * rs * 2.4 - closest) / (rs * 0.35), 0.0, 4.0);
         if (worldHole && crossesScene(pos, previousDepth, step * 0.25 + rs * 0.1, hitUV, depthHere)) {
             hitGeometry = true;
-            hitColor = textureLod(sceneSampler, refineHit(pos - normalize(vel) * step, pos, hitUV),
-                                  clamp((max(1.5 * lensing, 1.0) * rs * 2.4 - closest) / (rs * 0.35), 0.0, 4.0)).rgb;
+            hitColor = screenHit(refineHit(pos - normalize(vel) * step, pos, hitUV), pos, hitLod);
+            break;
+        }
+        /* off the screen: the land around the camera */
+        if (worldHole && hitUV.x < 0.0 && crossesSurround(pos - normalize(vel) * step, pos, step * 0.25 + rs * 0.1)) {
+            hitGeometry = true;
+            hitColor = surroundHit(pos - normalize(vel) * step, pos, hitLod);
             break;
         }
         previousDepth = depthHere;

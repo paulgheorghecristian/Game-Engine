@@ -154,7 +154,7 @@ void WaterRenderer::uploadForwardLights(Shader &shader, const glm::vec3 &referen
         glUniform1fv(loc, count, radii);
 }
 
-static void uploadEnvironment(Shader &shader)
+void WaterRenderer::uploadEnvironment(Shader &shader)
 {
     const Environment &env = RenderingMaster::getInstance()->getEnvironment();
     float ambient = env.ambient;

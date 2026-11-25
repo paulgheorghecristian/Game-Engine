@@ -1,6 +1,7 @@
 #ifndef BLACK_HOLE_H
 #define BLACK_HOLE_H
 
+#include <algorithm>
 #include <cmath>
 #include <GL/glew.h>
 #include <vector>
@@ -10,6 +11,7 @@
 
 class Shader;
 class PointLight;
+class LensSurroundings;
 
 /*
  * A black hole that bends light: drawn as a post-process on the composited
@@ -62,12 +64,15 @@ class BlackHole
 
         /* draws into the bound framebuffer; sourceTexture is a copy of it.
          * lensSky (sky black holes): the sky behind it without clouds, as seen
-         * by lensSkyViewProjection(); everything it bends comes from there */
+         * by lensSkyViewProjection(); everything it bends comes from there.
+         * surroundings (a hole in the world): the land around the camera, for the rays it bends
+         * off the screen (none: they show the sky there) */
         void render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height,
-                    GLuint lensSky = 0);
+                    GLuint lensSky = 0, const LensSurroundings *surroundings = nullptr);
         /* the same, seen by another camera (the water's mirrored one) */
         void render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height,
-                    GLuint lensSky, const glm::mat4 &view, const glm::vec3 &eye);
+                    GLuint lensSky, const glm::mat4 &view, const glm::vec3 &eye,
+                    const LensSurroundings *surroundings = nullptr);
         /* editor controls (inside an ImGui window); false when "Delete" was pressed */
         bool renderGUI(int index);
         void save(rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) const;
@@ -128,6 +133,11 @@ class BlackHole
         /* how far it has grown: 0 while it is inside the intact moon (and
          * too small to see), 1 when the moon is gone */
         float kugelblitzGrowth() const;
+        /* whether render() draws anything at all (a Kugelblitz still inside the moon does not:
+         * the sky behind it and the copy of the screen it bends are not needed then) */
+        bool drawsAnything() const { return !(sky && kugelblitz && kugelblitzGrowth() < 0.02f); }
+        /* a hole in the world: the sphere its rays are marched in (holds the disk and the bending) */
+        float reach() const { return radius * std::max(influence, diskOuter * 1.05f); }
         /* the disk's normal (from diskTilt) and its outer edge as an angle on
          * the sky (sky objects; used by the sky shader for the moon stream) */
         glm::vec3 diskNormal() const;

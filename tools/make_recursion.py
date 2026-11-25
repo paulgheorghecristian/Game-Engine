@@ -157,7 +157,7 @@ CANYON = load('Game/canyon.json')
 LAGOON = load('Game/lagoon.json')
 canyon_ground = Ground('res/models/canyon_terrain.obj')
 _lt = LAGOON['Entities'][0]['Transform']
-lagoon_ground = Ground('res/models/terrain4.obj', _lt['position'], _lt['scale'])
+lagoon_ground = Ground(LAGOON['Entities'][0]['Components']['RenderComponent']['Mesh'], _lt['position'], _lt['scale'])
 # the Moon hangs up the valley (seen from the hatch, and over the statue
 # from the plaza); the canyon's own moon sits in the east behind a cliff
 _m = (0.32, 0.6, -0.73)
@@ -415,6 +415,7 @@ scenes['00_archive_ignition']["Sequences"] = [{"file": "Game/sequences/00_archiv
 scenes['00_archive_ignition_alternative'] = copy.deepcopy(scenes['00_archive_ignition'])
 scenes['00_archive_ignition_alternative']['BlackHoles'][0].update({"horizon": 1e-5, "coreGlow": 6.0, "coreSize": 0.25})
 scenes['00_archive_ignition_alternative']["Sequences"] = [{"file": "Game/sequences/00_archive_storm_alternative.json"}]
+scenes['00_archive_ignition_alternative']['Environment'].update({"filmGrain": 0.15, "chromaticAberration": 1.0})
 
 # --------------------------------------------------------------------------
 # 01 Room 7: the room where you wake, AURA's lab built like a hospital ward (Ch.1), 4 x 5 m

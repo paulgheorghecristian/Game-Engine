@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Camera.h"
+#include "LensSurroundings.h"
 #include "PointLight.h"
 #include "RenderingMaster.h"
 #include "Shader.h"
@@ -145,14 +146,16 @@ float BlackHole::kugelblitzGrowth() const
 }
 
 void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height,
-                       GLuint lensSky)
+                       GLuint lensSky, const LensSurroundings *surroundings)
 {
     Camera *camera = RenderingMaster::getInstance()->getCamera();
-    render(sourceTexture, depthTexture, skyCube, width, height, lensSky, camera->getViewMatrix(), camera->getPosition());
+    render(sourceTexture, depthTexture, skyCube, width, height, lensSky, camera->getViewMatrix(), camera->getPosition(),
+           surroundings);
 }
 
 void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height,
-                       GLuint lensSky, const glm::mat4 &view, const glm::vec3 &eye)
+                       GLuint lensSky, const glm::mat4 &view, const glm::vec3 &eye,
+                       const LensSurroundings *surroundings)
 {
     RenderingMaster *rm = RenderingMaster::getInstance();
     const glm::mat4 &projection = rm->getProjectionMatrix();
@@ -163,7 +166,7 @@ void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube
         /* a Kugelblitz is smaller than an atom inside the moon at first, and
          * grows as it eats: nothing to draw until the crust breaks up */
         float growth = sky && kugelblitz ? kugelblitzGrowth() : 1.0f;
-        if (growth < 0.02f) {
+        if (!drawsAnything()) {
             return;
         }
         radius = SKY_DISTANCE * std::tan(angularRadius * growth);
@@ -172,7 +175,7 @@ void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube
      * bending itself only reaches `influence` radii (a long disk does not
      * widen the warped region) */
     float lensReach = radius * influence;
-    float reach = radius * std::max(influence, diskOuter * 1.05f);
+    float reach = this->reach();
     if (sky) {
         reach = std::min(reach, glm::length(position - eye) * 0.95f);
         lensReach = std::min(lensReach, reach);
@@ -263,6 +266,22 @@ void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube
         s.updateUniform("lensSkyViewProjection", (void *) &lensSkyViewProjection);
     }
 
+    /* the land around the camera, for rays bent off the screen (the faces drawn this frame) */
+    int surroundFaces = surroundings != nullptr ? surroundings->faces() : 0;
+    s.updateUniform("surroundFaces", surroundFaces);
+    if (surroundFaces != 0) {
+        float surroundNear = surroundings->nearPlane(), surroundFar = surroundings->farPlane();
+        s.updateUniform("surroundColor", 4);
+        s.updateUniform("surroundDepth", 5);
+        s.updateUniform("surroundCenter", (void *) &surroundings->center());
+        s.updateUniform("surroundNear", surroundNear);
+        s.updateUniform("surroundFar", surroundFar);
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, surroundings->colorCube());
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, surroundings->depthCube());
+    }
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, sourceTexture);
     glActiveTexture(GL_TEXTURE1);
@@ -280,6 +299,12 @@ void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube
     glDisable(GL_SCISSOR_TEST);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    if (surroundFaces != 0) {
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    }
     glActiveTexture(GL_TEXTURE0);
 }
 

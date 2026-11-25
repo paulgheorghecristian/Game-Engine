@@ -28,6 +28,9 @@
 #include <algorithm>
 #include <cstdlib>
 #include "stb_image_write.h"
+#include <cstring>
+#include <ctime>
+#include <sys/stat.h>
 
 static std::string jsonToString(const rapidjson::Value &value) {
     rapidjson::StringBuffer buffer;
@@ -676,6 +679,10 @@ void EngineCore::input() {
         setPlayMode(!m_playMode);                   /* F1: open / close the editor GUI */
     }
 
+    if (inputManager.getKeyDown(SDLK_F11)) {
+        m_screenshotRequested = true;               /* taken from the next rendered frame */
+    }
+
     if (inputManager.getKeyDown(SDLK_F12)) {
         if (m_recorder.isRecording()) {
             m_recorder.stop(AudioMaster::getInstance()->stopCapture(), AudioMaster::sampleRate());
@@ -834,10 +841,6 @@ void EngineCore::render(float alpha) {
     RenderingMaster::getInstance()->getGBuffer().bindForScene();
     RenderingMaster::getInstance()->clearScreen(1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    PT_FromHere("sky");
-    RenderingMaster::getInstance()->drawMainSky();
-    PT_ToHere("sky");
-
     /* what the camera can see: the rest is not drawn */
     const bool culling = RenderingMaster::viewCulling();
     const ViewPlanes view(RenderingMaster::getInstance()->getProjectionMatrix() *
@@ -875,10 +878,16 @@ void EngineCore::render(float alpha) {
         RenderingMaster::getInstance()->grass->render();
         PT_ToHere("grass");
     }
+    /* the sky last: only where nothing above covers it */
+    PT_FromHere("sky");
+    RenderingMaster::getInstance()->drawMainSky();
+    PT_ToHere("sky");
     DebugRenderer::getInstance()->render();
     RenderingMaster::getInstance()->getGBuffer().unbind();
     PT_ToHere("renderScene");
     /*end generate deferred shading buffers*/
+
+    RenderingMaster::getInstance()->renderLensSurroundings(entities);
 
     if (RenderingMaster::getInstance()->water != NULL) {
         PT_FromHere("waterReflection");
@@ -1019,6 +1028,10 @@ void EngineCore::render(float alpha) {
         }
     }
     m_recorder.captureFrame();
+    if (m_screenshotRequested) {
+        m_screenshotRequested = false;
+        takeScreenshot();
+    }
 
     /* GE_CLEAN_SHOTS=1: no profiler bars, FPS text or ImGui windows (clean
      * screenshots, e.g. tools/visual_tour.py); F1 does the same while playing */
@@ -1939,6 +1952,40 @@ void EngineCore::runBenchmark(int numFrames) {
     printf("Per-phase (%s):\n", ProfilingTimer::syncGPU ? "CPU+GPU, synced" : "CPU submission only");
     ProfilingTimer::printAll();
     fflush(stdout);
+}
+
+void EngineCore::takeScreenshot() {
+    /* ~/Pictures/Screenshots/ge-YYYYmmdd-HHMMSS.png, from the back buffer before the overlays */
+    const char *home = std::getenv("HOME");
+    std::string dir = std::string(home != nullptr ? home : ".") + "/Pictures";
+    mkdir(dir.c_str(), 0755);
+    dir += "/Screenshots";
+    mkdir(dir.c_str(), 0755);
+    char stamp[32];
+    std::time_t now = std::time(nullptr);
+    std::strftime(stamp, sizeof(stamp), "%Y%m%d-%H%M%S", std::localtime(&now));
+    std::string path = dir + "/ge-" + stamp + ".png";
+
+    Display *display = RenderingMaster::getInstance()->getDisplay();
+    int w = display->getWidth(), h = display->getHeight();
+    std::vector<unsigned char> pixels(w * h * 4);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glReadBuffer(GL_BACK);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+    /* GL rows are bottom-up; PNG rows are top-down; and opaque */
+    std::vector<unsigned char> flipped(pixels.size());
+    for (int y = 0; y < h; y++) {
+        memcpy(&flipped[y * w * 4], &pixels[(h - 1 - y) * w * 4], w * 4);
+    }
+    for (size_t i = 3; i < flipped.size(); i += 4) {
+        flipped[i] = 255;
+    }
+    if (stbi_write_png(path.c_str(), w, h, 4, flipped.data(), w * 4)) {
+        std::cout << "Screenshot saved to " << path << std::endl;
+    } else {
+        std::cout << "Screenshot: could not write " << path << std::endl;
+    }
 }
 
 void EngineCore::saveScreenshot(const std::string &path) {

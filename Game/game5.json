@@ -23,7 +23,7 @@
          },
          "Components":{
             "RenderComponent":{
-               "Mesh":"res/models/terrain4.obj",
+               "Mesh":"res/models/terrain4_smooth.obj",
                "Material":{
                   "Texture":"res/textures/rockWithGrass.bmp",
                   "ambient":[
@@ -45,7 +45,7 @@
                }
             },
             "PhysicsComponent" : {
-               "BoundingBodyType" : ["mesh", "res/models/terrain4.obj"],
+               "BoundingBodyType" : ["mesh", "res/models/terrain4_smooth.obj"],
                "scale": [4800, 1600 , 4800],
                "mass" : 0
             }

@@ -29,6 +29,7 @@
                     "debrisArrival" : "FLOAT",
                     "collapseRate" : "FLOAT",
                     "holeHorizon" : "FLOAT",
+                    "farPlane" : "INT",
                     "frontEjecta" : "FLOAT",
                     "collapseTime" : "FLOAT",
                     "collapseSite" : "VEC2",

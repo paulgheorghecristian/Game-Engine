@@ -10,6 +10,7 @@ out vec3 skyDirection;
 uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
 uniform mat4 projectionMatrix;
+uniform int farPlane;   /* 1: at the far plane (drawn after the scene, only where nothing else is) */
 
 void main(){
     texCoords = inTexCoords;
@@ -17,4 +18,5 @@ void main(){
      * moon / stars line up with their real directions */
     skyDirection = (modelMatrix * vec4(inPosition, 1)).xyz;
     gl_Position = projectionMatrix * mat4(mat3(viewMatrix)) * modelMatrix *  vec4(inPosition, 1);
+    if (farPlane != 0) gl_Position.z = gl_Position.w;
 }

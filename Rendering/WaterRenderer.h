@@ -54,6 +54,8 @@ class WaterRenderer
         /* lights passed to forward shaders (water surface, reflection pass) */
         static const int MAX_FORWARD_LIGHTS = 16;
         static void uploadForwardLights(Shader &shader, const glm::vec3 &referencePoint);
+        /* the moon / sun, ambient and fog, for forward shaders (the reflection pass's) */
+        static void uploadEnvironment(Shader &shader);
 
     private:
         float m_height;

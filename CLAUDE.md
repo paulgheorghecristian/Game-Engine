@@ -26,4 +26,9 @@ data names.
 ## Where things go
 
 Respect the folders when adding features: generators in `tools/`, map JSON in `Game/`, shaders in
-`res/shaders/`, game logic in `Core/`, renderers in `Rendering/`, audio in `Audio/`.
+`res/shaders/`, game logic in `Core/`, renderers in `Rendering/`, audio in `Audio/`, tests in
+`Tests/` (the timeline editor's suites in `Tests/editor/`, run by `run_all.py`; picture
+comparisons between two builds in `Tests/render/`).
+
+Test scripts belong in the repository, never only in a temporary or scratch folder (one is wiped
+on a reboot, and with it the regression suite).

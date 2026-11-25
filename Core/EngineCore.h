@@ -84,6 +84,9 @@ class EngineCore
         void setPlayMode(bool play);
         /* F12: record what is rendered to ~/Videos (MP4, without overlays) */
         FrameRecorder m_recorder;
+        /* F11: a screenshot of what is rendered, to ~/Pictures/Screenshots (PNG, without overlays) */
+        bool m_screenshotRequested = false;
+        void takeScreenshot();
         /* the map's sound ("Audio" block) and the Kugelblitz's */
         SoundScape m_soundScape;
         Aftermath m_aftermath;     /* the storm after the Kugelblitz (driven by the timeline) */

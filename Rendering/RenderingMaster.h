@@ -26,6 +26,7 @@ class ParticleEmitter;
 class WaterRenderer;
 class GrassRenderer;
 class BlackHole;
+class LensSurroundings;
 
 enum GUIVarsEnum_f {
     VAR1_f = 0,
@@ -165,6 +166,9 @@ class RenderingMaster
         WaterRenderer *water = NULL;
         GrassRenderer *grass = NULL;
         std::vector<BlackHole *> blackHoles;
+        /* the land around the camera, for the lens of a black hole in the world near the
+         * screen's edge (drawn only while one is on screen; after the scene, before lighting) */
+        void renderLensSurroundings(const std::vector<Entity *> &entities);
         /* a full screen quad (post-processing passes) */
         void drawScreenQuad();
         std::vector<ParticleEmitter *> particleEmitters;
@@ -287,6 +291,8 @@ class RenderingMaster
         void uploadProjection();
         FrameBuffer *m_lensCopyFB = nullptr;   /* black holes read a copy of the image they bend */
         FrameBuffer *m_lensSkyFB = nullptr;    /* sky black holes: the sky behind them, no clouds */
+        LensSurroundings *m_lensSurroundings = nullptr;
+        bool m_lensSurroundingsDrawn = false;  /* this frame */
         /* which hole's sky it holds, and from which frame: it depends only on the hole's place in
          * the sky, so the water's mirror image and the view itself use the same one */
         const BlackHole *m_lensSkyHole = nullptr;

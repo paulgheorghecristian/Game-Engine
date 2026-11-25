@@ -2,20 +2,32 @@
 #
 # Usage (from the repository root):  python3 tools/make_lagoon.py [Game/lagoon.json]
 #
-# Objects are placed on the terrain by sampling terrain4.obj's height, so edit
+# Objects are placed on the terrain by sampling TERRAIN's height, so edit
 # positions/counts here and regenerate rather than hand-editing the JSON.
 import json, math, random, sys
+from collections import defaultdict
 
-# Terrain height sampler for terrain4.obj as placed in the maps (scale 4800,1600,4800, pos y=3)
+# the ground: terrain4.obj made smooth (tools/make_smooth_terrain.py: its hills
+# were facets with straight outlines)
+TERRAIN = 'res/models/terrain4_smooth.obj'
+# Terrain height sampler for TERRAIN as placed in the maps (scale 4800,1600,4800, pos y=3)
 SX,SY,SZ,OY=4800,1600,4800,3.0
 V=[];F=[]
-for l in open('res/models/terrain4.obj'):
+for l in open(TERRAIN):
     if l.startswith('v '):
         a=l.split(); V.append((float(a[1])*SX,float(a[2])*SY+OY,float(a[3])*SZ))
     elif l.startswith('f '):
         F.append([int(p.split('/')[0])-1 for p in l.split()[1:]])
+# the faces over each 100 x 100 cell (a fine mesh: looking through all of them per sample is slow)
+CELL=100.0
+GRID=defaultdict(list)
+for f in F:
+    xs=[V[i][0] for i in f]; zs=[V[i][2] for i in f]
+    for gx in range(int(math.floor(min(xs)/CELL)),int(math.floor(max(xs)/CELL))+1):
+        for gz in range(int(math.floor(min(zs)/CELL)),int(math.floor(max(zs)/CELL))+1):
+            GRID[(gx,gz)].append(f)
 def height(x,z):
-    for f in F:
+    for f in GRID.get((int(math.floor(x/CELL)),int(math.floor(z/CELL))),()):
         for i in range(1,len(f)-1):
             a,b,c=V[f[0]],V[f[i]],V[f[i+1]]
             d=(b[2]-c[2])*(a[0]-c[0])+(c[0]-b[0])*(a[2]-c[2])
@@ -94,7 +106,7 @@ ROCK_MAT = mat((0.8, 0.8, 0.85), "res/textures/rock2k.jpg", "res/textures/rock2k
 
 # --- terrain + collision ---------------------------------------------------
 entities.append({"Transform": {"position": [0, 3, 0], "rotation": [0, 0, 0, 1], "scale": [4800, 1600, 4800]},
-                 "Components": {"RenderComponent": {"Mesh": "res/models/terrain4.obj",
+                 "Components": {"RenderComponent": {"Mesh": TERRAIN,
                                                     "Material": mat((0.78, 0.78, 0.78), shininess=100, extra={
                                                         # world-space tiled, slope / height blended layers
                                                         "Terrain": {"grass": "res/textures/terrain_grass.bmp",
@@ -112,7 +124,7 @@ entities.append({"Transform": {"position": [0, 3, 0], "rotation": [0, 0, 0, 1], 
                                                                     "variation": 1.0,
                                                                     # relief, strata, ledges on the hills' rock
                                                                     "rockDetail": 1.0}})},
-                                "PhysicsComponent": {"BoundingBodyType": ["mesh", "res/models/terrain4.obj"],
+                                "PhysicsComponent": {"BoundingBodyType": ["mesh", TERRAIN],
                                                      "scale": [4800, 1600, 4800], "mass": 0}}})
 # invisible floor just under the surface: you wade instead of sinking into the lagoon
 entities.append({"Transform": {"position": [C[0], WATER - 12, C[1]], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1]},
