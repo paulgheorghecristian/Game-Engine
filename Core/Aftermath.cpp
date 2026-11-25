@@ -12,6 +12,7 @@
 #include "ParticleEmitter.h"
 #include "PointLight.h"
 #include "RenderingMaster.h"
+#include "MoonDestruction.h"
 #include "WaterRenderer.h"
 #include "Timeline.h"
 #include "rapidjson/document.h"
@@ -134,7 +135,7 @@ static const int WALL_DUST = 4, WALL_EMBERS = 5, FALLING = 6, FALLING_COUNT = 6,
 /* Everything the storm reads from the timeline: the one list of it. The storm
  * code below reads them by name through value(); the timeline editor gets
  * this list from the engine and builds its sliders from it. */
-static const std::vector<Aftermath::Parameter> PARAMETERS = {
+static const std::vector<Aftermath::Parameter> STORM = {
     /* name            group                 min  max   standard  what it does */
     { "collapse",      "Moon",               0.0f, 1.0f, 0.0f, "How far the Moon has fallen into the black hole (0 = whole, 1 = gone: the black hole has formed). Not set: the map's own playback of it." },
     { "wind",          "Wind",               0.0f, 1.5f, 0.0f, "How hard the gale blows: grass, trees, dust and smoke bend and stream with it." },
@@ -168,6 +169,14 @@ static const std::vector<Aftermath::Parameter> PARAMETERS = {
     { "thuds",         "Noise",              0.0f, 4.0f, 0.0f, "How often debris thuds down close by (about that many a second). Their sounds: the timeline's thuds noises." },
     { "thudVolume",    "Noise",              0.0f, 3.0f, 1.0f, "How loud the thuds are. Only heard when thuds is on." },
 };
+/* ...and the lanes of the elements that read the timeline themselves (their own files) */
+static std::vector<Aftermath::Parameter> joined(std::vector<Aftermath::Parameter> list,
+                                                const std::vector<Aftermath::Parameter> &more)
+{
+    list.insert(list.end(), more.begin(), more.end());
+    return list;
+}
+static const std::vector<Aftermath::Parameter> PARAMETERS = joined(STORM, MoonDestruction::lanes());
 
 const std::vector<Aftermath::Parameter> &Aftermath::parameters()
 {
@@ -621,6 +630,7 @@ bool Aftermath::update(Camera *camera, Timeline &timeline)
     m_gain = value(timeline, "gain");
     /* the debris in the sky (not set: < 0, it follows the Moon) */
     rm->setDebris(timeline.get("debrisShell", -1.0f), timeline.get("ejecta", -1.0f));
+    rm->moonDestruction().readTimeline(timeline);          /* (its own lanes: the blast) */
 
     /* the weather, each part on its own; the gale and the rain gusting round their levels */
     float gusting = 1.0f - value(timeline, "gustiness") * (0.18f - 0.18f * std::sin(t * 1.9f) * std::sin(t * 0.7f + 1.0f));

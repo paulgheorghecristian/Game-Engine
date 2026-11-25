@@ -4709,6 +4709,9 @@
  "Sequences": [
   {
    "file": "Game/sequences/00_archive_storm_alternative.json"
+  },
+  {
+   "file": "Game/sequences/00_archive_blast.json"
   }
  ]
 }

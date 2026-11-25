@@ -8,7 +8,7 @@ writes, if they are not there yet (--force: over them):
   Game/sequences/kugelblitz_storm.json   the default storm: a map with a Moon
                                          destruction and no "Sequences" of its
                                          own gets it (Game/lagoon.json)
-  Game/sequences/00_archive_storm.json   the 2035 archive footage's storm, until
+  Game/sequences/00_archive_storm.json   the 2038 archive footage's storm, until
                                          nothing is left but dust
                                          (Game/recursion/00_archive_ignition.json
                                          refers to it)
@@ -32,7 +32,7 @@ ARRIVAL = 8.0          # the debris reaches the Earth (the sky's shell, the impa
 SHELL_GONE = 4.0       # ... and has thinned out this long after
 FRONT_START = 0.6      # the shockwave's wall sets off from the horizon ...
 FRONT_DISTANCE = 2400  # ... this far upwind
-DUST_OUT = 24.0        # the 2035 footage: nothing left but dust
+DUST_OUT = 24.0        # the 2038 footage: nothing left but dust
 # the 00 archive's Moon: whole for MOON_WHOLE seconds, then falling in over MOON_FALLS
 # (as tools/make_recursion.py plays it there: collapseDelay 4, collapseSpeed 5 a minute)
 MOON_WHOLE = 4.0
@@ -121,7 +121,7 @@ def default_storm():
 
 
 def dust_out_storm(wet=0.8, fires=30, gain=1.8):
-    """the 2035 footage: silence while the debris crosses, then it only gets
+    """the 2038 footage: silence while the debris crosses, then it only gets
     worse: matter raining out of the sky, fires lit round the camera, the dust
     thickening, lightning in it, rain and drops on the lens, louder and louder,
     until there is nothing but dust (DUST_OUT seconds after the moon is gone)"""

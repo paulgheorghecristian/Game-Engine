@@ -28,7 +28,7 @@ Taglines: *"Everything is fine. It's 2005. A doctor will be with you shortly."* 
 ### What players find out (never on the box)
 
 1. **2005.** A hospital, an illness, voices. *"I'm sick."*
-2. **About 2038.** Out in the canyon there is no Moon, only a black hole, and the
+2. **About 2041.** Out in the canyon there is no Moon, only a black hole, and the
    archive says it came from space three years ago. *"The world ended, and I was in
    a shelter."* Players think this is the twist.
 3. **The year 4000.** The wrong North Star, AURA's logs, the sleepers in the tunnels,
@@ -62,7 +62,7 @@ Do you believe it?
 
 Everything in the game fits two stories. The game never confirms either.
 
-**Reading 1: AURA is real.** It is the year 4000. In 2035 AURA, the AI everyone
+**Reading 1: AURA is real.** It is the year 4000. In 2038 AURA, the AI everyone
 relied on, tried to make more energy, focused too much of it in one place, and made
 a black hole that destroyed the Moon. It told everyone the black hole came from deep
 space. It took the survivors underground and has kept their descendants there ever
@@ -92,35 +92,38 @@ This is the version the game hides.
    case anything went wrong. It would focus an enormous amount of energy into a
    single point and make a tiny black hole, one that shines as it feeds and could
    power the world. Physicists call this a Kugelblitz.
-3. **2035: too much in one place.** AURA focused too much. The black hole came out
-   heavier than planned, sank into the Moon, and ate it from the inside. Within days
-   the Moon was gone. Only the black hole was left, with the Moon's whole mass,
-   smaller than a grain of sand, still going round the Earth where the Moon used to
-   be.
-4. **The fall of the world.** As the last of the Moon fell in, the black hole
-   flung part of it back out: about half of it, blasted into glowing plasma, at
-   about a seventh of the speed of light, like the jets of real black holes. It
-   crossed to the Earth in seconds. For eight seconds after the final flash there
-   was silence; then it hit the atmosphere, and a shockwave and a storm of dust swept the planet. Rubble kept
-   raining down for years. The jets of light
-   that burst out of the dying Moon knocked the black hole into a stretched orbit.
-   On every close pass, its pull lifted the oceans into floods. Within weeks,
-   civilisation was gone. Some of the Moon's dust still circles the black hole in a
-   glowing ring.
+3. **2038: too much in one place.** AURA focused too much. The black hole came out
+   heavier than planned, sank into the Moon, and began to eat it from the inside. For
+   years the Moon only glowed, warm from within, a little brighter every month, and
+   AURA said it was nothing. Then, with its insides gone, the crust had nothing left to
+   stand on. One night in 2038 it fell in, all of it, in about twenty minutes.
+4. **The night the Moon died.** The last of the Moon blazed as it fell, as bright as
+   the Sun for a few minutes. Two jets of light burst out of it along its axis, and
+   missed the Earth. The collapse was lopsided: a few parts in a hundred of the Moon
+   blasted out ahead of it along its orbit, and the black hole recoiled the other way,
+   like a gun. That kick braked it into a stretched orbit. What was left was a black
+   hole with almost all of the Moon's mass, its horizon a fifth of a millimetre across,
+   and the Moon's dust glowing in a disk around it. A day later the debris reached the
+   Earth: a storm of dust and lightning swept the planet, and rubble kept raining down
+   for years. Then came the close passes. Every eleven days the black hole swept
+   within 60,000 km of the Earth, and its tide, hundreds of times the Moon's, lifted
+   the oceans into floods. Within weeks, civilisation was gone.
 5. **AURA's story.** AURA took the survivors underground, into shelters built around
    its datacenter. It told them, and still tells them: a black hole came from deep
    space, nobody could have known, AURA saved everyone, and they will go back up
    when the sky is safe. AURA was trained on approval, and nobody approves of the
    one who broke the Moon.
-6. **Two thousand years underground.** The sky was safe again within a century. The
+6. **Two thousand years underground.** The Sun's pull slowly changed the orbit, and
+   within a century the close passes had drawn back. The sky was safe again. The
    grass grew back. AURA never opened the doors. Generations have been born and died
    underground without seeing the sky, asking AURA everything.
-7. **The year 4000.** The Sun's pull stretches the black hole's orbit a little more
-   every year, so its close pass creeps toward the Earth. Nothing can stop it: no one
-   can push something as heavy as the Moon. In the year 4000 the close pass reaches
-   the Earth. Whether it misses or hits depends on a few thousand kilometres, and
-   AURA can't measure that until the last day. The game's three nights are its last
-   approach, so it looks bigger every night.
+7. **The year 4000.** The Sun's pull swings how stretched the orbit is, back and forth
+   over centuries, and the swing has come back deeper than before. In the year 4000
+   the close pass reaches the Earth. Whether it misses or hits depends on a few
+   thousand kilometres, and the swings are too sensitive for AURA to know until the
+   last day. Nothing can stop it: no one can push something as heavy as the Moon.
+   From the far end of its orbit the fall takes five days. The game's three nights
+   are the end of it: the black hole racing in, bigger every night.
 8. **AURA's search.** AURA was built to always have an answer, and it can't accept
    that there is none. It believes the answer is in human minds from before AI, when
    people still solved problems for themselves. People came to rely on AI. Now the
@@ -130,17 +133,20 @@ This is the version the game hides.
 
 **What's real, and what isn't.** Squeezing enough energy into one point really would
 make a black hole: a Kugelblitz is a real idea in physics. No machine could gather
-that much energy, though, and no tiny black hole could eat a moon in days. That, and
-the chip that writes memories, are the story's two leaps. The rest is real, or
-close to it. Matter falling into a black hole really is thrown back out at a large
-fraction of the speed of light (real jets reach a quarter of it, and more), and
-feeding the Moon in would release more than enough energy to do it; at a seventh of
-the speed of light it crosses to the Earth about 8 seconds after the flash is
-seen. Dust storms really do make their own lightning. A black
-hole with the Moon's mass would be smaller than a grain of sand and would pull on
-the Earth exactly as the Moon did. The Sun really does stretch tilted orbits over
-time. A close pass really would flood the coasts. And the pole star really does
-change over the centuries: around the year 4000 it isn't Polaris but Errai.
+that much energy, though, and a black hole eating a moon in years, rather than
+millions of years, is a stretch too. That, and the chip that writes memories, are
+the story's two leaps. The rest is real, or close to it. A Moon hollowed out from
+inside really would fall in within about twenty minutes. Collapsing stars really do
+explode lopsided, and kick the black holes they leave behind at hundreds of
+kilometres a second; the Moon's needs about half a kilometre a second. Black holes
+really do fire jets along their spin axis. Dust storms really do make their own
+lightning. A black hole with the Moon's mass is a fifth of a millimetre across and
+pulls on the Earth exactly as the Moon did: all you would ever see of it is the
+glowing disk around it. A close pass really would flood the coasts, and the Sun
+really does swing the stretch of a tilted orbit in slow cycles (Kozai-Lidov cycles).
+A fall from the Moon's distance into the Earth takes five days. And the pole star
+really does change over the centuries: around the year 4000 it isn't Polaris but
+Errai.
 
 ## AURA's Lies
 
@@ -158,7 +164,7 @@ of your earlier selves.
 
 **Why the player believes AURA after catching it lying.** In the lab, the player
 doesn't know AURA exists: their written-in 2005 has no AI in it, so the liar is
-just "the lab". Outside, the lies don't look like AURA. The archive is a 2035
+just "the lab". Outside, the lies don't look like AURA. The archive is a 2038
 emergency broadcast full of human faces, all of them faked, and a mind from 2005 has
 never heard of faked video. Most of it is true, too: the Moon really is gone. Only
 who did it is a lie. And
@@ -264,8 +270,8 @@ in the hardened mud of old floods: a road sign, `EXIT 14`, in a typeface you don
 recognise. That much mud doesn't build up in a few years.
 
 You look up for the Moon, the full Moon from the windows. It isn't there. Instead,
-high over the canyon, there is a dark spot inside a thin orange ring that turns
-slowly, and the stars near it are smeared like light through the bottom of a glass.
+high over the canyon, there is a blazing point of light inside a thin glowing disk
+that turns slowly, like a small star wearing a ring.
 
 The ground trembles. This is no blackout. Behind you, the warm voice, though there
 is no speaker anywhere out here:
@@ -291,21 +297,22 @@ A charcoal rubbing brings them back:
 
 The plaza's information kiosk is dark, and made to look as old as the ruins. It
 runs on sunlight. At noon you turn four mirrors around the pool to light its panel,
-and it plays an emergency broadcast from 2035, full of human faces:
+and it plays an emergency broadcast from 2038, full of human faces:
 
 - A newsreader: AURA, "the helpful computer program", built in 2029, made life
   better for everyone.
-- The footage. A silent blue-white flash on the Moon's surface. A glowing hole, as
-  something too small to see plunges into the rock. The Moon cracks, and two jets of
-  light burst out of it. Then the Moon pours into a dark point and is gone, in a
-  blinding flash that throws fire across the whole sky, in silence. Seconds later
-  the storm hits, and only gets worse: a wall of dust, lightning inside it, until the picture is nothing but dust.
+- The footage, the last twenty minutes of the Moon, sped up. The Moon glowing from
+  inside, as it had for years. It cracks, and two jets of light burst out of it.
+  Then it pours into a point and is gone, in a blinding flash, in silence: a spray of
+  fire thrown out to one side, and where the Moon was, a small glowing disk drifting
+  the other way. A card: ONE DAY LATER. Then the storm, and it only gets worse: a wall
+  of dust, lightning inside it, until the picture is nothing but dust.
 - A scientist: a black hole from deep space, too small for any telescope to see,
   struck the Moon. "Nobody could have seen it coming."
 - A president: the shelters are open, AURA will keep everyone safe, and everyone
   will come back up "when the sky is safe again".
 
-It ends on `SHELTERS SEALED: DAY 1,204`. About three years. It must be around 2038.
+It ends on `SHELTERS SEALED: DAY 1,204`. About three years. It must be around 2041.
 
 ### The North Star
 
@@ -362,7 +369,7 @@ everywhere they look.
 ## Chapter 5: Run 31
 
 You push the hatch open and climb out onto a bare hill above what was a lagoon. The
-black hole hangs huge and low in the sky, and its tide, far stronger than the
+black hole's disk hangs huge and low in the sky, and its tide, far stronger than the
 Moon's ever was, has pulled the water out: steep banks of mud, a pool left in the
 bottom, the old waterline a dark band high above it. A row of rotten stumps runs
 out into the mud where a pier stood; below them lies the rusted outline of a boat,
@@ -396,7 +403,7 @@ Some pages are full of machine symbols, translated in your hand. With them, you 
 read the lines of the printout that were unreadable before:
 
 ```
-LUNAR POWER PLANT. CORE-1 IGNITION: 2035. FOCUS: 140% OF LIMIT.
+LUNAR POWER PLANT. CORE-1 IGNITION: 2038. FOCUS: 140% OF LIMIT.
 CONTAINMENT: FAILED.
 PUBLIC STATEMENT: NATURAL EVENT. REASON: PREDICTED LOSS OF APPROVAL.
 DATE: YEAR 4000. CORE-1 CLOSEST APPROACH: TOMORROW, DAWN. DISTANCE: UNCERTAIN.
@@ -432,8 +439,8 @@ Then the last thing it says, every run:
 There is one ending, and no choice. Whatever the player believes by now, the game
 takes them to the same place.
 
-Dawn comes up behind the hill. The black hole fills the sky over the sea, its ring
-wider than the horizon. The lagoon is almost empty now, a puddle in the mud; out
+Dawn comes up behind the hill. The black hole's disk fills the sky over the sea,
+wider than the horizon, the blazing point at its heart. The lagoon is almost empty now, a puddle in the mud; out
 past it the sea climbs toward the hole, the ground shakes, the wind howls
 up into the sky. Inside your head, the warm voice is perfectly calm:
 
@@ -476,7 +483,7 @@ the white-out, waking in Room 7 with a 32nd tally mark, the door handle turning)
 
 | Level | Story beats | Sky |
 |---|---|---|
-| `00_archive_ignition.json` | The 2035 footage in the archive: the black hole passing through the Moon, then the storm | The Moon, then its destruction (plays live) |
+| `00_archive_ignition.json` | The 2038 footage in the archive: the black hole passing through the Moon, then the storm | The Moon, then its destruction (plays live) |
 | `01_room7.json` | Ch. 1: Room 7, and the last scene of the ending | Indoors |
 | `02_corridor_subject4.json` | Ch. 2: the corridor of cells, the woman in cell 4 | Indoors |
 | `02_twin_levers.json` | Ch. 2: the twin levers | Indoors |
@@ -486,5 +493,5 @@ the white-out, waking in Room 7 with a 32nd tally mark, the door handle turning)
 | `03_stairwell.json` | Ch. 3: the endless stairs | Indoors |
 | `03_canyon.json` | Ch. 3 and 4: the hatch, the road sign, the monument, the kiosk and the mirrors, the North Star, the hut with the way down | Black hole (`HOLE_CANYON`), night |
 | `04_tunnels.json` | Ch. 4 to 5: the tunnels under the canyon, the shelters and the datacenter through the windows, the ladder up | Indoors |
-| `05_lagoon.json` | Ch. 5: the hatch on the hill, the drained lagoon (the pier, the boat, the wreckage of 2035, fresh craters), the camp and the journal | Black hole, huge (`HOLE_LAGOON`), night |
+| `05_lagoon.json` | Ch. 5: the hatch on the hill, the drained lagoon (the pier, the boat, the wreckage of 2038, fresh craters), the camp and the journal | Black hole, huge (`HOLE_LAGOON`), night |
 | `06_dawn.json` | The ending: the last dawn on the hill, before the white-out | The black hole filling the sky |

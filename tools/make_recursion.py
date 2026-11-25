@@ -3,7 +3,7 @@ what the engine already has (the canyon and lagoon maps, the engine's sky
 black hole and its Moon-destruction sequence, boxes, the old models and
 textures). Each is a map in Game/recursion/:
 
-  00_archive_ignition     the archive's 2035 footage: the Moon eaten by the black
+  00_archive_ignition     the archive's 2038 footage: the Moon eaten by the black
                           hole AURA made (plays live, slowly), grainy like old footage
   00_archive_ignition_alternative   the same, the black hole as it would really be: the
                           Moon's mass, too small to see; its disk and a point of light
@@ -30,7 +30,7 @@ textures). Each is a map in Game/recursion/:
   06_dawn                 the ending: the last dawn on the hill, the black hole
                           filling the sky; then white, and Room 7 again
 
-The timeline: the archive footage (00) is 2035, AURA's Moon plant making a
+The timeline: the archive footage (00) is 2038, AURA's Moon plant making a
 black hole that eats the Moon. Everything else is the year 4000, as the black
 hole's stretched orbit brings it in for its closest pass yet: no Moon, only
 the black hole with the Moon's dust in a ring around it, closer and bigger
@@ -169,7 +169,7 @@ CANYON_SPAWN = (40.0, 820.0)
 CAMPFIRE = (721.0, 26.0, -360.0)
 
 def moon_destruction(direction, collapse, play=False, speed=5.0, delay=0.0):
-    """the 2035 footage: AURA's Moon plant making its black hole (a flash on the
+    """the 2038 footage: AURA's Moon plant making its black hole (a flash on the
     surface, a glowing hole as the black hole sinks into the rock, the cracks, the
     two jets, the Moon pulled into a dark point), held at a stage or playing. It is the engine's Moon-destruction sequence, whose JSON key is
     'kugelblitz'."""
@@ -190,7 +190,7 @@ def sky_hole(direction, radius):
             "glow": 0.0, "moonStream": 0.0, "cloudClear": 0.7}
 
 def year4000(base, time_of_day, direction, radius, start, extra_env=None):
-    """a year-4000 scene: no Moon (eaten in 2035), the black hole in the sky"""
+    """a year-4000 scene: no Moon (eaten in 2038), the black hole in the sky"""
     env = {"moon": False}
     if extra_env: env.update(extra_env)
     return outdoor(base, time_of_day, direction, [sky_hole(direction, radius)], start, env)
@@ -201,6 +201,7 @@ HOLE_CANYON, HOLE_LAGOON = 0.025, 0.042
 def outdoor(base, time_of_day, moon_direction, holes, start, extra_env=None):
     """a story scene on an outdoor map: its time held, its Moon at a stage"""
     g = copy.deepcopy(base)
+    g.pop("Sequences", None)               # (the base map's timelines are its own, not the story's)
     env = g["Environment"]
     env.update({"timeOfDay": time_of_day, "timePaused": True, "moon": True, "moonDirection": moon_direction,
                 "moonSize": 0.04, "milkyWay": 0.9, "milkyWayCenter": moon_direction})
@@ -357,12 +358,12 @@ EYE = 31.0                                          # the PlayerStart height abo
 scenes = {}
 
 # --------------------------------------------------------------------------
-# 00 the archive's 2035 footage: the Moon eaten by AURA's black hole (live), old footage
+# 00 the archive's 2038 footage: the Moon eaten by AURA's black hole (live), old footage
 # --------------------------------------------------------------------------
 moon_yaw = yaw_towards((490, -60), (490 + LAGOON_MOON[0], -60 + LAGOON_MOON[2]))
 moon_pitch = round(math.degrees(math.asin(LAGOON_MOON[1])) * 0.8, 1)
 def serious_lights(g):
-    """the lagoon's lights for the 2035 footage: no show colours (the island's
+    """the lagoon's lights for the 2038 footage: no show colours (the island's
     pink, cyan, green and purple, its sparkles), ordinary warm-white
     floodlights and dim sodium lamps, smaller halos"""
     def near(pos, x, z, r):
@@ -414,7 +415,8 @@ scenes['00_archive_ignition']["Sequences"] = [{"file": "Game/sequences/00_archiv
 # disk clear (the stars through it, no shadow, no bent light) and a point of light where it feeds
 scenes['00_archive_ignition_alternative'] = copy.deepcopy(scenes['00_archive_ignition'])
 scenes['00_archive_ignition_alternative']['BlackHoles'][0].update({"horizon": 1e-5, "coreGlow": 6.0, "coreSize": 0.25})
-scenes['00_archive_ignition_alternative']["Sequences"] = [{"file": "Game/sequences/00_archive_storm_alternative.json"}]
+scenes['00_archive_ignition_alternative']["Sequences"] = [{"file": "Game/sequences/00_archive_storm_alternative.json"},
+                                                          {"file": "Game/sequences/00_archive_blast.json"}]   # its own: the lopsided blast
 scenes['00_archive_ignition_alternative']['Environment'].update({"filmGrain": 0.15, "chromaticAberration": 1.0})
 
 # --------------------------------------------------------------------------
@@ -934,7 +936,7 @@ def drained_lagoon():
     boat: a row of rotten stumps in the mud, and the boat's rusted hull, half
     buried where it sank (it was steel: only its outline is left)"""
     ents = []
-    rng = random.Random(2035)
+    rng = random.Random(2035)   # (a seed, kept: the same wreckage)
     ROTTEN = mat((0.17, 0.14, 0.11), extra={"roughness": 1.0})
     RUST = mat((0.3, 0.16, 0.09), extra={"roughness": 0.95, "metallic": 0.2})
     # the pier: out from the camp's old shore towards the middle of the lagoon
@@ -987,7 +989,7 @@ def crater(x, z, r):
     return out
 
 def storm_damage(g):
-    """2035 to 4000. What the 2035 storm wrecked has had two thousand years:
+    """2038 to 4000. What the 2038 storm wrecked has had two thousand years:
     wood rotted, steel rusted away, stone and concrete weathered and mossy, a
     young forest grown back. Enough is left to know the place from the archive
     footage: the island and its statue, the dragon, the lighthouse (a broken,

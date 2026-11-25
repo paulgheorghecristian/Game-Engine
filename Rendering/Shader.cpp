@@ -48,6 +48,22 @@ Shader *Shader::construct (const std::string &jsonPath)
 
     vertexShaderSource = FileUtils::loadFileInString (jsonShaderDocument["VSPath"].GetString ());
     fragmentShaderSource = FileUtils::loadFileInString (jsonShaderDocument["FSPath"].GetString ());
+    /* #include "res/shaders/file.glsl" on a line of its own: that file's text in its place (its own
+     * #includes too), so an element's shader code lives in its own file */
+    for (std::string *source : { &vertexShaderSource, &fragmentShaderSource }) {
+        for (int depth = 0; depth < 8; depth++) {
+            size_t at = source->find ("#include \"");
+            if (at == std::string::npos) break;
+            size_t start = at + 10, end = source->find ('"', start);
+            size_t lineEnd = source->find ('\n', at);
+            if (end == std::string::npos || (lineEnd != std::string::npos && end > lineEnd)) break;
+            std::string included = FileUtils::loadFileInString (source->substr (start, end - start).c_str ());
+            if (included.empty ()) {
+                std::cout << "Shader: cannot include " << source->substr (start, end - start) << std::endl;
+            }
+            source->replace (at, (lineEnd == std::string::npos ? source->size () : lineEnd) - at, included);
+        }
+    }
     /* "Defines": ["NAME", ...]: the same sources compiled as another variant (#define NAME after
      * the #version line), so code a variant does not use is not in it at all */
     if (jsonShaderDocument.HasMember ("Defines") && jsonShaderDocument["Defines"].IsArray ()) {

@@ -1,6 +1,8 @@
 #ifndef RENDERINGMASTER_H
 #define RENDERINGMASTER_H
 
+#include "MoonDestruction.h"
+
 #include "rapidjson/document.h"
 #include "Display.h"
 #include "Camera.h"
@@ -308,8 +310,7 @@ class RenderingMaster
         void renderBlackHolesMirrored(FrameBuffer &target, const glm::mat4 &mirroredView, const glm::vec3 &mirroredEye);
     private:
         bool m_skyCloudCut = false;   /* a sky black hole with clouds: split the cloud layer */
-        float m_frontEjecta = 0.0f;   /* a Kugelblitz throwing matter at us (sky pass 4, over the hole) */
-        float m_shownShell = 0.0f;    /* how far its debris shell has got, as drawn (0..2) */
+        MoonDestruction m_moonDestruction;   /* the Moon's destruction (a Kugelblitz in the sky's hole) */
     public:
         /* the Kugelblitz aftermath's weather (Core/Aftermath), each on its own, about 0..1:
          * wind blowing, fog thickening, clouds covering and racing, waves swelling;
@@ -338,6 +339,7 @@ class RenderingMaster
          * us, 2 gone) and the matter it throws straight at us ("ejecta", 0..1). < 0: not set, they
          * follow the Moon (the shell reaches us BlackHole::DEBRIS_ARRIVAL seconds after it formed) */
         void setDebris(float shell, float ejecta) { m_debrisShell = shell; m_ejecta = ejecta; }
+        MoonDestruction &moonDestruction() { return m_moonDestruction; }
         /* the sky Kugelblitz's playback clock: 1 normal, 0 paused (tools/timeline_editor.py) */
         void setKugelblitzTimeScale(float scale) { m_kugelblitzTimeScale = scale; }
         /* passes skip what the camera cannot see (GE_NO_CULL=1: they draw everything, to compare) */
@@ -374,7 +376,6 @@ class RenderingMaster
         int m_taaIndex = 0, m_taaFrame = 0;
         bool m_taaHistoryValid = false;
         glm::mat4 m_taaPreviousViewProjection = glm::mat4(1.0f);
-        float m_lastCollapseTime = -1.0f;
         void blackHoleGUI();
 };
 

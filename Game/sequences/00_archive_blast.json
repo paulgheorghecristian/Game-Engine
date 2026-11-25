@@ -1,0 +1,8 @@
+{
+ "name": "the lopsided blast as the last of the Moon falls in",
+ "trigger": "mapStart",
+ "params": {
+  "blast": {"keys": [[15.8, 0], [24, 1], [30, 2]], "curve": "linear"},
+  "blastDirection": [[0, 15]]
+ }
+}

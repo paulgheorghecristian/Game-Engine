@@ -23,6 +23,26 @@ data names.
   change, or say so if that is out of scope. Do not add new ones.
 - The tools that generate levels (`tools/*.py`) may name content: that is data being written.
 
+## Something new and particular is its own solution
+
+When something new and particular is added (a one-time animation such as the Moon's destruction,
+an effect for one scene, a level's special behaviour), build it as its own solution, in its own files: its own
+shader, its own class in the right folder, its own timeline (sequence) file. Never add it inside
+the general engine files, the ones everything shares (e.g. `res/shaders/skyShader.fs`, the scene
+and lighting shaders, `Rendering/RenderingMaster.cpp`, `Core/EngineCore.cpp`,
+`Core/Aftermath.cpp`). General improvements to the engine itself (a renderer fix, a faster pass)
+still go where they belong.
+
+- Wrong: a lopsided blast for one animation written into the sky shader's Moon destruction.
+- Right: the blast as its own element, with its own shader and its own drawing class, driven by
+  its own lanes in its own sequence file.
+- The only change allowed in a general file is the smallest hook that lets the new element run (a
+  call where it is drawn or updated, registering its timeline lanes). Keep it to that, and say in
+  the reply which hooks were added.
+- Particular things already inside general files (the Moon's destruction, the Kugelblitz, is
+  drawn in `res/shaders/skyShader.fs` and driven from `Rendering/RenderingMaster.cpp`) are to be
+  moved out into their own element when that code is next worked on, or flagged if out of scope.
+
 ## Where things go
 
 Respect the folders when adding features: generators in `tools/`, map JSON in `Game/`, shaders in
