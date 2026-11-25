@@ -5,6 +5,25 @@
 #include <vector>
 #include <limits>
 
+ViewPlanes::ViewPlanes(const glm::mat4 &m)
+{
+    /* clip space: -w <= x, y, z <= w; each side a plane in world space (Gribb & Hartmann) */
+    glm::vec4 row[4];
+    for (int i = 0; i < 4; i++) row[i] = glm::vec4(m[0][i], m[1][i], m[2][i], m[3][i]);
+    planes[0] = row[3] + row[0]; planes[1] = row[3] - row[0];
+    planes[2] = row[3] + row[1]; planes[3] = row[3] - row[1];
+    planes[4] = row[3] + row[2]; planes[5] = row[3] - row[2];
+    for (glm::vec4 &p : planes) p /= std::max(glm::length(glm::vec3(p)), 1e-12f);
+}
+
+bool ViewPlanes::sees(const glm::vec3 &center, float radius) const
+{
+    for (const glm::vec4 &p : planes) {
+        if (glm::dot(glm::vec3(p), center) + p.w < -radius) return false;
+    }
+    return true;
+}
+
 void MathUtils::calculateFrustum(Camera *camera,
                                  float near,
                                  float far,

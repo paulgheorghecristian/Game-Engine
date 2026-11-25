@@ -1,6 +1,8 @@
 #ifndef RENDERCOMPONENT_H
 #define RENDERCOMPONENT_H
 
+#include "MathUtils.h"
+
 #include "Mesh.h"
 #include "Shader.h"
 #include "Material.h"
@@ -30,6 +32,10 @@ class RenderComponent : public Component
         std::string jsonify() override;
 
         inline RenderingObject& getRenderingObject() { return renderingObject; }
+        /* whether it is wholly outside what a camera sees (its bounding sphere) */
+        bool isOutside(const ViewPlanes &view, Transform &transform);
+        /* its bounding sphere in the world */
+        void worldBounds(Transform &transform, glm::vec3 &center, float &radius);
         /* entirely past the draw distance (the map's fog cut-off): skip drawing it */
         bool isBeyondDrawDistance(Transform &transform);
 

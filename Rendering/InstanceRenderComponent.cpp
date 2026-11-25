@@ -21,6 +21,17 @@ InstanceRenderComponent::InstanceRenderComponent(RenderingObject &&renderingObje
     matricesBuffer = new float[m_numOfInstances * NUM_OF_BYTES_PER_INSTANCE / sizeof(float)];
     fillBufferWithModelMatrices(positionsRotationsScales);
     GLuint modelMatricesVbo = createModelMatricesVbo();
+    m_matricesVbo = modelMatricesVbo;
+    m_drawCount = m_numOfInstances;
+    /* each instance's bounding sphere: the mesh's, placed and scaled like it */
+    glm::vec3 localCenter;
+    float localRadius;
+    m_renderingObject.getBoundingSphere(localCenter, localRadius);
+    for (const glm::mat4 &matrix : m_matrices) {
+        glm::vec3 center(matrix * glm::vec4(localCenter, 1.0f));
+        float scale = glm::max(glm::length(glm::vec3(matrix[0])), glm::max(glm::length(glm::vec3(matrix[1])), glm::length(glm::vec3(matrix[2]))));
+        m_spheres.push_back(glm::vec4(center, localRadius * scale));
+    }
 
     glGenVertexArrays(numMeshes, vaoHandles);
 
@@ -56,7 +67,53 @@ void InstanceRenderComponent::setWind(float wind) {
     m_wind = wind;
 }
 
+void InstanceRenderComponent::upload(const std::vector<glm::mat4> &matrices) {
+    glBindBuffer(GL_ARRAY_BUFFER, m_matricesVbo);
+    glBufferData(GL_ARRAY_BUFFER, NUM_OF_BYTES_PER_INSTANCE * m_numOfInstances, NULL, GL_DYNAMIC_DRAW);   /* (a fresh one: no wait on the last draw) */
+    if (!matrices.empty()) {
+        glBufferSubData(GL_ARRAY_BUFFER, 0, NUM_OF_BYTES_PER_INSTANCE * matrices.size(), &matrices[0][0][0]);
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void InstanceRenderComponent::render(Shader *externShader, const ViewPlanes *view, float minimumTop) {
+    unsigned int count = m_numOfInstances;
+    if (view != nullptr) {
+        m_seen.clear();
+        for (unsigned int i = 0; i < m_numOfInstances; i++) {
+            const glm::vec4 &s = m_spheres[i];
+            /* (a margin: the anti-aliasing's sub-pixel shift, the sway in the wind) */
+            float radius = s.w * (1.02f + 0.1f * glm::min(m_wind, 2.0f)) + 1.0f;
+            if (s.y + radius >= minimumTop && view->sees(glm::vec3(s), radius)) m_seen.push_back(m_matrices[i]);
+        }
+        if (m_seen.empty()) return;
+        if (m_seen.size() < m_numOfInstances) {
+            upload(m_seen);
+            m_partial = true;
+            count = m_seen.size();
+        } else if (m_partial) {
+            upload(m_matrices);
+            m_partial = false;
+        }
+    } else if (m_partial) {
+        upload(m_matrices);
+        m_partial = false;
+    }
+    m_drawCount = count;
+    draw(externShader);
+}
+
 void InstanceRenderComponent::render(Shader *externShader) {
+    /* all of them (a pass that does not say what it sees: shadows, ...) */
+    if (m_partial) {
+        upload(m_matrices);
+        m_partial = false;
+    }
+    m_drawCount = m_numOfInstances;
+    draw(externShader);
+}
+
+void InstanceRenderComponent::draw(Shader *externShader) {
     bool result = true;
     /* every pass that draws instances sways them the same way */
     externShader->updateUniform("windStrength", m_wind);
@@ -113,7 +170,7 @@ void InstanceRenderComponent::render(Shader *externShader) {
             glDisable(GL_CULL_FACE);
         }
         glBindVertexArray(vaoHandles[i]);
-        glDrawElementsInstanced(GL_TRIANGLES, m_numberOfTriangles[i], GL_UNSIGNED_INT, 0, m_numOfInstances);
+        glDrawElementsInstanced(GL_TRIANGLES, m_numberOfTriangles[i], GL_UNSIGNED_INT, 0, m_drawCount);
         glBindVertexArray(0);
         if (m_materials[i]->getDisableCulling() == true) {
             glEnable(GL_CULL_FACE);
@@ -148,6 +205,7 @@ void InstanceRenderComponent::fillBufferWithModelMatrices(const std::vector<glm:
         matrix = glm::translate(matrix, position);
         glm::mat4 R = glm::mat4_cast(glm::quat(glm::radians(rotation)));
         matrix = glm::scale(matrix, scale) * R;
+        m_matrices.push_back(matrix);
 
         matricesBuffer[offset++] = matrix[0][0];
         matricesBuffer[offset++] = matrix[0][1];

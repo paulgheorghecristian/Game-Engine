@@ -15,6 +15,15 @@ struct Frustum {
     glm::vec3 center;
 };
 
+/* what a camera sees, as the six planes of its view volume (from its view-projection matrix,
+ * any: a mirrored one too), to test bounding spheres against */
+struct ViewPlanes {
+    explicit ViewPlanes(const glm::mat4 &viewProjection);
+    /* false only when the sphere is wholly outside (true: maybe seen) */
+    bool sees(const glm::vec3 &center, float radius) const;
+    glm::vec4 planes[6];
+};
+
 class MathUtils
 {
     public:

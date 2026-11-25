@@ -1,6 +1,8 @@
 #include "ProfilingTimer.h"
 
 #include "BarGUI.h"
+#include <algorithm>
+#include <vector>
 #include <memory>
 
 #define CPU_START_X 1500
@@ -188,11 +190,17 @@ void ProfilingTimer::resetAll() {
 }
 
 void ProfilingTimer::printAll() {
+    /* the slowest first */
+    std::vector<std::pair<double, const std::string *>> order;
     for (auto &it : timers) {
         if (it.second.getType() == CPU && it.second.numOfCalls > 0) {
-            printf("  %-28s avg=%7.3fms max=%7.3fms\n", it.first.c_str(),
-                   it.second.total / it.second.numOfCalls, it.second.maxTime);
+            order.push_back({ it.second.total / it.second.numOfCalls, &it.first });
         }
+    }
+    std::sort(order.begin(), order.end(), [](const auto &a, const auto &b) { return a.first > b.first; });
+    for (const auto &o : order) {
+        const ProfilingTimer &timer = timers.at(*o.second);
+        printf("  %-28s avg=%7.3fms max=%7.3fms\n", o.second->c_str(), o.first, timer.maxTime);
     }
 }
 

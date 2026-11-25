@@ -1,4 +1,5 @@
 #include "RenderingMaster.h"
+#include "ProfilingTimer.h"
 
 #include "ParticleRenderer.h"
 #include "ParticleFactory.h"
@@ -365,7 +366,9 @@ void RenderingMaster::drawDeferredShadingBuffers()
     const bool hdr = m_environment.hdr;
     const bool skyReflections = m_environment.pbr;
     if (skyReflections) {
+        PT_FromHere("skyCube");
         renderSkyCube();
+        PT_ToHere("skyCube");
     }
     float skyMaxLod = std::log2((float) SKY_CUBE_SIZE);
     deferredShading_BufferCombinationShader.updateUniform("skyReflections", skyReflections);
@@ -374,7 +377,9 @@ void RenderingMaster::drawDeferredShadingBuffers()
     int aoUnit = 13;
     float aoStrength = 0.0f;
     if (m_environment.aoStrength > 0.0f) {
+        PT_FromHere("ssao");
         renderSSAO();
+        PT_ToHere("ssao");
         aoStrength = m_environment.aoStrength;
     }
     deferredShading_BufferCombinationShader.updateUniform("aoSampler", aoUnit);
@@ -433,17 +438,25 @@ void RenderingMaster::drawDeferredShadingBuffers()
         glActiveTexture(GL_TEXTURE0);
     }
 
+    PT_FromHere("composite");
     screenSizeRectangle->draw();
+    PT_ToHere("composite");
 
     deferredShading_BufferCombinationShader.unbind();
     if (hdr) {
         /* the water goes into the HDR image too, so its reflections and glints
          * are bloomed and tone mapped like everything else */
+        PT_FromHere("water");
         if (water != NULL) {
             water->render(*m_hdrFB);
         }
+        PT_ToHere("water");
+        PT_FromHere("glass");
         renderGlass(*m_hdrFB);
+        PT_ToHere("glass");
+        PT_FromHere("blackHoles");
         renderBlackHoles(*m_hdrFB);
+        PT_ToHere("blackHoles");
         /* keep this frame for the next one's reflections */
         if (m_environment.reflections && m_environment.pbr) {
             if (m_prevFrameFB == nullptr) {
@@ -456,7 +469,9 @@ void RenderingMaster::drawDeferredShadingBuffers()
             glBlitFramebuffer(0, 0, renderWidth, renderHeight, 0, 0, renderWidth, renderHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
         }
         m_hdrFB->unbind();
+        PT_FromHere("bloomToneMap");
         renderBloomAndToneMap(); /* leaves fxaaFrameBuffer bound */
+        PT_ToHere("bloomToneMap");
     } else {
         if (water != NULL) {
             water->render(fxaaFrameBuffer);
@@ -467,11 +482,15 @@ void RenderingMaster::drawDeferredShadingBuffers()
     fxaaFrameBuffer.unbind();
     //END FXAA
 
+    PT_FromHere("temporalAA");
     renderTemporalAA();
+    PT_ToHere("temporalAA");
 
     /* FXAA writes the final image directly to the screen (it used to go to an
      * offscreen target followed by a full-screen copy pass) */
+    PT_FromHere("fxaa");
     fxaaPostProcess->processToScreen(display->getWidth(), display->getHeight());
+    PT_ToHere("fxaa");
 }
 
 void RenderingMaster::update() {
@@ -527,7 +546,14 @@ void RenderingMaster::update() {
     flarePostProcess->getShader().updateUniform("illuminationDecay", data_f[5]);
 }
 
+bool RenderingMaster::viewCulling()
+{
+    static const bool on = std::getenv("GE_NO_CULL") == NULL;
+    return on;
+}
+
 void RenderingMaster::prepareFrame(float alpha) {
+    m_frameNumber++;
     m_renderAlpha = glm::clamp(alpha, 0.0f, 1.0f);
     if (!m_worldPaused) m_renderTime = m_time - (1.0f - m_renderAlpha) * (float) (updateDt / 1000.0);
 
@@ -1160,9 +1186,15 @@ void RenderingMaster::renderBlackHolesMirrored(FrameBuffer &target, const glm::m
     GLint frontFace;
     glGetIntegerv(GL_FRONT_FACE, &frontFace);
     glFrontFace(GL_CCW);                    /* the screen quad, not mirrored */
+    /* the mirror shows the sky the other way up: what is in it is what a camera looking the
+     * mirrored way would see */
+    glm::vec3 mirroredForward = camera->getForward() * glm::vec3(1.0f, -1.0f, 1.0f);
     for (BlackHole *hole : blackHoles) {
         GLuint lensSky = 0;
         if (hole->sky) {
+            if (!hole->skyMayBeVisible(mirroredForward, projectionMatrix)) {
+                continue;
+            }
             renderLensSky(*hole);
             lensSky = m_lensSkyFB->getRenderTargets()[0];
         }
@@ -1200,6 +1232,11 @@ void RenderingMaster::renderLensSky(const BlackHole &hole)
     if (m_lensSkyFB == nullptr) {
         m_lensSkyFB = new FrameBuffer(LENS_SKY_SIZE, LENS_SKY_SIZE, 1, false, GL_RGBA16F);
     }
+    if (m_lensSkyHole == &hole && m_lensSkyFrame == m_frameNumber) {
+        return;                 /* already drawn this frame (for the water's mirror image) */
+    }
+    m_lensSkyHole = &hole;
+    m_lensSkyFrame = m_frameNumber;
     glm::mat4 view = hole.lensSkyView();
     glm::mat4 projection = hole.lensSkyProjection();
     m_lensSkyFB->bindSingleRenderTarget(0);

@@ -2,6 +2,7 @@
 #define INSTANCERENDERCOMPONENT_H
 
 #include "RenderingObject.hpp"
+#include "MathUtils.h"
 #include "Material.h"
 #include "Component.h"
 #include "Texture.h"
@@ -22,6 +23,8 @@ class InstanceRenderComponent : public Component
         void update();
         void render();
         void render (Shader *externShader);
+        /* only the instances that can be seen (each one's bounding sphere); nullptr: all of them */
+        void render (Shader *externShader, const ViewPlanes *view, float minimumTop = -1e30f);
         const unsigned int getFlag() const;
 
         std::string jsonify() override;
@@ -61,6 +64,16 @@ class InstanceRenderComponent : public Component
         void setAttribsForMatricesVbo(GLuint vboHandle);
 
         std::vector<glm::vec3> m_positionsRotationsScales;
+        /* each instance's matrix and bounding sphere (world), and the buffer the GPU draws
+         * from: all of them, or (m_partial) only those a pass could see */
+        std::vector<glm::mat4> m_matrices;
+        std::vector<glm::vec4> m_spheres;
+        std::vector<glm::mat4> m_seen;
+        GLuint m_matricesVbo = 0;
+        bool m_partial = false;
+        unsigned int m_drawCount = 0;      /* how many the buffer holds now */
+        void upload(const std::vector<glm::mat4> &matrices);
+        void draw(Shader *externShader);
 };
 
 #endif // INSTANCERENDERCOMPONENT_H

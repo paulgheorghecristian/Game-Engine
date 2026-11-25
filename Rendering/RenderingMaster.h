@@ -287,6 +287,10 @@ class RenderingMaster
         void uploadProjection();
         FrameBuffer *m_lensCopyFB = nullptr;   /* black holes read a copy of the image they bend */
         FrameBuffer *m_lensSkyFB = nullptr;    /* sky black holes: the sky behind them, no clouds */
+        /* which hole's sky it holds, and from which frame: it depends only on the hole's place in
+         * the sky, so the water's mirror image and the view itself use the same one */
+        const BlackHole *m_lensSkyHole = nullptr;
+        int m_lensSkyFrame = -1, m_frameNumber = 0;
         static const int LENS_SKY_SIZE = 1024;
         void renderLensSky(const BlackHole &hole);
         void renderBlackHoles(FrameBuffer &target);
@@ -330,6 +334,8 @@ class RenderingMaster
         void setDebris(float shell, float ejecta) { m_debrisShell = shell; m_ejecta = ejecta; }
         /* the sky Kugelblitz's playback clock: 1 normal, 0 paused (tools/timeline_editor.py) */
         void setKugelblitzTimeScale(float scale) { m_kugelblitzTimeScale = scale; }
+        /* passes skip what the camera cannot see (GE_NO_CULL=1: they draw everything, to compare) */
+        static bool viewCulling();
         /* lightning in the dust: flash 0..1 (blinding), seen as a glow inside
          * the dust at screen x boltX, height reach (0..1), shaped by seed */
         void setLightning(float flash, float boltX, float seed, float reach) {

@@ -834,7 +834,14 @@ void EngineCore::render(float alpha) {
     RenderingMaster::getInstance()->getGBuffer().bindForScene();
     RenderingMaster::getInstance()->clearScreen(1, 1, 1, 1, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    PT_FromHere("sky");
     RenderingMaster::getInstance()->drawMainSky();
+    PT_ToHere("sky");
+
+    /* what the camera can see: the rest is not drawn */
+    const bool culling = RenderingMaster::viewCulling();
+    const ViewPlanes view(RenderingMaster::getInstance()->getProjectionMatrix() *
+                          RenderingMaster::getInstance()->getCamera()->getViewMatrix());
 
     for (auto entity : entities) {
         RenderComponent *renderComponent = NULL;
@@ -846,7 +853,8 @@ void EngineCore::render(float alpha) {
             continue;
         if ((renderComponent =
              (RenderComponent *) (entity->getComponent (Entity::Flags::RENDERABLE))) != NULL &&
-            !renderComponent->isBeyondDrawDistance(entity->getTransform())) {
+            !renderComponent->isBeyondDrawDistance(entity->getTransform()) &&
+            !(culling && renderComponent->isOutside(view, entity->getTransform()))) {
             if (renderComponent->isGlass()) {
                 RenderingMaster::getInstance()->glass.push_back(entity);   /* drawn after the scene */
             } else {
@@ -855,7 +863,7 @@ void EngineCore::render(float alpha) {
         }
         if ((instanceRenderComponent =
              (InstanceRenderComponent *) (entity->getComponent (Entity::Flags::INSTANCE_RENDERABLE))) != NULL) {
-            instanceRenderComponent->render(&RenderingMaster::getInstance()->deferredShading_InstanceRender);
+            instanceRenderComponent->render(&RenderingMaster::getInstance()->deferredShading_InstanceRender, culling ? &view : nullptr);
         }
         if ((skeletalAnimationComponent =
              (SkeletalAnimationComponent *) (entity->getComponent (Entity::Flags::ANIMATED))) != NULL) {
@@ -1776,6 +1784,16 @@ void EngineCore::runBenchmark(int numFrames) {
     double segmentSum = 0;
     int segmentStartLights = 0;
 
+    /* GE_SEEK=t: the scene t seconds after its start (its timeline, the sky's Moon); GE_HOLD=1:
+     * held at that moment, so a moment is measured rather than the stretch after it */
+    if (const char *seek = std::getenv("GE_SEEK")) {
+        seekScene((float) std::atof(seek));
+    }
+    if (std::getenv("GE_HOLD") != NULL) {
+        RenderingMaster::getInstance()->setKugelblitzTimeScale(0.0f);
+        m_timeline.setTimeScale(0.0f);
+    }
+
     /* benchmarks never react to the real mouse/keyboard (clicks would open light editors) */
     inputManager.setScripted(true);
     if (walk) {
@@ -1865,8 +1883,12 @@ void EngineCore::runBenchmark(int numFrames) {
         inputManager.update(RenderingMaster::getInstance()->getDisplay());
         applyMouseLook();
         capturePreviousState();
+        PT_FromHere("input");
         input();
+        PT_ToHere("input");
+        PT_FromHere("update");
         update();
+        PT_ToHere("update");
         render(1.0f);
         glFinish(); /* include the GPU work in the measured frame time */
         auto t1 = HighResolutionClock::now();

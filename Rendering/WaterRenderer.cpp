@@ -1,4 +1,5 @@
 #include "WaterRenderer.h"
+#include "ProfilingTimer.h"
 
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
@@ -205,11 +206,16 @@ void WaterRenderer::renderReflection(const std::vector<Entity *> &entities)
     /* mirroring flips triangle winding */
     glFrontFace(GL_CW);
 
+    PT_FromHere("waterReflection.sky");
     rm->skyShader->updateUniform("viewMatrix", (void *) &mirroredView);
     rm->drawSky();
     rm->skyShader->updateUniform("viewMatrix", (void *) &view);
+    PT_ToHere("waterReflection.sky");
     /* the black holes in the sky it mirrors (the scene then covers them) */
+    PT_FromHere("waterReflection.blackHoles");
     rm->renderBlackHolesMirrored(m_reflectionFB, mirroredView, mirroredCamera);
+    PT_ToHere("waterReflection.blackHoles");
+    PT_FromHere("waterReflection.scene");
 
     Shader &shader = m_reflectionShader;
     shader.updateUniform("viewMatrix", (void *) &mirroredView);
@@ -219,6 +225,10 @@ void WaterRenderer::renderReflection(const std::vector<Entity *> &entities)
     uploadForwardLights(shader, camera->getPosition());
     rm->uploadWind(shader);
 
+    /* what the mirror can show: in the mirrored camera's view, and above the water (the
+     * water plane cuts the rest away) */
+    const bool culling = RenderingMaster::viewCulling();
+    const ViewPlanes seen(rm->getProjectionMatrix() * mirroredView);
     glEnable(GL_CLIP_DISTANCE0);
     for (Entity *entity : entities) {
         if (entity->getComponent(Entity::Flags::BILL) != NULL) {
@@ -226,19 +236,30 @@ void WaterRenderer::renderReflection(const std::vector<Entity *> &entities)
         }
         RenderComponent *rc = (RenderComponent *) entity->getComponent(Entity::Flags::RENDERABLE);
         if (rc != NULL && !rc->isBeyondDrawDistance(entity->getTransform())) {
-            shader.updateUniform("instanced", false);
-            rc->render(&shader);
+            bool shown = true;
+            if (culling) {
+                glm::vec3 center;
+                float radius;
+                rc->worldBounds(entity->getTransform(), center, radius);
+                shown = center.y + radius * 1.02f + 1.0f >= m_height && !rc->isOutside(seen, entity->getTransform());
+            }
+            if (shown) {
+                shader.updateUniform("instanced", false);
+                rc->render(&shader);
+            }
         }
         InstanceRenderComponent *irc = (InstanceRenderComponent *) entity->getComponent(Entity::Flags::INSTANCE_RENDERABLE);
         if (irc != NULL) {
             shader.updateUniform("instanced", true);
-            irc->render(&shader);
+            irc->render(&shader, culling ? &seen : nullptr, m_height);
         }
     }
     glDisable(GL_CLIP_DISTANCE0);
     glFrontFace(GL_CCW);
 
     m_reflectionFB.unbind();
+    PT_ToHere("waterReflection.scene");
+    PT_FromHere("waterReflection.particles");
 
     /* particles too (light halos, flames, sparks, lanterns), mirrored, into
      * their own buffer that shares the reflection's depth (so reflected
@@ -270,6 +291,7 @@ void WaterRenderer::renderReflection(const std::vector<Entity *> &entities)
         glEnable(GL_CULL_FACE);
     }
     m_reflectionParticlesFB.unbind();
+    PT_ToHere("waterReflection.particles");
 
     /* blurred levels for the reflection glow */
     GLuint reflectionTexture = m_reflectionFB.getRenderTargets()[0];

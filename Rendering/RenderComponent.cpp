@@ -190,17 +190,33 @@ RenderComponent::~RenderComponent()
 {
 }
 
+void RenderComponent::worldBounds(Transform &transform, glm::vec3 &center, float &radius)
+{
+    glm::vec3 localCenter;
+    float localRadius;
+    renderingObject.getBoundingSphere(localCenter, localRadius);
+    center = glm::vec3(transform.getModelMatrix() * glm::vec4(localCenter, 1.0f));
+    glm::vec3 s = transform.getScale();
+    radius = localRadius * glm::max(glm::abs(s.x), glm::max(glm::abs(s.y), glm::abs(s.z)));
+}
+
 bool RenderComponent::isBeyondDrawDistance(Transform &transform)
 {
     RenderingMaster *rm = RenderingMaster::getInstance();
     if (rm->getEnvironment().fogEnd <= 0.0f) {
         return false;
     }
-    glm::vec3 localCenter;
-    float localRadius;
-    renderingObject.getBoundingSphere(localCenter, localRadius);
-    glm::vec3 center = glm::vec3(transform.getModelMatrix() * glm::vec4(localCenter, 1.0f));
-    glm::vec3 s = transform.getScale();
-    float radius = localRadius * glm::max(glm::abs(s.x), glm::max(glm::abs(s.y), glm::abs(s.z)));
+    glm::vec3 center;
+    float radius;
+    worldBounds(transform, center, radius);
     return rm->isBeyondDrawDistance(center, radius);
+}
+
+bool RenderComponent::isOutside(const ViewPlanes &view, Transform &transform)
+{
+    glm::vec3 center;
+    float radius;
+    worldBounds(transform, center, radius);
+    /* (a margin: the anti-aliasing's sub-pixel shift, a vertex shader's sway) */
+    return !view.sees(center, radius * 1.02f + 1.0f);
 }
