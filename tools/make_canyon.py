@@ -435,7 +435,12 @@ entities.append(instanced("res/models/rock.obj", boulders, RED_ROCK))
 trees = []
 for (tx, tz) in ((-150, -520), (175, -470), (-120, -420), (150, -600), (-210, -650), (230, -760)):
     trees.append(tr((tx, H(tx, tz) - 1, tz), random.uniform(10, 14), (0, random.uniform(0, 360), 0)))
-entities.append(instanced("res/models/tree.obj", trees, wind=0.6))
+trees_entity = instanced("res/models/tree.obj", trees, wind=0.6)
+# the crown as an ellipsoid (tree.obj units): far off, where the sun's shadow map does not reach,
+# it casts a soft shadow along the sunlight instead
+trees_entity["Components"]["InstanceRenderComponent"]["crownShadow"] = {
+    "centre": [-0.08, 3.5, 0.27], "radius": 3.4, "height": 2.0, "strength": 0.7}
+entities.append(trees_entity)
 
 # --------------------------------------------------------------------------
 # lights
@@ -551,7 +556,7 @@ game = {
                     # 2400, which is also the draw distance (far plane)
                     "fogStart": 400, "fogEnd": 2400,
                     # a few desert clouds (and their shadows on the mesas)
-                    "cloudCoverage": 0.25, "cloudSpeed": 10, "ambient": 0.085, "emissiveStrength": 1.7,
+                    "cloudCoverage": 0.25, "cloudSpeed": 10, "cloudHeight": 12000, "ambient": 0.085, "emissiveStrength": 1.7,
                     "pbr": True, "hdr": True, "exposure": 1.15, "bloomStrength": 0.5, "bloomThreshold": 0.9,
                     "dayExposure": 0.92,
                     "aoStrength": 0.9, "aoRadius": 18,
@@ -572,7 +577,7 @@ game = {
               "reflectionGlow": 1.8},
     # where the moon was, a black hole in the sky (at infinity, like the moon),
     # crowning the colossus as seen from the head of the pool
-    "BlackHoles": [{"sky": True, "direction": HOLE_DIR, "angularRadius": 0.05, "cloudClear": 0.78,
+    "BlackHoles": [{"sky": True, "physical": True, "direction": HOLE_DIR, "angularRadius": 0.05, "cloudClear": 0.78,
                     "lensing": 0.6, "influence": 9, "colorShift": 0.71,
                     "diskInner": 2.6, "diskOuter": 7.5, "diskColor": [1.0, 0.62, 0.3], "diskBrightness": 3.0,
                     "diskOpacity": 0.85, "diskSpeed": 1.0, "diskTilt": [41.5, -2.0], "glow": 0.6}],

@@ -239,7 +239,12 @@ for a in range(0, 360, 14):
         continue
     trees.append({"position": [round(x, 2), round(H(x, z) - 1, 2), round(z, 2)],
                   "rotation": [0, round(random.uniform(0, 360), 1), 0], "scale": [round(random.uniform(12, 17), 2)] * 3})
-entities.append(instanced("res/models/tree.obj", trees, wind=1.0))
+trees_entity = instanced("res/models/tree.obj", trees, wind=1.0)
+# the crown as an ellipsoid (tree.obj units): far off, where the sun's shadow map does not reach,
+# it casts a soft shadow along the sunlight instead
+trees_entity["Components"]["InstanceRenderComponent"]["crownShadow"] = {
+    "centre": [-0.08, 3.5, 0.27], "radius": 3.4, "height": 2.0, "strength": 0.7}
+entities.append(trees_entity)
 
 rocks = []
 for a in range(0, 360, 9):
@@ -342,7 +347,7 @@ def _norm(v):
 def _cross(a, b):
     return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
 _h = _norm(moon)                # the hole sits in the moon
-black_holes = [{"sky": True, "direction": [round(c, 4) for c in _h], "angularRadius": 0.03,
+black_holes = [{"sky": True, "physical": True, "direction": [round(c, 4) for c in _h], "angularRadius": 0.03,
                 "kugelblitz": True, "collapse": 0.0, "collapseSpeed": 5.0, "collapseDelay": 3.0, "quitAfter": 12.0, "collapseSite": [0.36, 0.77],
                 # ends as the lagoon_bh sky hole: a long thin Gargantua disk
                 "lensing": 0.8, "influence": 11, "colorShift": 0.7, "diskInner": 3.0, "diskOuter": 16.0,
@@ -363,7 +368,9 @@ game = {
                     "fogColor": [0.055, 0.07, 0.11], "fogDensity": 0.0024, "fogHeightFalloff": 0.0035,
                     "fogBaseHeight": WATER, "fogMoonGlow": 0.35,
                     # drifting clouds and their shadows sweeping over the hills
-                    "cloudCoverage": 0.5, "cloudSpeed": 14, "ambient": 0.05, "emissiveStrength": 1.6,
+                    "cloudCoverage": 0.5, "cloudSpeed": 14,
+                    # high enough not to slide past as you walk (the eye is 31 units up: 1500 would be ~80 m)
+                    "cloudHeight": 12000, "ambient": 0.05, "emissiveStrength": 1.6,
                     # HDR + filmic tone mapping, bloom, ambient occlusion
                     "pbr": True,
                     "hdr": True, "exposure": 1.25, "bloomStrength": 0.5, "bloomThreshold": 0.9,

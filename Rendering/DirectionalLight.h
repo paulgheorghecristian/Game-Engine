@@ -3,6 +3,9 @@
 
 #include "Light.h"
 
+#include <vector>
+#include <glm/glm.hpp>
+
 class DirectionalLight : public Light
 {
     public:
@@ -25,6 +28,10 @@ class DirectionalLight : public Light
         void recomputeShadowMapProjectionMatrix() override;
 
         static Shader &getLightAccumulationShader();
+        /* the crowns the light pass casts soft shadows of (InstanceRenderComponent::appendCrownShadows),
+         * set each frame; at most MAX_CROWNS */
+        static void setCrownShadows(const std::vector<glm::vec4> &crowns);
+        static const int MAX_CROWNS = 64;
         static Mesh &getLightMesh();
 
         virtual std::string jsonifyAttribs();
@@ -32,6 +39,7 @@ class DirectionalLight : public Light
     protected:
 
     private:
+        static std::vector<glm::vec4> s_crowns;
         glm::vec3 m_lightDirection;
 };
 

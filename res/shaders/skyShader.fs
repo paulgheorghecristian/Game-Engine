@@ -73,13 +73,16 @@ vec3 moonDustStream(vec3 dir, vec3 moonDir) {
     return dust * core * clumps * ends * moonStream * 0.55;
 }
 uniform vec3 cameraPosition;
-/* ---- clouds: one drifting fbm layer at CLOUD_HEIGHT (world units); the
+/* ---- clouds: one drifting fbm layer cloudHeight above the world's zero (world units); the
  * sky draws it and the directional light pass uses the same density for the
- * cloud shadows on the ground, so the two always match ---- */
+ * cloud shadows on the ground, so the two always match. Higher clouds are larger
+ * and drift faster in proportion, so from a standstill the sky looks the same at
+ * any height: the height only sets how much they slide past as the camera moves ---- */
 uniform float cloudCoverage;   /* 0: no clouds .. 1: overcast */
-uniform vec2 cloudWind;        /* drift in world units per second */
+uniform vec2 cloudWind;        /* drift in world units per second, for clouds at 1500 */
 uniform float cloudTime;       /* seconds */
-const float CLOUD_HEIGHT = 1500.0;
+uniform float cloudHeight;     /* world units (0: not set, 1500) */
+float cloudScale() { return cloudHeight > 0.0 ? cloudHeight / 1500.0 : 1.0; }
 
 float cloudHash(vec2 p) {
     p = fract(p * vec2(123.34, 456.21));
@@ -96,7 +99,7 @@ float cloudNoise(vec2 p) {
 
 /* 0..1 cloud density above world position xz */
 float cloudDensity(vec2 xz) {
-    vec2 p = (xz + cloudWind * cloudTime) * 0.0009;
+    vec2 p = (xz / cloudScale() + cloudWind * cloudTime) * 0.0009;
     float n = 0.0, amp = 0.5;
     mat2 rot = mat2(0.8, -0.6, 0.6, 0.8);
     for (int i = 0; i < 5; i++) {
@@ -687,7 +690,7 @@ void cloudLayer(vec3 dir, out vec3 cloudColor, out float alpha) {
     cloudColor = vec3(0.0);
     alpha = 0.0;
     if (cloudCoverage <= 0.0 || dir.y <= 0.0) return;
-    float t = (CLOUD_HEIGHT - cameraPosition.y) / max(dir.y, 0.02);
+    float t = (1500.0 * cloudScale() - cameraPosition.y) / max(dir.y, 0.02);
     vec2 xz = cameraPosition.xz + dir.xz * t;
     float d = cloudDensity(xz);
     if (d <= 0.001) return;
@@ -695,7 +698,7 @@ void cloudLayer(vec3 dir, out vec3 cloudColor, out float alpha) {
     /* light from the sun by day, the moon by night: sample the density a bit
      * towards the light; denser there = this part is in the cloud's shadow */
     vec3 L = sunVisibility > 0.0 ? normalize(sunDirection) : normalize(moonDirection);
-    float towardsLight = cloudDensity(xz + L.xz / max(L.y, 0.15) * 160.0);
+    float towardsLight = cloudDensity(xz + L.xz / max(L.y, 0.15) * 160.0 * cloudScale());
     float lit = clamp(1.0 - towardsLight * 0.75 + (1.0 - d) * 0.25, 0.0, 1.0);
 
     vec3 shade = mix(horizonColor, zenithColor, 0.35) * 0.9 + vec3(0.08);
@@ -708,7 +711,7 @@ void cloudLayer(vec3 dir, out vec3 cloudColor, out float alpha) {
     cloudColor = mix(nightColor, dayColor, sunVisibility);
 
     /* thinner and hazier towards the horizon */
-    float fade = smoothstep(0.0, 0.14, dir.y) * exp(-t * 0.000035);
+    float fade = smoothstep(0.0, 0.14, dir.y) * exp(-t / cloudScale() * 0.000035);
     alpha = d * fade * 0.95;
     /* thinner around a black hole in the sky, so it is never buried */
     if (holeCloudClear > 0.0) {

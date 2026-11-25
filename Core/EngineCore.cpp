@@ -971,6 +971,32 @@ void EngineCore::render(float alpha) {
     PT_ToHere("computeDepthTextureForLight");
 
     PT_FromHere("lightAcc");
+    /* the crowns the sun casts soft shadows of where its shadow map does not reach: the nearest
+     * ones when there are more than the light pass takes */
+    {
+        std::vector<glm::vec4> crowns;
+        for (auto entity : entities) {
+            InstanceRenderComponent *instances = (InstanceRenderComponent *) entity->getComponent(Entity::Flags::INSTANCE_RENDERABLE);
+            if (instances != NULL) {
+                instances->appendCrownShadows(crowns);
+            }
+        }
+        if (crowns.size() / 2 > (std::size_t) DirectionalLight::MAX_CROWNS) {
+            glm::vec3 eye = RenderingMaster::getInstance()->getCamera()->getPosition();
+            std::vector<std::size_t> order(crowns.size() / 2);
+            for (std::size_t i = 0; i < order.size(); i++) order[i] = i;
+            std::sort(order.begin(), order.end(), [&](std::size_t a, std::size_t b) {
+                return glm::distance(glm::vec3(crowns[a * 2]), eye) < glm::distance(glm::vec3(crowns[b * 2]), eye);
+            });
+            std::vector<glm::vec4> nearest;
+            for (int i = 0; i < DirectionalLight::MAX_CROWNS; i++) {
+                nearest.push_back(crowns[order[i] * 2]);
+                nearest.push_back(crowns[order[i] * 2 + 1]);
+            }
+            crowns.swap(nearest);
+        }
+        DirectionalLight::setCrownShadows(crowns);
+    }
     RenderingMaster::getInstance()->createLightAccumulationBuffer();
     PT_ToHere("lightAcc");
 

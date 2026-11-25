@@ -5,6 +5,7 @@
                     "cameraPosition" : "VEC3",
                     "cloudCoverage" : "FLOAT",
                     "cloudWind" : "VEC2",
+                    "cloudHeight" : "FLOAT",
                     "cloudTime" : "FLOAT",
                     "modelMatrix" : "MAT4",
                     "viewMatrix" : "MAT4",

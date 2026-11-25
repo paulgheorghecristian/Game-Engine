@@ -1,5 +1,7 @@
 #include "DirectionalLight.h"
 
+#include <algorithm>
+
 #include "MathUtils.h"
 #include "RenderingMaster.h"
 #include "Shader.h"
@@ -56,8 +58,22 @@ void DirectionalLight::render()
     m_shadowMapTexture.use(0);
 
     shader.bind();
+    {
+        int count = (int) std::min(s_crowns.size() / 2, (std::size_t) MAX_CROWNS);
+        glUniform1i(shader.getUniformLocation("crownCount"), count);
+        if (count > 0) {
+            glUniform4fv(shader.getUniformLocation("crowns"), count * 2, &s_crowns[0].x);
+        }
+    }
     getLightMesh().draw();
     shader.unbind();
+}
+
+std::vector<glm::vec4> DirectionalLight::s_crowns;
+
+void DirectionalLight::setCrownShadows(const std::vector<glm::vec4> &crowns)
+{
+    s_crowns = crowns;
 }
 
 Shader &DirectionalLight::getLightAccumulationShader()

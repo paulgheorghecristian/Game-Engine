@@ -402,7 +402,7 @@ _slant = [1.0, 0.55, 0.0]
 _pole = cross(HOLE_DIR, _slant)
 _len = math.sqrt(sum(c * c for c in _pole))
 GALAXY_POLE = [round(c / _len, 4) for c in _pole]
-black_holes = [{"sky": True, "direction": HOLE_DIR, "angularRadius": 0.03, "lensing": 0.8, "influence": 11,
+black_holes = [{"sky": True, "physical": True, "direction": HOLE_DIR, "angularRadius": 0.03, "lensing": 0.8, "influence": 11,
                 "colorShift": 0.7, "diskInner": 3.0, "diskOuter": 16.0, "diskColor": [1.0, 0.55, 0.26],
                 "diskBrightness": 2.0, "diskOpacity": 0.55, "diskSpeed": 0.8, "diskTilt": [39.01, -14.54],
                 "glow": 0.0, "moonStream": 0.0, "cloudClear": 0.7}]
@@ -420,7 +420,7 @@ game = {
                     "milkyWay": 1.4, "milkyWayNormal": GALAXY_POLE, "milkyWayCenter": HOLE_DIR,
                     "fogColor": [0.045, 0.045, 0.055], "fogDensity": 0.0016, "fogHeightFalloff": 0.006,
                     "fogBaseHeight": -10.0, "fogMoonGlow": 0.0, "fogLightGlow": 3.4, "fogStart": 150, "fogEnd": 1600,
-                    "cloudCoverage": 0.3, "cloudSpeed": 6, "wind": 0.6,   # clear enough for the Milky Way
+                    "cloudCoverage": 0.3, "cloudSpeed": 6, "cloudHeight": 12000, "wind": 0.6,   # clear enough for the Milky Way
                     "ambient": 0.1, "emissiveStrength": 2.2,
                     "pbr": True, "hdr": True, "exposure": 1.3, "bloomStrength": 0.6, "bloomThreshold": 0.85,
                     "aoStrength": 1.0, "aoRadius": 14, "saturation": 0.8, "grade": 0.7,

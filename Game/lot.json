@@ -60,6 +60,7 @@
   "fogEnd": 1600,
   "cloudCoverage": 0.3,
   "cloudSpeed": 6,
+  "cloudHeight": 12000,
   "wind": 0.6,
   "ambient": 0.1,
   "emissiveStrength": 2.2,
@@ -202,6 +203,7 @@
  "BlackHoles": [
   {
    "sky": true,
+   "physical": true,
    "direction": [
     0.0,
     0.3438,

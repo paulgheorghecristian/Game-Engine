@@ -1,6 +1,8 @@
 #include "BlackHole.h"
 
 #include <algorithm>
+#include <cmath>
+#include <vector>
 #include <string>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -44,6 +46,8 @@ BlackHole::BlackHole(const rapidjson::Value &json) :
     horizon = glm::clamp(jsonFloat(json, "horizon", horizon), 1e-5f, 1.0f);
     coreGlow = std::max(0.0f, jsonFloat(json, "coreGlow", coreGlow));
     coreSize = std::max(0.01f, jsonFloat(json, "coreSize", coreSize));
+    physical = json.HasMember("physical") && json["physical"].IsBool() && json["physical"].GetBool();
+    diskTemperature = glm::clamp(jsonFloat(json, "diskTemperature", diskTemperature), 1000.0f, 40000.0f);
     sky = json.HasMember("sky") && json["sky"].IsBool() && json["sky"].GetBool();
     direction = jsonVec3(json, "direction", direction);
     angularRadius = jsonFloat(json, "angularRadius", angularRadius);
@@ -108,10 +112,62 @@ glm::vec3 BlackHole::diskNormal() const
     return glm::normalize(glm::vec3(tilt * glm::vec4(0, 1, 0, 0)));
 }
 
-Shader &BlackHole::getShader()
+Shader &BlackHole::getShader(bool physical)
 {
     static Shader shader("res/shaders/blackHole.json");
+    if (physical) {
+        static Shader physicalShader("res/shaders/blackHolePhysical.json");   /* (made the first time one is) */
+        return physicalShader;
+    }
     return shader;
+}
+
+GLuint BlackHole::blackbodyTexture()
+{
+    static GLuint texture = 0;
+    if (texture != 0) {
+        return texture;
+    }
+    /* the light of a blackbody at T seen by the eye: Planck's spectrum weighed by the CIE 1931
+     * colour matching functions (Wyman, Sloan and Shirley's fit), to XYZ, to linear sRGB. Seen
+     * Doppler- and gravitationally shifted by g, a blackbody at T looks like one at g T (its
+     * colour and its brightness both) */
+    auto lobe = [](double x, double mu, double s1, double s2) {
+        double s = x < mu ? s1 : s2;
+        return std::exp(-0.5 * (x - mu) * (x - mu) / (s * s));
+    };
+    const int N = 256;
+    std::vector<float> rgb(N * 3);
+    double scale = 0.0;
+    std::vector<double> values(N * 3);
+    for (int i = 0; i < N; i++) {
+        double T = std::exp(std::log(300.0) + (std::log(60000.0) - std::log(300.0)) * i / (N - 1));
+        double X = 0.0, Y = 0.0, Z = 0.0;
+        for (int nm = 380; nm <= 780; nm++) {
+            double l = nm * 1e-9;
+            double planck = 1.0 / (std::pow(l, 5.0) * (std::exp(1.4388e-2 / (l * T)) - 1.0)) * 1e-30;
+            X += planck * (1.056 * lobe(nm, 599.8, 37.9, 31.0) + 0.362 * lobe(nm, 442.0, 16.0, 26.7) - 0.065 * lobe(nm, 501.1, 20.4, 26.2));
+            Y += planck * (0.821 * lobe(nm, 568.8, 46.9, 40.5) + 0.286 * lobe(nm, 530.9, 16.3, 31.1));
+            Z += planck * (1.217 * lobe(nm, 437.0, 11.8, 36.0) + 0.681 * lobe(nm, 459.0, 26.0, 13.8));
+        }
+        double r = 3.2406 * X - 1.5372 * Y - 0.4986 * Z;
+        double g = -0.9689 * X + 1.8758 * Y + 0.0415 * Z;
+        double b = 0.0557 * X - 0.2040 * Y + 1.0570 * Z;
+        values[i * 3] = std::max(r, 0.0); values[i * 3 + 1] = std::max(g, 0.0); values[i * 3 + 2] = std::max(b, 0.0);
+        if (T <= 6500.0) scale = std::max(values[i * 3], std::max(values[i * 3 + 1], values[i * 3 + 2]));
+    }
+    for (int i = 0; i < N * 3; i++) {
+        rgb[i] = (float) (values[i] / scale);          /* (1 at about 6500 K: only ratios are used) */
+    }
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, N, 1, 0, GL_RGB, GL_FLOAT, rgb.data());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    return texture;
 }
 
 glm::mat4 BlackHole::lensSkyView() const
@@ -218,7 +274,7 @@ void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube
         /* some corners behind the camera: the whole screen, to be safe */
     }
 
-    Shader &s = getShader();
+    Shader &s = getShader(physical);
     glm::mat4 inverseProjection = glm::inverse(projection);
     glm::mat4 inverseView = glm::inverse(view);
     glm::mat4 viewProjection = projection * view;
@@ -257,6 +313,12 @@ void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube
     float core = sky && kugelblitz ? coreGlow * glm::smoothstep(0.62f, 0.95f, collapse) : coreGlow;
     s.updateUniform("coreGlow", core);
     s.updateUniform("coreSize", coreSize);
+    if (physical) {
+        s.updateUniform("diskTemperature", diskTemperature);
+        s.updateUniform("blackbodySampler", 6);
+        glActiveTexture(GL_TEXTURE6);
+        glBindTexture(GL_TEXTURE_2D, blackbodyTexture());
+    }
     s.updateUniform("time", time);
     int skySource = sky && lensSky != 0 ? 1 : 0;
     s.updateUniform("skySource", skySource);
@@ -384,6 +446,10 @@ bool BlackHole::renderGUI(int index)
         ImGui::SliderFloat("Horizon (of the radius)", &horizon, 1e-5f, 1.0f, "%.5f", 6.0f);     /* (a power curve: the small values get room) */
         ImGui::SliderFloat("Core glow", &coreGlow, 0.0f, 20.0f, "%.2f");
         ImGui::SliderFloat("Core size (radii)", &coreSize, 0.01f, 3.0f, "%.2f");
+        ImGui::Checkbox("Physical (exact light paths, shift, blackbody light)", &physical);
+        if (physical) {
+            ImGui::SliderFloat("Disk temperature (K)", &diskTemperature, 1000.0f, 40000.0f, "%.0f");
+        }
         if (changed) {
             diskOuter = std::max(diskOuter, diskInner + 0.5f);
             updateLight();
@@ -445,5 +511,9 @@ void BlackHole::save(rapidjson::Value &json, rapidjson::Document::AllocatorType 
     if (coreGlow > 0.0f) {
         json.AddMember("coreGlow", coreGlow, allocator);
         json.AddMember("coreSize", coreSize, allocator);
+    }
+    if (physical) {
+        json.AddMember("physical", true, allocator);
+        json.AddMember("diskTemperature", diskTemperature, allocator);
     }
 }

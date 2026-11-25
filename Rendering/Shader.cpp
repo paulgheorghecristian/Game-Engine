@@ -48,6 +48,19 @@ Shader *Shader::construct (const std::string &jsonPath)
 
     vertexShaderSource = FileUtils::loadFileInString (jsonShaderDocument["VSPath"].GetString ());
     fragmentShaderSource = FileUtils::loadFileInString (jsonShaderDocument["FSPath"].GetString ());
+    /* "Defines": ["NAME", ...]: the same sources compiled as another variant (#define NAME after
+     * the #version line), so code a variant does not use is not in it at all */
+    if (jsonShaderDocument.HasMember ("Defines") && jsonShaderDocument["Defines"].IsArray ()) {
+        std::string defines;
+        for (auto &define : jsonShaderDocument["Defines"].GetArray ()) {
+            if (define.IsString ()) defines += std::string ("#define ") + define.GetString () + "\n";
+        }
+        for (std::string *source : { &vertexShaderSource, &fragmentShaderSource }) {
+            size_t line = source->find ("#version");
+            size_t at = line == std::string::npos ? 0 : source->find ('\n', line);
+            source->insert (at == std::string::npos ? source->size () : at + (line == std::string::npos ? 0 : 1), defines);
+        }
+    }
 
     const GLchar * vertexShaderSourceP[1];
     const GLchar * fragmentShaderSourceP[1];

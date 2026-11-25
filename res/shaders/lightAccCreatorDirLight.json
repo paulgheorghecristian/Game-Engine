@@ -4,6 +4,7 @@
     "Uniforms" : {
                     "cloudCoverage" : "FLOAT",
                     "cloudWind" : "VEC2",
+                    "cloudHeight" : "FLOAT",
                     "cloudTime" : "FLOAT",
                     "pbrEnabled" : "BOOL",
                     "albedoSampler" : "INT",

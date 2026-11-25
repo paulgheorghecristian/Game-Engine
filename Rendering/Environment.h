@@ -49,7 +49,8 @@ struct Environment
     /* drifting cloud layer in the sky, and its shadows on the ground
      * (directional light). 0 = no clouds */
     float cloudCoverage = 0.0f;
-    float cloudSpeed = 14.0f;           /* world units per second */
+    float cloudSpeed = 14.0f;           /* world units per second, for clouds at 1500 (higher ones in proportion) */
+    float cloudHeight = 1500.0f;        /* world units: higher slides past less as the camera moves */
     float wind = 1.0f;                  /* how hard swaying things (trees, grass) move; blows like the clouds */
     float fogStart = 0.0f;
     float fogEnd = 0.0f;

@@ -57,6 +57,7 @@
   "fogMoonGlow": 0.35,
   "cloudCoverage": 0.5,
   "cloudSpeed": 14,
+  "cloudHeight": 12000,
   "ambient": 0.05,
   "emissiveStrength": 1.6,
   "pbr": true,
@@ -152,6 +153,7 @@
  "BlackHoles": [
   {
    "sky": true,
+   "physical": true,
    "direction": [
     -0.2295,
     0.6058,
@@ -2520,7 +2522,17 @@
        ]
       }
      ],
-     "wind": 1.0
+     "wind": 1.0,
+     "crownShadow": {
+      "centre": [
+       -0.08,
+       3.5,
+       0.27
+      ],
+      "radius": 3.4,
+      "height": 2.0,
+      "strength": 0.7
+     }
     }
    }
   },

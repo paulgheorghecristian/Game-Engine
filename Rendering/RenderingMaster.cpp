@@ -1515,6 +1515,7 @@ void RenderingMaster::environmentGUI()
     changed |= ImGui::SliderFloat("Wind", &m_baseEnvironment.wind, 0.0f, 3.0f, "%.2f");
     if (m_baseEnvironment.cloudCoverage > 0.0f) {
         changed |= ImGui::SliderFloat("Cloud speed", &m_baseEnvironment.cloudSpeed, 0.0f, 80.0f, "%.0f");
+        changed |= ImGui::SliderFloat("Cloud height", &m_baseEnvironment.cloudHeight, 500.0f, 40000.0f, "%.0f", 3.0f);
     }
     changed |= ImGui::SliderFloat("Fog end / draw distance", &m_baseEnvironment.fogEnd, 0.0f, 6000.0f,
                                   m_baseEnvironment.fogEnd > 0.0f ? "%.0f" : "off");
@@ -1655,6 +1656,9 @@ void RenderingMaster::applyEnvironment(const Environment &base)
         skyShader->updateUniform("cloudWind", (void *) &wind);
         DirectionalLight::getLightAccumulationShader().updateUniform("cloudCoverage", coverage);
         DirectionalLight::getLightAccumulationShader().updateUniform("cloudWind", (void *) &wind);
+        float height = std::max(e.cloudHeight, 100.0f);
+        skyShader->updateUniform("cloudHeight", height);
+        DirectionalLight::getLightAccumulationShader().updateUniform("cloudHeight", height);
     }
     /* the draw distance ends where the fog is opaque */
     float farPlane = e.fogEnd > 0.0f ? std::max(e.fogEnd * 1.01f, 200.0f) : m_defaultFarPlane;

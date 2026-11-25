@@ -323,6 +323,18 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
         if (itr->value.HasMember("wind") && itr->value["wind"].IsNumber()) {
             instances->setWind(itr->value["wind"].GetFloat());
         }
+        if (itr->value.HasMember("crownShadow") && itr->value["crownShadow"].IsObject()) {
+            const auto &crown = itr->value["crownShadow"];
+            glm::vec3 centre(0.0f);
+            if (crown.HasMember("centre") && crown["centre"].IsArray() && crown["centre"].Size() == 3) {
+                for (int i = 0; i < 3; i++) centre[i] = crown["centre"][i].GetFloat();
+            }
+            auto number = [&](const char *key, float fallback) {
+                return crown.HasMember(key) && crown[key].IsNumber() ? crown[key].GetFloat() : fallback;
+            };
+            float radius = number("radius", 0.0f);
+            instances->setCrownShadow(centre, radius, number("height", radius), number("strength", 0.7f));
+        }
         return instances;
     } if (strcmp (itr->name.GetString(), "SkeletalAnimationComponent") == 0) {
         RenderingObject renderingObject;

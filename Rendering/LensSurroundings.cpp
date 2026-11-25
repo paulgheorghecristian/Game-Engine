@@ -58,6 +58,13 @@ bool LensSurroundings::render(const std::vector<Entity *> &entities, const std::
             faces = 63;                   /* inside it: rays go every way */
             break;
         }
+        /* a physical hole on screen: close round its shadow rays turn by up to 180 degrees, any
+         * way, and show what they reach there (an older one darkens them instead) */
+        float turning = hole->radius * hole->horizon * 4.0f;
+        if (hole->physical && screen.sees(hole->position, turning)) {
+            faces = 63;
+            break;
+        }
         float cone = std::asin(reach / distance) + TURN;
         for (int face = 0; face < 6; face++) {
             float angle = std::acos(glm::clamp(glm::dot(toHole / distance, FACE_DIRECTIONS[face]), -1.0f, 1.0f));

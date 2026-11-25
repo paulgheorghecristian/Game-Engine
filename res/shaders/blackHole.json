@@ -36,6 +36,8 @@
                     "surroundFaces" : "INT",
                     "surroundCenter" : "VEC3",
                     "surroundNear" : "FLOAT",
-                    "surroundFar" : "FLOAT"
+                    "surroundFar" : "FLOAT",
+                    "diskTemperature" : "FLOAT",
+                    "blackbodySampler" : "INT"
                  }
 }

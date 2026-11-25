@@ -173,7 +173,7 @@ def moon_destruction(direction, collapse, play=False, speed=5.0, delay=0.0):
     surface, a glowing hole as the black hole sinks into the rock, the cracks, the
     two jets, the Moon pulled into a dark point), held at a stage or playing. It is the engine's Moon-destruction sequence, whose JSON key is
     'kugelblitz'."""
-    h = {"sky": True, "direction": direction, "angularRadius": 0.03, "kugelblitz": True,
+    h = {"sky": True, "physical": True, "direction": direction, "angularRadius": 0.03, "kugelblitz": True,
          "collapse": collapse, "collapseSpeed": speed, "collapseDelay": delay, "collapseSite": [0.36, 0.77],
          "lensing": 0.8, "influence": 11, "colorShift": 0.7, "diskInner": 3, "diskOuter": 16,
          "diskColor": [1.0, 0.55, 0.26], "diskBrightness": 5.0, "diskOpacity": 0.55, "diskSpeed": 0.8,
@@ -184,7 +184,7 @@ def moon_destruction(direction, collapse, play=False, speed=5.0, delay=0.0):
 def sky_hole(direction, radius):
     """the black hole the Moon became (as in lagoon_bh.json), the Moon's dust in a
     ring around it; the closer its pass to the Earth, the bigger (radius: angular)"""
-    return {"sky": True, "direction": direction, "angularRadius": radius, "lensing": 0.8, "influence": 11,
+    return {"sky": True, "physical": True, "direction": direction, "angularRadius": radius, "lensing": 0.8, "influence": 11,
             "colorShift": 0.7, "diskInner": 3.0, "diskOuter": 16.0, "diskColor": [1.0, 0.55, 0.26],
             "diskBrightness": 5.0, "diskOpacity": 0.75, "diskSpeed": 0.8, "diskTilt": [57.01, -9.54],
             "glow": 0.0, "moonStream": 0.0, "cloudClear": 0.7}

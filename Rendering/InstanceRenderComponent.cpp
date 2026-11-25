@@ -343,9 +343,42 @@ std::string InstanceRenderComponent::jsonify() {
         res += "},";
     }
     res.pop_back();
-    res += "]}";
+    res += "]";
+    if (m_wind != 0.0f) {
+        res += ",\"wind\":" + std::to_string(m_wind);
+    }
+    if (m_hasCrown) {
+        res += ",\"crownShadow\":{\"centre\":[" + std::to_string(m_crownCentre.x) + "," + std::to_string(m_crownCentre.y) + "," +
+               std::to_string(m_crownCentre.z) + "],\"radius\":" + std::to_string(m_crownRadius) +
+               ",\"height\":" + std::to_string(m_crownHeight) + ",\"strength\":" + std::to_string(m_crownStrength) + "}";
+    }
+    res += "}";
 
     return res;
+}
+
+void InstanceRenderComponent::setCrownShadow(const glm::vec3 &centre, float radius, float height, float strength) {
+    m_hasCrown = radius > 0.0f && height > 0.0f && strength > 0.0f;
+    m_crownCentre = centre;
+    m_crownRadius = radius;
+    m_crownHeight = height;
+    m_crownStrength = strength;
+}
+
+void InstanceRenderComponent::appendCrownShadows(std::vector<glm::vec4> &out) const {
+    if (!m_hasCrown) {
+        return;
+    }
+    for (const glm::mat4 &matrix : m_matrices) {
+        glm::vec3 centre(matrix * glm::vec4(m_crownCentre, 1.0f));
+        float sideways = glm::max(glm::length(glm::vec3(matrix[0])), glm::length(glm::vec3(matrix[2])));
+        float upwards = glm::length(glm::vec3(matrix[1]));
+        /* (the light pass flattens it vertically: a fallen tree's crown lies on its side, a ball then) */
+        float upright = glm::vec3(matrix[1]).y / glm::max(upwards, 1e-6f);
+        float flat = (m_crownRadius * sideways) / (m_crownHeight * upwards);
+        out.push_back(glm::vec4(centre, m_crownRadius * sideways));
+        out.push_back(glm::vec4(m_crownStrength, glm::mix(1.0f, flat, glm::clamp(upright * upright, 0.0f, 1.0f)), 0.0f, 0.0f));
+    }
 }
 
 InstanceRenderComponent::~InstanceRenderComponent() {

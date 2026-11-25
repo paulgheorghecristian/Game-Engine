@@ -52,6 +52,7 @@ void Environment::load(const rapidjson::Value &json)
     readFloat(json, "fogStart", fogStart);
     readFloat(json, "cloudCoverage", cloudCoverage);
     readFloat(json, "cloudSpeed", cloudSpeed);
+    readFloat(json, "cloudHeight", cloudHeight);
     readFloat(json, "wind", wind);
     readFloat(json, "fogEnd", fogEnd);
     readFloat(json, "ambient", ambient);
@@ -187,6 +188,7 @@ void Environment::save(rapidjson::Value &json, rapidjson::Document::AllocatorTyp
     if (cloudCoverage > 0.0f) {
         json.AddMember("cloudCoverage", cloudCoverage, allocator);
         json.AddMember("cloudSpeed", cloudSpeed, allocator);
+        json.AddMember("cloudHeight", cloudHeight, allocator);
     }
     json.AddMember("wind", wind, allocator);
     if (fogEnd > 0.0f) {

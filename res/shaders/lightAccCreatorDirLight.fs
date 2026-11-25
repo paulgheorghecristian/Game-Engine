@@ -32,16 +32,45 @@ flat in vec3 lightDirectionEyeSpace;
 
 uniform int castsShadow; /* 0: skip the shadow-map test */
 
+/* the crowns (trees' leaves) as ellipsoids, two vec4 each: (world centre, horizontal radius),
+ * (how dark their shadow is, horizontal / vertical radius, -, -) */
+uniform vec4 crowns[128];
+uniform int crownCount;
+
+/* how much of the light reaches world (towards the light L) past the crowns: soft shadows cast
+ * along the light, so they lie where the sun puts them and stretch as it sinks. Not on the
+ * crown itself (its own shading does that) */
+float crownLight(vec3 world, vec3 L) {
+    float lit = 1.0;
+    for (int i = 0; i < crownCount; i++) {
+        vec4 sphere = crowns[i * 2], shape = crowns[i * 2 + 1];
+        /* squashed so the ellipsoid is a sphere */
+        vec3 squash = vec3(1.0, shape.y, 1.0);
+        vec3 rel = (sphere.xyz - world) * squash;
+        vec3 dir = normalize(L * squash);
+        float along = dot(rel, dir);
+        if (along <= 0.0) continue;
+        float r = sphere.w;
+        float miss = length(rel - dir * along);
+        float outside = smoothstep(r * 0.95, r * 1.25, length(rel));
+        lit *= 1.0 - shape.x * smoothstep(r, r * 0.3, miss) * outside;
+    }
+    return lit;
+}
+
 
 /* ---- PBR (Cook-Torrance: GGX distribution, Smith-Schlick visibility,
  * Schlick Fresnel; metal/roughness workflow) ---- */
-/* ---- clouds: one drifting fbm layer at CLOUD_HEIGHT (world units); the
+/* ---- clouds: one drifting fbm layer cloudHeight above the world's zero (world units); the
  * sky draws it and the directional light pass uses the same density for the
- * cloud shadows on the ground, so the two always match ---- */
+ * cloud shadows on the ground, so the two always match. Higher clouds are larger
+ * and drift faster in proportion, so from a standstill the sky looks the same at
+ * any height: the height only sets how much they slide past as the camera moves ---- */
 uniform float cloudCoverage;   /* 0: no clouds .. 1: overcast */
-uniform vec2 cloudWind;        /* drift in world units per second */
+uniform vec2 cloudWind;        /* drift in world units per second, for clouds at 1500 */
 uniform float cloudTime;       /* seconds */
-const float CLOUD_HEIGHT = 1500.0;
+uniform float cloudHeight;     /* world units (0: not set, 1500) */
+float cloudScale() { return cloudHeight > 0.0 ? cloudHeight / 1500.0 : 1.0; }
 
 float cloudHash(vec2 p) {
     p = fract(p * vec2(123.34, 456.21));
@@ -58,7 +87,7 @@ float cloudNoise(vec2 p) {
 
 /* 0..1 cloud density above world position xz */
 float cloudDensity(vec2 xz) {
-    vec2 p = (xz + cloudWind * cloudTime) * 0.0009;
+    vec2 p = (xz / cloudScale() + cloudWind * cloudTime) * 0.0009;
     float n = 0.0, amp = 0.5;
     mat2 rot = mat2(0.8, -0.6, 0.6, 0.8);
     for (int i = 0; i < 5; i++) {
@@ -141,6 +170,17 @@ void main() {
     }
 
     lightStrength = 1.0f - (cutOff*(totalPixelsInShadow / PCFKernelSize));
+    /* past the shadow map (it fades out by maxDist, and covers only so much round the view): the
+     * crowns' soft shadows instead, faded in as it fades out */
+    if (crownCount > 0) {
+        bool mapped = castsShadow != 0 && all(greaterThanEqual(dirLightNDCNormalized, vec3(0.0))) &&
+                      all(lessThanEqual(dirLightNDCNormalized, vec3(1.0)));
+        float far = 1.0 - (mapped ? cutOff : 0.0);
+        if (far > 0.0) {
+            vec3 world = (inverseViewMatrix * vec4(viewPosition, 1.0)).xyz;
+            lightStrength *= mix(1.0, crownLight(world, normalize(lightDirection)), far);
+        }
+    }
 
     vec3 roughness = texture(roughnessSampler, texCoord).rgb;
     float rough = ((roughness.r+roughness.g+roughness.b) / 3.0f);
@@ -165,7 +205,7 @@ void main() {
     if (cloudCoverage > 0.0) {
         vec3 world = (inverseViewMatrix * vec4(viewPosition, 1.0)).xyz;
         vec3 L = normalize(lightDirection);
-        vec2 atClouds = world.xz + L.xz / max(L.y, 0.1) * (CLOUD_HEIGHT - world.y);
+        vec2 atClouds = world.xz + L.xz / max(L.y, 0.1) * (1500.0 * cloudScale() - world.y);
         outLight *= 1.0 - 0.72 * cloudDensity(atClouds);
     }
 }

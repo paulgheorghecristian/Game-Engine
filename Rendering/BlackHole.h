@@ -42,7 +42,12 @@ class LensSurroundings;
  *   small horizon leaves the middle clear, the stars seen through it, as
  *   for a hole of the Moon's mass, far smaller than a pixel), coreGlow
  *   (brightness of the point of light where it feeds, 0 = none) and
- *   coreSize (its size, in radii)
+ *   coreSize (its size, in radii), physical (true: as it really is: the light's paths exact near
+ *   the hole too (without it rays there bend more than they would: a bigger shadow, the look the
+ *   older maps were made with), the disk's light shifted exactly as by gas in circular orbits round
+ *   a Schwarzschild hole, g = sqrt(1 - 3M/r) / (1 - Omega b_z), and its colour and brightness those
+ *   of a blackbody at g times its temperature; then diskColor and colorShift are not used) and
+ *   diskTemperature (kelvin, its hottest, for physical)
  *
  * "sky": true makes it a sky object like the moon: placed by "direction"
  * [x,y,z] and "angularRadius" (horizon, radians) instead of a position and a
@@ -92,6 +97,8 @@ class BlackHole
         float horizon = 1.0f;      /* the true event horizon, as a fraction of radius (1: the radius is the horizon) */
         float coreGlow = 0.0f;     /* the point of light where it feeds (0: none) */
         float coreSize = 0.3f;     /* its size, in radii */
+        bool physical = false;     /* the disk's light shifted exactly and blackbody-coloured (see above) */
+        float diskTemperature = 4800.0f;   /* kelvin, its hottest (physical) */
 
         bool sky = false;
         glm::vec3 direction = glm::vec3(0.0f, 0.5f, -1.0f);
@@ -162,7 +169,10 @@ class BlackHole
     private:
         void updateLight();
         PointLight *m_light = nullptr;    /* owned by RenderingMaster's light list */
-        static Shader &getShader();
+        static Shader &getShader(bool physical = false);
+        /* the colour and brightness of a blackbody against its temperature (a 256 x 1 texture over
+         * log T, 300..60000 K, linear RGB; made once) */
+        static GLuint blackbodyTexture();
 };
 
 #endif // BLACK_HOLE_H
