@@ -4,7 +4,7 @@
 	      "height" : 1080,
 	      "title" : "Game engine",
 	      "isFullScreen" : true,
-	      "maxFps" : 0,
+	      "maxFps" : 55,
 	      "updateRate" : 60,
 	      "vSync" : true,
 	      "renderScale" : 1.0

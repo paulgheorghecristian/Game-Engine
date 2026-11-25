@@ -435,8 +435,8 @@ entities.append(instanced("res/models/rock.obj", boulders, RED_ROCK))
 trees = []
 for (tx, tz) in ((-150, -520), (175, -470), (-120, -420), (150, -600), (-210, -650), (230, -760)):
     trees.append(tr((tx, H(tx, tz) - 1, tz), random.uniform(10, 14), (0, random.uniform(0, 360), 0)))
-trees_entity = instanced("res/models/tree.obj", trees, wind=0.6)
-# the crown as an ellipsoid (tree.obj units): far off, where the sun's shadow map does not reach,
+trees_entity = instanced("res/models/tree_leafy.obj", trees, wind=0.6)
+# the crown as an ellipsoid (the model's units): far off, where the sun's shadow map does not reach,
 # it casts a soft shadow along the sunlight instead
 trees_entity["Components"]["InstanceRenderComponent"]["crownShadow"] = {
     "centre": [-0.08, 3.5, 0.27], "radius": 3.4, "height": 2.0, "strength": 0.7}

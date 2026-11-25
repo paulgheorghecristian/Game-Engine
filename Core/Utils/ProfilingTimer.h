@@ -83,12 +83,19 @@ class ProfilingTimer
         static ProfilingTimer &getTimer(const std::string &name);
         static void resetAll();
         static void printAll();
+        /* one frame's worth: the phases that took at least minMs in the frame now ending (with
+         * syncGPU, their GPU time too), slowest first; nextFrame() starts the next one */
+        static void printFrame(double minMs);
+        static void nextFrame() { s_frame++; }
         /* when true, CPU timers glFinish() at begin/end so they include GPU time */
         static bool syncGPU;
     protected:
     private:
         double total, maxTime, passedTime; /* milliseconds */
         unsigned int numOfCalls;
+        double m_frameTime = 0.0;        /* this frame's time in it (it can run several times a frame) */
+        long m_frame = -1;
+        static long s_frame;
         std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
         std::unique_ptr<BarGUI> uptr_barGUI;
         Type m_type;

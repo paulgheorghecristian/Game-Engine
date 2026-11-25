@@ -239,8 +239,8 @@ for a in range(0, 360, 14):
         continue
     trees.append({"position": [round(x, 2), round(H(x, z) - 1, 2), round(z, 2)],
                   "rotation": [0, round(random.uniform(0, 360), 1), 0], "scale": [round(random.uniform(12, 17), 2)] * 3})
-trees_entity = instanced("res/models/tree.obj", trees, wind=1.0)
-# the crown as an ellipsoid (tree.obj units): far off, where the sun's shadow map does not reach,
+trees_entity = instanced("res/models/tree_leafy.obj", trees, wind=1.0)
+# the crown as an ellipsoid (the model's units): far off, where the sun's shadow map does not reach,
 # it casts a soft shadow along the sunlight instead
 trees_entity["Components"]["InstanceRenderComponent"]["crownShadow"] = {
     "centre": [-0.08, 3.5, 0.27], "radius": 3.4, "height": 2.0, "strength": 0.7}

@@ -12,6 +12,7 @@
 #define Y_OFFSET 100
 
 std::unordered_map<std::string, ProfilingTimer> ProfilingTimer::timers;
+long ProfilingTimer::s_frame = 0;
 glm::vec2 ProfilingTimer::lastPositionGPU(GPU_START_X, GPU_START_Y);
 glm::vec2 ProfilingTimer::lastPositionCPU(CPU_START_X, CPU_START_Y);
 bool ProfilingTimer::syncGPU = false;
@@ -52,6 +53,11 @@ void ProfilingTimer::end() {
         passedTime = std::chrono::duration<double, std::milli>(endTime - startTime).count();
 
         total += passedTime;
+        if (m_frame != s_frame) {
+            m_frame = s_frame;
+            m_frameTime = 0.0;
+        }
+        m_frameTime += passedTime;
 
         if (passedTime > maxTime) {
             maxTime = passedTime;
@@ -201,6 +207,19 @@ void ProfilingTimer::printAll() {
     for (const auto &o : order) {
         const ProfilingTimer &timer = timers.at(*o.second);
         printf("  %-28s avg=%7.3fms max=%7.3fms\n", o.second->c_str(), o.first, timer.maxTime);
+    }
+}
+
+void ProfilingTimer::printFrame(double minMs) {
+    std::vector<std::pair<double, const std::string *>> order;
+    for (auto &it : timers) {
+        if (it.second.getType() == CPU && it.second.m_frame == s_frame && it.second.m_frameTime >= minMs) {
+            order.push_back({ it.second.m_frameTime, &it.first });
+        }
+    }
+    std::sort(order.begin(), order.end(), [](const auto &a, const auto &b) { return a.first > b.first; });
+    for (const auto &o : order) {
+        printf("    %-28s %7.3fms\n", o.second->c_str(), o.first);
     }
 }
 

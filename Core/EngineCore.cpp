@@ -539,10 +539,19 @@ void EngineCore::start() {
         FPS++;
 
         if (m_maxRenderFps > 0) {
-            double budget = 1000.0 / m_maxRenderFps;
-            double spent = std::chrono::duration<double, std::milli>(HighResolutionClock::now() - frameStart).count();
-            if (budget - spent > 0.5) {
-                std::this_thread::sleep_for(std::chrono::microseconds((long) ((budget - spent) * 1000.0)));
+            /* frames on a fixed timeline (each one due a budget after the one before), not a budget
+             * slept after each frame: those sleeps run a little long, and the frames drifted to
+             * 54 a second on a 55 cap, an uneven step now and then. Fallen far behind (a slow frame,
+             * a load): start the timeline again from now */
+            auto budget = std::chrono::duration_cast<HighResolutionClock::duration>(
+                std::chrono::duration<double, std::milli>(1000.0 / m_maxRenderFps));
+            static auto due = HighResolutionClock::now();
+            due += budget;
+            auto now = HighResolutionClock::now();
+            if (now > due + budget) {
+                due = now;
+            } else if (due > now) {
+                std::this_thread::sleep_until(due);
             }
         }
     }
@@ -1934,6 +1943,14 @@ void EngineCore::runBenchmark(int numFrames) {
         if (i >= warmupFrames) {
             double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
             frameMs.push_back(ms);
+            /* GE_BENCH_SPIKES=ms: every frame slower than that, where the camera was and what took
+             * the time in it (with GE_BENCH_SYNC=1 the phases include their GPU time) */
+            static const double spikeMs = std::getenv("GE_BENCH_SPIKES") ? std::atof(std::getenv("GE_BENCH_SPIKES")) : 0.0;
+            if (spikeMs > 0.0 && ms >= spikeMs) {
+                glm::vec3 p = RenderingMaster::getInstance()->getCamera()->getPosition();
+                printf("SPIKE frame %d %.1fms at %.0f %.0f %.0f\n", i, ms, p.x, p.y, p.z);
+                ProfilingTimer::printFrame(1.0);
+            }
             segmentSum += ms;
             int done = i - warmupFrames + 1;
             if (done % segment == 0) {
@@ -1947,6 +1964,7 @@ void EngineCore::runBenchmark(int numFrames) {
         } else {
             segmentStartLights = RenderingMaster::getInstance()->getLights().size();
         }
+        ProfilingTimer::nextFrame();
     }
     double totalS = std::chrono::duration<double>(HighResolutionClock::now() - benchStart).count();
 

@@ -25,6 +25,7 @@ uniform bool hasNormalMap;
 uniform bool hasRoughness;
 uniform mat4 viewMatrix;
 
+in float crownLight;
 in vec3 eyeSpaceNormal;
 in vec2 textureCoords;
 in mat3 fromTangentToModelSpace;
@@ -35,9 +36,9 @@ void main(){
         vec3 color = texture (textureSampler, textureCoords).rgb;
         if (material.isBlackAlpha == true && (color.r+color.g+color.b)/3.0f < 0.1f)
             discard;
-        outColor = vec4 (color * material.diffuse, 1.0);
+        outColor = vec4 (color * material.diffuse * crownLight, 1.0);
     } else {
-        outColor = vec4 (material.diffuse, 1.0);
+        outColor = vec4 (material.diffuse * crownLight, 1.0);
     }
 
     int frontCond = -(1 - int(gl_FrontFacing)*2);

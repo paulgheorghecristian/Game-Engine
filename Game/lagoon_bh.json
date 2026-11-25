@@ -2176,7 +2176,7 @@
    },
    "Components": {
     "InstanceRenderComponent": {
-     "Mesh": "res/models/tree.obj",
+     "Mesh": "res/models/tree_leafy.obj",
      "crownShadow": {
       "centre": [-0.08, 3.5, 0.27],
       "radius": 3.4,

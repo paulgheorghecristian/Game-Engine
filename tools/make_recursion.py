@@ -1048,7 +1048,7 @@ def storm_damage(g):
             ic["Transforms"] = [dict(f, rotation=[rng.uniform(80, 88), f["rotation"][1] + rng.uniform(-30, 30), 0],
                                      position=[f["position"][0], f["position"][1] - 2, f["position"][2]])
                                 for f in ic["Transforms"] if rng.random() < 0.25]
-        elif ic and "tree.obj" in ic["Mesh"]:
+        elif ic and "tree" in ic["Mesh"]:
             for t in ic["Transforms"]:                                                  # the close pass: trees just blown down
                 fate = rng.random()
                 if fate < 0.3:

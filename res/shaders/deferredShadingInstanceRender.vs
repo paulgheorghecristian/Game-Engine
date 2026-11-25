@@ -27,6 +27,13 @@ vec3 applyWind(vec3 world, vec3 base) {
 }
 
 
+/* the crown (InstanceRenderComponent "crownShadow"), in the mesh's units: centre, horizontal and
+ * vertical radius (0: none) */
+uniform vec3 crownCentre;
+uniform vec2 crownSize;
+/* how much light reaches this part of the crown: the leaves deep inside and underneath are
+ * shaded by the rest (the sky and the sun both come from above and outside) */
+out float crownLight;
 out vec3 eyeSpaceNormal;
 out vec2 textureCoords;
 out mat3 fromTangentToModelSpace;
@@ -35,6 +42,14 @@ out mat4 frag_modelMatrix;
 void main(){
 	eyeSpaceNormal = (mat3(viewMatrix) * mat3(modelMatrix) * inNormal).xyz;
 	textureCoords = inTexcoord;
+	crownLight = 1.0;
+	if (crownSize.x > 0.0) {
+		vec3 rel = (inPosition - crownCentre) / vec3(crownSize.x, crownSize.y, crownSize.x);
+		float depth = length(rel);                             /* 0 in the middle, 1 at the surface */
+		float inside = mix(0.6, 1.0, smoothstep(0.3, 1.0, depth));
+		float under = mix(0.72, 1.0, smoothstep(-0.9, 0.5, rel.y));
+		crownLight = mix(1.0, inside * under, 1.0 - smoothstep(1.0, 1.4, depth));
+	}
 	frag_modelMatrix = modelMatrix;
 
 	vec3 normalizedNormal = inNormal;

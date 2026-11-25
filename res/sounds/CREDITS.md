@@ -7,7 +7,7 @@ levelled; loops crossfaded).
 | Engine sound | Source |
 |---|---|
 | step_grass_1..6 | Fantozzi's Footsteps (Grass/Sand & Stone): the sand steps — https://opengameart.org/content/fantozzis-footsteps-grasssand-stone |
-| splash | Water Splash and sand footsteps (splash1) — https://opengameart.org/content/water-splash-and-sand-footsteps |
+| splash | Water Splash and sand footsteps (splash1; the half second of silence before it cut) — https://opengameart.org/content/water-splash-and-sand-footsteps |
 | wade_1..3 | Water Splash and sand footsteps: short pieces of splash2 and splash1 (one pitched down) — https://opengameart.org/content/water-splash-and-sand-footsteps |
 | crickets_loop | Crickets ambient noise (loopable) — https://opengameart.org/content/crickets-ambient-noise-loopable |
 | fire_loop | Fireplace sound loop (first 14 s) — https://opengameart.org/content/fireplace-sound-loop |

@@ -117,6 +117,10 @@ void InstanceRenderComponent::draw(Shader *externShader) {
     bool result = true;
     /* every pass that draws instances sways them the same way */
     externShader->updateUniform("windStrength", m_wind);
+    /* the crown (crownShadow): its leaves darker inside and underneath, as the rest shades them */
+    glm::vec2 crownSize = m_hasCrown ? glm::vec2(m_crownRadius, m_crownHeight) : glm::vec2(0.0f);
+    externShader->updateUniform("crownCentre", (void *) &m_crownCentre);
+    externShader->updateUniform("crownSize", (void *) &crownSize);
 
     const std::vector<Mesh *> &m_meshes = m_renderingObject.getMeshes();
     const std::vector<Material *> &m_materials = m_renderingObject.getMaterials();

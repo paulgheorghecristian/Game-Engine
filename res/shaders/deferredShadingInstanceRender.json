@@ -5,6 +5,8 @@
                     "windStrength" : "FLOAT",
                     "windDirection" : "VEC2",
                     "windTime" : "FLOAT",
+                    "crownCentre" : "VEC3",
+                    "crownSize" : "VEC2",
                     "material.ambient" : "VEC3",
                     "material.specular" : "VEC3",
                     "material.diffuse" : "VEC3",

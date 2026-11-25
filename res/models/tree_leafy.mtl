@@ -1,0 +1,27 @@
+# Blender MTL File: 'None'
+# Material Count: 2
+
+newmtl Material.002
+Ns 94.117647
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.050000 0.050000 0.050000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd -blka -dcul res/textures/leaf_cluster.png
+map_Bump -bm 1.000000 res/textures/leaf_cluster_normal.png
+map_Ks res/textures/leaf_cluster_roughness.png
+
+newmtl Material.004
+Ns 94.117647
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd res/textures/bark_albedo.bmp
+map_Bump -bm 1.500000 res/textures/bark_normal.bmp

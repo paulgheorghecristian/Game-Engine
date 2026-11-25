@@ -2179,7 +2179,7 @@
    },
    "Components": {
     "InstanceRenderComponent": {
-     "Mesh": "res/models/tree.obj",
+     "Mesh": "res/models/tree_leafy.obj",
      "Transforms": [
       {
        "position": [
