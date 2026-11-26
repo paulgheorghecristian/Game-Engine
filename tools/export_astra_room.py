@@ -74,7 +74,11 @@ GROUPS = {
 
 # ---- left out of the level: the window (its wall pieces, frame, sill, blinds) and the street outside it;
 # the old level's plain wall stands there instead
-LEFT_OUT_NAMES = ('Window ', 'Partially raised blind', 'Blind ladder', 'Blind wand')
+LEFT_OUT_NAMES = ('Window ', 'Partially raised blind', 'Blind ladder', 'Blind wand',
+                  # drawn into textures instead (as geometry, thinner than a pixel from across the room,
+                  # they broke into dashes and vanished): the floor's joints (tools/make_ward_floor.py)
+                  # and the calendar's print (bake_calendar)
+                  'Floor tile seam', 'Calendar', 'Weekday')
 OUTSIDE_Y = 90.6        # beyond the window wall's outer face (Blender y)
 
 
@@ -100,8 +104,8 @@ HIDE = [  # replaced by the model
     (0, 70.68, 57.04), (0, 71.55, 57.04), (0, 70.68, 0.0), (0, 71.55, 0.0), (0, 70.68, -57.04), (0, 71.55, -57.04),
 ]
 RETEXTURE = [  # kept, textured like the model
-    ((0, -1.86, 0), lambda m: m.update(Texture='Game/recursion/astra/ward_linoleum.jpg', diffuse=[.62, .64, .62],
-                                       roughness=.58, specularStrength=.28) or m),   # floor (astra's)
+    ((0, -1.86, 0), lambda m: m.update(Texture='Game/recursion/astra/ward_floor_tiles.jpg', diffuse=[.62, .64, .62],
+                                       roughness=.58, specularStrength=.28, tileSize=24) or m),   # floor: 12 unit tiles
     ((0, 73.78, 0), lambda m: look(m, 'OfficeCeiling001', 90, normal=0.35)),                         # ceiling
     ((0, 26.04, 89.28), lambda m: look(m, 'Metal027', 30, color=False, normal=0.6)),  # door leaf: powder coat
 ] + [(p, lambda m: look(m, 'PaintedPlaster017', 70, normal=0.3)) for p in (                       # walls
@@ -133,8 +137,58 @@ def group_of(centre):
     return None
 
 
+def bake_calendar():
+    """the wall calendar (its backing, heading and every printed number, each a mesh of its own) drawn
+    once, straight on, into Game/recursion/astra/calendar.png, and a flat page with that picture put
+    in its place"""
+    import math
+    scene = bpy.context.scene
+    parts = [o for o in scene.objects if o.name.startswith(('Calendar', 'Weekday'))]
+    backing = bpy.data.objects['Calendar backing']
+    corners = [backing.matrix_world @ v.co for v in backing.data.vertices]
+    x0, x1 = min(c.x for c in corners), max(c.x for c in corners)
+    z0, z1 = min(c.z for c in corners), max(c.z for c in corners)
+    front = min(c.y for c in corners)           # the face towards the room
+    for o in scene.objects:
+        o.hide_render = o not in parts
+    data = bpy.data.cameras.new('Calendar camera')
+    data.type = 'ORTHO'
+    data.ortho_scale = max(x1 - x0, z1 - z0)
+    camera = bpy.data.objects.new('Calendar camera', data)
+    scene.collection.objects.link(camera)
+    camera.location = ((x0 + x1) / 2, front - 20.0, (z0 + z1) / 2)
+    camera.rotation_euler = (math.radians(90), 0, 0)        # looking at the wall, up is up
+    scene.camera = camera
+    scene.render.engine = 'BLENDER_WORKBENCH'
+    scene.display.shading.light = 'FLAT'
+    scene.display.shading.color_type = 'MATERIAL'
+    scene.view_settings.view_transform = 'Standard'
+    height = 1024
+    scene.render.resolution_x = round(height * (x1 - x0) / (z1 - z0))
+    scene.render.resolution_y = height
+    scene.render.resolution_percentage = 100
+    scene.render.image_settings.file_format = 'PNG'
+    scene.render.filepath = os.path.join(OUT, 'calendar.png')
+    bpy.ops.render.render(write_still=True)
+    for o in scene.objects:
+        o.hide_render = False
+    # the page: one flat face where the backing's front was, the picture across it
+    mesh = bpy.data.meshes.new('Printed calendar')
+    y = front
+    mesh.from_pydata([(x0, y, z0), (x1, y, z0), (x1, y, z1), (x0, y, z1)], [], [(0, 1, 2, 3)])
+    uv = mesh.uv_layers.new(name='Game UV')
+    for loop, coordinate in zip(mesh.loops, [(0, 0), (1, 0), (1, 1), (0, 1)]):
+        uv.data[loop.index].uv = coordinate
+    material = bpy.data.materials.new('Calendar print')
+    material.diffuse_color = (1, 1, 1, 1)
+    mesh.materials.append(material)
+    page = bpy.data.objects.new('Printed calendar', mesh)
+    scene.collection.objects.link(page)
+
+
 def export_meshes():
     bpy.ops.wm.open_mainfile(filepath=os.path.join(OUT, 'hospital_room.blend'))
+    bake_calendar()
     # one material per entity: split multi-material meshes (in this session only; the file is not saved)
     for obj in list(bpy.context.scene.objects):
         if obj.type == 'MESH' and len(obj.data.materials) > 1:
@@ -190,6 +244,8 @@ def export_meshes():
             material['emissive'] = 1.1
         if name == 'R7_glow':
             material['emissive'] = 1.0
+        if name == 'Calendar print':
+            material.update(Texture='Game/recursion/astra/calendar.png', roughness=.88)
         if name == 'Ward records print':
             material.update(Texture='Game/recursion/astra/ward_records.png', roughness=.88)
         if name in MATERIAL_LOOK:

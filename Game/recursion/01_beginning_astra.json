@@ -107,7 +107,8 @@
             "shininess": 80,
             "roughness": 0.58,
             "specularStrength": 0.28,
-            "Texture": "Game/recursion/astra/ward_linoleum.jpg"
+            "Texture": "Game/recursion/astra/ward_floor_tiles.jpg",
+            "tileSize": 24
           }
         },
         "PhysicsComponent": {
@@ -1235,6 +1236,50 @@
               0.2
             ],
             "shininess": 20.0
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_calendar_print.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.88,
+            "Texture": "Game/recursion/astra/calendar.png"
           }
         }
       }
