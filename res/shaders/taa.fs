@@ -6,7 +6,8 @@
  * and grass over time. The history is clamped to the colours around the pixel
  * in this frame, so what moved or changed (fire, particles) does not smear */
 
-layout(location = 0) out vec4 outColor;
+layout(location = 0) out vec4 outHistory;   /* the blend, for the next frame */
+layout(location = 1) out vec4 outColor;     /* the picture shown: sharpened, grain and rain added */
 
 in vec2 textureCoords;
 
@@ -105,6 +106,7 @@ void main() {
     vec4 previous = reprojection * vec4(textureCoords * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
     vec2 previousUV = previous.xy / previous.w * 0.5 + 0.5;
     if (historyValid < 0.5 || any(lessThan(previousUV, vec2(0.0))) || any(greaterThan(previousUV, vec2(1.0)))) {
+        outHistory = vec4(current, 1.0);
         outColor = vec4(grain(current), 1.0);
         return;
     }
@@ -124,7 +126,9 @@ void main() {
     float motion = length((previousUV - textureCoords) / texelSize);
     float feedback = mix(0.88, 0.7, smoothstep(0.5, 6.0, motion));
     vec3 blended = mix(toYCoCg(current), history, feedback);
-    /* a light sharpen against the neighbourhood (the jitter averages over a pixel) */
+    outHistory = vec4(max(fromYCoCg(blended), vec3(0.0)), 1.0);
+    /* a light sharpen against the neighbourhood (the jitter averages over a pixel); only in the
+     * picture shown, never in the history (sharpened again each frame, it would compound) */
     blended.x += (blended.x - mean.x / 9.0) * 0.22;
     outColor = vec4(grain(max(fromYCoCg(blended), vec3(0.0))), 1.0);
 }

@@ -1745,7 +1745,10 @@ void RenderingMaster::blurPass(FrameBuffer &source, FrameBuffer &target, const g
 }
 
 /* temporal anti-aliasing (taa.fs): blends this frame (in fxaaFrameBuffer)
- * with the reprojected history, and puts the result back for FXAA */
+ * with the reprojected history, and puts the result back for FXAA. Two targets:
+ * the plain blend, kept as the next frame's history, and the picture shown (the
+ * blend sharpened, with grain and rain), which is not fed back: sharpened again
+ * every frame, fine print snapped into hard fragments */
 void RenderingMaster::renderTemporalAA()
 {
     if (!m_environment.temporalAA || !m_environment.hdr) {
@@ -1753,8 +1756,8 @@ void RenderingMaster::renderTemporalAA()
         return;
     }
     if (m_taaShader == nullptr) {
-        m_taaHistory[0] = new FrameBuffer(renderWidth, renderHeight, 1, false, GL_RGBA16F);
-        m_taaHistory[1] = new FrameBuffer(renderWidth, renderHeight, 1, false, GL_RGBA16F);
+        m_taaHistory[0] = new FrameBuffer(renderWidth, renderHeight, 2, false, GL_RGBA16F);
+        m_taaHistory[1] = new FrameBuffer(renderWidth, renderHeight, 2, false, GL_RGBA16F);
         m_taaShader = new Shader("res/shaders/taa.json");
         m_taaShader->updateUniform("currentSampler", 0);
         m_taaShader->updateUniform("historySampler", 1);
@@ -1775,7 +1778,7 @@ void RenderingMaster::renderTemporalAA()
     glDisable(GL_BLEND);
     FrameBuffer *target = m_taaHistory[m_taaIndex];
     FrameBuffer *history = m_taaHistory[1 - m_taaIndex];
-    target->bindSingleRenderTarget(0);
+    target->bindAllRenderTargets();
     m_taaShader->bind();
     m_taaShader->updateUniform("reprojection", (void *) &reprojection);
     m_taaShader->updateUniform("texelSize", (void *) &texel);
@@ -1793,7 +1796,7 @@ void RenderingMaster::renderTemporalAA()
     target->unbind();
     /* back into the image FXAA reads */
     glBindFramebuffer(GL_READ_FRAMEBUFFER, target->getFrameBufferObject());
-    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glReadBuffer(GL_COLOR_ATTACHMENT1);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fxaaFrameBuffer.getFrameBufferObject());
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     glBlitFramebuffer(0, 0, renderWidth, renderHeight, 0, 0, renderWidth, renderHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);

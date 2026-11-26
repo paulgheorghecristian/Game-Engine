@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "Texture.h"
 
 #include "ErrorUtils.h"
@@ -118,7 +119,15 @@ ErrorCode Texture::init(const std::string &filename,
 
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.7f);
+    /* a little sharper than the screen can show (the anti-aliasing softens a touch); at -0.7 fine
+     * print broke up into fragments at a distance instead of blurring */
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.25f);
+    /* sharp where it is seen at an angle (the floor into the distance, a wall from the side) */
+    if (GLEW_EXT_texture_filter_anisotropic) {
+        static float most = -1.0f;
+        if (most < 0.0f) glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &most);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, std::min(8.0f, most));
+    }
 
     glBindTexture(GL_TEXTURE_2D, 0);
     stbi_image_free(data);
