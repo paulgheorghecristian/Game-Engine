@@ -37,7 +37,7 @@ for m in ['Game/recursion/00_archive_ignition.json', 'Game/recursion/02_corridor
     check('%s: every sound its Audio list names is playing' % m.split('/')[-1], all(n in seen for n in want), sorted(set(want) - set(seen)))
     check('%s: no SoundScape complaint in the log' % m.split('/')[-1], 'SoundScape:' not in log)
 # made-up maps in the test output folder: the same map with other sounds
-base=json.load(open('Game/recursion/01_room7.json'))
+base=json.load(open('Game/recursion/02_records_room.json'))
 def variant(name, audio):
     d=copy.deepcopy(base); d['Audio']=audio; p=S+name; json.dump(d, open(p, 'w'), indent=1); return p
 seen, log = heard(variant('v_frogs.json', [{"sound": "fire_loop", "volume": 0.5, "follows": "night"}, {"sound": "crickets_loop", "pitch": 0.6}]))

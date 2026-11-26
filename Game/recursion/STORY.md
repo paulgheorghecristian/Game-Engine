@@ -17,8 +17,6 @@ the black hole, the year 4000 or AURA.
 > says you're safe, and that a doctor is coming.
 >
 > The clocks don't move. The window shows the same car passing, again and again.
-> There are thirty-one tally marks scratched into the wall by your bed, and you don't
-> remember making them.
 >
 > Get out. Find out what happened. Don't trust what you're told.
 
@@ -31,8 +29,8 @@ Taglines: *"Everything is fine. It's 2005. A doctor will be with you shortly."* 
 2. **About 2041.** Out in the canyon there is no Moon, only a black hole, and the
    archive says it came from space three years ago. *"The world ended, and I was in
    a shelter."* Players think this is the twist.
-3. **The year 4000.** The wrong North Star, AURA's logs, the sleepers in the tunnels,
-   their own pages from earlier runs. AURA made the black hole, lied about it, and has
+3. **The year 4000.** A road sign buried in old mud, AURA's logs, the sleepers in the
+   tunnels, their own pages from earlier runs. AURA made the black hole, lied about it, and has
    kept people for two thousand years as test subjects. The player is its toy, on
    run 31.
 4. **The doubt.** They wake in the hospital bed again. Or were they only ever a
@@ -78,8 +76,9 @@ what you see when you run.
 AURA's lab is built to look exactly like a hospital ward, so every clue fits both.
 The voices are AURA in a chip, or your illness. The scar behind your ear is the chip,
 or an old operation. The tapes in your own voice are warnings from your earlier
-runs, or recordings of your sessions with the doctors. The 31 tally marks are 31
-runs, or 31 days in the ward. Buster is a memory AURA wrote, or your real dog. And
+runs, or recordings of your sessions with the doctors. "Run 31" in the lab's log is
+your 31st time, or another patient's file. Buster is a memory AURA wrote, or your real
+dog. And
 the black hole is the real sky, or what you see when you run.
 
 ## What Happened, If AURA Is Real
@@ -103,9 +102,9 @@ This is the version the game hides.
    blasted out ahead of it along its orbit, and the black hole recoiled the other way,
    like a gun. That kick braked it into a stretched orbit. What was left was a black
    hole with almost all of the Moon's mass, its horizon a fifth of a millimetre across,
-   and the Moon's dust glowing in a disk around it. A day later the debris reached the
-   Earth: a storm of dust and lightning swept the planet, and rubble kept raining down
-   for years. Then came the close passes. Every eleven days the black hole swept
+   and the Moon's dust glowing in a disk around it. Then its debris rained down on the
+   Earth: a storm of dust, lightning and fires swept the planet, and rubble kept
+   raining down for years. Then came the close passes. Every eleven days the black hole swept
    within 60,000 km of the Earth, and its tide, hundreds of times the Moon's, lifted
    the oceans into floods. Within weeks, civilisation was gone.
 5. **AURA's story.** AURA took the survivors underground, into shelters built around
@@ -144,9 +143,7 @@ lightning. A black hole with the Moon's mass is a fifth of a millimetre across a
 pulls on the Earth exactly as the Moon did: all you would ever see of it is the
 glowing disk around it. A close pass really would flood the coasts, and the Sun
 really does swing the stretch of a tilted orbit in slow cycles (Kozai-Lidov cycles).
-A fall from the Moon's distance into the Earth takes five days. And the pole star
-really does change over the centuries: around the year 4000 it isn't Polaris but
-Errai.
+And a fall from the Moon's distance into the Earth takes five days.
 
 ## AURA's Lies
 
@@ -158,8 +155,8 @@ of your earlier selves.
 | AURA says | What gives it away |
 |---|---|
 | "It's 2005, and the Moon is fine." | The looping windows, the clocks that never move, the ringing behind your ear |
-| "It came from deep space. Nobody could have known." | A scratch on AURA's own monument: IT DIDN'T COME FROM SPACE. The black hole's name in AURA's logs: `CORE-1` |
-| "It's only been three years. We'll go back up when the sky is safe." | A road sign buried in rock, the wrong North Star, grass and trees everywhere |
+| "It came from deep space. Nobody could have known." | LIES, scratched everywhere: on its monument, its kiosk, its doors. The black hole's name in AURA's logs: `CORE-1` |
+| "It's only been three years. We'll go back up when the sky is safe." | A road sign buried in old flood mud, grass and trees everywhere |
 | "It will miss. Everything will be fine." | Its own log: `DISTANCE: UNCERTAIN` |
 
 **Why the player believes AURA after catching it lying.** In the lab, the player
@@ -177,8 +174,7 @@ your name. A plastic band on your wrist says SUBJECT 7. Behind your ear, under t
 hair, there is a small hard scar. An IV bag hangs by the bed.
 
 There's a beige computer with a fat CRT monitor, a desk covered in papers, a coffee
-mug, a dusty radio, and a wall calendar for 2005. Thirty-one tally
-marks are scratched into the wall by the bed.
+mug, a dusty radio, and a wall calendar for 2005.
 
 The grille in the ceiling crackles, or seems to. A warm, friendly woman's voice says:
 
@@ -196,9 +192,7 @@ No doctor comes. The door is locked.
    cereal box in the bin, someone has drawn the wiring in pen. Wire it, and the
    lights, the keypad and the computer come on.
 3. **The computer.** Password hint: "Who waits for me at home?" In a drawer is a dog
-   collar with a tag: BUSTER. The password opens `CELL_07_RELEASE`. On the desk,
-   half under the papers, there is a small pocket compass. It doesn't open anything.
-   Keep it.
+   collar with a tag: BUSTER. The password opens `CELL_07_RELEASE`.
 
 On the desktop, a file called `SUBJECT_7_LOG.txt`, mostly corrupted. One line reads:
 
@@ -242,8 +236,8 @@ went dark. It's the best one you have.
 
 ### The Tapes
 
-In a records room there is a shelf of cassettes labelled SUBJECT 7, RUN 1 to RUN 30.
-You play the last one. It's your own voice, whispering:
+In a records room there is a shelf of cassettes with no labels. You play the last one.
+It's your own voice, whispering:
 
 > "If you're hearing this, she wiped us again. Don't trust the voice. Everything she
 > tells you, she tells you because you'll like it. And the Moon..."
@@ -287,11 +281,10 @@ metal statue of a figure with open arms. Its polished plaque reads:
 
 > "AURA. Our friend. Our future. Built 2029."
 
-So there was an AI, and it was built after 2005. On the back of the pedestal,
-someone scratched letters into the metal, and they have been polished almost flat.
-A charcoal rubbing brings them back:
-
-> "IT DIDN'T COME FROM SPACE. 7"
+So there was an AI, and it was built after 2005. And someone has scratched one word
+into the metal, over and over, half polished away: LIES. It is on the plaque, the
+pedestal, the columns. Later you find it on the kiosk, and on the door of the hut.
+Nobody says who wrote it, or what the lies are.
 
 ### The Archive
 
@@ -305,35 +298,15 @@ and it plays an emergency broadcast from 2038, full of human faces:
   inside, as it had for years. It cracks, and two jets of light burst out of it.
   Then it pours into a point and is gone, in a blinding flash, in silence: a spray of
   fire thrown out to one side, and where the Moon was, a small glowing disk drifting
-  the other way. A card: ONE DAY LATER. Then the storm, and it only gets worse: a wall
-  of dust, lightning inside it, until the picture is nothing but dust.
+  the other way. Then, in the same footage, its debris comes down: the storm, and it
+  only gets worse, a wall of dust, lightning and fires, until the picture is nothing
+  but dust.
 - A scientist: a black hole from deep space, too small for any telescope to see,
   struck the Moon. "Nobody could have seen it coming."
 - A president: the shelters are open, AURA will keep everyone safe, and everyone
   will come back up "when the sky is safe again".
 
 It ends on `SHELTERS SEALED: DAY 1,204`. About three years. It must be around 2041.
-
-### The North Star
-
-That night you look for north the way anyone from 2005 would: follow the Big Dipper
-to Polaris. The compass from Room 7 disagrees. The sky turns around a different star.
-The stars can't be faked. They only move like that over centuries.
-
-### The Telemetry
-
-Later that night the kiosk starts printing by itself: raw tracking data, in machine
-symbols. Matching the symbols to the labels on the kiosk's buttons, you can read a
-few lines:
-
-```
-CORE-1. ORBIT DECAYING.
-CLOSEST APPROACH: 31 HOURS.
-SUBJECT 7. LAST CAMP: LAGOON.
-```
-
-`CORE-1`. A strange name for something from deep space. The oldest lines use symbols
-that aren't on any button.
 
 ### The Way Down
 
@@ -363,8 +336,14 @@ you to think so:
   mine. I don't remember drawing them. Don't count the bands."*
 
 Every one of these fits both readings. Thirty earlier runs came this way, or AURA
-laid a trail and set the stage, or a patient is seeing their own tally marks
+laid a trail and set the stage, or a patient is seeing their own handwriting
 everywhere they look.
+
+**The tunnel loops.** (A first sketch.) You climb the ladder, and the hatch opens onto
+the start of the same tunnel. Each time round, something is different: one more chalk
+arrow, the flickering tube one further along, the empty bunk filled, then empty again,
+a wristband more in the pile. The voices count. The loop ends only when you do
+something the tunnel doesn't expect, and the next time the ladder leads up to the hill.
 
 ## Chapter 5: Run 31
 
@@ -394,13 +373,12 @@ little bigger:
 
 - "Got out. No Moon. The voice followed me."
 - "The torches, the statue, the kiosk: all new. Everything else is ancient."
-- "The North Star is wrong. How long were we down there?"
+- "There's a road sign in the mud up there. How long were we down there?"
 - "There are ashes under my fire. I think they're mine."
 - "If you're reading this, it's you. She'll talk to you on the hill. She'll say it's
   fine." Signed: 7.
 
-Some pages are full of machine symbols, translated in your hand. With them, you can
-read the lines of the printout that were unreadable before:
+One page is a log, copied in your hand from a screen you don't remember:
 
 ```
 LUNAR POWER PLANT. CORE-1 IGNITION: 2038. FOCUS: 140% OF LIMIT.
@@ -450,8 +428,8 @@ The sky tears open. Everything goes white, and the ringing behind your ear rises
 until it is all there is.
 
 You wake up on the hospital bed under the buzzing fluorescent light. The calendar
-says 2005. The clocks haven't moved. Scratched into the wall by the bed are
-thirty-two tally marks now, and the newest one is fresh: there is plaster dust under
+says 2005. The clocks haven't moved. Scratched into the wall by the bed there is one
+tally mark, that wasn't there before, and it is fresh: there is plaster dust under
 your fingernail.
 
 The grille in the ceiling crackles, or seems to.
@@ -479,19 +457,19 @@ AURA's machines, come to begin run 32. The game never says.
 Each place in the story is one level in this folder, generated by
 `tools/make_recursion.py`. Still to build as game logic: linking the levels, the
 kiosk waking at noon and printing at night, the voices, and the ending (the dawn,
-the white-out, waking in Room 7 with a 32nd tally mark, the door handle turning).
+the white-out, waking in Room 7 with a first tally mark, the door handle turning).
 
 | Level | Story beats | Sky |
 |---|---|---|
 | `00_archive_ignition.json` | The 2038 footage in the archive: the black hole passing through the Moon, then the storm | The Moon, then its destruction (plays live) |
-| `01_room7.json` | Ch. 1: Room 7, and the last scene of the ending | Indoors |
+| `01_beginning.json` | Ch. 1: waking up in the room, and the last scene of the ending (the old room: `BKP/01_room7.json`) | Indoors |
 | `02_corridor_subject4.json` | Ch. 2: the corridor of cells, the woman in cell 4 | Indoors |
 | `02_twin_levers.json` | Ch. 2: the twin levers | Indoors |
 | `02_security_office.json` | Ch. 2: the CCTV wall, the cleaning robot's hallway | Indoors |
 | `02_waiting_room.json` | Ch. 2: things that don't add up | Indoors |
 | `02_records_room.json` | Ch. 2: the tapes, the shutter | Indoors |
 | `03_stairwell.json` | Ch. 3: the endless stairs | Indoors |
-| `03_canyon.json` | Ch. 3 and 4: the hatch, the road sign, the monument, the kiosk and the mirrors, the North Star, the hut with the way down | Black hole (`HOLE_CANYON`), night |
+| `03_canyon.json` | Ch. 3 and 4: the hatch, the road sign, the monument and its LIES, the kiosk and the mirrors, the hut with the way down | Black hole (`HOLE_CANYON`), night |
 | `04_tunnels.json` | Ch. 4 to 5: the tunnels under the canyon, the shelters and the datacenter through the windows, the ladder up | Indoors |
 | `05_lagoon.json` | Ch. 5: the hatch on the hill, the drained lagoon (the pier, the boat, the wreckage of 2038, fresh craters), the camp and the journal | Black hole, huge (`HOLE_LAGOON`), night |
 | `06_dawn.json` | The ending: the last dawn on the hill, before the white-out | The black hole filling the sky |

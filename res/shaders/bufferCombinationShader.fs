@@ -74,11 +74,12 @@ vec3 screenReflection(vec3 P, vec3 N, vec3 V, out float weight) {
         vec2 uv = clip.xy / clip.w * 0.5 + 0.5;
         if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) break;
         float behind = viewDepthAt(uv) - Q.z;               /* > 0: the ray went behind what is seen */
-        float thickness = max(3.0, t * 0.06);
-        if (behind > 0.0 && behind < thickness) {
-            /* refine between the last two steps */
+        /* crossed into what is seen since the last step: find where, then judge the thickness there.
+         * (Judged at the step, a step longer than the thickness jumped from in front of a wall seen
+         * edge-on to far behind it: no hit, and a room's floor reflected nothing) */
+        if (behind > 0.0) {
             float lo = previousT, hi = t;
-            for (int k = 0; k < 5; k++) {
+            for (int k = 0; k < 6; k++) {
                 float mid = 0.5 * (lo + hi);
                 vec3 M = P + R * mid;
                 vec4 c = projectionMatrix * vec4(M, 1.0);
@@ -88,6 +89,11 @@ vec3 screenReflection(vec3 P, vec3 N, vec3 V, out float weight) {
             vec3 H = P + R * hi;
             vec4 hc = projectionMatrix * vec4(H, 1.0);
             uv = hc.xy / hc.w * 0.5 + 0.5;
+            /* behind something thin, not into it: the ray goes on */
+            if (viewDepthAt(uv) - H.z > max(3.0, hi * 0.06)) {
+                previousT = t;
+                continue;
+            }
             vec2 edge = min(uv, 1.0 - uv);
             weight = smoothstep(0.0, 0.07, edge.x) * smoothstep(0.0, 0.07, edge.y) *
                      (1.0 - smoothstep(0.55, 1.0, hi / MAX_T)) * facing;

@@ -151,6 +151,12 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
     if (gameDocument.HasMember("Water")) {
         m_waterJson = jsonToString(gameDocument["Water"]);
     }
+    if (gameDocument.HasMember("Waking")) {
+        m_wakingJson = jsonToString(gameDocument["Waking"]);
+    }
+    if (gameDocument.HasMember("RoomAlive")) {
+        m_roomAliveJson = jsonToString(gameDocument["RoomAlive"]);
+    }
     if (gameDocument.HasMember("Grass")) {
         m_grassJson = jsonToString(gameDocument["Grass"]);
     }
@@ -646,11 +652,13 @@ void EngineCore::beginInterpolation(float alpha) {
     for (Light *light : RenderingMaster::getInstance()->getLights()) {
         auto previous = m_previousTick.lights.find(light);
         if (previous != m_previousTick.lights.end()) {
-            m_stashedLights.emplace_back(light, light->getTransform());
+            Transform tick = light->getTransform();
             light->getTransform().interpolateWith(previous->second, alpha);
+            m_stashedLights.emplace_back(light, tick, light->getTransform());
         }
     }
     camera->setPosition(glm::mix(m_previousTick.cameraPosition, m_tickCameraPosition, alpha));
+    RenderingMaster::getInstance()->waking().applyCamera(camera, RenderingMaster::getInstance()->getTime());
 
     /* billboards face the camera as it is in this frame */
     for (Entity *entity : entities) {
@@ -666,7 +674,16 @@ void EngineCore::endInterpolation() {
         stashed.first->setTransform(stashed.second);
     }
     for (auto &stashed : m_stashedLights) {
-        stashed.first->getTransform() = stashed.second;
+        Light *light = std::get<0>(stashed);
+        const Transform &frame = std::get<2>(stashed);
+        const Transform &now = light->getTransform();
+        /* changed during the frame (its editor panel: its radius, its place): the change stays.
+         * (Put back, a flickering light's radius could not be edited: undone every frame) */
+        bool edited = now.getPosition() != frame.getPosition() || now.getRotation() != frame.getRotation() ||
+                      now.getScale() != frame.getScale();
+        if (!edited) {
+            light->getTransform() = std::get<1>(stashed);
+        }
     }
     m_stashedLights.clear();
     /* the lights taken out during this frame (a fire gone out) can go now */
@@ -708,6 +725,12 @@ void EngineCore::input() {
     }
     if (inputManager.getKeyDown(SDLK_F9)) {
         reloadMap(m_savePath);
+    }
+
+    /* typing into an editor field (a value, a name): the keys are the field's, not the game's (they
+     * switched the debug view, threw fireballs, walked) */
+    if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantTextInput) {
+        return;
     }
 
     if (inputManager.getKeyDown(SDLK_g)) {
@@ -1481,6 +1504,17 @@ void EngineCore::loadMapFeatures(rapidjson::Document &gameDocument) {
         std::sscanf(start, "%f,%f,%f,%f,%f", &m_playerStart.x, &m_playerStart.y, &m_playerStart.z,
                     &m_playerYaw, &m_playerPitch);
     }
+    rm->waking().load(gameDocument, m_playerStart, m_playerYaw, m_playerPitch);   /* (a waking-up scene) */
+    rm->roomAlive().load(gameDocument);                                         /* (the room coming alive) */
+    /* GE_SKIP_ANIM=1: the map's animations skipped: the scene as it is at their end (its timeline's
+     * end, past the sky's Moon destruction if that plays on its own), as if played to there */
+    if (std::getenv("GE_SKIP_ANIM") != nullptr) {
+        float end = m_timeline.sceneLength();
+        for (BlackHole *hole : rm->blackHoles) {
+            if (hole->sky && hole->kugelblitz && !hole->driven) end = std::max(end, hole->formationTime() + 1.0f);
+        }
+        seekScene(end);
+    }
 }
 
 void EngineCore::spawnBox(const glm::vec3 &position) {
@@ -1655,6 +1689,10 @@ std::string EngineCore::mapJson() {
     };
     rapidjson::Value water, emitters;
     if (parseInto(m_waterJson, water)) doc.AddMember("Water", water, allocator);
+    rapidjson::Value waking;
+    if (parseInto(m_wakingJson, waking)) doc.AddMember("Waking", waking, allocator);
+    rapidjson::Value roomAlive;
+    if (parseInto(m_roomAliveJson, roomAlive)) doc.AddMember("RoomAlive", roomAlive, allocator);
     rapidjson::Value grass;
     if (parseInto(m_grassJson, grass)) doc.AddMember("Grass", grass, allocator);
     rapidjson::Value audio;

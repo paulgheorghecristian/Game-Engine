@@ -1,0 +1,10 @@
+{
+    "VSPath" : "res/shaders/waking.vs",
+    "FSPath" : "res/shaders/waking.fs",
+    "Uniforms" : {
+                    "pictureSampler" : "INT",
+                    "eyesOpen" : "FLOAT",
+                    "blur" : "FLOAT",
+                    "time" : "FLOAT"
+                 }
+}

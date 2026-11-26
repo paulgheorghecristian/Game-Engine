@@ -161,7 +161,10 @@
     0.6014,
     -0.7317
    ],
-   "angularRadius": 0.025,
+   "angularRadius": 0.035,
+   "horizon": 1e-05,
+   "coreGlow": 6.0,
+   "coreSize": 0.25,
    "lensing": 0.8,
    "influence": 11,
    "colorShift": 0.7,

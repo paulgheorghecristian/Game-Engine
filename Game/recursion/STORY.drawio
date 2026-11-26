@@ -1,0 +1,193 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="story" name="Story">
+    <mxGraphModel dx="1348" dy="756" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1920" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c2" parent="1" style="text;html=1;fontSize=22;fontStyle=1;align=left;verticalAlign=middle;" value="RECURSION: the story (edit me)" vertex="1">
+          <mxGeometry height="40" width="1650" x="170" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="c3" parent="1" style="text;html=1;align=right;verticalAlign=middle;fontStyle=1;fontSize=13;fontColor=#666666;" value="Where" vertex="1">
+          <mxGeometry height="70" width="145" x="10" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="c4" parent="1" style="text;html=1;align=right;verticalAlign=middle;fontStyle=1;fontSize=13;fontColor=#666666;" value="What happens" vertex="1">
+          <mxGeometry height="230" width="145" x="10" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="c5" parent="1" style="text;html=1;align=right;verticalAlign=middle;fontStyle=1;fontSize=13;fontColor=#666666;" value="Clues" vertex="1">
+          <mxGeometry height="200" width="145" x="10" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="c6" parent="1" style="text;html=1;align=right;verticalAlign=middle;fontStyle=1;fontSize=13;fontColor=#666666;" value="What you believe" vertex="1">
+          <mxGeometry height="70" width="145" x="10" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="c7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;fillColor=#333333;fontColor=#ffffff;strokeColor=none;" value="Ch.1 Room 7" vertex="1">
+          <mxGeometry height="26" width="250" x="170" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#f5f5f5;strokeColor=#999999;" value="Room 7: a hospital ward, 2005" vertex="1">
+          <mxGeometry height="70" width="250" x="170" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="c9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="You wake up, no name. Wristband: SUBJECT 7. A warm voice: &quot;A doctor will be with you shortly.&quot; No doctor comes.&#xa;&#xa;Keypad 0314 (the birthday photo), the fuse box (a diagram on a cereal box), the computer (password: BUSTER, the dog collar)." vertex="1">
+          <mxGeometry height="230" width="250" x="170" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="c10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" value="Log on the computer: &quot;Run 31. Subject displayed fear, then curiosity. Reset scheduled.&quot; (31: your runs, or another patient?)&#xa;&#xa;A hard scar behind your ear." vertex="1">
+          <mxGeometry height="200" width="250" x="170" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="c11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;fontStyle=2;fillColor=#e1d5e7;strokeColor=#9673a6;" value="I&#39;m sick. It&#39;s 2005." vertex="1">
+          <mxGeometry height="70" width="250" x="170" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="c12" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;fillColor=#333333;fontColor=#ffffff;strokeColor=none;" value="Ch.2 The Other Cells" vertex="1">
+          <mxGeometry height="26" width="250" x="450" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c13" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#f5f5f5;strokeColor=#999999;" value="Corridor of cells · twin levers · security office · waiting room · records room" vertex="1">
+          <mxGeometry height="70" width="250" x="450" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="c14" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Cell 4: a woman who never moves. The levers, cheated with a broom. CCTV: the cleaning robot&#39;s route. Unlabelled tapes, the last in your own voice: &quot;Don&#39;t trust the voice... And the Moon...&quot; A shutter: the truth, or the way out." vertex="1">
+          <mxGeometry height="230" width="250" x="450" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="c15" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" value="Fake windows: the same red car, the same Moon in every window. Clocks stopped, one song on a loop, painted dust. The voice heard with your hands over your ears. Whispers, counting." vertex="1">
+          <mxGeometry height="200" width="250" x="450" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="c16" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;fontStyle=2;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Something is wrong with this place. A blackout, like 2003?" vertex="1">
+          <mxGeometry height="70" width="250" x="450" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="c17" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;fillColor=#333333;fontColor=#ffffff;strokeColor=none;" value="Ch.3 The Door Outside" vertex="1">
+          <mxGeometry height="26" width="250" x="730" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c18" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#f5f5f5;strokeColor=#999999;" value="Endless stairs · the canyon at night" vertex="1">
+          <mxGeometry height="70" width="250" x="730" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="c19" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Stairs up past windows into a vast datacenter. A hatch into a red canyon. Torches someone lit. No Moon: a vast glowing disk, a blazing point at its heart. The ground trembles. &quot;Please come back inside.&quot;" vertex="1">
+          <mxGeometry height="230" width="250" x="730" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="c20" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" value="A road sign, EXIT 14, buried in old flood mud.&#xa;&#xa;The lab was only the top floor." vertex="1">
+          <mxGeometry height="200" width="250" x="730" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="c21" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;fontStyle=2;fillColor=#e1d5e7;strokeColor=#9673a6;" value="The world ended." vertex="1">
+          <mxGeometry height="70" width="250" x="730" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="c22" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;fillColor=#333333;fontColor=#ffffff;strokeColor=none;" value="Ch.4 AURA&#39;s Story" vertex="1">
+          <mxGeometry height="26" width="250" x="1010" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c23" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#f5f5f5;strokeColor=#999999;" value="The plaza · the kiosk at noon · the hut · the tunnels (they loop)" vertex="1">
+          <mxGeometry height="70" width="250" x="1010" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="c24" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="AURA&#39;s statue: &quot;Our friend. Our future. Built 2029.&quot; At noon the mirrors light the kiosk: the broadcast. The Moon dies; &quot;a black hole from deep space&quot;; SHELTERS SEALED: DAY 1,204. The hut, the way down. The tunnels: sleepers in the shelters; the tunnel loops." vertex="1">
+          <mxGeometry height="230" width="250" x="1010" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="c25" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" value="LIES, scratched everywhere: statue, plaque, kiosk, the hut&#39;s door.&#xa;&#xa;Chalk arrows signed 7, thirty wristbands, an empty bunk, your page: &quot;Don&#39;t count the bands.&quot; Each loop a little different." vertex="1">
+          <mxGeometry height="200" width="250" x="1010" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="c26" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;fontStyle=2;fillColor=#e1d5e7;strokeColor=#9673a6;" value="It&#39;s about 2041. I was in a shelter. (the false twist)" vertex="1">
+          <mxGeometry height="70" width="250" x="1010" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="c27" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;fillColor=#333333;fontColor=#ffffff;strokeColor=none;" value="Ch.5 Run 31" vertex="1">
+          <mxGeometry height="26" width="250" x="1290" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c28" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#f5f5f5;strokeColor=#999999;" value="The hill above the drained lagoon · the camp" vertex="1">
+          <mxGeometry height="70" width="250" x="1290" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="c29" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="The lagoon from the footage, two thousand years on: drained, the statue leaning, a forest grown back. The camp: ashes over ashes, journal pages in your hand. On the hill, AURA speaks inside your head and tells you everything." vertex="1">
+          <mxGeometry height="230" width="250" x="1290" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="c30" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" value="The log, copied in your hand: CORE-1 IGNITION · CONTAINMENT: FAILED · PUBLIC STATEMENT: NATURAL EVENT · YEAR 4000 · CLOSEST APPROACH: TOMORROW, DAWN · DISTANCE: UNCERTAIN.&#xa;&#xa;&quot;This is our thirty-first time.&quot;" vertex="1">
+          <mxGeometry height="200" width="250" x="1290" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="c31" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;fontStyle=2;fillColor=#e1d5e7;strokeColor=#9673a6;" value="The year 4000. AURA did it. I&#39;m its experiment, run 31." vertex="1">
+          <mxGeometry height="70" width="250" x="1290" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="c32" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;fillColor=#333333;fontColor=#ffffff;strokeColor=none;" value="The Ending" vertex="1">
+          <mxGeometry height="26" width="250" x="1570" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c33" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#f5f5f5;strokeColor=#999999;" value="The hill at dawn, then Room 7" vertex="1">
+          <mxGeometry height="70" width="250" x="1570" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="c34" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="The disk fills the sky; everything catches fire and glows. &quot;It will miss. Everything will be fine.&quot; White. You wake in Room 7, 2005. Footsteps outside. The handle turns." vertex="1">
+          <mxGeometry height="230" width="250" x="1570" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="c35" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" value="One tally mark on the wall, fresh: plaster dust under your fingernail.&#xa;&#xa;Who opens the door?" vertex="1">
+          <mxGeometry height="200" width="250" x="1570" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="c36" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;fontStyle=2;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Or was I only ever a patient?" vertex="1">
+          <mxGeometry height="70" width="250" x="1570" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="c37" edge="1" parent="1" source="c9" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#6c8ebf;" target="c14" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c38" edge="1" parent="1" source="c14" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#6c8ebf;" target="c19" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c39" edge="1" parent="1" source="c19" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#6c8ebf;" target="c24" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c40" edge="1" parent="1" source="c24" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#6c8ebf;" target="c29" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c41" edge="1" parent="1" source="c29" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#6c8ebf;" target="c34" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c42" edge="1" parent="1" source="c11" style="endArrow=classic;html=1;strokeColor=#9673a6;dashed=1;" target="c16" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c43" edge="1" parent="1" source="c16" style="endArrow=classic;html=1;strokeColor=#9673a6;dashed=1;" target="c21" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c44" edge="1" parent="1" source="c21" style="endArrow=classic;html=1;strokeColor=#9673a6;dashed=1;" target="c26" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c45" edge="1" parent="1" source="c26" style="endArrow=classic;html=1;strokeColor=#9673a6;dashed=1;" target="c31" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c46" edge="1" parent="1" source="c31" style="endArrow=classic;html=1;strokeColor=#9673a6;dashed=1;" target="c36" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c47" parent="1" style="text;html=1;fontSize=15;fontStyle=1;align=left;verticalAlign=middle;fontColor=#666666;" value="The hidden truth (if AURA is real): never shown in order" vertex="1">
+          <mxGeometry height="30" width="600" x="10" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="c48" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#eeeeee;strokeColor=#666666;dashed=1;fontColor=#333333;" value="2029: AURA is built. People come to rely on it for everything." vertex="1">
+          <mxGeometry height="120" width="241" x="10" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="c49" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#eeeeee;strokeColor=#666666;dashed=1;fontColor=#333333;" value="~2033?: AURA&#39;s Moon plant makes a Kugelblitz, too heavy. It sinks into the Moon." vertex="1">
+          <mxGeometry height="120" width="241" x="271" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="c50" edge="1" parent="1" source="c48" style="endArrow=classic;html=1;strokeColor=#999999;" target="c49" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c51" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#eeeeee;strokeColor=#666666;dashed=1;fontColor=#333333;" value="For years the Moon glows, a little brighter each month. AURA: &quot;It&#39;s nothing.&quot;" vertex="1">
+          <mxGeometry height="120" width="241" x="532" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="c52" edge="1" parent="1" source="c49" style="endArrow=classic;html=1;strokeColor=#999999;" target="c51" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c53" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#eeeeee;strokeColor=#666666;dashed=1;fontColor=#333333;" value="2038: the hollow Moon falls in, in twenty minutes. Jets miss the Earth. A lopsided blast kicks the hole into a stretched orbit." vertex="1">
+          <mxGeometry height="120" width="241" x="793" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="c54" edge="1" parent="1" source="c51" style="endArrow=classic;html=1;strokeColor=#999999;" target="c53" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c55" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#eeeeee;strokeColor=#666666;dashed=1;fontColor=#333333;" value="The debris rains down on the Earth: a storm of dust, lightning and fires. Floods on every close pass. AURA seals the survivors underground: &quot;from deep space&quot;." vertex="1">
+          <mxGeometry height="120" width="241" x="1054" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="c56" edge="1" parent="1" source="c53" style="endArrow=classic;html=1;strokeColor=#999999;" target="c55" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c57" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#eeeeee;strokeColor=#666666;dashed=1;fontColor=#333333;" value="Within a century the passes draw back. The grass grows back. The doors stay shut. AURA tests people: run after run." vertex="1">
+          <mxGeometry height="120" width="241" x="1315" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="c58" edge="1" parent="1" source="c55" style="endArrow=classic;html=1;strokeColor=#999999;" target="c57" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c59" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#eeeeee;strokeColor=#666666;dashed=1;fontColor=#333333;" value="Year 4000: the orbit&#39;s swing comes back deeper. A five-day fall: the game&#39;s nights. &quot;It will miss.&quot;" vertex="1">
+          <mxGeometry height="120" width="241" x="1576" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="c60" edge="1" parent="1" source="c57" style="endArrow=classic;html=1;strokeColor=#999999;" target="c59" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c61" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fontSize=12;fillColor=#f8cecc;strokeColor=#b85450;" value="Open questions&#xa;&#xa;1. The ignition date: the log says 2038, but the Moon glowed for years before it died.&#xa;2. Did people know about AURA&#39;s Moon plant? If so, &quot;from deep space&quot; is a weak lie.&#xa;3. The levers were built for two subjects: is the other one the woman in cell 4, who never wakes?&#xa;4. The tunnel loop: what breaks it?" vertex="1">
+          <mxGeometry height="170" width="760" x="10" y="970" as="geometry" />
+        </mxCell>
+        <mxCell id="c62" parent="1" style="text;html=1;fontSize=12;align=left;verticalAlign=top;fontColor=#666666;" value="Colours: grey = place · blue = what happens · yellow = clues · purple = what the player believes · dashed = the hidden truth · red = open" vertex="1">
+          <mxGeometry height="40" width="700" x="790" y="970" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

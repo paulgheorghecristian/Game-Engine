@@ -13,6 +13,8 @@
 #include "PointLight.h"
 #include "RenderingMaster.h"
 #include "MoonDestruction.h"
+#include "Waking.h"
+#include "RoomAlive.h"
 #include "WaterRenderer.h"
 #include "Timeline.h"
 #include "rapidjson/document.h"
@@ -176,7 +178,8 @@ static std::vector<Aftermath::Parameter> joined(std::vector<Aftermath::Parameter
     list.insert(list.end(), more.begin(), more.end());
     return list;
 }
-static const std::vector<Aftermath::Parameter> PARAMETERS = joined(STORM, MoonDestruction::lanes());
+static const std::vector<Aftermath::Parameter> PARAMETERS =
+    joined(joined(joined(STORM, MoonDestruction::lanes()), Waking::lanes()), RoomAlive::lanes());
 
 const std::vector<Aftermath::Parameter> &Aftermath::parameters()
 {
@@ -631,6 +634,8 @@ bool Aftermath::update(Camera *camera, Timeline &timeline)
     /* the debris in the sky (not set: < 0, it follows the Moon) */
     rm->setDebris(timeline.get("debrisShell", -1.0f), timeline.get("ejecta", -1.0f));
     rm->moonDestruction().readTimeline(timeline);          /* (its own lanes: the blast) */
+    rm->waking().readTimeline(timeline);                   /* (its own lanes: waking up) */
+    rm->roomAlive().readTimeline(timeline);                /* (its own lanes: the room alive) */
 
     /* the weather, each part on its own; the gale and the rain gusting round their levels */
     float gusting = 1.0f - value(timeline, "gustiness") * (0.18f - 0.18f * std::sin(t * 1.9f) * std::sin(t * 0.7f + 1.0f));

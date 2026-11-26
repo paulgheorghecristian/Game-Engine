@@ -93,9 +93,9 @@ MOMENTS = [
     ('18_moon_cracks', 'Ch.4 AURA\'s Story', 'The footage: the Moon cracks; two jets of light burst out.',
      'the full moon over a dark lagoon at night cracking apart, two thin jets of white light bursting out '
      'of opposite sides, grainy archive footage, silent'),
-    ('19_moon_gone', 'Ch.4 AURA\'s Story', 'The Moon pours into a point and is gone, in a blinding flash. Then the storm.',
-     'a blinding flash in the night sky where the moon was, a thin glowing disk of light, a wall of dust '
-     'storm with lightning advancing over dark hills and a lagoon, apocalyptic'),
+    ('19_moon_gone', 'Ch.4 AURA\'s Story', 'The Moon pours into a point and is gone, in a blinding flash, a spray of fire thrown to one side. Then the storm.',
+     'a blinding flash in the night sky where the moon was, a thin glowing disk of light, a spray of fiery '
+     'debris thrown out to one side, a wall of dust storm with lightning over dark hills and a lagoon'),
     ('20_north_star', 'Ch.4 AURA\'s Story', 'The compass disagrees: the sky turns around the wrong star.',
      'a pocket compass held in a hand at night in a red canyon, above it star trails circling around a pole '
      'star, long exposure sky'),
@@ -123,8 +123,9 @@ MOMENTS = [
     ('28_voice', 'Ch.5 Run 31', '"Hello again. This is our thirty-first time. You always get this far."',
      f'{YOU} standing on a hilltop at night facing {HOLE} over the sea, a hand behind the ear'),
     # the ending
-    ('29_dawn', 'The Ending', 'Dawn. The hole fills the sky; the sea climbs toward it. "It will miss."',
-     'dawn sky, filling the sky over the sea: {HOLE}, the sea rising toward it, a tiny figure on a hill'),
+    ('29_dawn', 'The Ending', 'Dawn. Its disk fills the sky; everything catches fire and glows. "It will miss."',
+     'dawn, a vast glowing disk of fire filling the sky over the sea, a blinding white point at its heart, '
+     'the hills and trees catching fire, everything glowing red hot, a tiny figure on a hill'),
     ('30_white', 'The Ending', 'The sky tears open. Everything goes white.',
      'everything dissolving into blinding white light, a silhouette of a hill and a tiny figure fading into '
      'white, overexposed'),

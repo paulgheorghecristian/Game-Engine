@@ -1,0 +1,16 @@
+{
+    "VSPath" : "res/shaders/roomAlive.vs",
+    "FSPath" : "res/shaders/roomAlive.fs",
+    "Uniforms" : {
+                    "pictureSampler" : "INT",
+                    "depthSampler" : "INT",
+                    "viewProjection" : "MAT4",
+                    "inverseViewProjection" : "MAT4",
+                    "center" : "VEC3",
+                    "radius" : "FLOAT",
+                    "darkRadius" : "FLOAT",
+                    "warp" : "FLOAT",
+                    "dark" : "FLOAT",
+                    "time" : "FLOAT"
+                 }
+}

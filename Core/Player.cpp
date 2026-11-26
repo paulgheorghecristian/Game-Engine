@@ -1,5 +1,6 @@
 #include "ParticleEmitter.h"
 #include "Player.h"
+#include "Waking.h"
 
 #include "RenderingMaster.h"
 #include "WaterRenderer.h"
@@ -110,6 +111,9 @@ Player::PlayerControllerComponent::PlayerControllerComponent () : m_isJumping(fa
 }
 
 void Player::PlayerControllerComponent::input(Input &inputManager) {
+    if (Waking::holdsPlayer()) {
+        return;                                         /* (a waking-up scene: not up yet) */
+    }
     glm::vec3 force(0);
     PhysicsComponent *physicsComponent = dynamic_cast<PhysicsComponent *> (_entity->getComponent (Entity::Flags::DYNAMIC));
 

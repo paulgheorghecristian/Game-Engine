@@ -21,3 +21,13 @@ levelled; loops crossfaded).
 | gust_1..3 | Wind (Wind.ogg, Wind2.ogg, Wind3.ogg) slowed to 0.85 with a bass lift — https://opengameart.org/content/wind |
 | step_sand_1..6 | Water Splash and sand footsteps: single steps cut from the sand footsteps recording (around its loudest hits) — https://opengameart.org/content/water-splash-and-sand-footsteps |
 | hum_loop | `shieldloop.wav` (downloaded with the electricity set; verify its page), looped, an octave down, low-passed: a failing fluorescent tube's buzz |
+
+## Voices
+
+Not from OpenGameArt: generated with ElevenLabs, whose terms depend on the plan it was made on
+(check them before the game is published).
+
+| Engine sound | Source |
+|---|---|
+| voice_doctor | ElevenLabs, voice "Monique - Empathetic, Calm & Nurturing", made 2026-11-25: "Good morning! Please stay calm and remain in your room. A doctor will be with you shortly." |
+| voice_doctor_1..3 | a PA chime (synthesized) and voice_doctor: friendly, as it is (1), cursed (2), more cursed (3): `tools/make_glitch_voice.py voice_doctor` |

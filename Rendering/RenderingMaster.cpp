@@ -487,6 +487,9 @@ void RenderingMaster::drawDeferredShadingBuffers()
     PT_FromHere("temporalAA");
     renderTemporalAA();
     PT_ToHere("temporalAA");
+    m_roomAlive.render(fxaaFrameBuffer, depthTexture->getTextureId(), projectionMatrix * camera->getViewMatrix(),
+                       renderWidth, renderHeight, m_renderTime);                /* (its own element) */
+    m_waking.render(fxaaFrameBuffer, renderWidth, renderHeight, m_renderTime);   /* (its own element) */
 
     /* FXAA writes the final image directly to the screen (it used to go to an
      * offscreen target followed by a full-screen copy pass) */

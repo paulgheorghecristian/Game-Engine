@@ -7,7 +7,7 @@ textures). Each is a map in Game/recursion/:
                           hole AURA made (plays live, slowly), grainy like old footage
   00_archive_ignition_alternative   the same, the black hole as it would really be: the
                           Moon's mass, too small to see; its disk and a point of light
-  01_room7                Ch.1 (and the ending): the hospital-like room, bed, CRT, fuse
+  01_beginning            Ch.1 (and the ending): waking up in the hospital-like room, bed, CRT, fuse
                           box, keypad door
   02_corridor_subject4    Ch.2: peeling corridor of cells, cell 4's window
   02_twin_levers          Ch.2: two rooms, a lever in each
@@ -182,9 +182,12 @@ def moon_destruction(direction, collapse, play=False, speed=5.0, delay=0.0):
     return h
 
 def sky_hole(direction, radius):
-    """the black hole the Moon became (as in lagoon_bh.json), the Moon's dust in a
-    ring around it; the closer its pass to the Earth, the bigger (radius: angular)"""
-    return {"sky": True, "physical": True, "direction": direction, "angularRadius": radius, "lensing": 0.8, "influence": 11,
+    """the black hole the Moon became: the Moon's mass, its horizon a fifth of a millimetre (none to
+    see), so only what is round it shows: the Moon's dust in a glowing disk and a point of light where
+    it feeds, as in the alternative archive. The closer its pass to the Earth, the bigger (radius:
+    angular; the disk reaches 16 of it)"""
+    return {"sky": True, "physical": True, "direction": direction, "angularRadius": radius,
+            "horizon": 1e-5, "coreGlow": 6.0, "coreSize": 0.25, "lensing": 0.8, "influence": 11,
             "colorShift": 0.7, "diskInner": 3.0, "diskOuter": 16.0, "diskColor": [1.0, 0.55, 0.26],
             "diskBrightness": 5.0, "diskOpacity": 0.75, "diskSpeed": 0.8, "diskTilt": [57.01, -9.54],
             "glow": 0.0, "moonStream": 0.0, "cloudClear": 0.7}
@@ -195,8 +198,9 @@ def year4000(base, time_of_day, direction, radius, start, extra_env=None):
     if extra_env: env.update(extra_env)
     return outdoor(base, time_of_day, direction, [sky_hole(direction, radius)], start, env)
 
-# the black hole's close pass is coming: closer, so bigger, by the last night
-HOLE_CANYON, HOLE_LAGOON = 0.025, 0.042
+# the black hole's last fall, five days from the far end of its orbit (STORY.md): each night it is
+# much closer, so much bigger; at the last dawn its disk fills the sky
+HOLE_CANYON, HOLE_LAGOON, HOLE_DAWN = 0.035, 0.07, 0.11
 
 def outdoor(base, time_of_day, moon_direction, holes, start, extra_env=None):
     """a story scene on an outdoor map: its time held, its Moon at a stage"""
@@ -275,7 +279,7 @@ def room(ents, cx, cz, w, d, h=H_ROOM, walls=PEELING, floor=TERRAZZO, ceiling=OF
 HUMS = []                                           # the tubes' buzz (each scene's Audio sources)
 
 def tube(ents, lights, x, z, h=H_ROOM, along='x', flicker=0.04, color=(0.85, 0.95, 1.0), radius=4.8 * M, shadow=True,
-         dead=False):
+         dead=False, diffuse=(420, 6, 1.3)):
     """a buzzing 1.2 m fluorescent tube on the ceiling, and its light (dead: burnt out, dark)"""
     size = (1.2 * M, 0.06 * M, 0.12 * M) if along == 'x' else (0.12 * M, 0.06 * M, 1.2 * M)
     ents.append(box((x, h - 0.05 * M, z), size, mat((0.25, 0.25, 0.22)) if dead else TUBE, cast_shadow=False))
@@ -286,7 +290,7 @@ def tube(ents, lights, x, z, h=H_ROOM, along='x', flicker=0.04, color=(0.85, 0.9
                  "volume": 0.35 + 0.4 * min(flicker * 2, 1.0), "radius": round(6 * M)})
     ents.append(box((x, h - 0.015 * M, z), (size[0] + 0.15 * M, 0.03 * M, size[2] + 0.18 * M), STEEL, cast_shadow=False))
     lights.append(light((x, h - 0.15 * M, z), color, "POINT", (radius, radius, radius), cast_shadow=shadow,
-                        shadowMapSize=512, diffuse_attenuation=[420, 6, 1.3], specular_attenuation=[420, 6, 1.3],
+                        shadowMapSize=512, diffuse_attenuation=list(diffuse), specular_attenuation=[420, 6, 1.3],
                         flicker=min(flicker, 0.35), flickerSpeed=7))  # a slow waver, never a strobe
 
 def door(ents, x, z, along='x', locked=True, window=True, lit=False, open_window=False):
@@ -423,7 +427,7 @@ scenes['00_archive_ignition_alternative']['Environment'].update({"filmGrain": 0.
 # 01 Room 7: the room where you wake, AURA's lab built like a hospital ward (Ch.1), 4 x 5 m
 # --------------------------------------------------------------------------
 ents, lights = [], []
-W, D = 4.0 * M, 5.0 * M
+W, D = 6.0 * M, 7.0 * M
 room(ents, 0, 0, W, D, doors=[('s', 0)])
 door(ents, 0, D / 2 + 0.1 * M, locked=True, window=True)
 ents.append(box((0.75 * M, 1.3 * M, D / 2 - 0.03 * M), (0.1 * M, 0.14 * M, 0.04 * M), DARK_PLASTIC))   # the keypad (no power)
@@ -440,7 +444,7 @@ for sx in (-1, 1):
 ents.append(box((bx + 0.7 * M, 0.95 * M, bz - 0.8 * M), (0.03 * M, 1.9 * M, 0.03 * M), STEEL))
 ents.append(box((bx + 0.7 * M, 1.72 * M, bz - 0.8 * M), (0.1 * M, 0.17 * M, 0.04 * M),
                 mat((0.75, 0.85, 0.9), extra={"glass": True, "roughness": 0.15})))                 # the IV bag
-# the desk along the east wall: CRT, keyboard, papers, mug, instant photo, compass, radio; the fuse box under it
+# the desk along the east wall: CRT, keyboard, papers, mug, instant photo, radio; the fuse box under it
 dx, dz = W / 2 - 0.4 * M, -0.5 * M
 desk(ents, dx, dz, w=0.7 * M, d=1.5 * M)
 top = 0.75 * M
@@ -449,8 +453,6 @@ ents.append(box((dx - 0.2 * M, top + 0.015 * M, dz - 0.1 * M), (0.15 * M, 0.03 *
 papers(ents, dx - 0.05 * M, top, dz + 0.5 * M, n=6, spread=0.15 * M)
 ents.append(box((dx - 0.2 * M, top + 0.05 * M, dz - 0.55 * M), (0.08 * M, 0.1 * M, 0.08 * M), mat((0.9, 0.9, 0.85))))   # coffee mug
 ents.append(box((dx - 0.1 * M, top + 0.01 * M, dz + 0.25 * M), (0.09 * M, 0.01 * M, 0.11 * M), PAPER, rot=(0, 20, 0)))  # the instant photo
-ents.append(entity("res/models/sphere.obj", (dx - 0.18 * M, top + 0.012 * M, dz + 0.05 * M), (0.03 * M, 0.01 * M, 0.03 * M),
-                   material=mat((0.7, 0.62, 0.4), shininess=90, extra={"metallic": 0.7, "roughness": 0.3})))  # the pocket compass
 ents.append(box((dx + 0.05 * M, top + 0.09 * M, dz - 0.65 * M), (0.3 * M, 0.18 * M, 0.12 * M), DARK_PLASTIC, rot=(0, 80, 0)))  # the radio
 ents.append(box((W / 2 - 0.05 * M, 0.3 * M, dz + 0.4 * M), (0.08 * M, 0.4 * M, 0.3 * M), mat((0.5, 0.5, 0.52))))   # fuse box
 for k, c in enumerate(((1, 0.1, 0.1), (0.1, 0.3, 1), (1, 0.85, 0.1), (0.1, 0.8, 0.2))):
@@ -461,18 +463,23 @@ ents.append(box((W / 2 - 0.3 * M, 0.38 * M, dz + 0.95 * M), (0.19 * M, 0.27 * M,
 ents.append(box((0, H_ROOM - 0.01 * M, -0.3 * M), (0.25 * M, 0.02 * M, 0.25 * M), mat((0.6, 0.6, 0.6))))   # the ceiling speaker
 ents.append(box((0.5 * M, 1.6 * M, -D / 2 + 0.02 * M), (0.4 * M, 0.55 * M, 0.01 * M), PAPER))             # the calendar (Dec 2005)
 ents.append(box((0.5 * M, 1.82 * M, -D / 2 + 0.03 * M), (0.4 * M, 0.1 * M, 0.01 * M), mat((0.8, 0.1, 0.1))))
-# scratched into the wall by the bed: 31 tally marks (Run 31: every one of you)
-SCRATCH = mat((0.05, 0.05, 0.045), extra={"roughness": 0.9})
-for k in range(31):
-    group, i = divmod(k, 5)
-    zz = bz - 0.5 * M + group * 0.26 * M + i * 0.045 * M
-    if i == 4:
-        ents.append(box((-W / 2 + 0.012 * M, 1.15 * M, zz - 0.09 * M), (0.01 * M, 0.025 * M, 0.24 * M), SCRATCH,
-                        rot=(50, 0, 0), cast_shadow=False))
-    else:
-        ents.append(box((-W / 2 + 0.012 * M, 1.15 * M, zz), (0.01 * M, 0.24 * M, 0.022 * M), SCRATCH, cast_shadow=False))
-tube(ents, lights, 0, -0.2 * M, along='z', flicker=0.06)
-scenes['01_room7'] = scene(ents, lights, interior_env(), start(-0.3 * M, EYE, -1.2 * M, 180, -6))
+# three tubes in a row down the middle, from the door to the far wall
+# (radius and falloff as tuned in the engine: a wider, softer light)
+for z, flicker in ((D / 2 - 1.2 * M, 0.03), (0.0, 0.06), (-D / 2 + 1.2 * M, 0.05)):
+    tube(ents, lights, 0, z, along='z', flicker=flicker, radius=200, diffuse=(800, 10, 1))
+# waking up (Rendering/Waking, in its timeline Game/sequences/01_beginning.json): from lying in the
+# bed, to sitting on its edge, to standing beside it facing the door (the player's start)
+scenes['01_beginning'] = scene(ents, lights, interior_env(fogDensity=0.0012, fogLightGlow=0.8), start(-33.0, EYE, -12.0, yaw_towards((-33.0, -12.0), (0, D / 2)), -4))
+scenes['01_beginning']["Waking"] = {
+    "lying": {"position": [round(bx, 1), 20.5, round(bz - 0.7 * M, 1)], "yaw": 180, "pitch": 72},
+    "sitting": {"position": [round(bx + 0.27 * M, 1), 28.0, round(bz - 0.1 * M, 1)], "yaw": -90, "pitch": -8}}
+# its one timeline (the timeline editor shows one file a map): waking up, the doctor's voice, the room
+# coming alive with the cursed voice
+scenes['01_beginning']["Sequences"] = [{"file": "Game/sequences/01_beginning.json"}]
+# the room coming alive (Rendering/RoomAlive, with the first cursed voice): reality bending round the
+# middle of the room, and a warm light glowing up through the floor under it
+scenes['01_beginning']["RoomAlive"] = {"center": [0.0, H_ROOM / 2, 0.0], "radius": 160, "darkRadius": 260,
+                                       "glowPosition": [0.0, -95.0, 0.0], "glowColor": [1.0, 0.62, 0.3], "glowRange": 1800}
 
 # --------------------------------------------------------------------------
 # 02 the corridor and Subject 4's door (Ch.2): 2.4 m wide, 24 m long
@@ -1099,11 +1106,11 @@ scenes['05_lagoon'] = g
 # --------------------------------------------------------------------------
 # 06 the last dawn, on the hill above the lagoon: the black hole fills the
 # sky low over the sea, the hatch open behind you. Then white, and you wake in
-# Room 7 again (01_room7): the game's one ending
+# the room again (01_beginning): the game's one ending
 # --------------------------------------------------------------------------
 _d = (-0.25, 0.3, -0.92)
 DAWN_DIR = [round(c / math.sqrt(sum(v * v for v in _d)), 4) for c in _d]
-g = year4000(LAGOON, 0.235, DAWN_DIR, 0.1,
+g = year4000(LAGOON, 0.235, DAWN_DIR, HOLE_DAWN,
             start(HILL[0], HILL_Y + 28, HILL[1], yaw_towards(HILL, (HILL[0] + DAWN_DIR[0], HILL[1] + DAWN_DIR[2])), 12))
 g["Entities"] += hatch(HILL_HATCH[0], lagoon_ground(*HILL_HATCH), HILL_HATCH[1])
 g["Water"]["height"] = WATER_DAWN

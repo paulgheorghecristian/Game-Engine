@@ -43,6 +43,7 @@ class EngineCore
         /* save the current world (F5) as <map>_saved.json; reload it (F9) */
         std::string m_mapPath, m_savePath;
         std::string m_waterJson, m_emittersJson, m_grassJson, m_audioJson, m_footstepsJson, m_sequencesJson;
+        std::string m_wakingJson, m_roomAliveJson;
         /* the map's "Grass" (needs the terrain entity, so after the entities) */
         void loadGrass(rapidjson::Document &gameDocument);
         bool saveMap(const std::string &path);
@@ -59,7 +60,8 @@ class EngineCore
         } m_previousTick;
         glm::vec3 m_tickCameraPosition;
         std::vector<std::pair<Entity *, Transform>> m_stashedEntities;
-        std::vector<std::pair<Light *, Transform>> m_stashedLights;
+        /* each animated light's tick transform, and the one it was given for the frame */
+        std::vector<std::tuple<Light *, Transform, Transform>> m_stashedLights;
         unsigned int m_maxRenderFps = 0; /* 0: unlimited (vsync still applies) */
         std::vector<Entity *> &getEntities();
         virtual ~EngineCore();

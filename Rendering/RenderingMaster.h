@@ -2,6 +2,8 @@
 #define RENDERINGMASTER_H
 
 #include "MoonDestruction.h"
+#include "Waking.h"
+#include "RoomAlive.h"
 
 #include "rapidjson/document.h"
 #include "Display.h"
@@ -311,6 +313,8 @@ class RenderingMaster
     private:
         bool m_skyCloudCut = false;   /* a sky black hole with clouds: split the cloud layer */
         MoonDestruction m_moonDestruction;   /* the Moon's destruction (a Kugelblitz in the sky's hole) */
+        Waking m_waking;                     /* a map's waking-up scene */
+        RoomAlive m_roomAlive;               /* a map's room coming alive */
     public:
         /* the Kugelblitz aftermath's weather (Core/Aftermath), each on its own, about 0..1:
          * wind blowing, fog thickening, clouds covering and racing, waves swelling;
@@ -340,6 +344,8 @@ class RenderingMaster
          * follow the Moon (the shell reaches us BlackHole::DEBRIS_ARRIVAL seconds after it formed) */
         void setDebris(float shell, float ejecta) { m_debrisShell = shell; m_ejecta = ejecta; }
         MoonDestruction &moonDestruction() { return m_moonDestruction; }
+        Waking &waking() { return m_waking; }
+        RoomAlive &roomAlive() { return m_roomAlive; }
         /* the sky Kugelblitz's playback clock: 1 normal, 0 paused (tools/timeline_editor.py) */
         void setKugelblitzTimeScale(float scale) { m_kugelblitzTimeScale = scale; }
         /* passes skip what the camera cannot see (GE_NO_CULL=1: they draw everything, to compare) */
