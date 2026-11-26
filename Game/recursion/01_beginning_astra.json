@@ -1280,8 +1280,9 @@
             "shininess": 24,
             "roughness": 0.88,
             "Texture": "Game/recursion/astra/calendar.png",
-            "NormalMapTexture": "Game/recursion/astra/calendar_normal.png",
-            "normalMapStrength": 1.0
+            "NormalMapTexture": "res/textures/Paper003_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Paper003_1K_Roughness.jpg"
           }
         }
       }

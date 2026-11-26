@@ -141,21 +141,23 @@ def group_of(centre):
 # is drawn straight on, with everything that sits on its face, into Game/recursion/astra/<file>.png;
 # the carrier then wears that picture and the small parts are left out of the level.
 #   carrier object, file, the way the camera looks at it, picture's right and up, pixels (long side),
-#   roughness, parts to keep as geometry all the same, and whether it has a normal map
-#   (<file>_normal.png, made by tools/make_print_normals.py, which the export runs at its end)
+#   roughness, parts to keep as geometry all the same, and more of its material (its relief: a real
+#   paper's normal and roughness maps for the calendar)
 PRINTS = [
-    ('Calendar backing', 'calendar', (0, 1, 0), (1, 0, 0), (0, 0, 1), 1024, .88, (), True),     # crumpled
+    ('Calendar backing', 'calendar', (0, 1, 0), (1, 0, 0), (0, 0, 1), 1024, .88, (),
+     {'NormalMapTexture': 'res/textures/Paper003_1K_Normal.jpg', 'normalMapStrength': 1.0,
+      'RoughnessTexture': 'res/textures/Paper003_1K_Roughness.jpg'}),       # crumpled paper (ambientCG)
     # a real clock: the hour marks printed on the dial, the hands and the pin standing off it
     ('Clock face', 'clock_face', (0, 1, 0), (1, 0, 0), (0, 0, 1), 512, .5,
-     ('Clock minute hand', 'Clock hour hand', 'Clock pin'), False),
-    ('Observation glass', 'door_window', (0, -1, 0), (-1, 0, 0), (0, 0, 1), 512, .08, (), False),
+     ('Clock minute hand', 'Clock hour hand', 'Clock pin'), {}),
+    ('Observation glass', 'door_window', (0, -1, 0), (-1, 0, 0), (0, 0, 1), 512, .08, (), {}),
 ] + [
     # the keypad's buttons stay raised keys: each one's digit printed on its own top
     ('Key ' + key, 'keypad_key_' + {'*': 'star', '#': 'hash'}.get(key, key), (0, -1, 0), (-1, 0, 0), (0, 0, 1),
-     64, .45, (), False) for key in '1234567890*#'
+     64, .45, (), {}) for key in '1234567890*#'
 ]
 # (not the keyboard: flattened into a picture its keys lost their relief; its letters stay geometry)
-PRINT_LOOK = {}     # material name -> (picture, roughness, normal map or None), filled by bake_prints
+PRINT_LOOK = {}     # material name -> (picture, roughness, more of its material), filled by bake_prints
 
 
 
@@ -176,7 +178,7 @@ def bake_prints():
             return [obj.matrix_world @ v.co for v in obj.data.vertices]
         return [obj.matrix_world @ Vector(c) for c in obj.bound_box]
 
-    for name, stem, forward, right, up, pixels, roughness, keep, relief in PRINTS:
+    for name, stem, forward, right, up, pixels, roughness, keep, extra in PRINTS:
         carrier = bpy.data.objects.get(name)
         assert carrier is not None, 'no object "%s" in the Blender file' % name
         f, r, u = Vector(forward), Vector(right), Vector(up)
@@ -226,8 +228,7 @@ def bake_prints():
         material.diffuse_color = (1, 1, 1, 1)
         mesh.materials.clear()
         mesh.materials.append(material)
-        bump = 'Game/recursion/astra/' + stem + '_normal.png' if relief else None
-        PRINT_LOOK[material.name] = ('Game/recursion/astra/' + stem + '.png', roughness, bump)
+        PRINT_LOOK[material.name] = ('Game/recursion/astra/' + stem + '.png', roughness, extra)
         print('Print %s: %d parts drawn into %s.png' % (name, len(parts), stem))
 
 
@@ -291,8 +292,7 @@ def export_meshes():
             material['emissive'] = 1.0
         if name in PRINT_LOOK:
             material.update(Texture=PRINT_LOOK[name][0], roughness=PRINT_LOOK[name][1])
-            if PRINT_LOOK[name][2]:
-                material.update(NormalMapTexture=PRINT_LOOK[name][2], normalMapStrength=1.0)
+            material.update(PRINT_LOOK[name][2])
         if name == 'Ward records print':
             material.update(Texture='Game/recursion/astra/ward_records.png', roughness=.88)
         if name in MATERIAL_LOOK:
@@ -304,10 +304,7 @@ def export_meshes():
 
 
 def main():
-    import subprocess, sys
     entities = export_meshes()
-    # the printed pictures' normal maps (outside Blender: its Python has no image tools)
-    subprocess.run(['python3', os.path.join(ROOT, 'tools/make_print_normals.py')], check=True)
     with open(BASE) as f:
         scene = json.load(f)
     old = scene['Entities']
