@@ -21,6 +21,7 @@ class Camera
         void rotateX(float dx);
         void rotateZ(float dz);
         void setZRot(float dz);
+        float getZRot() const { return m_zRot; }
         void invertForward();
         virtual ~Camera();
         void setPosition(const glm::vec3& position);
@@ -43,6 +44,7 @@ class Camera
 
         glm::mat4 viewMatrix;
         glm::quat m_localZRot;
+        float m_zRot = 0.0f;    /* the head's roll (walking), radians */
 };
 
 #endif // CAMERA_H

@@ -137,6 +137,9 @@ void Timeline::loadOne(const rapidjson::Value &json)
             if (s.HasMember("loop") && s["loop"].IsBool()) sound.loop = s["loop"].GetBool();
             if (s.HasMember("anchor") && s["anchor"].IsString()) sound.anchor = s["anchor"].GetString();
             if (s.HasMember("radius") && s["radius"].IsNumber()) sound.radius = s["radius"].GetFloat();
+            /* loaded now, with the map, not when it first plays (reading and converting a voice
+             * mid-scene held the frame up) */
+            AudioMaster::getInstance()->load(sound.sound);
             sequence.sounds.push_back(sound);
         }
     }
@@ -155,6 +158,7 @@ void Timeline::loadOne(const rapidjson::Value &json)
                 } else {
                     continue;
                 }
+                AudioMaster::getInstance()->load(noise.sound);
                 set.push_back(noise);
             }
         }

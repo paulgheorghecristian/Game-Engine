@@ -29,6 +29,10 @@ class Display
 
         const unsigned int getMaxFps() const;
         const float getFrameTimeInMs() const;
+        /* the screen's refreshes per second (60 where it cannot tell) */
+        int getRefreshRate() const;
+        /* each frame shown for this many of the screen's refreshes (0 = no vsync); false: refused */
+        bool setSwapInterval(int refreshes);
     protected:
     private:
         SDL_Window * window;

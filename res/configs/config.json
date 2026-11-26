@@ -4,7 +4,7 @@
 	      "height" : 1080,
 	      "title" : "Game engine",
 	      "isFullScreen" : true,
-	      "maxFps" : 55,
+	      "maxFps" : 0,
 	      "updateRate" : 60,
 	      "vSync" : true,
 	      "renderScale" : 1.0
@@ -16,7 +16,7 @@
 	   },
   "mouse" : {
                 "moveSpeed" : 1.0,
-                "rotationSpeed" : 0.0015,
+                "rotationSpeed" : 0.0025,
                 "warpMouse" : true,
                 "showMouse" : true
         }

@@ -94,6 +94,10 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
     maxFps = (configDocument["display"].HasMember("maxFps")) ? configDocument["display"]["maxFps"].GetInt() : 0;
     unsigned int updateRate = (configDocument["display"].HasMember("updateRate")) ?
                               configDocument["display"]["updateRate"].GetInt() : (maxFps > 0 ? maxFps : 60);
+    /* GE_MAX_FPS=n: another cap for this run (trying how one feels) */
+    if (const char *capEnv = std::getenv("GE_MAX_FPS")) {
+        maxFps = (unsigned int) std::lround(std::atof(capEnv));
+    }
     m_maxRenderFps = maxFps;
     vSync = (configDocument["display"].HasMember("vSync")) ? configDocument["display"]["vSync"].GetBool() : false;
     renderScale = (configDocument["display"].HasMember("renderScale")) ? configDocument["display"]["renderScale"].GetFloat() : 1.0f;
@@ -135,7 +139,20 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
     }
 
     /* this needs to be called first before doing anything with OpenGL */
+    m_configuredVSync = vSync;
     display = new Display (screenWidth, screenHeight, screenTitle, isFullScreen, updateRate, vSync);
+    /* with vsync, a cap near a whole share of the screen's refreshes is made exactly that (82 on 165 Hz:
+     * 82.5, every second refresh): a cap a little off it drifts against the screen, and every so often
+     * a frame waits a refresh more (a hitch every few seconds) */
+    if (vSync && m_maxRenderFps > 0.0) {
+        double refresh = display->getRefreshRate();
+        double share = std::max(1.0, std::round(refresh / m_maxRenderFps));
+        if (std::abs(refresh / share - m_maxRenderFps) <= m_maxRenderFps * 0.05) {
+            m_maxRenderFps = refresh / share;
+        }
+        printf("Frame cap %.2f fps (every %d of %d refreshes)\n", m_maxRenderFps, (int) share, (int) refresh);
+    }
+    m_configuredFps = m_maxRenderFps;
     aspectRatio = (float) display->getWidth() / (float) display->getHeight();
     inputManager.setWarpMouse (this->warpMouse);
     SDL_ShowCursor(this->showMouse);
@@ -433,6 +450,51 @@ void EngineCore::start() {
     double frame_counter = 0;
     unsigned int FPS = 0, UPS = 0;
     const bool printFps = std::getenv("GE_PRINT_FPS") != NULL;
+    /* GE_PACING=1: frame pacing, logged (nothing changed in how the game runs). Once a second: how
+     * evenly the frames started (shortest, longest, how many late), how many frames had no game tick
+     * or two (the ticks and the frames beat against each other). Every hiccup as it happens: a frame
+     * whose work (CPU) or drawing (GPU, timed by the GPU) took longer than a frame's time, or that
+     * started late, with when and what took the time.
+     * GE_PACING=present: also waits for each frame to be shown and counts the screen's refreshes each
+     * stayed up (the waiting changes the timing a little).
+     * GE_PACING=walk: walks forward by itself (W held), and how evenly the camera moved frame to frame
+     * (the shortest and longest step against the average: 1.00/1.00 is perfectly smooth).
+     * GE_PACING=look: turns round and looks up and down by itself (all of the place comes into view:
+     * a hiccup the first time something is seen) */
+    const char *pacingEnv = std::getenv("GE_PACING");
+    const std::string pacingMode = pacingEnv ? pacingEnv : "";
+    const bool printPacing = pacingEnv != NULL;
+    const bool pacingWalk = pacingMode == "walk";
+    const bool pacingLook = pacingMode == "look";
+    const bool pacingPresent = pacingMode == "present";
+    /* GE_PACING_FRAMES=dir: every frame saved there as it is shown (frame_00000.jpg...): a recording
+     * of the run to look through, frame by frame */
+    const char *pacingFramesDir = printPacing ? std::getenv("GE_PACING_FRAMES") : NULL;
+    std::vector<unsigned char> pacingPixels;
+    glm::vec3 lastDrawn(0.0f);
+    std::vector<float> steps;
+    const auto pacingStart = HighResolutionClock::now();
+    if (pacingWalk || pacingLook) {
+        inputManager.setScripted(true);    /* the keys and the mouse come from here */
+    }
+    /* the GPU's time for each frame: a timer query per frame, read a few frames later (no waiting) */
+    const int GPU_QUERIES = 4;
+    GLuint gpuQueries[GPU_QUERIES] = {0};
+    bool gpuQueryUsed[GPU_QUERIES] = {false};
+    double gpuQueryAt[GPU_QUERIES] = {0.0};
+    unsigned long pacingFrame = 0;
+    if (printPacing) {
+        glGenQueries(GPU_QUERIES, gpuQueries);
+    }
+    auto lastFrameStart = HighResolutionClock::now();
+    double pacingMin = 1e9, pacingMax = 0.0;
+    int pacingLong = 0, pacingNoTick = 0, pacingTwoTicks = 0;
+    /* and how many of the screen's refreshes each frame stayed up: in this mode each frame waits for
+     * its swap to finish (glFinish), so the time between finished swaps is the time it was shown */
+    const double refreshMs = 1000.0 / std::max(1, display->getRefreshRate());
+    auto lastShownAt = HighResolutionClock::now();
+    bool shownBefore = false;
+    int shownFor[6] = {0};
 
     /* the game starts with the GUI closed (F1 opens it); driven by the
      * timeline editor it leaves the mouse alone */
@@ -450,6 +512,9 @@ void EngineCore::start() {
 
     isRunning = true;
     auto start_time = HighResolutionClock::now();
+    /* with a frame cap: when the next frame is due (a fixed timeline, a budget apart) */
+    auto due = start_time;
+    bool onSchedule = false;
 
     while (isRunning && !Display::isWindowClosed) {
         auto frameStart = HighResolutionClock::now();
@@ -461,6 +526,26 @@ void EngineCore::start() {
                        RenderingMaster::getInstance()->getLights().size());
                 fflush(stdout);
             }
+            if (printPacing) {
+                if (!steps.empty()) {
+                    float sum = 0.0f, low = 1e9f, high = 0.0f;
+                    for (float step : steps) { sum += step; low = std::min(low, step); high = std::max(high, step); }
+                    float mean = sum / steps.size();
+                    if (mean > 1e-4f) printf("WALK step min/avg=%.2f max/avg=%.2f (avg %.3f units)\n", low / mean, high / mean, mean);
+                    steps.clear();
+                }
+                printf("PACING frames=%u ticks=%u started every %.2f-%.2fms, late(>1.25x)=%d noTick=%d twoTicks=%d",
+                       FPS, UPS, pacingMin, pacingMax, pacingLong, pacingNoTick, pacingTwoTicks);
+                if (pacingPresent) {
+                    printf(" | shown for 0/1/2/3/4/5+ refreshes: %d/%d/%d/%d/%d/%d",
+                           shownFor[0], shownFor[1], shownFor[2], shownFor[3], shownFor[4], shownFor[5]);
+                }
+                printf("\n");
+                for (int &count : shownFor) count = 0;
+                fflush(stdout);
+                pacingMin = 1e9; pacingMax = 0.0;
+                pacingLong = pacingNoTick = pacingTwoTicks = 0;
+            }
             FPS = 0;
             UPS = 0;
             frame_counter -= 1000;
@@ -468,14 +553,22 @@ void EngineCore::start() {
             secondFraction = 0;
         }
 
-        double passed_time = std::chrono::duration<double, std::milli>(frameStart - start_time).count();
-        start_time = frameStart;
+        /* the game's clock moves by the time between frames. Capped and on schedule, each frame is shown
+         * a budget after the one before (the screen's refreshes), even when it starts a millisecond or two
+         * late or early (a sleep running long, a swap waiting): moved by the measured start instead,
+         * the camera stepped 10-20% short or long on those frames, a judder while walking with every
+         * frame on time. So: the time it was due */
+        auto frameClock = onSchedule ? due : frameStart;
+        double passed_time = std::chrono::duration<double, std::milli>(frameClock - start_time).count();
+        start_time = frameClock;
 
         unprocessed_time += passed_time;
         frame_counter += passed_time;
         secondFraction += (float) (passed_time / 1000.0);
 
+        PT_FromHere("pollEvents");
         inputManager.pollEvents(display);
+        PT_ToHere("pollEvents");
         applyMouseLook();
 
         int updates = 0;
@@ -491,6 +584,22 @@ void EngineCore::start() {
             unprocessed_time -= frame_time;
             updates++;
             UPS++;
+        }
+        if (printPacing) {
+            /* the clock above is the schedule's; this is when the frame really started */
+            double startedMs = std::chrono::duration<double, std::milli>(frameStart - lastFrameStart).count();
+            lastFrameStart = frameStart;
+            double budget = m_maxRenderFps > 0 ? 1000.0 / m_maxRenderFps : frame_time;
+            pacingMin = std::min(pacingMin, startedMs);
+            pacingMax = std::max(pacingMax, startedMs);
+            pacingLong += startedMs > budget * 1.25;
+            if (pacingFrame > 2 && startedMs > budget * 1.4) {
+                printf("LATE start %.1fms after the last (a frame is %.1fms), %.2fs in\n", startedMs, budget,
+                       std::chrono::duration<double>(frameStart - pacingStart).count());
+                fflush(stdout);
+            }
+            pacingNoTick += updates == 0;
+            pacingTwoTicks += updates >= 2;
         }
         if (updates == maxUpdatesPerFrame && unprocessed_time >= frame_time) {
             unprocessed_time = 0; /* drop the backlog instead of falling further behind */
@@ -535,14 +644,95 @@ void EngineCore::start() {
             }
         }
 
+        if (m_pacingModeChanged) {
+            m_pacingModeChanged = false;
+            applyPacingMode();
+            onSchedule = false;
+        }
+        int gpuQuery = (int) (pacingFrame % GPU_QUERIES);
+        if (printPacing) {
+            /* the oldest query's answer (from GPU_QUERIES frames ago), then reuse it for this frame */
+            if (gpuQueryUsed[gpuQuery]) {
+                GLuint64 ns = 0;
+                PT_FromHere("gpuTimerRead");
+                glGetQueryObjectui64v(gpuQueries[gpuQuery], GL_QUERY_RESULT, &ns);
+                PT_ToHere("gpuTimerRead");
+                double gpuMs = ns / 1e6;
+                double budget = m_maxRenderFps > 0 ? 1000.0 / m_maxRenderFps : frame_time;
+                if (pacingFrame > GPU_QUERIES + 2 && gpuMs > budget * 0.9) {
+                    printf("GPU frame %.1fms (a frame is %.1fms), %.2fs in\n", gpuMs, budget, gpuQueryAt[gpuQuery]);
+                    fflush(stdout);
+                }
+            }
+            gpuQueryAt[gpuQuery] = std::chrono::duration<double>(frameStart - pacingStart).count();
+            glBeginQuery(GL_TIME_ELAPSED, gpuQueries[gpuQuery]);
+        }
+        if (pacingFramesDir != NULL && m_captureBeforeSwap == NULL) {
+            pacingPixels.resize((size_t) display->getWidth() * display->getHeight() * 4);
+            m_captureBeforeSwap = &pacingPixels;
+        }
         PT_FromHere ("render");
         render ((float) (unprocessed_time / frame_time));
         PT_ToHere ("render");
+        if (pacingFramesDir != NULL && m_captureBeforeSwap == &pacingPixels) {
+            m_captureBeforeSwap = NULL;
+            char name[64];
+            std::snprintf(name, sizeof(name), "/frame_%05lu.jpg", pacingFrame);
+            stbi_flip_vertically_on_write(1);
+            stbi_write_jpg((std::string(pacingFramesDir) + name).c_str(), display->getWidth(), display->getHeight(), 4,
+                           pacingPixels.data(), 88);
+            stbi_flip_vertically_on_write(0);
+        }
+        if (printPacing) {
+            glEndQuery(GL_TIME_ELAPSED);
+            gpuQueryUsed[gpuQuery] = true;
+            pacingFrame++;
+        }
         if (remoteFrame) {
             m_captureBeforeSwap = NULL;
             m_remote.sendFrame(display->getWidth(), display->getHeight(), m_remotePixels.data());
         }
         FPS++;
+        if (m_waitEachFrame) {
+            glFinish();
+        }
+        if (printPacing) {
+            /* a frame whose work alone ran long: what took the time */
+            double workMs = std::chrono::duration<double, std::milli>(HighResolutionClock::now() - frameStart).count();
+            double budget = m_maxRenderFps > 0 ? 1000.0 / m_maxRenderFps : frame_time;
+            if (workMs > budget * 1.25) {
+                printf("LONG frame %.1fms (%d ticks), %.2fs in:\n", workMs, updates,
+                       std::chrono::duration<double>(frameStart - pacingStart).count());
+                ProfilingTimer::printFrame(1.0);
+                fflush(stdout);
+            }
+            ProfilingTimer::nextFrame();
+        }
+        if (pacingLook) {
+            /* as a player looking round with the mouse: swinging 70 degrees each way and back (what is
+             * ahead goes to each edge of the screen and past it), a little up and down. By the frame,
+             * not the clock: the same sweep however slow the frames (saving them) */
+            const double SWING = glm::radians(70.0), TILT = glm::radians(8.0), FRAMES = 420.0;
+            double a = glm::two_pi<double>() * pacingFrame / FRAMES, b = glm::two_pi<double>() * (pacingFrame + 1) / FRAMES;
+            float yaw = (float) (SWING * (std::sin(b) - std::sin(a)));
+            float pitch = (float) (TILT * (std::sin(2.0 * b) - std::sin(2.0 * a)));
+            inputManager.injectMouseDelta(glm::vec2(-yaw, -pitch) / this->mouseRotationSpeed);
+        }
+        if (pacingWalk) {
+            inputManager.injectKey(SDLK_w, true);
+            if (FPS > 1) steps.push_back(glm::length(m_drawnCameraPosition - lastDrawn));
+            lastDrawn = m_drawnCameraPosition;
+        }
+        if (pacingPresent) {
+            glFinish();
+            auto shownAt = HighResolutionClock::now();
+            if (shownBefore) {
+                double ms = std::chrono::duration<double, std::milli>(shownAt - lastShownAt).count();
+                shownFor[std::min(5, std::max(0, (int) std::lround(ms / refreshMs)))]++;
+            }
+            lastShownAt = shownAt;
+            shownBefore = true;
+        }
 
         if (m_maxRenderFps > 0) {
             /* frames on a fixed timeline (each one due a budget after the one before), not a budget
@@ -551,10 +741,10 @@ void EngineCore::start() {
              * a load): start the timeline again from now */
             auto budget = std::chrono::duration_cast<HighResolutionClock::duration>(
                 std::chrono::duration<double, std::milli>(1000.0 / m_maxRenderFps));
-            static auto due = HighResolutionClock::now();
             due += budget;
             auto now = HighResolutionClock::now();
-            if (now > due + budget) {
+            onSchedule = now <= due + budget;
+            if (!onSchedule) {
                 due = now;
             } else if (due > now) {
                 std::this_thread::sleep_until(due);
@@ -630,6 +820,7 @@ void EngineCore::capturePreviousState() {
         }
     }
     m_previousTick.cameraPosition = RenderingMaster::getInstance()->getCamera()->getPosition();
+    m_previousTick.cameraRoll = RenderingMaster::getInstance()->getCamera()->getZRot();
     m_previousTick.valid = true;
 }
 
@@ -638,6 +829,7 @@ void EngineCore::beginInterpolation(float alpha) {
     m_stashedLights.clear();
     Camera *camera = RenderingMaster::getInstance()->getCamera();
     m_tickCameraPosition = camera->getPosition();
+    m_tickCameraRoll = camera->getZRot();
     if (!m_previousTick.valid) {
         return;
     }
@@ -658,7 +850,10 @@ void EngineCore::beginInterpolation(float alpha) {
         }
     }
     camera->setPosition(glm::mix(m_previousTick.cameraPosition, m_tickCameraPosition, alpha));
+    /* the walking sway's roll too: set once a tick, it stepped on the frames with two ticks */
+    camera->setZRot(glm::mix(m_previousTick.cameraRoll, m_tickCameraRoll, alpha));
     RenderingMaster::getInstance()->waking().applyCamera(camera, RenderingMaster::getInstance()->getTime());
+    m_drawnCameraPosition = camera->getPosition();
 
     /* billboards face the camera as it is in this frame */
     for (Entity *entity : entities) {
@@ -689,6 +884,40 @@ void EngineCore::endInterpolation() {
     /* the lights taken out during this frame (a fire gone out) can go now */
     RenderingMaster::getInstance()->deleteRemovedLights();
     RenderingMaster::getInstance()->getCamera()->setPosition(m_tickCameraPosition);
+    RenderingMaster::getInstance()->getCamera()->setZRot(m_tickCameraRoll);
+}
+
+static const char *PACING_MODES[] = {
+    "the config: cap on the engine's clock, vsync",
+    "cap on the engine's clock, no vsync",
+    "vsync, no cap",
+    "cap by the driver: every Nth refresh",
+    "cap on the engine's clock, vsync, each frame waited for",
+    "no vsync, no cap (as fast as it can)",
+};
+
+void EngineCore::applyPacingMode() {
+    const int count = sizeof(PACING_MODES) / sizeof(PACING_MODES[0]);
+    m_pacingMode %= count;
+    Display *display = RenderingMaster::getInstance()->getDisplay();
+    int refresh = display->getRefreshRate();
+    double cap = m_configuredFps;
+    int interval = m_configuredVSync ? 1 : 0;
+    m_maxRenderFps = m_configuredFps;
+    m_waitEachFrame = false;
+    switch (m_pacingMode) {
+        case 1: interval = 0; break;
+        case 2: interval = 1; m_maxRenderFps = 0; break;
+        case 3: interval = cap > 0 ? std::max(1, (int) std::lround(refresh / cap)) : 1; m_maxRenderFps = 0; break;
+        case 4: interval = 1; m_waitEachFrame = true; break;
+        case 5: interval = 0; m_maxRenderFps = 0; break;
+        default: break;
+    }
+    bool ok = display->setSwapInterval(interval);
+    printf("Frame pacing %d: %s (swap interval %d%s, cap %.2f)\n", m_pacingMode, PACING_MODES[m_pacingMode],
+           interval, ok ? "" : " REFUSED", m_maxRenderFps);
+    fflush(stdout);
+    m_pacingLabelUntil = RenderingMaster::getInstance()->getTime() + 3.0;
 }
 
 void EngineCore::stop() {
@@ -722,6 +951,10 @@ void EngineCore::input() {
 
     if (inputManager.getKeyDown(SDLK_F5)) {
         saveMap(m_savePath);
+    }
+    if (inputManager.getKeyDown(SDLK_F7)) {
+        m_pacingMode++;                             /* F7: the next way of pacing frames (by eye) */
+        m_pacingModeChanged = true;
     }
     if (inputManager.getKeyDown(SDLK_F9)) {
         reloadMap(m_savePath);
@@ -919,7 +1152,6 @@ void EngineCore::render(float alpha) {
     PT_ToHere("renderScene");
     /*end generate deferred shading buffers*/
 
-    RenderingMaster::getInstance()->renderLensSurroundings(entities);
 
     if (RenderingMaster::getInstance()->water != NULL) {
         PT_FromHere("waterReflection");
@@ -1119,6 +1351,16 @@ void EngineCore::render(float alpha) {
         ImGui::End();
     }
     RenderingMaster::getInstance()->renderIMGUI();
+    }
+    if (!cleanShots && m_playMode && RenderingMaster::getInstance()->getTime() < m_pacingLabelUntil) {
+        /* F7 while playing: which way frames are paced now */
+        RenderingMaster::getInstance()->startIMGUIFrame();
+        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, 8.0f), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
+        ImGui::Begin("Frame pacing", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+                                              ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings);
+        ImGui::Text("Frame pacing %d: %s", m_pacingMode, PACING_MODES[m_pacingMode]);
+        ImGui::End();
+        RenderingMaster::getInstance()->renderIMGUI();
     }
 
     if (m_captureBeforeSwap != NULL) {
@@ -1458,9 +1700,19 @@ void EngineCore::loadMapFeatures(rapidjson::Document &gameDocument) {
             rm->addParticleEmitter(footsteps.dust);
         }
     }
+    /* the step sounds loaded now, not on the first steps (each variant read and converted the first
+     * time it played: a hitch on the first few steps) */
+    for (int variant = 1; variant <= Player::footsteps().variants; variant++) {
+        AudioMaster::getInstance()->load(Player::footsteps().sound + "_" + std::to_string(variant));
+    }
 
     if (gameDocument.HasMember("BlackHoles") && gameDocument["BlackHoles"].IsArray()) {
         for (auto const &hole : gameDocument["BlackHoles"].GetArray()) {
+            /* in the sky only: a hole placed on the ground (no "sky": true) is no longer drawn */
+            if (!hole.IsObject() || !hole.HasMember("sky") || !hole["sky"].IsBool() || !hole["sky"].GetBool()) {
+                std::cout << "BlackHoles: an entry without \"sky\": true skipped (black holes are in the sky only)" << std::endl;
+                continue;
+            }
             rm->blackHoles.push_back(new BlackHole(hole));
         }
     }

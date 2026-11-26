@@ -138,6 +138,18 @@ const unsigned int Display::getMaxFps() const {
     return MAX_FPS;
 }
 
+bool Display::setSwapInterval(int refreshes) {
+    return SDL_GL_SetSwapInterval(refreshes) == 0;
+}
+
+int Display::getRefreshRate() const {
+    SDL_DisplayMode mode;
+    if (SDL_GetWindowDisplayMode(window, &mode) == 0 && mode.refresh_rate > 0) {
+        return mode.refresh_rate;
+    }
+    return 60;
+}
+
 const float Display::getFrameTimeInMs() const {
     return FRAME_TIME_IN_MS;
 }

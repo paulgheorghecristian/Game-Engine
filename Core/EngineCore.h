@@ -55,14 +55,26 @@ class EngineCore
         struct {
             bool valid = false;
             glm::vec3 cameraPosition;
+            float cameraRoll = 0.0f;
             std::unordered_map<Entity *, Transform> entities;
             std::unordered_map<Light *, Transform> lights;
         } m_previousTick;
         glm::vec3 m_tickCameraPosition;
+        float m_tickCameraRoll = 0.0f;
+        glm::vec3 m_drawnCameraPosition = glm::vec3(0.0f);   /* where the last frame was drawn from */
         std::vector<std::pair<Entity *, Transform>> m_stashedEntities;
         /* each animated light's tick transform, and the one it was given for the frame */
         std::vector<std::tuple<Light *, Transform, Transform>> m_stashedLights;
-        unsigned int m_maxRenderFps = 0; /* 0: unlimited (vsync still applies) */
+        double m_maxRenderFps = 0.0;     /* 0: unlimited (vsync still applies) */
+        /* F7 (testing frame pacing by eye): how frames are paced, cycled through PACING_MODES; the
+         * config's cap and vsync are mode 0 */
+        double m_configuredFps = 0.0;
+        bool m_configuredVSync = true;
+        int m_pacingMode = 0;
+        bool m_pacingModeChanged = false;
+        bool m_waitEachFrame = false;      /* glFinish after each frame: no frames queued */
+        double m_pacingLabelUntil = 0.0;   /* seconds (render time): the mode's name on screen until then */
+        void applyPacingMode();
         std::vector<Entity *> &getEntities();
         virtual ~EngineCore();
 

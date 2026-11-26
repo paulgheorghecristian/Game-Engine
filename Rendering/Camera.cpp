@@ -79,6 +79,7 @@ void Camera::rotateZ(float dz) {
 }
 
 void Camera::setZRot(float dz) {
+    m_zRot = dz;
     m_localZRot = glm::angleAxis(-dz, glm::vec3(0,0,1));
 
     forwardNeedsUpdate = true;

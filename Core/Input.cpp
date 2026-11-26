@@ -105,7 +105,15 @@ void Input::pollEvents(Display *display) {
                 if (m_scripted) break;
                 mousePosition = glm::vec2(event.motion.x, event.motion.y);
                 correctedMousePosition = glm::vec2(mousePosition.x, display->getHeight() - mousePosition.y);
-                delta = glm::vec2(display->getWidth()/2.0f, display->getHeight()/2.0f) - mousePosition;
+                if (warpMouse) {
+                    /* looking round: SDL's relative mode, the mouse's own movement (every event of the
+                     * frame added up). It used to warp the cursor back to the middle each frame and
+                     * read the last event's position against the middle: on X11 the warp lands late,
+                     * so frames read stale positions or none, and turning came out uneven */
+                    delta += glm::vec2(-event.motion.xrel, -event.motion.yrel);
+                } else {
+                    delta = glm::vec2(display->getWidth()/2.0f, display->getHeight()/2.0f) - mousePosition;
+                }
                 delta2 = glm::vec2(event.motion.xrel, event.motion.yrel);
                 // if (!warpMouse) {
                 //     delta = glm::vec2(0,0);
@@ -125,9 +133,6 @@ void Input::pollEvents(Display *display) {
         return;
     }
 
-    if (warpMouse) {
-        SDL_WarpMouseInWindow(display->getWindow(), display->getWidth()/2, display->getHeight()/2);
-    }
 }
 
 void Input::setScripted(bool scripted) {
@@ -160,6 +165,10 @@ void Input::applyKey(int key, bool held) {
 
 void Input::setWarpMouse(bool warpMouse) {
     this->warpMouse = warpMouse;
+    /* looking round with the mouse: relative mode (the cursor hidden and held; raw movement) */
+    if (SDL_WasInit(SDL_INIT_VIDEO)) {
+        SDL_SetRelativeMouseMode(warpMouse ? SDL_TRUE : SDL_FALSE);
+    }
 }
 
 bool Input::getWarpMouse() {
