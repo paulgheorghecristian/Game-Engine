@@ -134,9 +134,18 @@ void Transform::interpolateWith(const Transform &other, float ratio) {
 
     ratio = 1-ratio;
 
-    this->setPosition(glm::mix(this->getPosition(), other.getPosition(), ratio));
-    this->setScale(glm::mix(this->getScale(), other.getScale(), ratio));
-    this->setRotation(glm::slerp(this->getRotation(), other.getRotation(), ratio));
+    /* each part only where the two differ: blending two equal values need not give that value back
+     * to the last bit (glm 1.0's slerp does not), and a thing at rest then counted as moved every
+     * frame: every shadow map it is in redrawn each frame (a map of 15 lights fell to 18 fps) */
+    if (this->getPosition() != other.getPosition()) {
+        this->setPosition(glm::mix(this->getPosition(), other.getPosition(), ratio));
+    }
+    if (this->getScale() != other.getScale()) {
+        this->setScale(glm::mix(this->getScale(), other.getScale(), ratio));
+    }
+    if (this->getRotation() != other.getRotation()) {
+        this->setRotation(glm::slerp(this->getRotation(), other.getRotation(), ratio));
+    }
 
     modelMatrixNeedsRefresh = true;
 }

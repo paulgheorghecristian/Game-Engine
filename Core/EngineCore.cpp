@@ -467,6 +467,8 @@ void EngineCore::start() {
     const bool pacingWalk = pacingMode == "walk";
     const bool pacingLook = pacingMode == "look";
     const bool pacingPresent = pacingMode == "present";
+    /* (GE_BENCH_SYNC=1 here too: the logged phases include their GPU time) */
+    if (printPacing && std::getenv("GE_BENCH_SYNC") != NULL) ProfilingTimer::syncGPU = true;
     /* GE_PACING_FRAMES=dir: every frame saved there as it is shown (frame_00000.jpg...): a recording
      * of the run to look through, frame by frame */
     const char *pacingFramesDir = printPacing ? std::getenv("GE_PACING_FRAMES") : NULL;
