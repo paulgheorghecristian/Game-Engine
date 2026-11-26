@@ -10,12 +10,13 @@
 #include "rapidjson/document.h"
 
 class Shader;
-class PointLight;
-class LensSurroundings;
 
 /*
- * A black hole that bends light: drawn as a post-process on the composited
- * (HDR) image, before bloom and tone mapping.
+ * A black hole in the sky that bends light: drawn as a post-process on the composited
+ * (HDR) image, before bloom and tone mapping. In the sky only, like the moon: everything
+ * is in front of it, so all it bends is the sky behind it, which is drawn for it on its
+ * own. (Holes placed in the world were tried and taken out: bending the land from the
+ * screen's flat picture tore hills and broke up at the screen's edge.)
  *
  * For every pixel whose view ray passes through the hole's sphere of
  * influence, the ray is marched along a light-like Schwarzschild geodesic
@@ -23,17 +24,16 @@ class LensSurroundings;
  * rays that fall below the event horizon are black, rays crossing the
  * accretion disk pick up its light (hot inner edge, Doppler-brightened on the
  * side moving towards the viewer, turbulence orbiting faster further in), and
- * rays that escape show the scene behind the hole where they leave (or the
- * sky). Geometry in front of the hole is left untouched. An optional point
- * light lets the disk light up its surroundings.
+ * rays that escape show the sky behind the hole where they leave. Geometry in
+ * front of the hole (all the landscape) is left untouched.
  *
- * Configured by entries of a map's "BlackHoles" array (all optional except
- * position):
- *   position [x,y,z], radius (event horizon, world units), lensing (bending
- *   strength, 1 = physical), influence (lensing reach, in radii),
+ * Configured by entries of a map's "BlackHoles" array, each with "sky": true (an entry
+ * without it is skipped), "direction" [x,y,z] and "angularRadius" (horizon, radians): it
+ * stays at the same place in the sky however the camera moves. All else optional:
+ *   lensing (bending strength, 1 = physical), influence (lensing reach, in radii),
  *   diskInner / diskOuter (in radii), diskColor [r,g,b], diskBrightness,
  *   diskOpacity (0..1), diskSpeed (orbit speed), diskTilt [pitch, roll]
- *   (degrees), glow (strength of the light it casts, 0 = none), colorShift
+ *   (degrees), colorShift
  *   (0..1: how much the Doppler and gravitational shifts change the disk's
  *   color, not only its brightness: bluer where it comes towards the viewer,
  *   redder where it recedes and near the horizon), horizon (the true event
@@ -47,12 +47,12 @@ class LensSurroundings;
  *   older maps were made with), the disk's light shifted exactly as by gas in circular orbits round
  *   a Schwarzschild hole, g = sqrt(1 - 3M/r) / (1 - Omega b_z), and its colour and brightness those
  *   of a blackbody at g times its temperature; then diskColor and colorShift are not used) and
- *   diskTemperature (kelvin, its hottest, for physical)
+ *   diskTemperature (kelvin, its hottest, for physical), diskSmoothness (0..1: from turbulent streaks
+ *   to smooth soft bands), photonRing (the bright ring hugging the shadow, physical: its brightness,
+ *   1 if not given, 0 = none), photonRingWidth (its width in pixels, 3 if not given) and bloom (a soft
+ *   glow round its own bright light, wider the brighter, as a lens spreads it; 0 if not given = none)
  *
- * "sky": true makes it a sky object like the moon: placed by "direction"
- * [x,y,z] and "angularRadius" (horizon, radians) instead of a position and a
- * radius, it stays at the same place in the sky however the camera moves
- * (no parallax; the landscape is always in front of it). "moonStream" > 0
+ * "moonStream" > 0
  * draws a stream of moon dust torn off the moon spiralling into its disk.
  * The clouds pass in front of a sky black hole (they are not lensed), and
  * "cloudClear" (0..1) thins them out around it so it is never buried.
@@ -61,7 +61,8 @@ class BlackHole
 {
     public:
         explicit BlackHole(const rapidjson::Value &json);
-        explicit BlackHole(const glm::vec3 &position);
+        /* one in the sky in that direction (the editor's "add") */
+        explicit BlackHole(const glm::vec3 &towards);
         ~BlackHole();
 
         BlackHole(const BlackHole &) = delete;
@@ -69,15 +70,12 @@ class BlackHole
 
         /* draws into the bound framebuffer; sourceTexture is a copy of it.
          * lensSky (sky black holes): the sky behind it without clouds, as seen
-         * by lensSkyViewProjection(); everything it bends comes from there.
-         * surroundings (a hole in the world): the land around the camera, for the rays it bends
-         * off the screen (none: they show the sky there) */
+         * by lensSkyViewProjection(); everything it bends comes from there */
         void render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height,
-                    GLuint lensSky = 0, const LensSurroundings *surroundings = nullptr);
+                    GLuint lensSky);
         /* the same, seen by another camera (the water's mirrored one) */
         void render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height,
-                    GLuint lensSky, const glm::mat4 &view, const glm::vec3 &eye,
-                    const LensSurroundings *surroundings = nullptr);
+                    GLuint lensSky, const glm::mat4 &view, const glm::vec3 &eye);
         /* editor controls (inside an ImGui window); false when "Delete" was pressed */
         bool renderGUI(int index);
         void save(rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) const;
@@ -93,14 +91,17 @@ class BlackHole
         float diskSpeed = 1.0f;
         float colorShift = 0.7f;   /* Doppler / gravitational color shift (0 = none, 1 = physical) */
         glm::vec2 diskTilt = glm::vec2(12.0f, 6.0f);
-        float glow = 1.0f;
         float horizon = 1.0f;      /* the true event horizon, as a fraction of radius (1: the radius is the horizon) */
         float coreGlow = 0.0f;     /* the point of light where it feeds (0: none) */
         float coreSize = 0.3f;     /* its size, in radii */
         bool physical = false;     /* the disk's light shifted exactly and blackbody-coloured (see above) */
         float diskTemperature = 4800.0f;   /* kelvin, its hottest (physical) */
+        float diskSmoothness = 0.0f;   /* 0: turbulent streaks; 1: smooth soft bands, a settled disk */
+        float photonRing = 1.0f;       /* the bright ring hugging the shadow: its brightness (physical; 0 = none) */
+        float photonRingWidth = 3.0f;  /* and its width, in pixels */
+        float bloom = 0.0f;            /* its own light's glow, as a lens spreads it (BlackHoleGlow; 0 = none) */
 
-        bool sky = false;
+        bool sky = true;       /* always: a hole on the ground (a position in the world) is no longer an option */
         glm::vec3 direction = glm::vec3(0.0f, 0.5f, -1.0f);
         float angularRadius = 0.045f;
         float moonStream = 0.0f;
@@ -167,8 +168,6 @@ class BlackHole
         bool skyMayBeVisible(const glm::vec3 &forward, const glm::mat4 &projection) const;
 
     private:
-        void updateLight();
-        PointLight *m_light = nullptr;    /* owned by RenderingMaster's light list */
         static Shader &getShader(bool physical = false);
         /* the colour and brightness of a blackbody against its temperature (a 256 x 1 texture over
          * log T, 300..60000 K, linear RGB; made once) */

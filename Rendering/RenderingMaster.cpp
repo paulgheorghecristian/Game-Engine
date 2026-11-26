@@ -17,7 +17,6 @@
 #include "ParticleEmitter.h"
 #include "GrassRenderer.h"
 #include "BlackHole.h"
-#include "LensSurroundings.h"
 #include "Material.h"
 #include "WaterRenderer.h"
 
@@ -258,7 +257,6 @@ RenderingMaster::~RenderingMaster()
     delete m_mirrorLensCopyFB;
     if (m_farDepthTexture != 0) glDeleteTextures(1, &m_farDepthTexture);
     delete m_lensSkyFB;
-    delete m_lensSurroundings;
     for (ParticleEmitter *emitter : particleEmitters) {
         delete emitter;
     }
@@ -1019,6 +1017,8 @@ void RenderingMaster::renderBlackHoles(FrameBuffer &target)
         m_lensCopyFB = new FrameBuffer(renderWidth, renderHeight, 1, false, GL_RGBA16F);
     }
     GLuint sky = m_environment.pbr ? m_skyCube : 0;
+    bool glow = BlackHoleGlow::wanted(blackHoles);
+    if (glow) m_blackHoleGlow.begin(renderWidth, renderHeight);
     for (BlackHole *hole : blackHoles) {
         GLuint lensSky = 0;
         if (!hole->drawsAnything()) {
@@ -1047,6 +1047,7 @@ void RenderingMaster::renderBlackHoles(FrameBuffer &target)
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, target.getFrameBufferObject());
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        if (glow) m_blackHoleGlow.bind(target);   /* (and its light's glow beside it) */
         glViewport(0, 0, renderWidth, renderHeight);
         glDisable(GL_DEPTH_TEST);
         glDepthMask(GL_FALSE);
@@ -1054,10 +1055,10 @@ void RenderingMaster::renderBlackHoles(FrameBuffer &target)
         PT_ToHere("blackHoles.copy");
         PT_FromHere("blackHoles.march");
         hole->render(m_lensCopyFB->getRenderTargets()[0], depthTexture->getTextureId(), sky,
-                     renderWidth, renderHeight, lensSky,
-                     m_lensSurroundingsDrawn && !hole->sky ? m_lensSurroundings : nullptr);
+                     renderWidth, renderHeight, lensSky);
         PT_ToHere("blackHoles.march");
     }
+    if (glow) m_blackHoleGlow.finish(target);
     PT_FromHere("blackHoles.inFront");
     /* (drawn over everything: not left to whatever the holes above set, as none may have drawn) */
     glDisable(GL_DEPTH_TEST);
@@ -1178,24 +1179,6 @@ void RenderingMaster::renderBlackHolesMirrored(FrameBuffer &target, const glm::m
     glViewport(0, 0, w, h);
 }
 
-void RenderingMaster::renderLensSurroundings(const std::vector<Entity *> &entities)
-{
-    m_lensSurroundingsDrawn = false;
-    bool worldHole = false;
-    for (BlackHole *hole : blackHoles) {
-        worldHole |= !hole->sky;
-    }
-    if (!worldHole) {
-        return;
-    }
-    if (m_lensSurroundings == nullptr) {
-        m_lensSurroundings = new LensSurroundings();
-    }
-    PT_FromHere("lensSurroundings");
-    m_lensSurroundingsDrawn = m_lensSurroundings->render(entities, blackHoles);
-    PT_ToHere("lensSurroundings");
-}
-
 /* the sky behind a sky black hole: stars, moon and the moon stream, without
  * the clouds (they are in front of it), sharper than the screen around it */
 void RenderingMaster::renderLensSky(const BlackHole &hole)
@@ -1234,8 +1217,8 @@ void RenderingMaster::renderLensSky(const BlackHole &hole)
 void RenderingMaster::blackHoleGUI()
 {
     ImGui::Begin("Black holes");
-    if (ImGui::Button("Add in front of me")) {
-        BlackHole *hole = new BlackHole(camera->getPosition() + camera->getForward() * 600.0f);
+    if (ImGui::Button("Add in the sky where I look")) {
+        BlackHole *hole = new BlackHole(camera->getForward());
         blackHoles.push_back(hole);
     }
     for (size_t i = 0; i < blackHoles.size(); i++) {

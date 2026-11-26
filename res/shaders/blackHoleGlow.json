@@ -1,0 +1,7 @@
+{
+    "VSPath" : "res/shaders/bufferCombinationShader.vs",
+    "FSPath" : "res/shaders/blackHoleGlow.fs",
+    "Uniforms" : {
+                    "glowSampler" : "INT"
+                 }
+}

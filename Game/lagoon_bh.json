@@ -180,34 +180,6 @@
    "moonStream": 1.0,
    "cloudClear": 0.7,
    "physical": true
-  },
-  {
-   "position": [
-    127.947,
-    299.815,
-    402.266
-   ],
-   "radius": 30,
-   "lensing": 0.49,
-   "influence": 13.0,
-   "diskInner": 4.05,
-   "diskOuter": 9.8,
-   "diskColor": [
-    1.0,
-    0.6196,
-    0.302
-   ],
-   "diskBrightness": 5.23,
-   "diskOpacity": 0.64,
-   "diskSpeed": 2.34,
-   "colorShift": 0.75,
-   "diskTilt": [
-    -29.5,
-    -26.5
-   ],
-   "glow": 2.24,
-   "physical": false,
-   "diskTemperature": 7846
   }
  ],
  "Entities": [

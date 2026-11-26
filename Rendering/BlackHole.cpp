@@ -7,8 +7,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Camera.h"
-#include "LensSurroundings.h"
-#include "PointLight.h"
 #include "RenderingMaster.h"
 #include "Shader.h"
 
@@ -42,13 +40,16 @@ BlackHole::BlackHole(const rapidjson::Value &json) :
     diskSpeed = jsonFloat(json, "diskSpeed", diskSpeed);
     colorShift = jsonFloat(json, "colorShift", colorShift);
     diskTilt = jsonVec2(json, "diskTilt", diskTilt);
-    glow = jsonFloat(json, "glow", glow);
     horizon = glm::clamp(jsonFloat(json, "horizon", horizon), 1e-5f, 1.0f);
     coreGlow = std::max(0.0f, jsonFloat(json, "coreGlow", coreGlow));
     coreSize = std::max(0.01f, jsonFloat(json, "coreSize", coreSize));
     physical = json.HasMember("physical") && json["physical"].IsBool() && json["physical"].GetBool();
     diskTemperature = glm::clamp(jsonFloat(json, "diskTemperature", diskTemperature), 1000.0f, 40000.0f);
-    sky = json.HasMember("sky") && json["sky"].IsBool() && json["sky"].GetBool();
+    diskSmoothness = glm::clamp(jsonFloat(json, "diskSmoothness", diskSmoothness), 0.0f, 1.0f);
+    photonRing = std::max(0.0f, jsonFloat(json, "photonRing", photonRing));
+    photonRingWidth = glm::clamp(jsonFloat(json, "photonRingWidth", photonRingWidth), 0.5f, 10.0f);
+    bloom = std::max(0.0f, jsonFloat(json, "bloom", bloom));
+    sky = true;     /* black holes are in the sky (the map loader skips entries that are not) */
     direction = jsonVec3(json, "direction", direction);
     angularRadius = jsonFloat(json, "angularRadius", angularRadius);
     moonStream = jsonFloat(json, "moonStream", moonStream);
@@ -65,44 +66,17 @@ BlackHole::BlackHole(const rapidjson::Value &json) :
         playing = true;
     }
     collapseSite = jsonVec2(json, "collapseSite", collapseSite);
-    updateLight();
 }
 
-BlackHole::BlackHole(const glm::vec3 &position) : position(position)
+BlackHole::BlackHole(const glm::vec3 &towards) : position(glm::vec3(0.0f))
 {
-    updateLight();
+    /* added in the editor: in the sky, the way the camera looks */
+    sky = true;
+    direction = glm::length(towards) > 1e-4f ? glm::normalize(towards) : glm::vec3(0.0f, 0.5f, -1.0f);
 }
 
 BlackHole::~BlackHole()
 {
-    if (m_light != nullptr) {
-        std::vector<Light *> &lights = RenderingMaster::getInstance()->getLights();
-        lights.erase(std::remove(lights.begin(), lights.end(), (Light *) m_light), lights.end());
-        delete m_light;
-    }
-}
-
-/* the disk's light on its surroundings: a point light at the hole */
-void BlackHole::updateLight()
-{
-    float range = radius * diskOuter * 6.0f;
-    if (glow <= 0.0f || sky) {      /* a sky object is too far to light the ground */
-        if (m_light != nullptr) {
-            std::vector<Light *> &lights = RenderingMaster::getInstance()->getLights();
-            lights.erase(std::remove(lights.begin(), lights.end(), (Light *) m_light), lights.end());
-            delete m_light;
-            m_light = nullptr;
-        }
-        return;
-    }
-    if (m_light == nullptr) {
-        m_light = new PointLight(Transform(position, glm::vec3(0), glm::vec3(range)), diskColor, false);
-        m_light->setOwnedByFeature(true);
-        RenderingMaster::getInstance()->addLightToScene(m_light);
-    }
-    m_light->getTransform().setPosition(position);
-    m_light->getTransform().setScale(glm::vec3(range));
-    m_light->setLightColor(diskColor * glow);
 }
 
 glm::vec3 BlackHole::diskNormal() const
@@ -202,16 +176,14 @@ float BlackHole::kugelblitzGrowth() const
 }
 
 void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height,
-                       GLuint lensSky, const LensSurroundings *surroundings)
+                       GLuint lensSky)
 {
     Camera *camera = RenderingMaster::getInstance()->getCamera();
-    render(sourceTexture, depthTexture, skyCube, width, height, lensSky, camera->getViewMatrix(), camera->getPosition(),
-           surroundings);
+    render(sourceTexture, depthTexture, skyCube, width, height, lensSky, camera->getViewMatrix(), camera->getPosition());
 }
 
 void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube, int width, int height,
-                       GLuint lensSky, const glm::mat4 &view, const glm::vec3 &eye,
-                       const LensSurroundings *surroundings)
+                       GLuint lensSky, const glm::mat4 &view, const glm::vec3 &eye)
 {
     RenderingMaster *rm = RenderingMaster::getInstance();
     const glm::mat4 &projection = rm->getProjectionMatrix();
@@ -313,6 +285,10 @@ void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube
     float core = sky && kugelblitz ? coreGlow * glm::smoothstep(0.62f, 0.95f, collapse) : coreGlow;
     s.updateUniform("coreGlow", core);
     s.updateUniform("coreSize", coreSize);
+    s.updateUniform("diskSmoothness", diskSmoothness);
+    s.updateUniform("photonRing", photonRing);
+    s.updateUniform("photonRingWidth", photonRingWidth);
+    s.updateUniform("bloom", bloom);
     if (physical) {
         s.updateUniform("diskTemperature", diskTemperature);
         s.updateUniform("blackbodySampler", 6);
@@ -320,29 +296,9 @@ void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube
         glBindTexture(GL_TEXTURE_2D, blackbodyTexture());
     }
     s.updateUniform("time", time);
-    int skySource = sky && lensSky != 0 ? 1 : 0;
-    s.updateUniform("skySource", skySource);
-    if (skySource) {
-        glm::mat4 lensSkyViewProjection = lensSkyProjection() * lensSkyView();
-        s.updateUniform("lensSkySampler", 3);
-        s.updateUniform("lensSkyViewProjection", (void *) &lensSkyViewProjection);
-    }
-
-    /* the land around the camera, for rays bent off the screen (the faces drawn this frame) */
-    int surroundFaces = surroundings != nullptr ? surroundings->faces() : 0;
-    s.updateUniform("surroundFaces", surroundFaces);
-    if (surroundFaces != 0) {
-        float surroundNear = surroundings->nearPlane(), surroundFar = surroundings->farPlane();
-        s.updateUniform("surroundColor", 4);
-        s.updateUniform("surroundDepth", 5);
-        s.updateUniform("surroundCenter", (void *) &surroundings->center());
-        s.updateUniform("surroundNear", surroundNear);
-        s.updateUniform("surroundFar", surroundFar);
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, surroundings->colorCube());
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, surroundings->depthCube());
-    }
+    glm::mat4 lensSkyViewProjection = lensSkyProjection() * lensSkyView();
+    s.updateUniform("lensSkySampler", 3);
+    s.updateUniform("lensSkyViewProjection", (void *) &lensSkyViewProjection);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, sourceTexture);
@@ -361,12 +317,6 @@ void BlackHole::render(GLuint sourceTexture, GLuint depthTexture, GLuint skyCube
     glDisable(GL_SCISSOR_TEST);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-    if (surroundFaces != 0) {
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-    }
     glActiveTexture(GL_TEXTURE0);
 }
 
@@ -377,8 +327,7 @@ bool BlackHole::renderGUI(int index)
     std::string title = "Black hole " + std::to_string(index + 1);
     if (ImGui::CollapsingHeader(title.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
         bool changed = false;
-        changed |= ImGui::Checkbox("In the sky (like the moon)", &sky);
-        if (sky) {
+        {
             if (ImGui::DragFloat3("Direction", &direction.x, 0.005f)) {
                 if (glm::length(direction) < 1e-3f) direction = glm::vec3(0, 1, 0);
             }
@@ -428,9 +377,6 @@ bool BlackHole::renderGUI(int index)
                 ImGui::SliderFloat("Moon stream", &moonStream, 0.0f, 3.0f, "%.2f");
             }
             ImGui::SliderFloat("Cloud clearing", &cloudClear, 0.0f, 1.0f, "%.2f");
-        } else {
-            changed |= ImGui::DragFloat3("Position", &position.x, 1.0f);
-            changed |= ImGui::SliderFloat("Radius (horizon)", &radius, 2.0f, 300.0f, "%.0f");
         }
         ImGui::SliderFloat("Lensing", &lensing, 0.0f, 3.0f, "%.2f");
         ImGui::SliderFloat("Influence (radii)", &influence, 3.0f, 30.0f, "%.1f");
@@ -442,17 +388,19 @@ bool BlackHole::renderGUI(int index)
         ImGui::SliderFloat("Disk speed", &diskSpeed, -4.0f, 4.0f, "%.2f");
         ImGui::SliderFloat("Color shift", &colorShift, 0.0f, 1.0f, "%.2f");
         ImGui::DragFloat2("Disk tilt", &diskTilt.x, 0.5f);
-        changed |= ImGui::SliderFloat("Glow (light)", &glow, 0.0f, 4.0f, "%.2f");
         ImGui::SliderFloat("Horizon (of the radius)", &horizon, 1e-5f, 1.0f, "%.5f", 6.0f);     /* (a power curve: the small values get room) */
         ImGui::SliderFloat("Core glow", &coreGlow, 0.0f, 20.0f, "%.2f");
         ImGui::SliderFloat("Core size (radii)", &coreSize, 0.01f, 3.0f, "%.2f");
         ImGui::Checkbox("Physical (exact light paths, shift, blackbody light)", &physical);
         if (physical) {
             ImGui::SliderFloat("Disk temperature (K)", &diskTemperature, 1000.0f, 40000.0f, "%.0f");
+            ImGui::SliderFloat("Photon ring", &photonRing, 0.0f, 3.0f, "%.2f");
+            ImGui::SliderFloat("Photon ring width (px)", &photonRingWidth, 0.5f, 10.0f, "%.1f");
         }
+        ImGui::SliderFloat("Disk smoothness", &diskSmoothness, 0.0f, 1.0f, "%.2f");
+        ImGui::SliderFloat("Bloom (glow of its light)", &bloom, 0.0f, 3.0f, "%.2f");
         if (changed) {
             diskOuter = std::max(diskOuter, diskInner + 0.5f);
-            updateLight();
         }
         if (ImGui::Button("Delete")) {
             keep = false;
@@ -472,7 +420,7 @@ static void writeVec3(rapidjson::Value &json, const char *key, const glm::vec3 &
 void BlackHole::save(rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) const
 {
     json.SetObject();
-    if (sky) {
+    {
         json.AddMember("sky", true, allocator);
         writeVec3(json, "direction", glm::normalize(direction), allocator);
         json.AddMember("angularRadius", angularRadius, allocator);
@@ -490,9 +438,6 @@ void BlackHole::save(rapidjson::Value &json, rapidjson::Document::AllocatorType 
             site.PushBack(collapseSite.x, allocator).PushBack(collapseSite.y, allocator);
             json.AddMember("collapseSite", site, allocator);
         }
-    } else {
-        writeVec3(json, "position", position, allocator);
-        json.AddMember("radius", radius, allocator);
     }
     json.AddMember("lensing", lensing, allocator);
     json.AddMember("influence", influence, allocator);
@@ -506,7 +451,6 @@ void BlackHole::save(rapidjson::Value &json, rapidjson::Document::AllocatorType 
     rapidjson::Value tilt(rapidjson::kArrayType);
     tilt.PushBack(diskTilt.x, allocator).PushBack(diskTilt.y, allocator);
     json.AddMember("diskTilt", tilt, allocator);
-    json.AddMember("glow", glow, allocator);
     if (horizon < 1.0f) json.AddMember("horizon", horizon, allocator);
     if (coreGlow > 0.0f) {
         json.AddMember("coreGlow", coreGlow, allocator);
@@ -515,5 +459,9 @@ void BlackHole::save(rapidjson::Value &json, rapidjson::Document::AllocatorType 
     if (physical) {
         json.AddMember("physical", true, allocator);
         json.AddMember("diskTemperature", diskTemperature, allocator);
+        if (photonRing != 1.0f) json.AddMember("photonRing", photonRing, allocator);
+        if (photonRingWidth != 3.0f) json.AddMember("photonRingWidth", photonRingWidth, allocator);
     }
+    if (diskSmoothness > 0.0f) json.AddMember("diskSmoothness", diskSmoothness, allocator);
+    if (bloom > 0.0f) json.AddMember("bloom", bloom, allocator);
 }
