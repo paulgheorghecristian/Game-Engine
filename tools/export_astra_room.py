@@ -75,10 +75,8 @@ GROUPS = {
 # ---- left out of the level: the window (its wall pieces, frame, sill, blinds) and the street outside it;
 # the old level's plain wall stands there instead
 LEFT_OUT_NAMES = ('Window ', 'Partially raised blind', 'Blind ladder', 'Blind wand',
-                  # drawn into textures instead (as geometry, thinner than a pixel from across the room,
-                  # they broke into dashes and vanished): the floor's joints (tools/make_ward_floor.py)
-                  # and the calendar's print (bake_calendar)
-                  'Floor tile seam', 'Calendar', 'Weekday')
+                  # drawn into the floor's texture instead (tools/make_ward_floor.py)
+                  'Floor tile seam')
 OUTSIDE_Y = 90.6        # beyond the window wall's outer face (Blender y)
 
 
@@ -137,58 +135,105 @@ def group_of(centre):
     return None
 
 
-def bake_calendar():
-    """the wall calendar (its backing, heading and every printed number, each a mesh of its own) drawn
-    once, straight on, into Game/recursion/astra/calendar.png, and a flat page with that picture put
-    in its place"""
-    import math
+# ---- small print and thin lines drawn into pictures ---------------------------------------------------
+# As geometry (every number a mesh, wires and joints as hair-thin strips) they are thinner than a pixel
+# from across the room: broken into dashes, then gone. Each "carrier" below (a page, a plate, a face)
+# is drawn straight on, with everything that sits on its face, into Game/recursion/astra/<file>.png;
+# the carrier then wears that picture and the small parts are left out of the level.
+#   carrier object, file, the way the camera looks at it, picture's right and up, pixels (long side),
+#   roughness, parts to keep as geometry all the same, and whether it has a normal map
+#   (<file>_normal.png, made by tools/make_print_normals.py, which the export runs at its end)
+PRINTS = [
+    ('Calendar backing', 'calendar', (0, 1, 0), (1, 0, 0), (0, 0, 1), 1024, .88, (), True),     # crumpled
+    # a real clock: the hour marks printed on the dial, the hands and the pin standing off it
+    ('Clock face', 'clock_face', (0, 1, 0), (1, 0, 0), (0, 0, 1), 512, .5,
+     ('Clock minute hand', 'Clock hour hand', 'Clock pin'), False),
+    ('Observation glass', 'door_window', (0, -1, 0), (-1, 0, 0), (0, 0, 1), 512, .08, (), False),
+] + [
+    # the keypad's buttons stay raised keys: each one's digit printed on its own top
+    ('Key ' + key, 'keypad_key_' + {'*': 'star', '#': 'hash'}.get(key, key), (0, -1, 0), (-1, 0, 0), (0, 0, 1),
+     64, .45, (), False) for key in '1234567890*#'
+]
+# (not the keyboard: flattened into a picture its keys lost their relief; its letters stay geometry)
+PRINT_LOOK = {}     # material name -> (picture, roughness, normal map or None), filled by bake_prints
+
+
+
+def bake_prints():
+    from mathutils import Matrix, Vector
     scene = bpy.context.scene
-    parts = [o for o in scene.objects if o.name.startswith(('Calendar', 'Weekday'))]
-    backing = bpy.data.objects['Calendar backing']
-    corners = [backing.matrix_world @ v.co for v in backing.data.vertices]
-    x0, x1 = min(c.x for c in corners), max(c.x for c in corners)
-    z0, z1 = min(c.z for c in corners), max(c.z for c in corners)
-    front = min(c.y for c in corners)           # the face towards the room
-    for o in scene.objects:
-        o.hide_render = o not in parts
-    data = bpy.data.cameras.new('Calendar camera')
-    data.type = 'ORTHO'
-    data.ortho_scale = max(x1 - x0, z1 - z0)
-    camera = bpy.data.objects.new('Calendar camera', data)
-    scene.collection.objects.link(camera)
-    camera.location = ((x0 + x1) / 2, front - 20.0, (z0 + z1) / 2)
-    camera.rotation_euler = (math.radians(90), 0, 0)        # looking at the wall, up is up
-    scene.camera = camera
     scene.render.engine = 'BLENDER_WORKBENCH'
     scene.display.shading.light = 'FLAT'
     scene.display.shading.color_type = 'MATERIAL'
-    scene.view_settings.view_transform = 'Standard'
-    height = 1024
-    scene.render.resolution_x = round(height * (x1 - x0) / (z1 - z0))
-    scene.render.resolution_y = height
+    # (raw: the material's own values, as the engine uses a texture's. Through the display transform
+    # every dark colour came out pale: a baby-blue sticker for a sign, a pale square for dark glass)
+    scene.view_settings.view_transform = 'Raw'
     scene.render.resolution_percentage = 100
     scene.render.image_settings.file_format = 'PNG'
-    scene.render.filepath = os.path.join(OUT, 'calendar.png')
-    bpy.ops.render.render(write_still=True)
-    for o in scene.objects:
-        o.hide_render = False
-    # the page: one flat face where the backing's front was, the picture across it
-    mesh = bpy.data.meshes.new('Printed calendar')
-    y = front
-    mesh.from_pydata([(x0, y, z0), (x1, y, z0), (x1, y, z1), (x0, y, z1)], [], [(0, 1, 2, 3)])
-    uv = mesh.uv_layers.new(name='Game UV')
-    for loop, coordinate in zip(mesh.loops, [(0, 0), (1, 0), (1, 1), (0, 1)]):
-        uv.data[loop.index].uv = coordinate
-    material = bpy.data.materials.new('Calendar print')
-    material.diffuse_color = (1, 1, 1, 1)
-    mesh.materials.append(material)
-    page = bpy.data.objects.new('Printed calendar', mesh)
-    scene.collection.objects.link(page)
+
+    def corners(obj):
+        if obj.type == 'MESH':
+            return [obj.matrix_world @ v.co for v in obj.data.vertices]
+        return [obj.matrix_world @ Vector(c) for c in obj.bound_box]
+
+    for name, stem, forward, right, up, pixels, roughness, keep, relief in PRINTS:
+        carrier = bpy.data.objects.get(name)
+        assert carrier is not None, 'no object "%s" in the Blender file' % name
+        f, r, u = Vector(forward), Vector(right), Vector(up)
+        points = corners(carrier)
+        r0, r1 = min(p.dot(r) for p in points), max(p.dot(r) for p in points)
+        u0, u1 = min(p.dot(u) for p in points), max(p.dot(u) for p in points)
+        front = max(p.dot(-f) for p in points)          # its face towards the camera
+        # what sits on that face: inside its outline, up to a unit in front of it
+        parts = []
+        for o in scene.objects:
+            if o is carrier or o.type not in {'MESH', 'FONT'} or o.get('preview_shell') or o.name.startswith(keep):
+                continue
+            ps = corners(o)
+            centre = sum(ps, Vector()) / len(ps)
+            if r0 <= centre.dot(r) <= r1 and u0 <= centre.dot(u) <= u1 and -0.1 <= centre.dot(-f) - front <= 1.0:
+                parts.append(o)
+        for o in scene.objects:
+            o.hide_render = not (o is carrier or o in parts)
+        data = bpy.data.cameras.new(stem)
+        data.type = 'ORTHO'
+        data.ortho_scale = max(r1 - r0, u1 - u0)
+        camera = bpy.data.objects.new(stem + ' camera', data)
+        scene.collection.objects.link(camera)
+        back = -f
+        middle = r * ((r0 + r1) / 2) + u * ((u0 + u1) / 2) + back * (front + 20.0)
+        camera.matrix_world = Matrix(((r.x, u.x, back.x, middle.x), (r.y, u.y, back.y, middle.y),
+                                      (r.z, u.z, back.z, middle.z), (0, 0, 0, 1)))
+        scene.camera = camera
+        wide = (r1 - r0) >= (u1 - u0)
+        scene.render.resolution_x = pixels if wide else max(8, round(pixels * (r1 - r0) / (u1 - u0)))
+        scene.render.resolution_y = max(8, round(pixels * (u1 - u0) / (r1 - r0))) if wide else pixels
+        scene.render.filepath = os.path.join(OUT, stem + '.png')
+        bpy.ops.render.render(write_still=True)
+        for o in scene.objects:
+            o.hide_render = False
+        # the carrier wears the picture (laid on as the camera saw it); its small parts go
+        for o in parts:
+            bpy.data.objects.remove(o, do_unlink=True)
+        mesh = carrier.data
+        while mesh.uv_layers:
+            mesh.uv_layers.remove(mesh.uv_layers[0])
+        layer = mesh.uv_layers.new(name='Game UV')
+        for loop in mesh.loops:
+            p = carrier.matrix_world @ mesh.vertices[loop.vertex_index].co
+            layer.data[loop.index].uv = ((p.dot(r) - r0) / (r1 - r0), (p.dot(u) - u0) / (u1 - u0))
+        material = bpy.data.materials.new('Print ' + stem)
+        material.diffuse_color = (1, 1, 1, 1)
+        mesh.materials.clear()
+        mesh.materials.append(material)
+        bump = 'Game/recursion/astra/' + stem + '_normal.png' if relief else None
+        PRINT_LOOK[material.name] = ('Game/recursion/astra/' + stem + '.png', roughness, bump)
+        print('Print %s: %d parts drawn into %s.png' % (name, len(parts), stem))
 
 
 def export_meshes():
     bpy.ops.wm.open_mainfile(filepath=os.path.join(OUT, 'hospital_room.blend'))
-    bake_calendar()
+    bake_prints()
     # one material per entity: split multi-material meshes (in this session only; the file is not saved)
     for obj in list(bpy.context.scene.objects):
         if obj.type == 'MESH' and len(obj.data.materials) > 1:
@@ -244,8 +289,10 @@ def export_meshes():
             material['emissive'] = 1.1
         if name == 'R7_glow':
             material['emissive'] = 1.0
-        if name == 'Calendar print':
-            material.update(Texture='Game/recursion/astra/calendar.png', roughness=.88)
+        if name in PRINT_LOOK:
+            material.update(Texture=PRINT_LOOK[name][0], roughness=PRINT_LOOK[name][1])
+            if PRINT_LOOK[name][2]:
+                material.update(NormalMapTexture=PRINT_LOOK[name][2], normalMapStrength=1.0)
         if name == 'Ward records print':
             material.update(Texture='Game/recursion/astra/ward_records.png', roughness=.88)
         if name in MATERIAL_LOOK:
@@ -257,7 +304,10 @@ def export_meshes():
 
 
 def main():
+    import subprocess, sys
     entities = export_meshes()
+    # the printed pictures' normal maps (outside Blender: its Python has no image tools)
+    subprocess.run(['python3', os.path.join(ROOT, 'tools/make_print_normals.py')], check=True)
     with open(BASE) as f:
         scene = json.load(f)
     old = scene['Entities']

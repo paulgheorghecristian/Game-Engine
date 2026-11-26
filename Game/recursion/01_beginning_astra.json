@@ -1260,7 +1260,7 @@
       },
       "Components": {
         "RenderComponent": {
-          "Mesh": "Game/recursion/astra/room_calendar_print.obj",
+          "Mesh": "Game/recursion/astra/room_print_calendar.obj",
           "Material": {
             "ambient": [
               0,
@@ -1279,7 +1279,53 @@
             ],
             "shininess": 24,
             "roughness": 0.88,
-            "Texture": "Game/recursion/astra/calendar.png"
+            "Texture": "Game/recursion/astra/calendar.png",
+            "NormalMapTexture": "Game/recursion/astra/calendar_normal.png",
+            "normalMapStrength": 1.0
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_print_clock_face.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.5,
+            "Texture": "Game/recursion/astra/clock_face.png"
           }
         }
       }
@@ -2118,7 +2164,7 @@
       },
       "Components": {
         "RenderComponent": {
-          "Mesh": "Game/recursion/astra/room_door_rubber.obj",
+          "Mesh": "Game/recursion/astra/room_door_print_door_window.obj",
           "Material": {
             "ambient": [
               0,
@@ -2126,9 +2172,9 @@
               0
             ],
             "diffuse": [
-              0.12,
-              0.13,
-              0.12
+              1.0,
+              1.0,
+              1.0
             ],
             "specular": [
               0.25,
@@ -2136,11 +2182,8 @@
               0.25
             ],
             "shininess": 24,
-            "roughness": 0.76,
-            "NormalMapTexture": "res/textures/Rubber004_1K_Normal.jpg",
-            "normalMapStrength": 1.0,
-            "RoughnessTexture": "res/textures/Rubber004_1K_Roughness.jpg",
-            "tileSize": 12
+            "roughness": 0.08,
+            "Texture": "Game/recursion/astra/door_window.png"
           }
         }
       }
@@ -2165,7 +2208,7 @@
       },
       "Components": {
         "RenderComponent": {
-          "Mesh": "Game/recursion/astra/room_door_screen.obj",
+          "Mesh": "Game/recursion/astra/room_door_rubber.obj",
           "Material": {
             "ambient": [
               0,
@@ -2174,8 +2217,8 @@
             ],
             "diffuse": [
               0.12,
-              0.18,
-              0.16
+              0.13,
+              0.12
             ],
             "specular": [
               0.25,
@@ -2183,7 +2226,11 @@
               0.25
             ],
             "shininess": 24,
-            "roughness": 0.08
+            "roughness": 0.76,
+            "NormalMapTexture": "res/textures/Rubber004_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Rubber004_1K_Roughness.jpg",
+            "tileSize": 12
           }
         }
       }
@@ -2257,7 +2304,7 @@
       },
       "Components": {
         "RenderComponent": {
-          "Mesh": "Game/recursion/astra/room_keypad_r7_black.obj",
+          "Mesh": "Game/recursion/astra/room_keypad_print_keypad_key_0.obj",
           "Material": {
             "ambient": [
               0,
@@ -2265,9 +2312,9 @@
               0
             ],
             "diffuse": [
-              0.035,
-              0.043,
-              0.04
+              1.0,
+              1.0,
+              1.0
             ],
             "specular": [
               0.25,
@@ -2275,7 +2322,8 @@
               0.25
             ],
             "shininess": 24,
-            "roughness": 0.76
+            "roughness": 0.45,
+            "Texture": "Game/recursion/astra/keypad_key_0.png"
           }
         }
       }
@@ -2300,7 +2348,7 @@
       },
       "Components": {
         "RenderComponent": {
-          "Mesh": "Game/recursion/astra/room_keypad_r7_bone.obj",
+          "Mesh": "Game/recursion/astra/room_keypad_print_keypad_key_1.obj",
           "Material": {
             "ambient": [
               0,
@@ -2308,9 +2356,9 @@
               0
             ],
             "diffuse": [
-              0.68,
-              0.66,
-              0.56
+              1.0,
+              1.0,
+              1.0
             ],
             "specular": [
               0.25,
@@ -2318,11 +2366,448 @@
               0.25
             ],
             "shininess": 24,
-            "roughness": 0.76,
-            "NormalMapTexture": "res/textures/Plastic018B_1K_Normal.jpg",
-            "normalMapStrength": 1.0,
-            "RoughnessTexture": "res/textures/Plastic018B_1K_Roughness.jpg",
-            "tileSize": 30
+            "roughness": 0.45,
+            "Texture": "Game/recursion/astra/keypad_key_1.png"
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_keypad_print_keypad_key_2.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.45,
+            "Texture": "Game/recursion/astra/keypad_key_2.png"
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_keypad_print_keypad_key_3.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.45,
+            "Texture": "Game/recursion/astra/keypad_key_3.png"
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_keypad_print_keypad_key_4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.45,
+            "Texture": "Game/recursion/astra/keypad_key_4.png"
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_keypad_print_keypad_key_5.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.45,
+            "Texture": "Game/recursion/astra/keypad_key_5.png"
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_keypad_print_keypad_key_6.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.45,
+            "Texture": "Game/recursion/astra/keypad_key_6.png"
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_keypad_print_keypad_key_7.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.45,
+            "Texture": "Game/recursion/astra/keypad_key_7.png"
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_keypad_print_keypad_key_8.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.45,
+            "Texture": "Game/recursion/astra/keypad_key_8.png"
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_keypad_print_keypad_key_9.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.45,
+            "Texture": "Game/recursion/astra/keypad_key_9.png"
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_keypad_print_keypad_key_hash.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.45,
+            "Texture": "Game/recursion/astra/keypad_key_hash.png"
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_keypad_print_keypad_key_star.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.45,
+            "Texture": "Game/recursion/astra/keypad_key_star.png"
           }
         }
       }

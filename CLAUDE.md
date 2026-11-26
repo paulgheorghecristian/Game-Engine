@@ -43,6 +43,19 @@ still go where they belong.
   drawn in `res/shaders/skyShader.fs` and driven from `Rendering/RenderingMaster.cpp`) are to be
   moved out into their own element when that code is next worked on, or flagged if out of scope.
 
+## Realism
+
+The game aims for realism. Things are built the way the real object is: a wall clock has a printed
+dial, hands that stand off it and a rim; keys are raised buttons; a sign's letters stand out of
+its plate; paper on a wall is creased. Never flatten an object into a picture of itself (a "paper
+clock"), never trade realism for an easier fix.
+
+- A texture is right only for what really is flat: print on paper, a painted dial's marks, the
+  wires inside wired glass, joints in a floor. Relief and wear go in normal and roughness maps.
+- When small detail misbehaves (thin geometry flickering or vanishing at a distance), fix it
+  without losing the real shape: print only the truly flat part, keep the rest as geometry.
+- Look at the result up close and from across the room before calling it done.
+
 ## Where things go
 
 Respect the folders when adding features: generators in `tools/`, map JSON in `Game/`, shaders in
