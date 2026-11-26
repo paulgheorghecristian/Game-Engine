@@ -1776,7 +1776,8 @@
             "NormalMapTexture": "res/textures/Fabric086_1K_Normal.jpg",
             "normalMapStrength": 1.0,
             "RoughnessTexture": "res/textures/Fabric086_1K_Roughness.jpg",
-            "tileSize": 10
+            "tileSize": 10,
+            "disableCulling": true
           }
         }
       }
@@ -1958,7 +1959,8 @@
             "NormalMapTexture": "res/textures/Fabric086_1K_Normal.jpg",
             "normalMapStrength": 1.0,
             "RoughnessTexture": "res/textures/Fabric086_1K_Roughness.jpg",
-            "tileSize": 8
+            "tileSize": 8,
+            "disableCulling": true
           }
         }
       }
@@ -2995,7 +2997,7 @@
         ],
         "type": "POINT",
         "cast_shadow": true,
-        "shadowMapSize": 512,
+        "shadowMapSize": 1024,
         "diffuse_attenuation": [
           800,
           10,
@@ -3036,7 +3038,7 @@
         ],
         "type": "POINT",
         "cast_shadow": true,
-        "shadowMapSize": 512,
+        "shadowMapSize": 1024,
         "diffuse_attenuation": [
           800,
           10,
@@ -3077,7 +3079,7 @@
         ],
         "type": "POINT",
         "cast_shadow": true,
-        "shadowMapSize": 512,
+        "shadowMapSize": 1024,
         "diffuse_attenuation": [
           800,
           10,

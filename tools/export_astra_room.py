@@ -54,8 +54,9 @@ def look(material, texture_set, tile, color=True, normal=1.0, **scalars):
 MATERIAL_LOOK = {
     'steel': lambda m: look(m, 'Metal009', 24, metallic=0.5),   # fully metal goes black: little to reflect
     'R7_chrome': lambda m: m.update(metallic=0.8, roughness=0.25) or m,
-    'blanket': lambda m: look(m, 'Fabric086', 10),
-    'linen': lambda m: look(m, 'Fabric086', 8),
+    # (single sheets, one-sided in the Blender file: both sides drawn, or the curtain vanished from behind)
+    'blanket': lambda m: look(m, 'Fabric086', 10, disableCulling=True),
+    'linen': lambda m: look(m, 'Fabric086', 8, disableCulling=True),
     'ivory': lambda m: look(m, 'Plastic018B', 30, color=False),
     'R7_bone': lambda m: look(m, 'Plastic018B', 30, color=False),
     'R7_white': lambda m: look(m, 'Plastic018B', 30, color=False),
@@ -232,8 +233,38 @@ def bake_prints():
         print('Print %s: %d parts drawn into %s.png' % (name, len(parts), stem))
 
 
+# ---- standing on the floor (Blender z = 0): in the Blender file these stop short of it, the chair and
+# the desk on legs 1 unit up (they looked as if they floated). Legs reach down to it; wheels and the
+# computer under the desk are set down on it
+FLOOR = 0.0
+REACH_DOWN = ('Chair leg', 'Desk leg')
+SET_DOWN = ('Caster', 'IV caster', 'Computer tower')
+
+
+def ground():
+    import re
+    for obj in bpy.context.scene.objects:
+        if obj.type != 'MESH':
+            continue
+        base = re.sub(r'\.\d+$', '', obj.name)
+        world = obj.matrix_world
+        lowest = min((world @ v.co).z for v in obj.data.vertices)
+        if lowest <= FLOOR + 1e-3:
+            continue
+        if base in REACH_DOWN:
+            inverse = world.inverted()
+            for v in obj.data.vertices:
+                p = world @ v.co
+                if p.z < lowest + 0.3:          # its foot: brought down to the floor
+                    p.z = FLOOR
+                    v.co = inverse @ p
+        elif base in SET_DOWN:
+            obj.location.z -= lowest - FLOOR
+
+
 def export_meshes():
     bpy.ops.wm.open_mainfile(filepath=os.path.join(OUT, 'hospital_room.blend'))
+    ground()
     bake_prints()
     # one material per entity: split multi-material meshes (in this session only; the file is not saved)
     for obj in list(bpy.context.scene.objects):
@@ -319,6 +350,10 @@ def main():
         scene['Entities'].append({'Transform': {'position': position, 'rotation': [0, 0, 0], 'scale': [1, 1, 1]},
                                   'Components': {'PhysicsComponent': {'BoundingBodyType': ['cube'], 'scale': size, 'mass': 0}}})
     scene['Environment'].update(filmGrain=.016, chromaticAberration=.18)
+    # the ceiling lights' shadows: 1024 pixels a cube face (512 drew stair steps on the walls)
+    for light in scene.get('Lights', []):
+        if light.get('Attributes', {}).get('cast_shadow'):
+            light['Attributes']['shadowMapSize'] = 1024
     with open(LEVEL, 'w') as f:
         json.dump(scene, f, indent=2)
         f.write('\n')
