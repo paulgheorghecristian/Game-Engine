@@ -66,6 +66,10 @@ class Material
         float getRoughness() const { return m_roughness; }
         void setMetallic(float m) { m_metallic = m; }
         float getMetallic() const { return m_metallic; }
+        /* world units per texture repeat, the textures projected onto the surface from its three sides
+         * (no UVs needed, never stretched by the entity's scale); 0 = the mesh's own UVs */
+        void setTileSize(float size) { m_tileSize = size; }
+        float getTileSize() const { return m_tileSize; }
         float getSpecularStrength() const { return m_specularStrength; }
         float getEmissive() const { return m_emissive; }
 
@@ -97,6 +101,7 @@ class Material
         bool m_emissiveNightOnly = false;
         float m_specularStrength = 1.0f;
         float m_roughness = 0.6f, m_metallic = 0.0f;
+        float m_tileSize = 0.0f;
         TerrainLayers *m_terrain = nullptr;
 
         bool m_isBlackAlpha, m_disableCulling;

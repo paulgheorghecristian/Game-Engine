@@ -1,0 +1,2643 @@
+{
+  "ConfigFilePath": "res/configs/config.json",
+  "gravity": -10.0,
+  "PlayerStart": {
+    "position": [
+      -33.0,
+      31.0,
+      -12.0
+    ],
+    "yaw": -161.5,
+    "pitch": -4
+  },
+  "Environment": {
+    "sky": "night",
+    "zenithColor": [
+      0,
+      0,
+      0
+    ],
+    "horizonColor": [
+      0,
+      0,
+      0
+    ],
+    "starIntensity": 0.0,
+    "moon": false,
+    "moonColor": [
+      0,
+      0,
+      0
+    ],
+    "fogDensity": 0.0012,
+    "fogEnd": 0,
+    "cloudCoverage": 0.0,
+    "ambient": 0.03,
+    "ambientSkyTint": [
+      0.85,
+      0.95,
+      0.9
+    ],
+    "ambientGroundTint": [
+      0.5,
+      0.52,
+      0.48
+    ],
+    "fogColor": [
+      0.012,
+      0.016,
+      0.014
+    ],
+    "fogHeightFalloff": 0.0,
+    "fogBaseHeight": -100,
+    "fogLightGlow": 0.8,
+    "emissiveStrength": 1.3,
+    "pbr": true,
+    "hdr": true,
+    "exposure": 1.0,
+    "bloomStrength": 0.5,
+    "bloomThreshold": 0.85,
+    "aoStrength": 1.2,
+    "aoRadius": 16,
+    "saturation": 0.68,
+    "grade": 1.0,
+    "dayLength": 0,
+    "lensDirt": 0.55,
+    "chromaticAberration": 0.18,
+    "filmGrain": 0.016
+  },
+  "Entities": [
+    {
+      "Transform": {
+        "position": [
+          0,
+          -1.86,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          156.24,
+          3.72,
+          181.04
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.62,
+              0.64,
+              0.62
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 80,
+            "roughness": 0.58,
+            "specularStrength": 0.28,
+            "Texture": "Game/recursion/astra/ward_linoleum.jpg"
+          }
+        },
+        "PhysicsComponent": {
+          "BoundingBodyType": [
+            "cube"
+          ],
+          "scale": [
+            156.24,
+            3.72,
+            181.04
+          ],
+          "mass": 0
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          73.78,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          156.24,
+          3.72,
+          181.04
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.8351,
+              0.8351,
+              0.7933
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0,
+            "roughness": 0.8,
+            "Texture": "res/textures/OfficeCeiling001_1K_Color.jpg",
+            "NormalMapTexture": "res/textures/OfficeCeiling001_1K_Normal.jpg",
+            "normalMapStrength": 0.35,
+            "RoughnessTexture": "res/textures/OfficeCeiling001_1K_Roughness.jpg",
+            "tileSize": 90
+          }
+        },
+        "PhysicsComponent": {
+          "BoundingBodyType": [
+            "cube"
+          ],
+          "scale": [
+            156.24,
+            3.72,
+            181.04
+          ],
+          "mass": 0
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0.0,
+          35.96,
+          -88.66
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          148.8,
+          71.92,
+          3.72
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.5638,
+              0.6684,
+              0.6011
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0,
+            "roughness": 0.85,
+            "Texture": "res/textures/PaintedPlaster017_1K_Color.jpg",
+            "NormalMapTexture": "res/textures/PaintedPlaster017_1K_Normal.jpg",
+            "normalMapStrength": 0.3,
+            "RoughnessTexture": "res/textures/PaintedPlaster017_1K_Roughness.jpg",
+            "tileSize": 70
+          }
+        },
+        "PhysicsComponent": {
+          "BoundingBodyType": [
+            "cube"
+          ],
+          "scale": [
+            148.8,
+            71.92,
+            3.72
+          ],
+          "mass": 0
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0.0,
+          11.16,
+          -86.6
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          148.8,
+          22.32,
+          0.4
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "castShadow": false,
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.22,
+              0.27,
+              0.24
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0,
+            "roughness": 0.6,
+            "NormalMapTexture": "res/textures/Plastic018B_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Plastic018B_1K_Roughness.jpg",
+            "tileSize": 40
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          -43.09,
+          35.96,
+          88.66
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          62.62,
+          71.92,
+          3.72
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.5638,
+              0.6684,
+              0.6011
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0,
+            "roughness": 0.85,
+            "Texture": "res/textures/PaintedPlaster017_1K_Color.jpg",
+            "NormalMapTexture": "res/textures/PaintedPlaster017_1K_Normal.jpg",
+            "normalMapStrength": 0.3,
+            "RoughnessTexture": "res/textures/PaintedPlaster017_1K_Roughness.jpg",
+            "tileSize": 70
+          }
+        },
+        "PhysicsComponent": {
+          "BoundingBodyType": [
+            "cube"
+          ],
+          "scale": [
+            62.62,
+            71.92,
+            3.72
+          ],
+          "mass": 0
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          -43.09,
+          11.16,
+          86.6
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          62.62,
+          22.32,
+          0.4
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "castShadow": false,
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.22,
+              0.27,
+              0.24
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0,
+            "roughness": 0.6,
+            "NormalMapTexture": "res/textures/Plastic018B_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Plastic018B_1K_Roughness.jpg",
+            "tileSize": 40
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0.0,
+          62.0,
+          88.66
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          23.56,
+          19.84,
+          3.72
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.5638,
+              0.6684,
+              0.6011
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0,
+            "roughness": 0.85,
+            "Texture": "res/textures/PaintedPlaster017_1K_Color.jpg",
+            "NormalMapTexture": "res/textures/PaintedPlaster017_1K_Normal.jpg",
+            "normalMapStrength": 0.3,
+            "RoughnessTexture": "res/textures/PaintedPlaster017_1K_Roughness.jpg",
+            "tileSize": 70
+          }
+        },
+        "PhysicsComponent": {
+          "BoundingBodyType": [
+            "cube"
+          ],
+          "scale": [
+            23.56,
+            19.84,
+            3.72
+          ],
+          "mass": 0
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          43.09,
+          35.96,
+          88.66
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          62.62,
+          71.92,
+          3.72
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.5638,
+              0.6684,
+              0.6011
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0,
+            "roughness": 0.85,
+            "Texture": "res/textures/PaintedPlaster017_1K_Color.jpg",
+            "NormalMapTexture": "res/textures/PaintedPlaster017_1K_Normal.jpg",
+            "normalMapStrength": 0.3,
+            "RoughnessTexture": "res/textures/PaintedPlaster017_1K_Roughness.jpg",
+            "tileSize": 70
+          }
+        },
+        "PhysicsComponent": {
+          "BoundingBodyType": [
+            "cube"
+          ],
+          "scale": [
+            62.62,
+            71.92,
+            3.72
+          ],
+          "mass": 0
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          43.09,
+          11.16,
+          86.6
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          62.62,
+          22.32,
+          0.4
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "castShadow": false,
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.22,
+              0.27,
+              0.24
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0,
+            "roughness": 0.6,
+            "NormalMapTexture": "res/textures/Plastic018B_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Plastic018B_1K_Roughness.jpg",
+            "tileSize": 40
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          76.26,
+          35.96,
+          0.0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          3.72,
+          71.92,
+          173.6
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.5638,
+              0.6684,
+              0.6011
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0,
+            "roughness": 0.85,
+            "Texture": "res/textures/PaintedPlaster017_1K_Color.jpg",
+            "NormalMapTexture": "res/textures/PaintedPlaster017_1K_Normal.jpg",
+            "normalMapStrength": 0.3,
+            "RoughnessTexture": "res/textures/PaintedPlaster017_1K_Roughness.jpg",
+            "tileSize": 70
+          }
+        },
+        "PhysicsComponent": {
+          "BoundingBodyType": [
+            "cube"
+          ],
+          "scale": [
+            3.72,
+            71.92,
+            173.6
+          ],
+          "mass": 0
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          74.2,
+          11.16,
+          0.0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          0.4,
+          22.32,
+          173.6
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "castShadow": false,
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.22,
+              0.27,
+              0.24
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0,
+            "roughness": 0.6,
+            "NormalMapTexture": "res/textures/Plastic018B_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Plastic018B_1K_Roughness.jpg",
+            "tileSize": 40
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          -76.26,
+          35.96,
+          0.0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          3.72,
+          71.92,
+          173.6
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.5638,
+              0.6684,
+              0.6011
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0,
+            "roughness": 0.85,
+            "Texture": "res/textures/PaintedPlaster017_1K_Color.jpg",
+            "NormalMapTexture": "res/textures/PaintedPlaster017_1K_Normal.jpg",
+            "normalMapStrength": 0.3,
+            "RoughnessTexture": "res/textures/PaintedPlaster017_1K_Roughness.jpg",
+            "tileSize": 70
+          }
+        },
+        "PhysicsComponent": {
+          "BoundingBodyType": [
+            "cube"
+          ],
+          "scale": [
+            3.72,
+            71.92,
+            173.6
+          ],
+          "mass": 0
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          -74.2,
+          11.16,
+          0.0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          0.4,
+          22.32,
+          173.6
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "castShadow": false,
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.22,
+              0.27,
+              0.24
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0,
+            "roughness": 0.6,
+            "NormalMapTexture": "res/textures/Plastic018B_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Plastic018B_1K_Roughness.jpg",
+            "tileSize": 40
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          26.04,
+          89.28
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          23.56,
+          52.08,
+          1.488
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.3,
+              0.34,
+              0.33
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 60,
+            "roughness": 0.45,
+            "metallic": 0.35,
+            "NormalMapTexture": "res/textures/Metal027_1K_Normal.jpg",
+            "normalMapStrength": 0.6,
+            "RoughnessTexture": "res/textures/Metal027_1K_Roughness.jpg",
+            "tileSize": 30
+          }
+        },
+        "PhysicsComponent": {
+          "BoundingBodyType": [
+            "cube"
+          ],
+          "scale": [
+            23.56,
+            52.08,
+            1.49
+          ],
+          "mass": 0
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          39.68,
+          89.28
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          6.2,
+          8.68,
+          1.984
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "castShadow": false,
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.02,
+              0.03,
+              0.03
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 150,
+            "roughness": 0.05,
+            "specularStrength": 1.0
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          -57.04,
+          11.16,
+          -14.88
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          23.56,
+          2.48,
+          52.08
+        ]
+      },
+      "Components": {
+        "PhysicsComponent": {
+          "BoundingBodyType": [
+            "cube"
+          ],
+          "scale": [
+            23.56,
+            2.48,
+            52.08
+          ],
+          "mass": 0
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          64.48,
+          18.23,
+          -12.4
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          17.36,
+          0.744,
+          37.2
+        ]
+      },
+      "Components": {
+        "PhysicsComponent": {
+          "BoundingBodyType": [
+            "cube"
+          ],
+          "scale": [
+            17.36,
+            0.74,
+            37.2
+          ],
+          "mass": 0
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          73.16,
+          7.44,
+          -2.48
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1.984,
+          9.92,
+          7.44
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.5,
+              0.5,
+              0.52
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          71.42,
+          4.96,
+          -4.96
+        ],
+        "rotation": [
+          0,
+          0,
+          30
+        ],
+        "scale": [
+          2.976,
+          0.298,
+          0.298
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1,
+              0.1,
+              0.1
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          71.42,
+          5.46,
+          -3.22
+        ],
+        "rotation": [
+          0,
+          0,
+          40
+        ],
+        "scale": [
+          2.976,
+          0.298,
+          0.298
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.1,
+              0.3,
+              1
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          71.42,
+          5.95,
+          -1.49
+        ],
+        "rotation": [
+          0,
+          0,
+          50
+        ],
+        "scale": [
+          2.976,
+          0.298,
+          0.298
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1,
+              0.85,
+              0.1
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          71.42,
+          6.45,
+          0.25
+        ],
+        "rotation": [
+          0,
+          0,
+          60
+        ],
+        "scale": [
+          2.976,
+          0.298,
+          0.298
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.1,
+              0.8,
+              0.2
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          66.96,
+          3.72,
+          11.16
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          6.2,
+          7.44,
+          6.2
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.08,
+              0.08,
+              0.09
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 60,
+            "roughness": 0.4
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          66.96,
+          9.42,
+          11.16
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          4.712,
+          6.696,
+          1.488
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "res/models/cube4.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.95,
+              0.75,
+              0.15
+            ],
+            "specular": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "shininess": 20.0
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_r7_black.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.035,
+              0.043,
+              0.04
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_r7_blue.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.14,
+              0.25,
+              0.29
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76,
+            "NormalMapTexture": "res/textures/Plastic018B_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Plastic018B_1K_Roughness.jpg",
+            "tileSize": 30
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_r7_bone.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.68,
+              0.66,
+              0.56
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76,
+            "NormalMapTexture": "res/textures/Plastic018B_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Plastic018B_1K_Roughness.jpg",
+            "tileSize": 30
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_r7_chrome.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.38,
+              0.42,
+              0.4
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 50,
+            "roughness": 0.25,
+            "metallic": 0.8
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_r7_glow.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.88,
+              0.9,
+              0.79
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76,
+            "emissive": 1.0
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_r7_red.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.34,
+              0.09,
+              0.07
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_r7_trim.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.17,
+              0.22,
+              0.2
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_r7_white.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.79,
+              0.8,
+              0.72
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76,
+            "NormalMapTexture": "res/textures/Plastic018B_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Plastic018B_1K_Roughness.jpg",
+            "tileSize": 30
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_ward_records_print.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.88,
+            "Texture": "Game/recursion/astra/ward_records.png"
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_blanket.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.4683,
+              0.6456,
+              0.6287
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76,
+            "Texture": "res/textures/Fabric086_1K_Color.jpg",
+            "NormalMapTexture": "res/textures/Fabric086_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Fabric086_1K_Roughness.jpg",
+            "tileSize": 10
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_dark.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.075,
+              0.085,
+              0.08
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_glass.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.66,
+              0.77,
+              0.73
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.05,
+            "glass": true
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_ivory.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.73,
+              0.72,
+              0.64
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76,
+            "NormalMapTexture": "res/textures/Plastic018B_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Plastic018B_1K_Roughness.jpg",
+            "tileSize": 30
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_linen.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              1.0876,
+              1.1411,
+              1.0526
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76,
+            "Texture": "res/textures/Fabric086_1K_Color.jpg",
+            "NormalMapTexture": "res/textures/Fabric086_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Fabric086_1K_Roughness.jpg",
+            "tileSize": 8
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_paper.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.85,
+              0.82,
+              0.72
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_rubber.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.12,
+              0.13,
+              0.12
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76,
+            "NormalMapTexture": "res/textures/Rubber004_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Rubber004_1K_Roughness.jpg",
+            "tileSize": 12
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_screen.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.12,
+              0.18,
+              0.16
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.08
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_steel.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.7504,
+              0.8062,
+              0.755
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 50,
+            "roughness": 0.32,
+            "Texture": "res/textures/Metal009_1K_Color.jpg",
+            "NormalMapTexture": "res/textures/Metal009_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Metal009_1K_Roughness.jpg",
+            "tileSize": 24,
+            "metallic": 0.5
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_door_rubber.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.12,
+              0.13,
+              0.12
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76,
+            "NormalMapTexture": "res/textures/Rubber004_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Rubber004_1K_Roughness.jpg",
+            "tileSize": 12
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_door_screen.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.12,
+              0.18,
+              0.16
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.08
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_door_steel.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.7504,
+              0.8062,
+              0.755
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 50,
+            "roughness": 0.32,
+            "Texture": "res/textures/Metal009_1K_Color.jpg",
+            "NormalMapTexture": "res/textures/Metal009_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Metal009_1K_Roughness.jpg",
+            "tileSize": 24,
+            "metallic": 0.5
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_keypad_r7_black.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.035,
+              0.043,
+              0.04
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_keypad_r7_bone.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.68,
+              0.66,
+              0.56
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76,
+            "NormalMapTexture": "res/textures/Plastic018B_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Plastic018B_1K_Roughness.jpg",
+            "tileSize": 30
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_keypad_r7_red.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.34,
+              0.09,
+              0.07
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "RenderComponent": {
+          "Mesh": "Game/recursion/astra/room_keypad_rubber.obj",
+          "Material": {
+            "ambient": [
+              0,
+              0,
+              0
+            ],
+            "diffuse": [
+              0.12,
+              0.13,
+              0.12
+            ],
+            "specular": [
+              0.25,
+              0.25,
+              0.25
+            ],
+            "shininess": 24,
+            "roughness": 0.76,
+            "NormalMapTexture": "res/textures/Rubber004_1K_Normal.jpg",
+            "normalMapStrength": 1.0,
+            "RoughnessTexture": "res/textures/Rubber004_1K_Roughness.jpg",
+            "tileSize": 12
+          }
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          -34,
+          8,
+          19
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "PhysicsComponent": {
+          "BoundingBodyType": [
+            "cube"
+          ],
+          "scale": [
+            13,
+            16,
+            12
+          ],
+          "mass": 0
+        }
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          42,
+          9,
+          -12
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "Components": {
+        "PhysicsComponent": {
+          "BoundingBodyType": [
+            "cube"
+          ],
+          "scale": [
+            13,
+            18,
+            12
+          ],
+          "mass": 0
+        }
+      }
+    }
+  ],
+  "Lights": [
+    {
+      "Transform": {
+        "position": [
+          0,
+          68.2,
+          57.04
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          200,
+          200,
+          200
+        ]
+      },
+      "Attributes": {
+        "color": [
+          0.85,
+          0.95,
+          1.0
+        ],
+        "type": "POINT",
+        "cast_shadow": true,
+        "shadowMapSize": 512,
+        "diffuse_attenuation": [
+          800,
+          10,
+          1
+        ],
+        "specular_attenuation": [
+          420,
+          6,
+          1.3
+        ],
+        "flicker": 0.03,
+        "flickerSpeed": 7
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          68.2,
+          0.0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          200,
+          200,
+          200
+        ]
+      },
+      "Attributes": {
+        "color": [
+          0.85,
+          0.95,
+          1.0
+        ],
+        "type": "POINT",
+        "cast_shadow": true,
+        "shadowMapSize": 512,
+        "diffuse_attenuation": [
+          800,
+          10,
+          1
+        ],
+        "specular_attenuation": [
+          420,
+          6,
+          1.3
+        ],
+        "flicker": 0.06,
+        "flickerSpeed": 7
+      }
+    },
+    {
+      "Transform": {
+        "position": [
+          0,
+          68.2,
+          -57.04
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          200,
+          200,
+          200
+        ]
+      },
+      "Attributes": {
+        "color": [
+          0.85,
+          0.95,
+          1.0
+        ],
+        "type": "POINT",
+        "cast_shadow": true,
+        "shadowMapSize": 512,
+        "diffuse_attenuation": [
+          800,
+          10,
+          1
+        ],
+        "specular_attenuation": [
+          420,
+          6,
+          1.3
+        ],
+        "flicker": 0.05,
+        "flickerSpeed": 7
+      }
+    }
+  ],
+  "ParticleEmitters": [],
+  "Audio": [
+    {
+      "sound": "hum_loop",
+      "position": [
+        0,
+        67.0,
+        57.0
+      ],
+      "volume": 0.374,
+      "radius": 149
+    },
+    {
+      "sound": "hum_loop",
+      "position": [
+        0,
+        67.0,
+        0.0
+      ],
+      "volume": 0.39799999999999996,
+      "radius": 149
+    },
+    {
+      "sound": "hum_loop",
+      "position": [
+        0,
+        67.0,
+        -57.0
+      ],
+      "volume": 0.39,
+      "radius": 149
+    }
+  ],
+  "Waking": {
+    "lying": {
+      "position": [
+        -57.0,
+        20.5,
+        -32.2
+      ],
+      "yaw": 180,
+      "pitch": 72
+    },
+    "sitting": {
+      "position": [
+        -50.3,
+        28.0,
+        -17.4
+      ],
+      "yaw": -90,
+      "pitch": -8
+    }
+  },
+  "Sequences": [
+    {
+      "file": "Game/sequences/01_beginning.json"
+    }
+  ],
+  "RoomAlive": {
+    "center": [
+      0.0,
+      35.96,
+      0.0
+    ],
+    "radius": 160,
+    "darkRadius": 260,
+    "glowPosition": [
+      0.0,
+      -95.0,
+      0.0
+    ],
+    "glowColor": [
+      1.0,
+      0.62,
+      0.3
+    ],
+    "glowRange": 1800
+  }
+}

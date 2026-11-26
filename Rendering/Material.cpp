@@ -107,6 +107,7 @@ Material *Material::clone() const {
     copy->m_specularStrength = m_specularStrength;
     copy->m_roughness = m_roughness;
     copy->m_metallic = m_metallic;
+    copy->m_tileSize = m_tileSize;
     copy->m_diffuseTexture = cloneTexture(m_diffuseTexture);
     copy->m_normalTexture = cloneTexture(m_normalTexture);
     copy->m_roughnessTexture = cloneTexture(m_roughnessTexture);

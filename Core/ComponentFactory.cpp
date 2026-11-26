@@ -67,6 +67,9 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             if (itr->value["Material"].HasMember("metallic")) {
                 material->setMetallic(itr->value["Material"]["metallic"].GetFloat());
             }
+            if (itr->value["Material"].HasMember("tileSize") && itr->value["Material"]["tileSize"].IsNumber()) {
+                material->setTileSize(itr->value["Material"]["tileSize"].GetFloat());
+            }
             if (itr->value["Material"].HasMember("Terrain")) {
                 const auto &t = itr->value["Material"]["Terrain"];
                 TerrainLayers *terrain = new TerrainLayers();
@@ -250,6 +253,9 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             if (itr->value["Material"].HasMember("metallic")) {
                 material->setMetallic(itr->value["Material"]["metallic"].GetFloat());
             }
+            if (itr->value["Material"].HasMember("tileSize") && itr->value["Material"]["tileSize"].IsNumber()) {
+                material->setTileSize(itr->value["Material"]["tileSize"].GetFloat());
+            }
             if (itr->value["Material"].HasMember("Terrain")) {
                 const auto &t = itr->value["Material"]["Terrain"];
                 TerrainLayers *terrain = new TerrainLayers();
@@ -381,6 +387,9 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
             }
             if (itr->value["Material"].HasMember("metallic")) {
                 material->setMetallic(itr->value["Material"]["metallic"].GetFloat());
+            }
+            if (itr->value["Material"].HasMember("tileSize") && itr->value["Material"]["tileSize"].IsNumber()) {
+                material->setTileSize(itr->value["Material"]["tileSize"].GetFloat());
             }
             if (itr->value["Material"].HasMember("Terrain")) {
                 const auto &t = itr->value["Material"]["Terrain"];

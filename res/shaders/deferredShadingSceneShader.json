@@ -30,6 +30,7 @@
                     "material.specularStrength" : "FLOAT",
                     "material.roughness" : "FLOAT",
                     "material.metallic" : "FLOAT",
+                    "material.tileSize" : "FLOAT",
                     "pbrEnabled" : "BOOL",
                     "modelMatrix" : "MAT4",
                     "viewMatrix" : "MAT4",

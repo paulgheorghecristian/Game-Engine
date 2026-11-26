@@ -15,6 +15,7 @@ struct Material {
     float specularStrength; /* 1.0 unless a map asks for duller surfaces */
     float roughness;        /* PBR */
     float metallic;
+    float tileSize;         /* > 0: world units per texture repeat, projected from three sides (no UVs) */
 };
 
 uniform sampler2D textureSampler;
@@ -32,6 +33,7 @@ in vec2 textureCoords;
 in mat3 fromTangentToModelSpace;
 in vec3 worldPosition;
 in vec3 worldNormal;
+in vec3 objectPosition, objectNormal;
 
 /* ---- terrain material (world-space tiled, slope / height blended) ---- */
 uniform bool terrainEnabled;
@@ -245,6 +247,11 @@ vec3 terrainSurface(vec3 position, vec3 geometricNormal, bool wantNormal, out ve
 }
 
 
+/* a texture projected from the three sides of a surface, blended by how much it faces each */
+vec4 triplanar(sampler2D map, vec3 p, vec3 weights) {
+    return texture(map, p.zy) * weights.x + texture(map, p.xz) * weights.y + texture(map, p.xy) * weights.z;
+}
+
 void main(){
     if (terrainEnabled) {
         vec3 terrainNormal;
@@ -268,8 +275,18 @@ void main(){
         outRoughness = pbrEnabled ? vec3(terrainRoughness, 0.0, 0.0) : vec3(terrainSpecular);
         return;
     }
+    /* tiled by size: the textures projected onto the surface from its three sides, in the mesh's own
+     * space at world scale (moves with the entity; its scale never stretches them) */
+    bool tiled = material.tileSize > 0.0;
+    vec3 objectScale = vec3(length(modelMatrix[0].xyz), length(modelMatrix[1].xyz), length(modelMatrix[2].xyz));
+    vec3 tilePosition = objectPosition * objectScale / max(material.tileSize, 1e-4);
+    vec3 tileNormal = normalize(objectNormal / objectScale);    /* the normal in that scaled space */
+    vec3 tileWeights = pow(abs(tileNormal), vec3(4.0));
+    tileWeights /= tileWeights.x + tileWeights.y + tileWeights.z;
+
     if (hasTexture){
-        vec3 color = texture (textureSampler, textureCoords).rgb;
+        vec3 color = tiled ? triplanar(textureSampler, tilePosition, tileWeights).rgb
+                           : texture (textureSampler, textureCoords).rgb;
         if (material.isBlackAlpha == true && (color.r+color.g+color.b)/3.0f <= 0.1f)
             discard;
         outColor = vec4 (color * material.diffuse, 1.0 - material.emissive);
@@ -281,6 +298,21 @@ void main(){
 
     if (!hasNormalMap) {
         outEyeSpaceNormal = (normalize(eyeSpaceNormal * frontCond) + vec3(1)) * 0.5;
+	} else if (tiled) {
+        /* each side's normal map laid onto the surface (whiteout blend), then back out of the scaled space */
+        vec3 n = tileNormal * float(frontCond);
+        vec3 tx = texture(normalMapSampler, tilePosition.zy).xyz * 2.0 - 1.0;
+        vec3 ty = texture(normalMapSampler, tilePosition.xz).xyz * 2.0 - 1.0;
+        vec3 tz = texture(normalMapSampler, tilePosition.xy).xyz * 2.0 - 1.0;
+        tx.xy *= material.normalMapStrength;
+        ty.xy *= material.normalMapStrength;
+        tz.xy *= material.normalMapStrength;
+        tx = vec3(tx.xy + n.zy, abs(tx.z) * n.x);
+        ty = vec3(ty.xy + n.xz, abs(ty.z) * n.y);
+        tz = vec3(tz.xy + n.xy, abs(tz.z) * n.z);
+        vec3 bumped = normalize(tx.zyx * tileWeights.x + ty.xzy * tileWeights.y + tz.xyz * tileWeights.z);
+        vec3 world = normalize(mat3(modelMatrix) * (bumped / objectScale));
+        outEyeSpaceNormal = (normalize(mat3(viewMatrix) * world) + vec3(1.0)) * 0.5;
 	} else {
         vec3 normalMapNormal = texture (normalMapSampler, textureCoords).xyz;
         normalMapNormal = normalMapNormal * 2.0 - 1.0;
@@ -290,11 +322,14 @@ void main(){
 	}
 
 	if (pbrEnabled) {
-        float roughness = hasRoughness ? texture(roughnessSampler, textureCoords).r : material.roughness;
+        float roughness = !hasRoughness ? material.roughness
+                        : tiled ? triplanar(roughnessSampler, tilePosition, tileWeights).r
+                        : texture(roughnessSampler, textureCoords).r;
         outRoughness = vec3(roughness, material.metallic, 0.0);
 	} else if (!hasRoughness) {
         outRoughness = vec3(material.specularStrength);
 	} else {
-        outRoughness = texture(roughnessSampler, textureCoords).xyz * material.specularStrength;
+        outRoughness = (tiled ? triplanar(roughnessSampler, tilePosition, tileWeights).xyz
+                              : texture(roughnessSampler, textureCoords).xyz) * material.specularStrength;
 	}
 }
