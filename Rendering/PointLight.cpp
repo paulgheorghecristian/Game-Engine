@@ -180,6 +180,9 @@ void PointLight::renderShadowCube(const std::vector<Entity *> &entities)
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        /* compared in the lookup (a filtered yes/no per tap: smooth shadow edges, not stair steps) */
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
         glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
         glGenFramebuffers(1, &m_shadowFbo);
     }
@@ -204,8 +207,13 @@ void PointLight::renderShadowCube(const std::vector<Entity *> &entities)
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glDepthMask(GL_TRUE);
-    /* terrain is single sided and must still shadow itself */
-    glDisable(GL_CULL_FACE);
+    /* the faces turned away from the light: what is stored is the far side of each caster, so the
+     * side facing the light never shadows itself (no acne) without a large bias, and shadows reach
+     * the objects that cast them. (Double-sided materials and foliage have one side only: both sides
+     * of those. Not terrain: it would shadow itself speckled with the bias this allows, and a light
+     * near the ground hardly needs a hill's shadow on itself) */
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
 
     for (int face = 0; face < 6; face++) {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
@@ -239,11 +247,14 @@ void PointLight::renderShadowCube(const std::vector<Entity *> &entities)
             InstanceRenderComponent *irc = (InstanceRenderComponent *) entity->getComponent(Entity::Flags::INSTANCE_RENDERABLE);
             if (irc != NULL) {
                 shader.updateUniform("instanced", true);
+                glDisable(GL_CULL_FACE);
                 irc->render(&shader);
+                glEnable(GL_CULL_FACE);
             }
         }
     }
 
+    glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

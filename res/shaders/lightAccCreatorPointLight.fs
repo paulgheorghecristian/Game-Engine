@@ -26,31 +26,30 @@ uniform vec3 att_specular;
 uniform vec3 lightPosition;      /* world space */
 uniform int castsShadow;
 uniform float shadowFar;
-uniform samplerCube shadowCube;  /* distance to the light / shadowFar */
+uniform samplerCubeShadow shadowCube;  /* distance to the light / shadowFar (the far sides of the casters), compared */
 uniform mat4 inverseViewMatrix;
 
 float pointShadow(vec3 viewPosition, vec3 viewNormal, float nDotL) {
     vec3 worldPosition = (inverseViewMatrix * vec4(viewPosition, 1.0)).xyz;
-    vec3 worldNormal = normalize(mat3(inverseViewMatrix) * viewNormal);
-    float sinAngle = sqrt(max(1.0 - nDotL * nDotL, 0.0));
-    /* normal offset: look the shadow up a little off the surface, more at
-     * grazing angles (a ceiling right above a tube), where the depth bias
-     * alone fails past some distance and cuts the light off in a hard ring.
-     * It is larger than the sampling disk, so no tap lands behind the surface */
-    float d0 = length(worldPosition - lightPosition);
-    vec3 toFragment = worldPosition + worldNormal * (0.5 + d0 * 0.016) * sinAngle - lightPosition;
+    /* next to none: the map holds the casters' far sides (PointLight::renderShadowCube), so nothing
+     * shadows itself and only the depth's own precision needs room. Where an object stands on the
+     * floor its far side is at the floor's own distance from the light: any offset or bias there let
+     * light in under its edge (the shadow stood off the object) */
+    vec3 toFragment = worldPosition - lightPosition;
     float d = length(toFragment);
-    /* slope-scaled: surfaces lit at grazing angles need more bias (no acne) */
-    float slope = sinAngle / max(nDotL, 0.1);
-    float bias = 0.5 + d * (0.006 + 0.012 * min(slope, 6.0));
-    float disk = d * 0.008;
-    const vec3 offsets[4] = vec3[](vec3(1, 1, 1), vec3(-1, -1, 1), vec3(-1, 1, -1), vec3(1, -1, -1));
+    float bias = 0.01 + d * 0.0002;
+    /* twelve taps round the direction, each a filtered comparison: soft edges, about a constant
+     * width in the world */
+    float disk = d * 0.0025;
+    const vec3 offsets[12] = vec3[](vec3(1, 1, 1), vec3(1, -1, 1), vec3(-1, -1, 1), vec3(-1, 1, 1),
+                                    vec3(1, 1, -1), vec3(1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+                                    vec3(1, 0, 0), vec3(-1, 0, 0), vec3(0, 1, 0), vec3(0, -1, 0));
+    float reference = (d - bias) / shadowFar;
     float lit = 0.0;
-    for (int i = 0; i < 4; i++) {
-        float closest = texture(shadowCube, toFragment + offsets[i] * disk).r * shadowFar;
-        lit += (d - bias <= closest) ? 1.0 : 0.0;
+    for (int i = 0; i < 12; i++) {
+        lit += texture(shadowCube, vec4(toFragment + offsets[i] * disk, reference));
     }
-    return lit * 0.25;
+    return lit / 12.0;
 }
 
 
