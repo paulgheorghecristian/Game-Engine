@@ -72,10 +72,10 @@ LDOPTS := \
 
 # `make DEBUG=1` for an unoptimized debug build.
 ifeq ($(DEBUG),1)
-CXXFLAGS := -std=gnu++20 -Wall -O0 -g -MMD -MP
+CXXFLAGS := -std=gnu++20 -Wall -O0 -g -MMD -MP -DGLM_FORCE_CTOR_INIT -DGLM_ENABLE_EXPERIMENTAL
 OBJDIR := $(MAKEFILE_DIR)/obj/debug/
 else
-CXXFLAGS := -std=gnu++20 -Wall -O2 -g -DNDEBUG -MMD -MP
+CXXFLAGS := -std=gnu++20 -Wall -O2 -g -DNDEBUG -MMD -MP -DGLM_FORCE_CTOR_INIT -DGLM_ENABLE_EXPERIMENTAL
 OBJDIR := $(MAKEFILE_DIR)/obj/release/
 endif
 
