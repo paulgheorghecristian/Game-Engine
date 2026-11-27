@@ -1,0 +1,16 @@
+{
+    "VSPath" : "res/shaders/bufferCombinationShader.vs",
+    "FSPath" : "res/shaders/bounceLight.fs",
+    "Uniforms" : {
+                    "depthSampler" : "INT",
+                    "normalSampler" : "INT",
+                    "lightSampler" : "INT",
+                    "albedoSampler" : "INT",
+                    "projectionMatrix" : "MAT4",
+                    "inverseProjectionMatrix" : "MAT4",
+                    "radius" : "FLOAT",
+                    "pbrEnabled" : "BOOL",
+                    "emissiveStrength" : "FLOAT",
+                    "frame" : "FLOAT"
+                 }
+}

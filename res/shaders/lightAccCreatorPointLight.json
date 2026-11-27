@@ -22,6 +22,10 @@
                     "castsShadow" : "INT",
                     "shadowFar" : "FLOAT",
                     "shadowCube" : "INT",
+                    "emitAxis" : "VEC3",
+                    "emitCos" : "VEC2",
+                    "tubeAxis" : "VEC3",
+                    "tubeHalf" : "FLOAT",
                     "inverseViewMatrix" : "MAT4"
                  }
 }

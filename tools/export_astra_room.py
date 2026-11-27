@@ -13,41 +13,18 @@ collision, lights, timeline): the old box furniture is hidden and the room's mod
 - The old entities replaced by the model are found by where they are, not by their place in the list:
   if 01_beginning.json moves one, the export stops and says which.
 """
-import bpy, json, os, re
+import bpy, json, os, re, sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import ward_interaction     # the keypad's code, the door swinging open, the way out (tools/ward_interaction.py)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 OUT = os.path.join(ROOT, 'Game/recursion/astra')
 BASE = os.path.join(ROOT, 'Game/recursion/01_beginning.json')
 LEVEL = os.path.join(ROOT, 'Game/recursion/01_beginning_astra.json')
 
-# ---- textures: res/textures/<set>_1K_{Color,Normal,Roughness}.jpg (ambientCG, CC0) -------------------
-# mean colour of each Color map: a textured material's diffuse is divided by it, so the surface keeps the
-# colour it was given (the texture adds the variation, not a different colour)
-SET_MEAN = {
-    'PaintedPlaster017': (0.745, 0.748, 0.732),
-    'OfficeCeiling001': (0.958, 0.958, 0.958),
-    'Metal009': (0.573, 0.583, 0.596),
-    'Metal027': (0.180, 0.176, 0.206),
-    'Fabric086': (0.662, 0.666, 0.684),
-    'Plastic018B': (0.469, 0.469, 0.469),
-    'Rubber004': (0.164, 0.170, 0.194),
-}
-
-
-def look(material, texture_set, tile, color=True, normal=1.0, **scalars):
-    """material with a texture set tiled every `tile` world units; color=False: only its relief and
-    roughness (the material keeps its flat colour)"""
-    path = 'res/textures/%s_1K_' % texture_set
-    if color:
-        mean = SET_MEAN[texture_set]
-        material['diffuse'] = [round(c / m, 4) for c, m in zip(material['diffuse'], mean)]
-        material['Texture'] = path + 'Color.jpg'
-    material['NormalMapTexture'] = path + 'Normal.jpg'
-    material['normalMapStrength'] = normal
-    material['RoughnessTexture'] = path + 'Roughness.jpg'
-    material['tileSize'] = tile
-    material.update(scalars)
-    return material
+# ---- textures: the CC0 sets and the ward's surfaces (tools/surfaces.py) -----------------------------------
+from surfaces import SET_MEAN, look, ward_wall, ward_band, ward_ceiling, ward_floor, door_coat
 
 
 # per Blender material: what it is made of
@@ -67,10 +44,19 @@ MATERIAL_LOOK = {
     'screen': lambda m: m.update(roughness=0.08) or m,
 }
 
+# the ceiling lights: inside their fittings' housings, just above the tubes (the housing's underside then
+# faces away from its own light: below it, 0.4 from its underside, the light lit a spot there and the
+# fitting's emission left a black dot over it)
+TUBES_Y = 70.3
+
 # ---- what is kept apart (Blender coordinates, z up: the centre of each object's bounds) ---------------
 GROUPS = {
-    'door': ((-11.4, -90.0, 0.0), (11.4, -85.5, 53.0)),     # fittings on the door leaf, not its frame
+    # fittings on the door leaf, not its frame (the frame's head is centred at 52.8, above the leaf's top)
+    'door': ((-11.4, -90.0, 0.0), (11.4, -85.5, 52.0)),
     'keypad': ((16.0, -86.5, 29.0), (21.5, -84.0, 35.5)),
+    # the ceiling fittings and their tubes: part of the lights (no shadow of their own: each light is
+    # inside one, and sends its light out as the fitting does, its "emission")
+    'fittings': ((-4.0, -80.0, 68.5), (4.0, 80.0, 72.5)),
 }
 
 # ---- left out of the level: the window (its wall pieces, frame, sill, blinds) and the street outside it;
@@ -103,13 +89,12 @@ HIDE = [  # replaced by the model
     (0, 70.68, 57.04), (0, 71.55, 57.04), (0, 70.68, 0.0), (0, 71.55, 0.0), (0, 70.68, -57.04), (0, 71.55, -57.04),
 ]
 RETEXTURE = [  # kept, textured like the model
-    ((0, -1.86, 0), lambda m: m.update(Texture='Game/recursion/astra/ward_floor_tiles.jpg', diffuse=[.62, .64, .62],
-                                       roughness=.58, specularStrength=.28, tileSize=24) or m),   # floor: 12 unit tiles
-    ((0, 73.78, 0), lambda m: look(m, 'OfficeCeiling001', 90, normal=0.35)),                         # ceiling
-    ((0, 26.04, 89.28), lambda m: look(m, 'Metal027', 30, color=False, normal=0.6)),  # door leaf: powder coat
-] + [(p, lambda m: look(m, 'PaintedPlaster017', 70, normal=0.3)) for p in (                       # walls
+    ((0, -1.86, 0), ward_floor),                                                                     # floor
+    ((0, 73.78, 0), ward_ceiling),                                                                   # ceiling
+    ((0, 26.04, 89.28), door_coat),                                                  # door leaf: powder coat
+] + [(p, ward_wall) for p in (                                                                     # walls
     (0.0, 35.96, -88.66), (-43.09, 35.96, 88.66), (0.0, 62.0, 88.66), (43.09, 35.96, 88.66), (76.26, 35.96, 0.0), (-76.26, 35.96, 0.0))
-] + [(p, lambda m: look(m, 'Plastic018B', 40, color=False)) for p in (                             # the wipe-clean lower band
+] + [(p, ward_band) for p in (                                                                     # the wipe-clean lower band
     (0.0, 11.16, -86.6), (-43.09, 11.16, 86.6), (43.09, 11.16, 86.6), (74.2, 11.16, 0.0), (-74.2, 11.16, 0.0))]
 
 
@@ -330,6 +315,10 @@ def export_meshes():
             material = MATERIAL_LOOK[name](material)
         entity = {'Transform': {'position': [0, 0, 0], 'rotation': [0, 0, 0], 'scale': [1, 1, 1]},
                   'Components': {'RenderComponent': {'Mesh': 'Game/recursion/astra/' + filename, 'Material': material}}}
+        if group == 'fittings':
+            entity['Components']['RenderComponent']['castShadow'] = False
+            if name == 'R7_bone':
+                material['emissive'] = 0.12     # the housing's reflector, lit by its own tubes
         entities.append(entity)    # glass casts no shadow (the engine's rule for glass)
     return entities
 
@@ -349,11 +338,29 @@ def main():
     for position, size in [([-34, 8, 19], [13, 16, 12]), ([42, 9, -12], [13, 18, 12])]:
         scene['Entities'].append({'Transform': {'position': position, 'rotation': [0, 0, 0], 'scale': [1, 1, 1]},
                                   'Components': {'PhysicsComponent': {'BoundingBodyType': ['cube'], 'scale': size, 'mass': 0}}})
-    scene['Environment'].update(filmGrain=.016, chromaticAberration=.18)
+    # light bouncing between the walls, ceiling and floor (Rendering/BounceLight): a corner fills in as a real one does
+    scene['Environment'].update(filmGrain=0.0, chromaticAberration=.18, bounceLight=1.0, bounceRadius=80.0,
+                                bloomStrength=1.5, bloomThreshold=0.7)
+    # what faces down (the ceiling, under the furniture) gets the light the lit floor sends up: the bounce
+    # light cannot see the floor when the ceiling is looked at (it is off the screen)
+    scene['Environment']['ambientGroundTint'] = [3.0, 3.1, 2.9]
+    ward_interaction.add(scene)
     # the ceiling lights' shadows: 1024 pixels a cube face (512 drew stair steps on the walls)
     for light in scene.get('Lights', []):
         if light.get('Attributes', {}).get('cast_shadow'):
             light['Attributes']['shadowMapSize'] = 1024
+        # their reach: the one by the clock (z -57) lights the room's far end, the other two only round them
+        size = 260 if abs(light['Transform']['position'][2] + 57.04) < 0.1 else 100
+        light['Transform']['scale'] = [size, size, size]
+        # where the light comes from: the tubes, in the bottom of each fitting (y 69.6-69.9), and how the
+        # fitting sends it out: down and to the sides, none up (its housing is above the tubes). As a point
+        # light below the housing (the old level's 68.2), the housing threw a long sharp shadow across the
+        # ceiling
+        light['Transform']['position'][1] = TUBES_Y
+        # (bare tubes hang below the housing: some light leaves them sideways and a little up, past its edge)
+        light['Attributes']['emission'] = {'axis': [0, -1, 0], 'full': 75, 'none': 120}
+        # its tubes (29 long, along z): lit from along them, their highlights streaks on the glossy floor
+        light['Attributes']['tube'] = {'axis': [0, 0, 1], 'length': 29}
     with open(LEVEL, 'w') as f:
         json.dump(scene, f, indent=2)
         f.write('\n')

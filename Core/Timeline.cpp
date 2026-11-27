@@ -215,6 +215,7 @@ void Timeline::replace(const rapidjson::Value &sequences)
         if (now != nullptr && now->trigger == old[i].trigger) {
             now->running = old[i].running;
             now->t = old[i].t;
+            now->signalled = old[i].signalled;
             for (size_t e = 0; e < now->events.size() && e < old[i].events.size(); e++) {
                 if (now->events[e].name == old[i].events[e].name) now->events[e].done = old[i].events[e].done;
             }
@@ -283,6 +284,10 @@ void Timeline::advance(float renderTime)
             t = m_clock - startOf(sequence);        /* (isolating: the Moon may be kept whole; it starts where it is shown) */
         } else if (sequence.trigger == "kugelblitzFormed") {
             if (kugelblitz != nullptr && kugelblitz->formedAt >= 0.0f) t = kugelblitz->playTime - kugelblitz->formedAt;
+        } else if (byEvent(sequence)) {
+            /* from when it was signalled; back before that: not signalled any more */
+            if (sequence.signalled >= 0.0f && m_clock < sequence.signalled - 1e-4f) sequence.signalled = -1.0f;
+            if (sequence.signalled >= 0.0f) t = m_clock - sequence.signalled;
         } else {
             t = m_clock;
         }
@@ -393,7 +398,7 @@ float Timeline::firstReach(const std::string &name, float level) const
     const Track *track = nullptr;
     for (auto it = m_sequences.rbegin(); it != m_sequences.rend(); ++it) {     /* (the last one wins) */
         const Sequence &sequence = *it;
-        if (sequence.trigger == "kugelblitzFormed") continue;
+        if (sequence.trigger == "kugelblitzFormed" || byEvent(sequence)) continue;
         auto param = sequence.params.find(name);
         if (param != sequence.params.end()) { track = &param->second; break; }
     }
@@ -419,8 +424,18 @@ float Timeline::firstReach(const std::string &name, float level) const
     return found;
 }
 
+void Timeline::signal(const std::string &event)
+{
+    for (Sequence &sequence : m_sequences) {
+        if (byEvent(sequence) && sequence.trigger == event && sequence.signalled < 0.0f) {
+            sequence.signalled = m_clock;
+        }
+    }
+}
+
 float Timeline::startOf(const Sequence &sequence) const
 {
+    if (byEvent(sequence)) return sequence.signalled;   /* (-1: not signalled: not on the scene's clock yet) */
     if (sequence.trigger == "kugelblitzFormed") {
         /* when the sky's black hole has formed: on the timeline, if it sets the collapse; else
          * by the black hole's own playback from the start */
@@ -436,7 +451,8 @@ float Timeline::startOf(const Sequence &sequence) const
 std::vector<float> Timeline::starts() const
 {
     std::vector<float> out;
-    for (const Sequence &sequence : m_sequences) out.push_back(startOf(sequence));
+    /* (an event's sequence not signalled yet: shown from its own 0) */
+    for (const Sequence &sequence : m_sequences) out.push_back(std::max(startOf(sequence), 0.0f));
     return out;
 }
 
@@ -445,6 +461,7 @@ float Timeline::valueAtScene(const std::string &name, float T, float fallback) c
     /* (the last sequence that sets it wins, as when playing: advance() overwrites in order) */
     for (auto it = m_sequences.rbegin(); it != m_sequences.rend(); ++it) {
         const Sequence &sequence = *it;
+        if (startOf(sequence) < 0.0f) continue;   /* (an event's, not signalled) */
         float t = T - startOf(sequence);
         if (t < 0.0f) continue;             /* not started by then */
         auto param = sequence.params.find(name);
@@ -470,6 +487,7 @@ float Timeline::sceneLength() const
             for (const Event &event : sequence.events) last = std::max(last, event.at);
             length = std::ceil((last + 15.0f) / 5.0f) * 5.0f;     /* a while past the last of it, to the next 5 s */
         }
+        if (startOf(sequence) < 0.0f) continue;   /* (an event's, not signalled) */
         longest = std::max(longest, startOf(sequence) + length);
     }
     return longest > 0.0f ? longest : 30.0f;
@@ -479,6 +497,7 @@ float Timeline::firstSoundScene() const
 {
     float first = -1.0f;
     for (const Sequence &sequence : m_sequences) {
+        if (startOf(sequence) < 0.0f) continue;   /* (an event's, not signalled) */
         for (const Sound &sound : sequence.sounds) {
             float at = startOf(sequence) + sound.at;
             if (first < 0.0f || at < first) first = at;

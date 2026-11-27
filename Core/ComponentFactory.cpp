@@ -203,6 +203,10 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
         } else {
             return NULL;
         }
+    } else if (strcmp(itr->name.GetString(), "Pressable") == 0) {
+        return new PressableComponent(itr->value);
+    } else if (strcmp(itr->name.GetString(), "Driven") == 0) {
+        return new DrivenComponent(itr->value);
     } else if (strcmp(itr->name.GetString(), "ParticleEmitterComponent") == 0) {
         return new ParticleEmitterComponent(itr->value);
     } else if (strcmp(itr->name.GetString(), "BillboardComponent") == 0) {

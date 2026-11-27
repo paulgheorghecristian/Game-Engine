@@ -1,0 +1,11 @@
+{
+    "VSPath" : "res/shaders/bufferCombinationShader.vs",
+    "FSPath" : "res/shaders/bounceLightBlur.fs",
+    "Uniforms" : {
+                    "bounceSampler" : "INT",
+                    "depthSampler" : "INT",
+                    "normalSampler" : "INT",
+                    "inverseProjectionMatrix" : "MAT4",
+                    "direction" : "VEC2"
+                 }
+}

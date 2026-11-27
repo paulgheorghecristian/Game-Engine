@@ -27,6 +27,9 @@
 #include <unistd.h>
 #include <algorithm>
 #include <cstdlib>
+#include <fstream>
+#include <map>
+#include <sstream>
 #include "stb_image_write.h"
 #include <cstring>
 #include <ctime>
@@ -250,6 +253,9 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
     }
 
     constructPlayer();
+    /* what the player can press, the locks, the triggers (the map's "Interaction" block) */
+    m_interaction.load(gameDocument, entities);
+    if (!m_entry.empty()) m_interaction.arrive(gameDocument, m_entry, m_timeline);
     // constructEnemy();
 
     outputType = 5;
@@ -981,12 +987,6 @@ void EngineCore::input() {
         inputManager.setWarpMouse(warpMouse);
     }
 
-    if (inputManager.getWarpMouse()) {
-        if (inputManager.getMouse(1)) {
-            spawnBox(RenderingMaster::getInstance()->getCamera()->getPosition());
-        }
-    }
-
     if (inputManager.getKeyDown(SDLK_0)) {
         outputType = 10;
     }
@@ -1072,6 +1072,7 @@ void EngineCore::input() {
 
     RenderingMaster::getInstance()->deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
 
+    m_interaction.input(inputManager, m_timeline, RenderingMaster::getInstance()->getTime());
     for (auto const &entity : entities) {
         entity->input(inputManager);
     }
@@ -1100,6 +1101,19 @@ void EngineCore::render(float alpha) {
         if (!m_remote.connected()) isRunning = false;
     }
     m_timeline.playSounds(RenderingMaster::getInstance()->getCamera()->getPosition());
+    /* what is aimed at and pressed, the triggers, what the timeline moves, going to another level */
+    {
+        PhysicsComponent *body = player != NULL ? (PhysicsComponent *) player->getComponent(Entity::Flags::DYNAMIC) : NULL;
+        m_interaction.frame(RenderingMaster::getInstance()->getCamera(), m_timeline, RenderingMaster::getInstance()->getTime(),
+                            body != NULL ? body->getRigidBody() : NULL);
+        if (m_interaction.fade() >= 0.0f) {
+            RenderingMaster::getInstance()->setFadeOut(m_interaction.fade());
+            /* the sound too when leaving; coming in, only the picture (the door shut behind is heard) */
+            if (Interaction::holdsPlayer()) AudioMaster::getInstance()->setFade(1.0f - m_interaction.fade());
+        }
+        std::string level, entry;
+        if (m_interaction.levelDue(level, entry)) loadLevel(level, entry);
+    }
     RenderingMaster::getInstance()->prepareFrame(alpha);
     m_soundScape.update(RenderingMaster::getInstance()->getCamera());
 
@@ -1328,6 +1342,13 @@ void EngineCore::render(float alpha) {
     /* GE_CLEAN_SHOTS=1: no profiler bars, FPS text or ImGui windows (clean
      * screenshots, e.g. tools/visual_tour.py); F1 does the same while playing */
     static const bool cleanShots = std::getenv("GE_CLEAN_SHOTS") != NULL;
+    /* the aim (after F12's picture and the recording: those are of the scene) */
+    if (!cleanShots && player != NULL) {
+        bool acting = !Waking::holdsPlayer() && !Interaction::holdsPlayer() && m_interaction.fade() < 0.0f;
+        Display *display = RenderingMaster::getInstance()->getDisplay();
+        m_reticle.draw(display->getWidth(), display->getHeight(), m_interaction.aim(),
+                       m_interaction.pressPulse(RenderingMaster::getInstance()->getTime()), acting ? 1.0f : 0.0f);
+    }
     if (!cleanShots && !m_playMode) {
     ProfilingTimer::renderAllBarGUIs();
     fpsGUI->render();
@@ -1561,7 +1582,30 @@ void EngineCore::loadLights(rapidjson::Document &gameDocument) {
                 if (light.HasMember("Attributes") && light["Attributes"].HasMember("shadowMapSize")) {
                     shadowMapSize = light["Attributes"]["shadowMapSize"].GetInt();
                 }
-                newLight = new PointLight(trans, color, cast_shadow, shadowMapSize);
+                PointLight *point = new PointLight(trans, color, cast_shadow, shadowMapSize);
+                /* "emission": {"axis": [0, -1, 0], "full": 70, "none": 100}: how its fitting sends the light out */
+                if (light.HasMember("Attributes") && light["Attributes"].HasMember("emission") &&
+                    light["Attributes"]["emission"].IsObject()) {
+                    const auto &emission = light["Attributes"]["emission"];
+                    glm::vec3 axis(0.0f, -1.0f, 0.0f);
+                    if (emission.HasMember("axis") && emission["axis"].IsArray() && emission["axis"].Size() == 3) {
+                        axis = glm::vec3(emission["axis"][0].GetFloat(), emission["axis"][1].GetFloat(), emission["axis"][2].GetFloat());
+                    }
+                    float full = emission.HasMember("full") ? emission["full"].GetFloat() : 70.0f;
+                    float none = emission.HasMember("none") ? emission["none"].GetFloat() : 100.0f;
+                    point->setEmission(axis, full, none);
+                }
+                /* "tube": {"axis": [1, 0, 0], "length": 29}: a tube, not a point */
+                if (light.HasMember("Attributes") && light["Attributes"].HasMember("tube") &&
+                    light["Attributes"]["tube"].IsObject()) {
+                    const auto &tube = light["Attributes"]["tube"];
+                    glm::vec3 axis(1.0f, 0.0f, 0.0f);
+                    if (tube.HasMember("axis") && tube["axis"].IsArray() && tube["axis"].Size() == 3) {
+                        axis = glm::vec3(tube["axis"][0].GetFloat(), tube["axis"][1].GetFloat(), tube["axis"][2].GetFloat());
+                    }
+                    point->setTube(axis, tube.HasMember("length") ? tube["length"].GetFloat() : 0.0f);
+                }
+                newLight = point;
             } else if (type.compare("DIR") == 0) {
                 newLight = new DirectionalLight(trans, color, lightDir, cast_shadow);
             } else {
@@ -1758,7 +1802,19 @@ void EngineCore::loadMapFeatures(rapidjson::Document &gameDocument) {
         std::sscanf(start, "%f,%f,%f,%f,%f", &m_playerStart.x, &m_playerStart.y, &m_playerStart.z,
                     &m_playerYaw, &m_playerPitch);
     }
-    rm->waking().load(gameDocument, m_playerStart, m_playerYaw, m_playerPitch);   /* (a waking-up scene) */
+    /* came in from another level (Core/Interaction's "loadLevel"): in by the entry it named */
+    if (const char *entry = std::getenv("GE_ENTRY")) {
+        if (Interaction::entry(gameDocument, entry, m_playerStart, m_playerYaw, m_playerPitch)) {
+            m_entry = entry;
+        } else {
+            std::cout << "No entry \"" << entry << "\" in this map: in at its start" << std::endl;
+        }
+        unsetenv("GE_ENTRY");
+    }
+    /* (a waking-up scene: not when come in from another level) */
+    rapidjson::Value noWaking(rapidjson::kObjectType);
+    rm->waking().load(m_entry.empty() ? (const rapidjson::Value &) gameDocument : noWaking,
+                      m_playerStart, m_playerYaw, m_playerPitch);
     rm->roomAlive().load(gameDocument);                                         /* (the room coming alive) */
     /* GE_SKIP_ANIM=1: the map's animations skipped: the scene as it is at their end (its timeline's
      * end, past the sky's Moon destruction if that plays on its own), as if played to there */
@@ -1955,6 +2011,8 @@ std::string EngineCore::mapJson() {
     if (parseInto(m_footstepsJson, footsteps)) doc.AddMember("Footsteps", footsteps, allocator);
     rapidjson::Value sequences;
     if (parseInto(m_sequencesJson, sequences)) doc.AddMember("Sequences", sequences, allocator);
+    rapidjson::Value interaction;
+    if (parseInto(m_interaction.json(), interaction)) doc.AddMember("Interaction", interaction, allocator);
     if (parseInto(m_emittersJson, emitters)) doc.AddMember("ParticleEmitters", emitters, allocator);
 
     rapidjson::Value entityArray(rapidjson::kArrayType);
@@ -2012,6 +2070,30 @@ std::string EngineCore::mapJson() {
     writer.SetIndent(' ', 1);
     doc.Accept(writer);
     return buffer.GetString();
+}
+
+void EngineCore::loadLevel(const std::string &path, const std::string &entry) {
+    FILE *file = fopen(path.c_str(), "r");
+    if (file == NULL) {
+        std::cout << "loadLevel: " << path << " does not exist" << std::endl;
+        return;
+    }
+    fclose(file);
+    std::cout << "To " << path << (entry.empty() ? "" : " by " + entry) << std::endl;
+    fflush(stdout);
+    if (!entry.empty()) setenv("GE_ENTRY", entry.c_str(), 1);
+    unsetenv("GE_START");       /* (a spawn given for this level is not the next one's) */
+    /* the engine again on that level (every system rebuilt), as F9 does */
+    char exe[4096];
+    ssize_t n = readlink("/proc/self/exe", exe, sizeof(exe) - 1);
+    if (n <= 0) {
+        std::cout << "Could not restart; run: ./ge " << path << std::endl;
+        return;
+    }
+    exe[n] = 0;
+    setenv("GE_SKIP_MENU", "1", 1);
+    execl(exe, exe, path.c_str(), (char *) NULL);
+    std::cout << "Could not restart; run: ./ge " << path << std::endl;
 }
 
 void EngineCore::reloadMap(const std::string &path) {
@@ -2118,6 +2200,28 @@ void EngineCore::runBenchmark(int numFrames) {
     }
     const char *pathShots = std::getenv("GE_PATH_SHOTS");
     size_t waypoint = 0;
+    /* GE_SCENARIO=script: GE_SCRIPT=file.json, a list of steps, each at a frame of the run (from 0):
+     *   {"frame": 40, "look": [x, y, z]}        the camera turned to look at that point
+     *   {"frame": 50, "press": "e"}             a key pressed (down this frame, up the next)
+ *   {"frame": 50, "click": true}            the left mouse button clicked (the same)
+     *   {"frame": 60, "hold": "w", "frames": 90} a key held for so many frames
+     *   {"frame": 70, "shot": "dir/name.png"}   a picture of the frame
+     *   {"frame": 80, "print": true}            where the player is, what is aimed at, the fade, what is heard
+     * "map": "02_corridor" on a step: only on a map whose path has that in it (a level change starts
+     * the engine again on the next map, its frames from 0) */
+    const bool scriptTest = scenario == "script";
+    rapidjson::Document script;
+    if (scriptTest) {
+        const char *scriptPath = std::getenv("GE_SCRIPT");
+        std::ifstream scriptFile(scriptPath != NULL ? scriptPath : "");
+        std::stringstream scriptText;
+        scriptText << scriptFile.rdbuf();
+        if (script.Parse(scriptText.str().c_str()).HasParseError() || !script.IsArray()) {
+            printf("GE_SCRIPT: no list of steps in %s\n", scriptPath != NULL ? scriptPath : "(not given)");
+            script.SetArray();
+        }
+    }
+    std::map<int, std::vector<int>> releases;     /* frame -> keys let go then */
     int stuckFrames = 0;
     glm::vec3 lastPathPosition(0.0f);
     const int segment = 100;
@@ -2136,6 +2240,9 @@ void EngineCore::runBenchmark(int numFrames) {
 
     /* benchmarks never react to the real mouse/keyboard (clicks would open light editors) */
     inputManager.setScripted(true);
+    if (scriptTest) {
+        setPlayMode(true);              /* (played as a player plays: no editor panels) */
+    }
     if (walk) {
         inputManager.setWarpMouse(true); /* camera-look path; real warping is off when scripted */
     }
@@ -2148,6 +2255,42 @@ void EngineCore::runBenchmark(int numFrames) {
         }
         if (fireballs) {
             inputManager.injectKey(SDLK_g, i % 25 == 5);
+        }
+        if (scriptTest) {
+            for (int key : releases[i]) {
+                if (key < 0) inputManager.injectMouseButton(-key, false);    /* (a mouse button) */
+                else inputManager.injectKey(key, false);
+            }
+            for (const auto &step : script.GetArray()) {
+                if (!step.IsObject() || !step.HasMember("frame") || step["frame"].GetInt() != i) continue;
+                if (step.HasMember("map") && m_mapPath.find(step["map"].GetString()) == std::string::npos) continue;
+                if (step.HasMember("look")) {
+                    Camera *camera = RenderingMaster::getInstance()->getCamera();
+                    glm::vec3 d = glm::vec3(step["look"][0].GetFloat(), step["look"][1].GetFloat(), step["look"][2].GetFloat()) -
+                                  camera->getPosition();
+                    camera->setRotation(std::asin(glm::clamp(d.y / glm::length(d), -1.0f, 1.0f)), std::atan2(-d.x, -d.z), 0.0f);
+                }
+                if (step.HasMember("press")) {
+                    int key = step["press"].GetString()[0];
+                    inputManager.injectKey(key, true);
+                    releases[i + 1].push_back(key);
+                }
+                if (step.HasMember("click")) {
+                    inputManager.injectMouseButton(SDL_BUTTON_LEFT, true);
+                    releases[i + 1].push_back(-SDL_BUTTON_LEFT);
+                }
+                if (step.HasMember("hold")) {
+                    int key = step["hold"].GetString()[0];
+                    inputManager.injectKey(key, true);
+                    releases[i + (step.HasMember("frames") ? step["frames"].GetInt() : 1)].push_back(key);
+                }
+                if (step.HasMember("shot")) saveScreenshot(step["shot"].GetString());
+                if (step.HasMember("print")) {
+                    glm::vec3 p = player->getTransform().getPosition();
+                    printf("SCRIPT frame %d player %.1f %.1f %.1f aim %.2f fade %.2f sounds %s\n", i, p.x, p.y, p.z,
+                           m_interaction.aim(), m_interaction.fade(), AudioMaster::getInstance()->playing().c_str());
+                }
+            }
         }
         if (pathTest) {
             glm::vec3 p = player->getTransform().getPosition();

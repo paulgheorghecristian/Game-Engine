@@ -68,6 +68,9 @@ struct Environment
     float bloomThreshold = 1.0f;
     float aoStrength = 0.0f;            /* screen-space ambient occlusion, 0 = off */
     float aoRadius = 8.0f;              /* world units */
+    float bounceLight = 0.0f;           /* light bouncing between near surfaces (Rendering/BounceLight): 1 as
+                                         * it really bounces, 0 = off */
+    float bounceRadius = 60.0f;         /* how far it looks for them, world units */
     /* hemisphere ambient: surfaces facing up get ambient * skyTint, facing
      * down ambient * groundTint (neutral defaults = flat ambient as before) */
     glm::vec3 ambientSkyTint = glm::vec3(1.0f);

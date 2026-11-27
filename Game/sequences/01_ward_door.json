@@ -1,0 +1,19 @@
+{
+ "name": "the ward door opens",
+ "trigger": "ward_door_unlocked",
+ "length": 8,
+ "params": {
+  "ward_door": {
+   "keys": [
+    [0, 0],
+    [0.9, 0],
+    [4.4, 1]
+   ],
+   "curve": "smooth"
+  }
+ },
+ "sounds": [
+  {"at": 0.55, "sound": "door_unlock", "volume": 0.8, "anchor": "ward_door", "radius": 400},
+  {"at": 0.9, "sound": "door_open", "volume": 0.7, "anchor": "ward_door", "radius": 400}
+ ]
+}

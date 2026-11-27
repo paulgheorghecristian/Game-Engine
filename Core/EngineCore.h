@@ -4,6 +4,8 @@
 #include "FrameRecorder.h"
 #include "SoundScape.h"
 #include "Timeline.h"
+#include "Interaction.h"
+#include "Reticle.h"
 #include "RemoteControl.h"
 #include "Aftermath.h"
 #include "Display.h"
@@ -48,6 +50,8 @@ class EngineCore
         void loadGrass(rapidjson::Document &gameDocument);
         bool saveMap(const std::string &path);
         void reloadMap(const std::string &path);
+        /* another level, in by its entry (Core/Interaction's "loadLevel") */
+        void loadLevel(const std::string &path, const std::string &entry);
         std::vector<std::pair<Entity *, float>> m_fireballs; /* entity, spawn time */
         void capturePreviousState();
         void beginInterpolation(float alpha);
@@ -105,6 +109,9 @@ class EngineCore
         SoundScape m_soundScape;
         Aftermath m_aftermath;     /* the storm after the Kugelblitz (driven by the timeline) */
         Timeline m_timeline;       /* the map's scripted sequences ("Sequences") */
+        Interaction m_interaction; /* what the player presses, locks, triggers, entries ("Interaction") */
+        Reticle m_reticle;         /* the aim */
+        std::string m_entry;       /* the entry this level was come in by (empty: its start) */
         int outputType;
 
         void constructPlayer();

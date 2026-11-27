@@ -66,6 +66,8 @@ void Environment::load(const rapidjson::Value &json)
     readFloat(json, "bloomThreshold", bloomThreshold);
     readFloat(json, "aoStrength", aoStrength);
     readFloat(json, "aoRadius", aoRadius);
+    readFloat(json, "bounceLight", bounceLight);
+    readFloat(json, "bounceRadius", bounceRadius);
     readFloat(json, "emissiveStrength", emissiveStrength);
 
     readFloat(json, "dayLength", dayLength);
@@ -211,6 +213,8 @@ void Environment::save(rapidjson::Value &json, rapidjson::Document::AllocatorTyp
     json.AddMember("bloomThreshold", bloomThreshold, allocator);
     json.AddMember("aoStrength", aoStrength, allocator);
     json.AddMember("aoRadius", aoRadius, allocator);
+    json.AddMember("bounceLight", bounceLight, allocator);
+    json.AddMember("bounceRadius", bounceRadius, allocator);
     json.AddMember("dayLength", dayLength, allocator);
     json.AddMember("timeOfDay", timeOfDay, allocator);
     writeVec3(json, "dayZenithColor", dayZenithColor, allocator);

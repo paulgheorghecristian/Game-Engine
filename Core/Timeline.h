@@ -35,7 +35,10 @@
  *
  * A sequence's clock runs from its trigger: "kugelblitzFormed" from the
  * moment the sky's Moon destruction finishes while watched (and it rewinds
- * with Restart / Reset), "mapStart" from the start of the map. Each frame the
+ * with Restart / Reset), "mapStart" from the start of the map; any other name
+ * is an event, and the sequence runs from the moment something signals it (a
+ * lock opened, a level entered: Core/Interaction). Going back on the scene's
+ * clock to before that moment un-signals it. Each frame the
  * running sequences set named parameters; the systems that read them do the
  * work (Core/Aftermath: the storm's wind, dust, rain, lightning, debris,
  * fires, camera shake...). The timings and the amounts are data; the
@@ -67,6 +70,9 @@ class Timeline
         float time() const { return m_time; }
         /* an event that fired this frame */
         bool fired(const std::string &event) const;
+        /* something happened (a lock opened, a level entered): the sequences triggered by that name
+         * start now, on the scene's clock (once: already started ones carry on) */
+        void signal(const std::string &event);
         /* one sound of a "noises" set: its file in res/sounds, and its own volume and pitch (times
          * whatever the system that plays it does) */
         struct Noise { std::string sound; float volume = 1.0f, pitch = 1.0f; };
@@ -138,7 +144,11 @@ class Timeline
             bool running = false;
             float t = -1.0f, startedAt = 0.0f;
             float length = -1.0f;          /* "length": seconds of it to show (-1: not given) */
+            float signalled = -1.0f;       /* an event's sequence: the scene time it was signalled (-1: not yet) */
         };
+        static bool byEvent(const Sequence &sequence) {
+            return sequence.trigger != "mapStart" && sequence.trigger != "kugelblitzFormed";
+        }
         static Track parseTrack(const rapidjson::Value &value);
         float startOf(const Sequence &sequence) const;
         void loadOne(const rapidjson::Value &sequence);

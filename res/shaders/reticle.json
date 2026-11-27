@@ -1,0 +1,11 @@
+{
+    "VSPath" : "res/shaders/bufferCombinationShader.vs",
+    "FSPath" : "res/shaders/reticle.fs",
+    "Uniforms" : {
+                    "screenSize" : "VEC2",
+                    "radius" : "FLOAT",
+                    "thickness" : "FLOAT",
+                    "fill" : "FLOAT",
+                    "color" : "VEC4"
+                 }
+}

@@ -41,7 +41,10 @@ Game/recursion/STORY.md.
 Run after make_canyon.py / make_lagoon.py (it starts from their maps):
   python3 tools/make_recursion.py
 """
-import copy, json, math, os, random
+import copy, json, math, os, random, sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from surfaces import ward_wall, ward_band, ward_ceiling, ward_floor, door_coat   # (tools/surfaces.py)
 
 random.seed(2000)
 OUT = 'Game/recursion'
@@ -278,9 +281,42 @@ def room(ents, cx, cz, w, d, h=H_ROOM, walls=PEELING, floor=TERRAZZO, ceiling=OF
 
 HUMS = []                                           # the tubes' buzz (each scene's Audio sources)
 
+# the ceiling fitting (astra's, tools/export_astra_fitting.py): a housing open below, two frosted tubes;
+# made for a ceiling at H_ROOM (its top at 71.1). Part of its light: no shadows of its own
+FITTING_HOUSING = mat((0.68, 0.66, 0.56), normal="res/textures/Plastic018B_1K_Normal.jpg", emissive=0.12,
+                      extra={"roughness": 0.76, "RoughnessTexture": "res/textures/Plastic018B_1K_Roughness.jpg",
+                             "normalMapStrength": 1.0, "tileSize": 30})
+FITTING_TUBES = mat((0.88, 0.9, 0.79), emissive=1.0, extra={"roughness": 0.76})   # (as in the ward)
+FITTING_TUBES_OFF = mat((0.55, 0.55, 0.5), extra={"roughness": 0.5})
+TUBES_Y = 70.3          # its light: inside the housing, just above the tubes (under a H_ROOM ceiling); its
+                        # underside faces away from it (below it, the light lit a spot there)
+# how the fitting sends the light out: down and to the sides, and a little up past the housing's edge
+# (bare tubes hang below it); none straight up
+FITTING_EMISSION = {"axis": [0, -1, 0], "full": 75, "none": 120}
+
 def tube(ents, lights, x, z, h=H_ROOM, along='x', flicker=0.04, color=(0.85, 0.95, 1.0), radius=4.8 * M, shadow=True,
-         dead=False, diffuse=(420, 6, 1.3)):
-    """a buzzing 1.2 m fluorescent tube on the ceiling, and its light (dead: burnt out, dark)"""
+         dead=False, diffuse=None, fitting=True):
+    """a buzzing fluorescent fitting on the ceiling, and its light (dead: burnt out, dark). fitting=False:
+    the old flat glowing panel (level 1's base: tools/export_astra_room.py finds and replaces those)"""
+    if fitting:
+        dy = h - H_ROOM
+        turn = (0, 90, 0) if along == 'x' else (0, 0, 0)
+        ents.append(entity("Game/recursion/astra/fitting_housing.obj", (x, dy, z), 1, turn, FITTING_HOUSING,
+                           cast_shadow=False))
+        ents.append(entity("Game/recursion/astra/fitting_tubes.obj", (x, dy, z), 1, turn,
+                           FITTING_TUBES_OFF if dead else FITTING_TUBES, cast_shadow=False))
+        if dead:
+            return
+        HUMS.append({"sound": "hum_loop", "position": [round(x, 1), round(h - 0.2 * M, 1), round(z, 1)],
+                     "volume": 0.35 + 0.4 * min(flicker * 2, 1.0), "radius": round(6 * M)})
+        # (the ward's fittings' light: its falloff and its shadows' sharpness)
+        lights.append(light((x, dy + TUBES_Y, z), color, "POINT", (radius, radius, radius), cast_shadow=shadow,
+                            shadowMapSize=1024, diffuse_attenuation=list(diffuse or (800, 10, 1)),
+                            specular_attenuation=[420, 6, 1.3],
+                            flicker=min(flicker, 0.35), flickerSpeed=7, emission=FITTING_EMISSION,
+                            # its two tubes, 29 long: lit from along them, their highlights streaks
+                            tube={"axis": [1, 0, 0] if along == 'x' else [0, 0, 1], "length": 29}))
+        return
     size = (1.2 * M, 0.06 * M, 0.12 * M) if along == 'x' else (0.12 * M, 0.06 * M, 1.2 * M)
     ents.append(box((x, h - 0.05 * M, z), size, mat((0.25, 0.25, 0.22)) if dead else TUBE, cast_shadow=False))
     if dead:
@@ -290,8 +326,29 @@ def tube(ents, lights, x, z, h=H_ROOM, along='x', flicker=0.04, color=(0.85, 0.9
                  "volume": 0.35 + 0.4 * min(flicker * 2, 1.0), "radius": round(6 * M)})
     ents.append(box((x, h - 0.015 * M, z), (size[0] + 0.15 * M, 0.03 * M, size[2] + 0.18 * M), STEEL, cast_shadow=False))
     lights.append(light((x, h - 0.15 * M, z), color, "POINT", (radius, radius, radius), cast_shadow=shadow,
-                        shadowMapSize=512, diffuse_attenuation=list(diffuse), specular_attenuation=[420, 6, 1.3],
+                        shadowMapSize=512, diffuse_attenuation=list(diffuse or (420, 6, 1.3)), specular_attenuation=[420, 6, 1.3],
                         flicker=min(flicker, 0.35), flickerSpeed=7))  # a slow waver, never a strobe
+
+def ward_surfaces(scene):
+    """a level's plain painted rooms made of the ward's surfaces (tools/surfaces.py): plaster walls, the
+    wipe-clean band, vinyl floor tiles, ceiling tiles, powder-coated doors. On copies of the materials
+    (the plain ones are shared by every level)"""
+    for entity in scene["Entities"]:
+        render = entity.get("Components", {}).get("RenderComponent", {})
+        material = render.get("Material")
+        if material is None or render.get("Mesh") != "res/models/cube4.obj":
+            continue
+        y, height = entity["Transform"]["position"][1], entity["Transform"]["scale"][1]
+        if material == PEELING:
+            render["Material"] = ward_wall(copy.deepcopy(material))
+        elif material == WAINSCOT:
+            render["Material"] = ward_band(copy.deepcopy(material))
+        elif material == TERRAZZO:
+            render["Material"] = ward_floor(copy.deepcopy(material))
+        elif material == OFFWHITE and y > H_ROOM - 1 and height < 0.2 * M:       # (the ceilings, not a mattress)
+            render["Material"] = ward_ceiling(copy.deepcopy(material))
+        elif material == DOOR_PAINT:
+            render["Material"] = door_coat(copy.deepcopy(material))
 
 def door(ents, x, z, along='x', locked=True, window=True, lit=False, open_window=False):
     """a closed steel door filling a doorway (along: the wall's direction), a small window in it.
@@ -466,7 +523,7 @@ ents.append(box((0.5 * M, 1.82 * M, -D / 2 + 0.03 * M), (0.4 * M, 0.1 * M, 0.01 
 # three tubes in a row down the middle, from the door to the far wall
 # (radius and falloff as tuned in the engine: a wider, softer light)
 for z, flicker in ((D / 2 - 1.2 * M, 0.03), (0.0, 0.06), (-D / 2 + 1.2 * M, 0.05)):
-    tube(ents, lights, 0, z, along='z', flicker=flicker, radius=200, diffuse=(800, 10, 1))
+    tube(ents, lights, 0, z, along='z', flicker=flicker, radius=200, diffuse=(800, 10, 1), fitting=False)
 # waking up (Rendering/Waking, in its timeline Game/sequences/01_beginning.json): from lying in the
 # bed, to sitting on its edge, to standing beside it facing the door (the player's start)
 scenes['01_beginning'] = scene(ents, lights, interior_env(fogDensity=0.0012, fogLightGlow=0.8), start(-33.0, EYE, -12.0, yaw_towards((-33.0, -12.0), (0, D / 2)), -4))
@@ -510,7 +567,8 @@ ents.append(entity("res/models/FinalBaseMesh.obj", (B4, 0.66 * M, S4 + 0.85 * M)
 ents.append(box((B4, 0.62 * M, S4 + 0.45 * M), (0.88 * M, 0.16 * M, 1.0 * M), mat((0.45, 0.55, 0.6), extra={"roughness": 0.9})))  # the blanket
 tube(ents, lights, CW / 2 + 2.0 * M, S4, flicker=0.02, color=(1.0, 0.92, 0.75), radius=4 * M)
 for k, z in enumerate([z * M for z in (-10, -5, 0, 5, 10)]):
-    tube(ents, lights, 0, z, along='x', flicker=0.35 if k == 2 else 0.05, dead=(k == 1))
+    # (reach 200: the next fitting is 124 away; with the ward's falloff each must light past the middle)
+    tube(ents, lights, 0, z, along='x', flicker=0.35 if k == 2 else 0.05, dead=(k == 1), radius=200)
 papers(ents, 0, 0, 3 * M, n=4, spread=0.8 * M)
 papers(ents, 0.3 * M, 0, -7 * M, n=3, spread=0.6 * M)
 ents.append(box((0, 2.35 * M, -CL / 2 + 0.03 * M), (0.6 * M, 0.2 * M, 0.04 * M), EXIT_GREEN, cast_shadow=False))
@@ -518,6 +576,23 @@ lights.append(light((0, 2.2 * M, -CL / 2 + 0.4 * M), (0.2, 1.0, 0.35), "POINT", 
                     diffuse_attenuation=[900, 14, 4], specular_attenuation=[900, 14, 4]))
 door(ents, 0, -CL / 2 - 0.08 * M, window=False)                                          # the next wing
 scenes['02_corridor_subject4'] = scene(ents, lights, interior_env(), start(0, EYE, CL / 2 - 1.5 * M, 0, 0))
+ward_surfaces(scenes['02_corridor_subject4'])
+# no grain; light bouncing between the walls, ceiling and floor (Rendering/BounceLight)
+scenes['02_corridor_subject4']["Environment"].update(filmGrain=0.0, bounceLight=1.0, bounceRadius=80.0,
+                                                     # down-facing: the lit floor's light sent up (off the screen
+                                                     # when the ceiling is looked at: not in the bounce light)
+                                                     ambientGroundTint=[3.0, 3.1, 2.9],
+                                                     bloomStrength=1.5, bloomThreshold=0.7,
+                                                     # the fittings' glow in the haze as in the ward (its haze
+                                                     # 0.0012 x glow 0.8; here the haze is thicker, 0.004)
+                                                     fogLightGlow=0.24)
+# in from level 1's ward (tools/ward_interaction.py: its door opens on the code): out of the west cell
+# door nearest the start, its door shut behind, looking down the corridor to the exit sign
+WARD_DOOR_Z = cell_z[5]
+scenes['02_corridor_subject4']["Interaction"] = {"entries": {"from_ward": {
+    "position": [round(-CW / 2 + 0.4 * M, 2), EYE, round(WARD_DOOR_Z, 2)], "yaw": -12, "pitch": 0, "fadeIn": 1.4,
+    "event": "arrived_from_ward",
+    "on": [{"sound": "door_close", "volume": 0.8, "at": [round(-CW / 2 - 0.08 * M, 2), 26.04, round(WARD_DOOR_Z, 2)], "radius": 400}]}}}
 
 # --------------------------------------------------------------------------
 # 02 the twin levers: two rooms off a hall, a lever in each

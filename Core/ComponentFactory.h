@@ -10,6 +10,8 @@
 #include "GrabComponent.h"
 #include "BillboardComponent.h"
 #include "ActionComponent.h"
+#include "PressableComponent.h"
+#include "DrivenComponent.h"
 #include "InstanceRenderComponent.h"
 #include "SkeletalAnimationComponent.hpp"
 

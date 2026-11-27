@@ -49,8 +49,10 @@ class Entity : public MemoryPoolInterface<Entity>
             INSTANCE_RENDERABLE,
             AIPLAYERFOLLOWER,
             PARTICLE_EMITTER,
-            TRANSFORM_ANIMATION /* TempAnimationComponent (not ANIMATED: that one
-                                 * is the skeletal animation the renderer draws) */
+            TRANSFORM_ANIMATION, /* TempAnimationComponent (not ANIMATED: that one
+                                  * is the skeletal animation the renderer draws) */
+            PRESSABLE,          /* PressableComponent: the player can press it (Core/Interaction) */
+            DRIVEN              /* DrivenComponent: moved by a timeline parameter */
         };
     protected:
         Transform m_transform;

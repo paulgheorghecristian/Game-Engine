@@ -28,6 +28,16 @@ uniform int castsShadow;
 uniform float shadowFar;
 uniform samplerCubeShadow shadowCube;  /* distance to the light / shadowFar (the far sides of the casters), compared */
 uniform mat4 inverseViewMatrix;
+/* how the fitting sends its light out (PointLight::setEmission): full within an angle of the axis
+ * (world), none past another; emitCos.x below -1: every way alike */
+uniform vec3 emitAxis;
+uniform vec2 emitCos;
+/* a tube (PointLight::setTube): the light is a line along tubeAxis (world), tubeHalf each way of its
+ * centre (0: a point). Diffuse light from the nearest point of it; the highlight from the point of it
+ * nearest the reflected view ray (Karis, "Real Shading in Unreal Engine 4"): a glossy floor shows a
+ * streak along the tube, not a round spot */
+uniform vec3 tubeAxis;
+uniform float tubeHalf;
 
 float pointShadow(vec3 viewPosition, vec3 viewNormal, float nDotL) {
     vec3 worldPosition = (inverseViewMatrix * vec4(viewPosition, 1.0)).xyz;
@@ -58,7 +68,9 @@ float pointShadow(vec3 viewPosition, vec3 viewNormal, float nDotL) {
 uniform bool pbrEnabled;
 uniform sampler2D albedoSampler;   /* G-buffer albedo (PBR: the light pass applies it) */
 
-vec3 pbrShade(vec2 uv, vec3 P, vec3 N, vec3 L, vec3 radiance) {
+/* L: towards the light for its diffuse part; Ls: for its highlight (the same for a point); specNorm:
+ * the highlight's brightness kept as it widens along a tube */
+vec3 pbrShade(vec2 uv, vec3 P, vec3 N, vec3 L, vec3 Ls, float specNorm, vec3 radiance) {
     const float PI = 3.14159265;
     vec3 albedo = texture(albedoSampler, uv).rgb;
     vec3 surface = texture(roughnessSampler, uv).rgb;   /* r: roughness, g: metallic */
@@ -66,8 +78,9 @@ vec3 pbrShade(vec2 uv, vec3 P, vec3 N, vec3 L, vec3 radiance) {
     float metallic = clamp(surface.g, 0.0, 1.0);
 
     vec3 V = normalize(-P);
-    vec3 H = normalize(L + V);
+    vec3 H = normalize(Ls + V);
     float NdotL = max(dot(N, L), 0.0);
+    float NdotLs = max(dot(N, Ls), 0.0);
     float NdotV = max(dot(N, V), 1e-4);
     float NdotH = max(dot(N, H), 0.0);
     float VdotH = max(dot(V, H), 0.0);
@@ -77,15 +90,15 @@ vec3 pbrShade(vec2 uv, vec3 P, vec3 N, vec3 L, vec3 radiance) {
     float d = NdotH * NdotH * (a2 - 1.0) + 1.0;
     float D = a2 / (PI * d * d);
     float k = (roughness + 1.0) * (roughness + 1.0) / 8.0;
-    float G = (NdotV / (NdotV * (1.0 - k) + k)) * (NdotL / (NdotL * (1.0 - k) + k));
+    float G = (NdotV / (NdotV * (1.0 - k) + k)) * (NdotLs / (NdotLs * (1.0 - k) + k));
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
     vec3 F = F0 + (1.0 - F0) * pow(clamp(1.0 - VdotH, 0.0, 1.0), 5.0);
 
-    vec3 specular = D * G * F / (4.0 * NdotV * max(NdotL, 1e-4));
+    vec3 specular = D * G * F / (4.0 * NdotV * max(NdotLs, 1e-4)) * specNorm;
     vec3 diffuse = (1.0 - F) * (1.0 - metallic) * albedo;
     /* light colors are authored as "N.L * color" for a diffuse surface, so the
      * Lambert 1/PI is folded into the light and the specular is scaled to match */
-    return (diffuse + specular * PI) * radiance * NdotL;
+    return (diffuse * NdotL + specular * PI * NdotLs) * radiance;
 }
 
 void main() {
@@ -128,14 +141,42 @@ void main() {
     vec3 diffuseLight = att * diffuseStrength * lightColor * lenAtt;
     vec3 specularLight = att2 * specularStrength * lightColor * lenAtt;
 
+    vec3 fromLight = -dirNormalized;        /* (a tube's: from the nearest point of it) */
     if (pbrEnabled) {
-        outLight = pbrShade(texCoord, viewPosition, normalize(eyeSpaceNormal), dirNormalized,
-                            att * lenAtt * lightColor);
+        vec3 N = normalize(eyeSpaceNormal);
+        vec3 Ld = dirNormalized, Ls = dirNormalized;
+        float specNorm = 1.0;
+        if (tubeHalf > 0.0) {
+            vec3 A = normalize(mat3(viewMatrix) * tubeAxis);
+            /* diffuse: from the nearest point of the tube (and the falloff from there) */
+            vec3 nearest = dir + A * clamp(-dot(dir, A), -tubeHalf, tubeHalf);
+            float dn = max(length(nearest), 1e-3);
+            Ld = nearest / dn;
+            fromLight = -Ld;
+            att = 1.0 / (a + b * dn + c * dn * dn);
+            /* the highlight: the point of the tube nearest the reflected ray */
+            vec3 r = reflect(normalize(viewPosition), N);
+            vec3 L0 = dir - A * tubeHalf, Lseg = A * (2.0 * tubeHalf);
+            float rL = dot(r, Lseg);
+            float t = clamp((dot(r, L0) * rL - dot(L0, Lseg)) / max(dot(Lseg, Lseg) - rL * rL, 1e-4), 0.0, 1.0);
+            vec3 onTube = L0 + Lseg * t;
+            float ds = max(length(onTube), 1e-3);
+            Ls = onTube / ds;
+            /* (a highlight stretched along the tube: as bright in all as a point's would be) */
+            float alpha = max(roughness.r * roughness.r, 0.0025);
+            specNorm = alpha / min(alpha + tubeHalf / (2.0 * ds), 1.0);
+        }
+        outLight = pbrShade(texCoord, viewPosition, N, Ld, Ls, specNorm, att * lenAtt * lightColor);
     } else {
         outLight = diffuseLight;
         if (getLight) {
             outLight += specularLight * rough;
         }
+    }
+    if (emitCos.x >= -1.0) {
+        /* (from where along a tube the light comes: its edge runs along the tube, not round its middle) */
+        float along = dot(fromLight, normalize(mat3(viewMatrix) * emitAxis));
+        outLight *= smoothstep(emitCos.y, emitCos.x, along);
     }
     if (castsShadow != 0) {
         outLight *= pointShadow(viewPosition, normalize(eyeSpaceNormal), max(dotProduct, 0.0));

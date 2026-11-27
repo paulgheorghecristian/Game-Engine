@@ -128,6 +128,13 @@ void Input::pollEvents(Display *display) {
             applyKey(k.first, k.second);
         }
         m_injectedKeys.clear();
+        for (auto &b : m_injectedButtons) {
+            if (b.first < 0 || b.first >= NUM_MOUSE) continue;
+            if (b.second && !inputMouse[b.first]) downMouse[b.first] = true;
+            if (!b.second && inputMouse[b.first]) upMouse[b.first] = true;
+            inputMouse[b.first] = b.second;
+        }
+        m_injectedButtons.clear();
         delta = m_injectedDelta;
         m_injectedDelta = glm::vec2(0);
         return;
@@ -142,6 +149,10 @@ void Input::setScripted(bool scripted) {
 
 void Input::injectKey(int key, bool held) {
     m_injectedKeys.push_back(std::make_pair(key, held));
+}
+
+void Input::injectMouseButton(int button, bool held) {
+    m_injectedButtons.push_back(std::make_pair(button, held));
 }
 
 void Input::injectMouseDelta(const glm::vec2 &d) {

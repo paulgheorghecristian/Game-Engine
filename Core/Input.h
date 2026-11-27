@@ -41,6 +41,7 @@ class Input
         void setScripted(bool scripted);
         void injectKey(int key, bool held);
         void injectMouseDelta(const glm::vec2 &d);
+        void injectMouseButton(int button, bool held);
         virtual ~Input();
     protected:
     private:
@@ -62,7 +63,7 @@ class Input
         bool m_ignoreUser = false;
         bool m_scripted = false;
         glm::vec2 m_injectedDelta = glm::vec2(0);
-        std::vector<std::pair<int, bool>> m_injectedKeys;
+        std::vector<std::pair<int, bool>> m_injectedKeys, m_injectedButtons;
         void applyKey(int key, bool held);
 };
 

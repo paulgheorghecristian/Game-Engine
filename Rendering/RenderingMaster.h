@@ -3,6 +3,7 @@
 
 #include "MoonDestruction.h"
 #include "Waking.h"
+#include "BounceLight.h"
 #include "RoomAlive.h"
 #include "BlackHoleGlow.h"
 
@@ -264,6 +265,7 @@ class RenderingMaster
         Texture *albedoTexture, *normalTexture, *lightAccumulationTexture;\
         Texture *roughnessTexture;
         Texture *blueNoiseTexture;
+        BounceLight m_bounceLight;      /* light bouncing between near surfaces (Environment "bounceLight") */
         Texture *m_moonTexture = nullptr;   /* sky: lunar map (equirectangular), unit 15 */
         Mesh *screenSizeRectangle;
 

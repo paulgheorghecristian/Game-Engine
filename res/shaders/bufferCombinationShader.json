@@ -27,6 +27,8 @@
                     "ambientSky" : "VEC3",
                     "aoSampler" : "INT",
                     "aoStrength" : "FLOAT",
+                    "bounceSampler" : "INT",
+                    "bounceStrength" : "FLOAT",
                     "hdrEnabled" : "BOOL",
                     "pbrEnabled" : "BOOL",
                     "skyReflections" : "BOOL",

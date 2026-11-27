@@ -382,6 +382,19 @@ void RenderingMaster::drawDeferredShadingBuffers()
         PT_ToHere("ssao");
         aoStrength = m_environment.aoStrength;
     }
+    /* light bouncing between surfaces near each other (Rendering/BounceLight) */
+    float bounce = 0.0f;
+    if (m_environment.bounceLight > 0.0f) {
+        PT_FromHere("bounceLight");
+        m_bounceLight.render(renderWidth, renderHeight, depthTexture->getTextureId(), normalTexture->getTextureId(),
+                             lightAccumulationTexture->getTextureId(), albedoTexture->getTextureId(),
+                             projectionMatrix, m_environment.bounceRadius,
+                             m_environment.pbr, m_environment.emissiveStrength, screenSizeRectangle);
+        PT_ToHere("bounceLight");
+        bounce = m_environment.bounceLight;
+    }
+    deferredShading_BufferCombinationShader.updateUniform("bounceSampler", 4);
+    deferredShading_BufferCombinationShader.updateUniform("bounceStrength", bounce);
     deferredShading_BufferCombinationShader.updateUniform("aoSampler", aoUnit);
     deferredShading_BufferCombinationShader.updateUniform("aoStrength", aoStrength);
     deferredShading_BufferCombinationShader.updateUniform("hdrEnabled", hdr);
@@ -438,6 +451,11 @@ void RenderingMaster::drawDeferredShadingBuffers()
         glActiveTexture(GL_TEXTURE0);
     }
 
+    if (bounce > 0.0f) {
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, m_bounceLight.texture());
+        glActiveTexture(GL_TEXTURE0);
+    }
     PT_FromHere("composite");
     screenSizeRectangle->draw();
     PT_ToHere("composite");
@@ -1442,6 +1460,8 @@ void RenderingMaster::environmentGUI()
     }
     changed |= ImGui::SliderFloat("Ambient occlusion", &m_baseEnvironment.aoStrength, 0.0f, 1.0f);
     changed |= ImGui::SliderFloat("AO radius", &m_baseEnvironment.aoRadius, 1.0f, 40.0f);
+    changed |= ImGui::SliderFloat("Bounce light", &m_baseEnvironment.bounceLight, 0.0f, 2.0f);
+    changed |= ImGui::SliderFloat("Bounce radius", &m_baseEnvironment.bounceRadius, 10.0f, 200.0f);
     if (changed) {
         applyEnvironment(m_baseEnvironment.dayLength > 0.0f ?
                          Environment::atTimeOfDay(m_baseEnvironment, m_environment.timeOfDay) : m_baseEnvironment);

@@ -79,6 +79,10 @@ void PointLight::render()
     shader.updateUniform("castsShadow", castsShadow);
     shader.updateUniform("shadowFar", range);
     shader.updateUniform("shadowCube", 5);
+    shader.updateUniform("emitAxis", (void *) &m_emitAxis);
+    shader.updateUniform("emitCos", (void *) &m_emitCos);
+    shader.updateUniform("tubeAxis", (void *) &m_tubeAxis);
+    shader.updateUniform("tubeHalf", m_tubeHalf);
     if (castsShadow) {
         glActiveTexture(GL_TEXTURE5);
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_shadowCube);
@@ -151,13 +155,34 @@ void PointLight::renderGUI() {
     Light::renderGUI();
 }
 
+void PointLight::setEmission(const glm::vec3 &axis, float full, float none)
+{
+    m_emitAxis = glm::length(axis) > 0.0f ? glm::normalize(axis) : glm::vec3(0.0f, -1.0f, 0.0f);
+    m_emitCos = glm::vec2(std::cos(glm::radians(full)), std::cos(glm::radians(std::max(none, full + 0.1f))));
+}
+
+void PointLight::setTube(const glm::vec3 &axis, float length)
+{
+    m_tubeAxis = glm::length(axis) > 0.0f ? glm::normalize(axis) : glm::vec3(1.0f, 0.0f, 0.0f);
+    m_tubeHalf = std::max(length, 0.0f) * 0.5f;
+}
+
 std::string PointLight::jsonifyAttribs() {
     std::string res("");
 
     res += Light::jsonifyAttribs();
     res += ",\"type\": \"POINT\"";
     res += ",\"shadowMapSize\":" + std::to_string(m_shadowMapSize);
+    if (m_emitCos.x >= -1.0f) {
+        res += ",\"emission\":{\"axis\":[" + std::to_string(m_emitAxis.x) + "," + std::to_string(m_emitAxis.y) + "," +
+               std::to_string(m_emitAxis.z) + "],\"full\":" + std::to_string(glm::degrees(std::acos(m_emitCos.x))) +
+               ",\"none\":" + std::to_string(glm::degrees(std::acos(m_emitCos.y))) + "}";
+    }
 
+    if (m_tubeHalf > 0.0f) {
+        res += ",\"tube\":{\"axis\":[" + std::to_string(m_tubeAxis.x) + "," + std::to_string(m_tubeAxis.y) + "," +
+               std::to_string(m_tubeAxis.z) + "],\"length\":" + std::to_string(m_tubeHalf * 2.0f) + "}";
+    }
     return res;
 }
 Shader &PointLight::getShadowShader()

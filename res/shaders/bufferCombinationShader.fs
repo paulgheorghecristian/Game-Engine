@@ -25,6 +25,12 @@ uniform vec3 ambientSky;         /* hemisphere ambient: up-facing ... */
 uniform vec3 ambientGround;      /* ... and down-facing surfaces */
 uniform sampler2D aoSampler;     /* screen-space ambient occlusion (1 = open) */
 uniform float aoStrength;        /* 0 = off */
+uniform sampler2D bounceSampler; /* light bounced from the surfaces near (Rendering/BounceLight) */
+uniform float bounceStrength;    /* 0 = off */
+
+vec3 bouncedLight() {
+    return bounceStrength > 0.0 ? texture(bounceSampler, textureCoords).rgb * bounceStrength : vec3(0.0);
+}
 uniform bool hdrEnabled;         /* false: light is clamped at 1.0 like the old 8-bit buffer */
 uniform bool pbrEnabled;         /* light buffer already includes albedo; roughness target = (roughness, metallic) */
 uniform bool skyReflections;     /* reflect the sky cube (blurrier for rougher surfaces) */
@@ -145,7 +151,8 @@ vec3 pbrComposite(vec3 albedo) {
     } else {
         specularAmbient = F * ambientSky * (1.0 - 0.6 * roughness);
     }
-    return direct + (diffuseAmbient + specularAmbient) * occlusion;
+    /* (the bounce light's rays already stop where something is in the way: not occluded again) */
+    return direct + (diffuseAmbient + specularAmbient) * occlusion + (1.0 - F) * (1.0 - metallic) * albedo * bouncedLight();
 }
 
 uniform float fogStart, fogEnd;
@@ -300,7 +307,7 @@ void main() {
         if (depthVal.x != 1) {
             vec4 albedoEmissive = texture(colorSampler, textureCoords);
             float emissive = 1.0 - albedoEmissive.a;
-            vec3 finalColor = (pbrEnabled ? pbrComposite(albedoPixel) : albedoPixel * lightAccumulation()) +
+            vec3 finalColor = (pbrEnabled ? pbrComposite(albedoPixel) : albedoPixel * (lightAccumulation() + bouncedLight())) +
                               albedoPixel * emissive * emissiveStrength;
             vec3 hazeColor;
             float haze = fogAmount(texture(depthSampler, textureCoords).x, hazeColor);
