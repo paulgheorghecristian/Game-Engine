@@ -583,6 +583,7 @@ game = {
                     "diskOpacity": 0.85, "diskSpeed": 1.0, "diskTilt": [41.5, -2.0], "glow": 0.6}],
     # walking on sand: crunching steps, and a puff of sand kicked up at each
     "Footsteps": {"sound": "step_sand", "variants": 6, "volume": 1.0, "dustPerStep": 7,
+                  "wade": "wade", "wadeVariants": 3, "splash": "splash",   # the pool
                   "dust": {"type": "spray", "burst": True, "texture": "res/textures/smoke.png", "atlas": [8, 5],
                            "count": 90, "lifetimeMs": 1100, "position": [0, 0, 0], "radius": 4,
                            "direction": [0, 1, 0], "spread": 0.9, "speed": [12, 34], "gravity": -22,

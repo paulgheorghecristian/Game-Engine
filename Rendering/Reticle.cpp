@@ -10,8 +10,8 @@ void Reticle::draw(int width, int height, float aim, float pulse, float shown)
 {
     if (shown <= 0.001f) return;
     if (m_shader == nullptr) {
-        m_shader = new Shader("res/shaders/reticle.json");
-        m_quad = Mesh::getRectangle();
+        m_shader.reset(new Shader("res/shaders/reticle.json"));
+        m_quad.reset(Mesh::getRectangle());
     }
     /* sizes for a 1080 line screen, scaled with it */
     float scale = height / 1080.0f;

@@ -1,3 +1,5 @@
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 #include "RenderingMaster.h"
 #include "ProfilingTimer.h"
 
@@ -176,11 +178,11 @@ RenderingMaster::RenderingMaster(Display *display,
                                         wBlurPostProcess->getResultingTextureId(),
                                         "res/shaders/FlarePostProcess.json");
     flarePostProcess->getShader().updateUniform("lensFlareColorSampler", 1);
-    lensFlareColorTxt = new Texture("res/textures/lenscolor.bmp", 1);
-    blueNoiseTexture = new Texture("res/textures/BlueNoise64Tiled.png", 2);
+    lensFlareColorTxt.reset(new Texture("res/textures/lenscolor.bmp", 1));
+    blueNoiseTexture.reset(new Texture("res/textures/BlueNoise64Tiled.png", 2));
     /* NASA Lunar Reconnaissance Orbiter color map (CGI Moon Kit, NASA Scientific
      * Visualization Studio, public domain), equirectangular, 0 longitude in the middle */
-    m_moonTexture = new Texture("res/textures/moon_lroc.jpg", 15);
+    m_moonTexture.reset(new Texture("res/textures/moon_lroc.jpg", 15));
 
     fxaaPostProcess = new PostProcess(renderWidth, renderHeight,
                                         fxaaFrameBuffer.getRenderTargets()[0],
@@ -209,7 +211,7 @@ RenderingMaster::RenderingMaster(Display *display,
     SpotLight::setLightMesh(RenderingObject::loadObject("res/models/SpotLightMesh5.obj"));
     PointLight::setLightMesh(RenderingObject::loadObject("res/models/lightsphere.obj"));
 
-    skyShader = new Shader("res/shaders/skyShader.json");
+    skyShader.reset(new Shader("res/shaders/skyShader.json"));
     skyShader->updateUniform("projectionMatrix", (void *) &projectionMatrix);
 
     orthoProjectionMatrix = glm::ortho(0.0f, (float) display->getWidth(), 0.0f, (float) display->getHeight(), 1.0f, 1000.0f);
@@ -260,6 +262,13 @@ RenderingMaster::~RenderingMaster()
     for (ParticleEmitter *emitter : particleEmitters) {
         delete emitter;
     }
+
+    /* the lights still in the world, the last post-process, the fonts (never freed); GL still up */
+    for (Light *light : lights) delete light;
+    lights.clear();
+    deleteRemovedLights();
+    delete fxaaPostProcess;
+    Font::clearCache();
 
     display->close();
     delete display;
@@ -360,15 +369,29 @@ void RenderingMaster::drawDeferredShadingBuffers()
         wBlurPostProcess->process();
 
         flarePostProcess->bind();
-        flarePostProcess->process({lensFlareColorTxt});
+        flarePostProcess->process({lensFlareColorTxt.get()});
     }
 
     const bool hdr = m_environment.hdr;
     const bool skyReflections = m_environment.pbr;
     if (skyReflections) {
-        PT_FromHere("skyCube");
-        renderSkyCube();
-        PT_ToHere("skyCube");
+        /* the sky into its cube (for reflections) only when it can have changed: a still sky (nothing in
+         * it moving: a sealed room's black one) is drawn once, and again when the environment changes */
+        const Environment &e = m_environment;
+        bool skyMoves = e.dayLength > 0.0f || e.cloudCoverage > 0.0f || e.starIntensity > 0.0f ||
+                        e.milkyWay > 0.0f || e.moon || !blackHoles.empty();
+        rapidjson::Document keyDoc;
+        rapidjson::Value keyValue;
+        e.save(keyValue, keyDoc.GetAllocator());
+        rapidjson::StringBuffer keyText;
+        rapidjson::Writer<rapidjson::StringBuffer> keyWriter(keyText);
+        keyValue.Accept(keyWriter);
+        if (skyMoves || m_skyCubeKey != keyText.GetString()) {
+            PT_FromHere("skyCube");
+            renderSkyCube();
+            PT_ToHere("skyCube");
+            m_skyCubeKey = keyText.GetString();
+        }
     }
     float skyMaxLod = std::log2((float) SKY_CUBE_SIZE);
     deferredShading_BufferCombinationShader.updateUniform("skyReflections", skyReflections);
@@ -478,7 +501,7 @@ void RenderingMaster::drawDeferredShadingBuffers()
         /* keep this frame for the next one's reflections */
         if (m_environment.reflections && m_environment.pbr) {
             if (m_prevFrameFB == nullptr) {
-                m_prevFrameFB = new FrameBuffer(renderWidth, renderHeight, 1, false, GL_RGBA16F);
+                m_prevFrameFB.reset(new FrameBuffer(renderWidth, renderHeight, 1, false, GL_RGBA16F));
             }
             glBindFramebuffer(GL_READ_FRAMEBUFFER, m_hdrFB->getFrameBufferObject());
             glReadBuffer(GL_COLOR_ATTACHMENT0);
@@ -828,7 +851,7 @@ void RenderingMaster::drawSky()
         m_moonTexture->use(15);
         skyShader->updateUniform("moonSampler", 15);
     }
-    dynamic_cast<RenderComponent *>(skyDomeEntity.getComponent(Entity::Flags::RENDERABLE))->render(skyShader);
+    dynamic_cast<RenderComponent *>(skyDomeEntity.getComponent(Entity::Flags::RENDERABLE))->render(skyShader.get());
 
     glDepthMask(GL_TRUE);
     glEnable(GL_CULL_FACE);
@@ -902,11 +925,11 @@ void RenderingMaster::renderGlass(FrameBuffer &target)
         return;
     }
     if (m_glassShader == nullptr) {
-        m_glassShader = new Shader("res/shaders/glass.json");
+        m_glassShader.reset(new Shader("res/shaders/glass.json"));
         m_glassShader->updateUniform("sceneSampler", 0);
         m_glassShader->updateUniform("depthSampler", 1);
         m_glassShader->updateUniform("skyCube", 2);
-        m_glassCopyFB = new FrameBuffer(renderWidth, renderHeight, 1, false, GL_RGBA16F);
+        m_glassCopyFB.reset(new FrameBuffer(renderWidth, renderHeight, 1, false, GL_RGBA16F));
     }
     /* the image behind the glass */
     glBindFramebuffer(GL_READ_FRAMEBUFFER, target.getFrameBufferObject());
@@ -1776,9 +1799,9 @@ void RenderingMaster::renderTemporalAA()
         return;
     }
     if (m_taaShader == nullptr) {
-        m_taaHistory[0] = new FrameBuffer(renderWidth, renderHeight, 2, false, GL_RGBA16F);
-        m_taaHistory[1] = new FrameBuffer(renderWidth, renderHeight, 2, false, GL_RGBA16F);
-        m_taaShader = new Shader("res/shaders/taa.json");
+        m_taaHistory[0].reset(new FrameBuffer(renderWidth, renderHeight, 2, false, GL_RGBA16F));
+        m_taaHistory[1].reset(new FrameBuffer(renderWidth, renderHeight, 2, false, GL_RGBA16F));
+        m_taaShader.reset(new Shader("res/shaders/taa.json"));
         m_taaShader->updateUniform("currentSampler", 0);
         m_taaShader->updateUniform("historySampler", 1);
         m_taaShader->updateUniform("depthSampler", 2);
@@ -1796,8 +1819,8 @@ void RenderingMaster::renderTemporalAA()
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
-    FrameBuffer *target = m_taaHistory[m_taaIndex];
-    FrameBuffer *history = m_taaHistory[1 - m_taaIndex];
+    FrameBuffer *target = m_taaHistory[m_taaIndex].get();
+    FrameBuffer *history = m_taaHistory[1 - m_taaIndex].get();
     target->bindAllRenderTargets();
     m_taaShader->bind();
     m_taaShader->updateUniform("reprojection", (void *) &reprojection);
@@ -1835,16 +1858,16 @@ void RenderingMaster::updateAdaptation()
     }
     const int SIZE = 64;
     if (m_luminanceFB == nullptr) {
-        m_luminanceFB = new FrameBuffer(SIZE, SIZE, 1, false, GL_RGBA16F);
-        m_adaptationA = new FrameBuffer(1, 1, 1, false, GL_RGBA16F);
-        m_adaptationB = new FrameBuffer(1, 1, 1, false, GL_RGBA16F);
-        m_luminanceShader = new Shader("res/shaders/luminance.json");
-        m_adaptationShader = new Shader("res/shaders/adaptation.json");
+        m_luminanceFB.reset(new FrameBuffer(SIZE, SIZE, 1, false, GL_RGBA16F));
+        m_adaptationA.reset(new FrameBuffer(1, 1, 1, false, GL_RGBA16F));
+        m_adaptationB.reset(new FrameBuffer(1, 1, 1, false, GL_RGBA16F));
+        m_luminanceShader.reset(new Shader("res/shaders/luminance.json"));
+        m_adaptationShader.reset(new Shader("res/shaders/adaptation.json"));
         m_luminanceShader->updateUniform("hdrSampler", 0);
         m_adaptationShader->updateUniform("luminanceSampler", 0);
         m_adaptationShader->updateUniform("previousSampler", 1);
         /* the previous value starts empty (a = 0): the first frame settles */
-        for (FrameBuffer *fb : {m_adaptationA, m_adaptationB}) {
+        for (FrameBuffer *fb : {m_adaptationA.get(), m_adaptationB.get()}) {
             fb->bindSingleRenderTarget(0);
             glClearColor(0, 0, 0, 0);
             glClear(GL_COLOR_BUFFER_BIT);

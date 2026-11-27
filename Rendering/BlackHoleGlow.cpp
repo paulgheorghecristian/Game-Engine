@@ -4,6 +4,12 @@
 #include "Mesh.h"
 #include "Shader.h"
 
+BlackHoleGlow::~BlackHoleGlow()
+{
+    if (m_texture != 0) glDeleteTextures(1, &m_texture);
+    if (m_fbo != 0) glDeleteFramebuffers(1, &m_fbo);
+}
+
 bool BlackHoleGlow::wanted(const std::vector<BlackHole *> &holes)
 {
     for (BlackHole *hole : holes) {
@@ -51,9 +57,9 @@ void BlackHoleGlow::bind(FrameBuffer &target)
 void BlackHoleGlow::finish(FrameBuffer &target)
 {
     if (m_shader == nullptr) {
-        m_shader = new Shader("res/shaders/blackHoleGlow.json");
+        m_shader.reset(new Shader("res/shaders/blackHoleGlow.json"));
         m_shader->updateUniform("glowSampler", 0);
-        m_quad = Mesh::getRectangle();
+        m_quad.reset(Mesh::getRectangle());
     }
     glBindTexture(GL_TEXTURE_2D, m_texture);
     glGenerateMipmap(GL_TEXTURE_2D);

@@ -17,8 +17,8 @@ void BounceLight::render(int width, int height, GLuint depth, GLuint normals, GL
 {
     int w = std::max(16, width / 2), h = std::max(16, height / 2);
     if (m_shader == nullptr) {
-        m_shader = new Shader("res/shaders/bounceLight.json");
-        m_blur = new Shader("res/shaders/bounceLightBlur.json");
+        m_shader.reset(new Shader("res/shaders/bounceLight.json"));
+        m_blur.reset(new Shader("res/shaders/bounceLightBlur.json"));
         m_shader->updateUniform("depthSampler", 0);
         m_shader->updateUniform("normalSampler", 1);
         m_shader->updateUniform("lightSampler", 2);
@@ -28,12 +28,9 @@ void BounceLight::render(int width, int height, GLuint depth, GLuint normals, GL
         m_blur->updateUniform("normalSampler", 2);
     }
     if (m_gather == nullptr || w != m_width || h != m_height) {
-        delete m_gather;
-        delete m_across;
-        delete m_result;
-        m_gather = new FrameBuffer(w, h, 1, false, GL_RGBA16F);
-        m_across = new FrameBuffer(w, h, 1, false, GL_RGBA16F);
-        m_result = new FrameBuffer(w, h, 1, false, GL_RGBA16F);
+        m_gather.reset(new FrameBuffer(w, h, 1, false, GL_RGBA16F));
+        m_across.reset(new FrameBuffer(w, h, 1, false, GL_RGBA16F));
+        m_result.reset(new FrameBuffer(w, h, 1, false, GL_RGBA16F));
         m_width = w;
         m_height = h;
     }

@@ -1,6 +1,10 @@
 #ifndef BLACKHOLEGLOW_H
 #define BLACKHOLEGLOW_H
 
+#include <memory>
+
+#include "Mesh.h"
+#include "Shader.h"
 #include <GL/glew.h>
 #include <vector>
 
@@ -18,6 +22,7 @@ class Shader;
 class BlackHoleGlow
 {
     public:
+        ~BlackHoleGlow();
         /* any hole that glows this frame */
         static bool wanted(const std::vector<BlackHole *> &holes);
         /* once a frame before the holes draw: the glow texture cleared */
@@ -30,8 +35,8 @@ class BlackHoleGlow
     private:
         int m_width = 0, m_height = 0;
         GLuint m_texture = 0, m_fbo = 0;
-        Shader *m_shader = nullptr;
-        Mesh *m_quad = nullptr;
+        std::unique_ptr<Shader> m_shader;
+        std::unique_ptr<Mesh> m_quad;
 };
 
 #endif // BLACKHOLEGLOW_H

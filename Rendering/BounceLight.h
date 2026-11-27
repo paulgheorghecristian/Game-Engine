@@ -3,10 +3,12 @@
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <memory>
 
-class FrameBuffer;
+#include "FrameBuffer.h"
+#include "Shader.h"
+
 class Mesh;
-class Shader;
 
 /*
  * Light bouncing between surfaces near each other, in screen space (res/shaders/bounceLight.fs): a
@@ -28,8 +30,8 @@ class BounceLight
         GLuint texture() const;
 
     private:
-        FrameBuffer *m_gather = nullptr, *m_across = nullptr, *m_result = nullptr;
-        Shader *m_shader = nullptr, *m_blur = nullptr;
+        std::unique_ptr<FrameBuffer> m_gather, m_across, m_result;
+        std::unique_ptr<Shader> m_shader, m_blur;
         int m_width = 0, m_height = 0;
         float m_frame = 0.0f;
 };

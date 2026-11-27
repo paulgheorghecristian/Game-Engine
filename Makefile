@@ -79,6 +79,14 @@ CXXFLAGS := -std=gnu++20 -Wall -O2 -g -DNDEBUG -MMD -MP -DGLM_FORCE_CTOR_INIT -D
 OBJDIR := $(MAKEFILE_DIR)/obj/release/
 endif
 
+# `make SANITIZE=1`: ./ge_asan, with AddressSanitizer and its leak checker (leaks, use after free,
+# overruns; reported when it quits). Its own objects: the normal build is untouched.
+ifeq ($(SANITIZE),1)
+CXXFLAGS := -std=gnu++20 -Wall -O1 -g -fno-omit-frame-pointer -fsanitize=address -MMD -MP -DGLM_FORCE_CTOR_INIT -DGLM_ENABLE_EXPERIMENTAL
+OBJDIR := $(MAKEFILE_DIR)/obj/asan/
+GAME_ENGINE_BINARY := ge_asan
+endif
+
 GE_OBJS := $(addprefix $(OBJDIR), \
 $(patsubst %.cpp,%.o,$(GAME_ENGINE_CC_SRCS)))
 

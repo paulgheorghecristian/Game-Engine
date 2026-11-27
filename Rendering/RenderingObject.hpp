@@ -35,6 +35,18 @@ class RenderingObject {
         inline const std::string &getFilePath() { return m_objectFilePath; }
         inline bool getAddMaterials() { return m_addMaterials; /* if material were added from mtl */ }
 
+        /* a model file read and parsed ahead, on a worker thread (a level streaming in: building it
+         * then only turns the parsed model into meshes) */
+        static void preload(const std::string &filename);
+        /* whether it can be made at once (made before, or parsed ahead) */
+        static bool ready(const std::string &filename);
+        /* the cached models (and any parsed ahead and never used) freed: at shutdown, while GL is up */
+        static void clearCache();
+        /* a model file no level uses any more: its cached prototype let go (what still uses its meshes
+         * keeps them: they are counted), loaded again if it is wanted again */
+        static void forget(const std::string &filename);
+        /* a model parsed ahead and never made (its scene freed) */
+        static void dropPreloaded(const std::string &filename);
         static RenderingObject loadObject(const std::string &filename, bool prepare = true, bool addMaterials = true);
 
         /* local-space bounding sphere over all meshes (computed on first use) */

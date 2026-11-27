@@ -29,6 +29,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <map>
+#include <unordered_set>
 #include <sstream>
 #include "stb_image_write.h"
 #include <cstring>
@@ -234,6 +235,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
     //     m_quadTreeEntities[node->m_idx] = newEntity;
     // }
     // END DEBUG
+    size_t firstLevelLight = RenderingMaster::getInstance()->getLights().size();
     {
         std::vector<Light *> &sceneLights = RenderingMaster::getInstance()->getLights();
         size_t firstMapLight = sceneLights.size();
@@ -252,6 +254,9 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
         }
     }
 
+    /* the level started on, as the first of the levels in the world (what it brought: for taking it out
+     * again when it cannot be reached; Core/LevelStreaming.cpp) */
+    adoptFirstLevel(gameDocument, firstLevelLight);
     constructPlayer();
     /* what the player can press, the locks, the triggers (the map's "Interaction" block) */
     m_interaction.load(gameDocument, entities);
@@ -271,15 +276,15 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
     RenderingMaster::getInstance()->skyDomeEntity.addComponent(new RenderComponent(RenderingObject::loadObject("__dome__")));
     RenderingMaster::getInstance()->skyDomeEntity.setTransform(Transform(glm::vec3(0, -10, 0), glm::vec3(0), glm::vec3(100.0f)));
 
-    fpsGUI = new BarGUI (glm::vec3(100, 100, 0),
+    fpsGUI.reset(new BarGUI (glm::vec3(100, 100, 0),
                          glm::vec2(0, 0),
                          glm::vec3(1,0,0),
                          maxFps > 0 ? maxFps : 240,
                          false,
                          glm::vec2(0),
-                         "FPS");
+                         "FPS"));
 
-    startMenu = new Menu("res/textures/enemy2.png", screenWidth, screenHeight);
+    startMenu.reset(new Menu("res/textures/enemy2.png", screenWidth, screenHeight));
     startMenu->addButton(new TextButton(150, 300, "New Game",
                                         glm::vec3(1.0, 1.0, 1.0),
                                         [](Button *button) {},
@@ -313,7 +318,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
     startMenu->addButton(new TextButton(150, 200, "Options",
                                     glm::vec3(1.0, 1.0, 1.0),
                                     [](Button *button) {},
-                                    [&](Button *button) { currentMenu = optionsMenu; },
+                                    [&](Button *button) { currentMenu = optionsMenu.get(); },
                                     [](Button *button) {
                                         TextButton *bt = (TextButton *) button;
                                         bt->getText().setColor(glm::vec3(0.5, 0.5, 0.5));
@@ -341,7 +346,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
                                     }
                     ));
 
-    optionsMenu = new Menu("res/textures/enemy.png", screenWidth, screenHeight);
+    optionsMenu.reset(new Menu("res/textures/enemy.png", screenWidth, screenHeight));
     optionsMenu->addButton(new SelectionButton(150, 580,
                                                 "Postprocess",
                                                 glm::vec3(1.0, 1.0, 1.0),
@@ -423,7 +428,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
     optionsMenu->addButton(new TextButton(150, 100, "Back",
                                         glm::vec3(1.0, 1.0, 1.0),
                                         [](Button *button) {},
-                                        [&](Button *button) { currentMenu = startMenu; },
+                                        [&](Button *button) { currentMenu = startMenu.get(); },
                                         [](Button *button) {
                                             ((TextButton *) button)->getText().setColor(glm::vec3(0.5, 0.5, 0.5));
                                             ((TextButton *) button)->getText().setFontIndex(1);
@@ -433,7 +438,7 @@ EngineCore::EngineCore(rapidjson::Document &gameDocument, const std::string &map
                                             ((TextButton *) button)->getText().setFontIndex(0);
                                         }
                         ));
-    currentMenu = startMenu;
+    currentMenu = startMenu.get();
 }
 
 void EngineCore::start() {
@@ -876,6 +881,7 @@ void EngineCore::endInterpolation() {
     for (auto &stashed : m_stashedEntities) {
         stashed.first->setTransform(stashed.second);
     }
+    m_stashedEntities.clear();          /* (no pointer kept past the frame: an entity may go before the next) */
     for (auto &stashed : m_stashedLights) {
         Light *light = std::get<0>(stashed);
         const Transform &frame = std::get<2>(stashed);
@@ -1072,7 +1078,7 @@ void EngineCore::input() {
 
     RenderingMaster::getInstance()->deferredShading_BufferCombinationShader.updateUniform("outputType", (void *) &outputType);
 
-    m_interaction.input(inputManager, m_timeline, RenderingMaster::getInstance()->getTime());
+    updateLevelsInput();      /* (every level's: the first's too) */
     for (auto const &entity : entities) {
         entity->input(inputManager);
     }
@@ -1101,21 +1107,14 @@ void EngineCore::render(float alpha) {
         if (!m_remote.connected()) isRunning = false;
     }
     m_timeline.playSounds(RenderingMaster::getInstance()->getCamera()->getPosition());
-    /* what is aimed at and pressed, the triggers, what the timeline moves, going to another level */
-    {
-        PhysicsComponent *body = player != NULL ? (PhysicsComponent *) player->getComponent(Entity::Flags::DYNAMIC) : NULL;
-        m_interaction.frame(RenderingMaster::getInstance()->getCamera(), m_timeline, RenderingMaster::getInstance()->getTime(),
-                            body != NULL ? body->getRigidBody() : NULL);
-        if (m_interaction.fade() >= 0.0f) {
-            RenderingMaster::getInstance()->setFadeOut(m_interaction.fade());
-            /* the sound too when leaving; coming in, only the picture (the door shut behind is heard) */
-            if (Interaction::holdsPlayer()) AudioMaster::getInstance()->setFade(1.0f - m_interaction.fade());
-        }
-        std::string level, entry;
-        if (m_interaction.levelDue(level, entry)) loadLevel(level, entry);
-    }
+    /* every level's: what is aimed at and pressed, the triggers, what its timeline moves, going to
+     * another level (and the streamed levels' own timelines) */
+    updateLevelsFrame(RenderingMaster::getInstance()->getTime());
     RenderingMaster::getInstance()->prepareFrame(alpha);
-    m_soundScape.update(RenderingMaster::getInstance()->getCamera());
+    for (auto &level : m_levels) {
+        if (level->loaded && level->sounds) level->sounds->update(RenderingMaster::getInstance()->getCamera());
+    }
+    m_kugelblitzSounds.update();
 
     /*generate deferred shading buffers*/
     PT_FromHere("renderScene");
@@ -1182,6 +1181,11 @@ void EngineCore::render(float alpha) {
      * re-rendered when this or the light's own matrices change, so static
      * lights over a resting scene cost nothing after the first frame. */
     uint64_t casterSignature = 14695981039346656037ULL;
+    /* the casters and where they are: a point light's cube only depends on those within its reach (a
+     * door swinging, a level streaming in elsewhere redrew every light's cube, frame after frame) */
+    struct Caster { Entity *entity; glm::vec3 center; float radius; bool everywhere; };
+    static std::vector<Caster> casters;
+    casters.clear();
     for (auto entity : entities) {
         if (entity->getComponent(Entity::Flags::BILL) != NULL) {
             continue;
@@ -1194,6 +1198,9 @@ void EngineCore::render(float alpha) {
         const glm::mat4 &model = entity->getTransform().getModelMatrix();
         casterSignature = fnv1a(casterSignature, &entity, sizeof(entity));
         casterSignature = fnv1a(casterSignature, &model, sizeof(model));
+        Caster caster{entity, glm::vec3(0.0f), 0.0f, casterRender == NULL || !casterRender->castsShadow()};
+        if (!caster.everywhere) casterRender->worldBounds(entity->getTransform(), caster.center, caster.radius);
+        casters.push_back(caster);
     }
 
     /* begin drawing the spot light depth map for each light*/
@@ -1202,8 +1209,34 @@ void EngineCore::render(float alpha) {
             PointLight *pointLight = dynamic_cast<PointLight *>(light);
             uint64_t signature = casterSignature;
             if (pointLight != NULL) {
+                /* each face of its cube: the casters in that face's view (a door moving at one side of
+                 * the light redraws the one or two faces that see it, not all six) */
                 glm::vec4 positionAndRange(light->getTransform().getPosition(), pointLight->getRange());
-                signature = fnv1a(signature, &positionAndRange, sizeof(positionAndRange));
+                const glm::vec3 lightPosition(positionAndRange);
+                uint64_t faces[6];
+                for (uint64_t &f : faces) f = fnv1a(14695981039346656037ULL, &positionAndRange, sizeof(positionAndRange));
+                for (const Caster &caster : casters) {
+                    glm::vec3 toCenter = caster.center - lightPosition;
+                    if (!caster.everywhere && glm::length(toCenter) - caster.radius > positionAndRange.w) {
+                        continue;                   /* (out of its reach: drawn into none of its faces) */
+                    }
+                    const glm::mat4 &model = caster.entity->getTransform().getModelMatrix();
+                    for (int face = 0; face < 6; face++) {
+                        if (!caster.everywhere && !PointLight::inFace(toCenter, caster.radius, face)) continue;
+                        faces[face] = fnv1a(faces[face], &caster.entity, sizeof(caster.entity));
+                        faces[face] = fnv1a(faces[face], &model, sizeof(model));
+                    }
+                }
+                unsigned changed = 0;
+                for (int face = 0; face < 6; face++) {
+                    if (!pointLight->m_faceSignaturesValid || pointLight->m_faceSignature[face] != faces[face]) {
+                        changed |= 1u << face;
+                    }
+                    pointLight->m_faceSignature[face] = faces[face];
+                }
+                pointLight->m_faceSignaturesValid = true;
+                if (changed != 0) pointLight->renderShadowCube(entities, changed);
+                continue;
             } else {
                 signature = fnv1a(signature, &light->getShadowMapViewMatrix(), sizeof(glm::mat4));
                 signature = fnv1a(signature, &light->getShadowMapProjectionMatrix(), sizeof(glm::mat4));
@@ -1346,8 +1379,8 @@ void EngineCore::render(float alpha) {
     if (!cleanShots && player != NULL) {
         bool acting = !Waking::holdsPlayer() && !Interaction::holdsPlayer() && m_interaction.fade() < 0.0f;
         Display *display = RenderingMaster::getInstance()->getDisplay();
-        m_reticle.draw(display->getWidth(), display->getHeight(), m_interaction.aim(),
-                       m_interaction.pressPulse(RenderingMaster::getInstance()->getTime()), acting ? 1.0f : 0.0f);
+        m_reticle.draw(display->getWidth(), display->getHeight(), aimAcrossLevels(),
+                       pulseAcrossLevels(RenderingMaster::getInstance()->getTime()), acting ? 1.0f : 0.0f);
     }
     if (!cleanShots && !m_playMode) {
     ProfilingTimer::renderAllBarGUIs();
@@ -1419,14 +1452,18 @@ void EngineCore::update() {
         return;
     }
 
+    /* levels streaming in and going (Core/LevelStreaming.cpp) */
+    updateLevels(RenderingMaster::getInstance()->getTime());
+
     std::vector<Light *> &lights = RenderingMaster::getInstance()->getLights();
 
     auto entity = std::begin(entities);
     while (entity != std::end(entities)) {
         (*entity)->update();
         if ((*entity)->isToBeRemoved() == true) {
-            /* delete it too: its components (physics body, emitters) must go away */
+            /* delete it too: its components (physics body, emitters) must go away; and out of its level */
             m_previousTick.entities.erase(*entity);
+            forgetEntity(*entity);
             delete *entity;
             entity = entities.erase(entity);
         } else {
@@ -1434,14 +1471,15 @@ void EngineCore::update() {
         }
     }
 
-    auto light = std::begin(lights);
-    while (light != std::end(lights)) {
-        (*light)->update();
-        if ((*light)->isToBeRemoved() == true) {
-            light = lights.erase(light);
-        } else {
-            ++light;
-        }
+    std::vector<Light *> removed;
+    for (Light *light : lights) {
+        light->update();
+        if (light->isToBeRemoved()) removed.push_back(light);
+    }
+    /* (deleted after the frame, out of its level too: it was only taken out of the list, never freed) */
+    for (Light *light : removed) {
+        forgetLight(light);
+        RenderingMaster::getInstance()->removeLightFromScene(light);
     }
 
     PhysicsMaster::getInstance()->update();
@@ -1503,191 +1541,204 @@ void EngineCore::loadLights(rapidjson::Document &gameDocument) {
         for (auto const &light : gameDocument["Lights"].GetArray()) {
             step++;
             std::cout << "Loading lights...%" << (float) step * 100 / numberOfLights << std::endl;
-            glm::vec3 position(0), rotation(0), scale(1);
-            glm::quat rotation_quat(0,0,0,1);
-            Transform trans;
-
-            if (light.HasMember("Transform")) {
-                position.x = light["Transform"]["position"].GetArray()[0].GetFloat();
-                position.y = light["Transform"]["position"].GetArray()[1].GetFloat();
-                position.z = light["Transform"]["position"].GetArray()[2].GetFloat();
-
-                trans.setPosition(position);
-
-                if (light["Transform"]["rotation"].GetArray().Size() == 3) {
-                    rotation.x = light["Transform"]["rotation"].GetArray()[0].GetFloat();
-                    rotation.y = light["Transform"]["rotation"].GetArray()[1].GetFloat();
-                    rotation.z = light["Transform"]["rotation"].GetArray()[2].GetFloat();
-
-                    trans.setRotation(rotation);
-                } else if (light["Transform"]["rotation"].GetArray().Size() == 4) {
-                    rotation_quat.x = light["Transform"]["rotation"].GetArray()[0].GetFloat();
-                    rotation_quat.y = light["Transform"]["rotation"].GetArray()[1].GetFloat();
-                    rotation_quat.z = light["Transform"]["rotation"].GetArray()[2].GetFloat();
-                    rotation_quat.w = light["Transform"]["rotation"].GetArray()[3].GetFloat();
-
-                    trans.setRotation(rotation_quat);
-                }
-
-                if (light["Transform"]["scale"].GetArray().Size() == 1) {
-                    scale.x = light["Transform"]["scale"].GetArray()[0].GetFloat();
-                    scale.y = light["Transform"]["scale"].GetArray()[0].GetFloat();
-                    scale.z = light["Transform"]["scale"].GetArray()[0].GetFloat();
-                } else {
-                    scale.x = light["Transform"]["scale"].GetArray()[0].GetFloat();
-                    scale.y = light["Transform"]["scale"].GetArray()[1].GetFloat();
-                    scale.z = light["Transform"]["scale"].GetArray()[2].GetFloat();
-                }
-
-                trans.setScale(scale);
-            }
-            Light *newLight = NULL;
-            glm::vec3 color(0,0,0);
-            glm::vec3 lightDir(0,0,0);
-            std::string type = "N/A"; //SPOT, POINT or DIR
-            bool cast_shadow = false, volumetric = false;
-
-            if (light.HasMember("Attributes")) {
-                const auto &attribs = light["Attributes"].GetObject();
-
-                if (attribs.HasMember("type")) {
-                    type = std::string(attribs["type"].GetString());
-                }
-                if (attribs.HasMember("color")) {
-                    color.x = attribs["color"].GetArray()[0].GetFloat();
-                    color.y = attribs["color"].GetArray()[1].GetFloat();
-                    color.z = attribs["color"].GetArray()[2].GetFloat();
-                }
-                if (attribs.HasMember("dir")) {
-                    lightDir.x = attribs["dir"].GetArray()[0].GetFloat();
-                    lightDir.y = attribs["dir"].GetArray()[1].GetFloat();
-                    lightDir.z = attribs["dir"].GetArray()[2].GetFloat();
-                }
-                if (attribs.HasMember("cast_shadow")) {
-                    cast_shadow = attribs["cast_shadow"].GetBool();
-                }
-                if (attribs.HasMember("volumetric")) {
-                    volumetric = attribs["volumetric"].GetBool();
-                }
-            }
-
-            if (type.compare("SPOT") == 0) {
-                int shadowMapSize = 2048;
-                if (light.HasMember("Attributes") && light["Attributes"].HasMember("shadowMapSize")) {
-                    shadowMapSize = light["Attributes"]["shadowMapSize"].GetInt();
-                }
-                newLight = new SpotLight(trans, color, cast_shadow, volumetric, shadowMapSize);
-            } else if (type.compare("POINT") == 0) {
-                int shadowMapSize = 512;
-                if (light.HasMember("Attributes") && light["Attributes"].HasMember("shadowMapSize")) {
-                    shadowMapSize = light["Attributes"]["shadowMapSize"].GetInt();
-                }
-                PointLight *point = new PointLight(trans, color, cast_shadow, shadowMapSize);
-                /* "emission": {"axis": [0, -1, 0], "full": 70, "none": 100}: how its fitting sends the light out */
-                if (light.HasMember("Attributes") && light["Attributes"].HasMember("emission") &&
-                    light["Attributes"]["emission"].IsObject()) {
-                    const auto &emission = light["Attributes"]["emission"];
-                    glm::vec3 axis(0.0f, -1.0f, 0.0f);
-                    if (emission.HasMember("axis") && emission["axis"].IsArray() && emission["axis"].Size() == 3) {
-                        axis = glm::vec3(emission["axis"][0].GetFloat(), emission["axis"][1].GetFloat(), emission["axis"][2].GetFloat());
-                    }
-                    float full = emission.HasMember("full") ? emission["full"].GetFloat() : 70.0f;
-                    float none = emission.HasMember("none") ? emission["none"].GetFloat() : 100.0f;
-                    point->setEmission(axis, full, none);
-                }
-                /* "tube": {"axis": [1, 0, 0], "length": 29}: a tube, not a point */
-                if (light.HasMember("Attributes") && light["Attributes"].HasMember("tube") &&
-                    light["Attributes"]["tube"].IsObject()) {
-                    const auto &tube = light["Attributes"]["tube"];
-                    glm::vec3 axis(1.0f, 0.0f, 0.0f);
-                    if (tube.HasMember("axis") && tube["axis"].IsArray() && tube["axis"].Size() == 3) {
-                        axis = glm::vec3(tube["axis"][0].GetFloat(), tube["axis"][1].GetFloat(), tube["axis"][2].GetFloat());
-                    }
-                    point->setTube(axis, tube.HasMember("length") ? tube["length"].GetFloat() : 0.0f);
-                }
-                newLight = point;
-            } else if (type.compare("DIR") == 0) {
-                newLight = new DirectionalLight(trans, color, lightDir, cast_shadow);
-            } else {
-                continue;
-            }
-
-            if (light.HasMember("Attributes")) {
-                const auto &attribs = light["Attributes"].GetObject();
-
-                if (attribs.HasMember("diffuse_attenuation")) {
-                    newLight->setAttDiffuse(attribs["diffuse_attenuation"].GetArray()[0].GetFloat(),
-                                            attribs["diffuse_attenuation"].GetArray()[1].GetFloat(),
-                                            attribs["diffuse_attenuation"].GetArray()[2].GetFloat());
-                }
-
-                if (attribs.HasMember("specular_attenuation")) {
-                    newLight->setAttSpecular(attribs["specular_attenuation"].GetArray()[0].GetFloat(),
-                                            attribs["specular_attenuation"].GetArray()[1].GetFloat(),
-                                            attribs["specular_attenuation"].GetArray()[2].GetFloat());
-                }
-
-                Light::Animation animation;
-                if (attribs.HasMember("flicker")) {
-                    animation.flicker = attribs["flicker"].GetFloat();
-                }
-                if (attribs.HasMember("flickerSpeed")) {
-                    animation.flickerSpeed = attribs["flickerSpeed"].GetFloat();
-                }
-                if (attribs.HasMember("spin")) {
-                    animation.spin = attribs["spin"].GetFloat();
-                }
-                if (attribs.HasMember("nightOnly")) {
-                    animation.nightOnly = attribs["nightOnly"].GetBool();
-                }
-                if (attribs.HasMember("orbit") && attribs["orbit"].IsObject()) {
-                    const auto &orbit = attribs["orbit"];
-                    animation.orbit = true;
-                    animation.orbitCenter = trans.getPosition();
-                    if (orbit.HasMember("center")) {
-                        animation.orbitCenter = glm::vec3(orbit["center"][0].GetFloat(),
-                                                          orbit["center"][1].GetFloat(),
-                                                          orbit["center"][2].GetFloat());
-                    }
-                    animation.orbitRadius = orbit.HasMember("radius") ? orbit["radius"].GetFloat() : 50.0f;
-                    animation.orbitSpeed = orbit.HasMember("speed") ? orbit["speed"].GetFloat() : 20.0f;
-                    animation.orbitBob = orbit.HasMember("bob") ? orbit["bob"].GetFloat() : 0.0f;
-                    animation.orbitPhase = orbit.HasMember("phase") ? orbit["phase"].GetFloat() : 0.0f;
-                }
-                newLight->setAnimation(animation);
-
-                if (type.compare("SPOT") == 0) {
-                    SpotLight *spot = dynamic_cast<SpotLight *>(newLight);
-
-                    if (spot != NULL) {
-                        if (attribs.HasMember("numSamplePoints")) {
-                            spot->setNumSamplePoints(attribs["numSamplePoints"].GetInt());
-                        }
-                        if (attribs.HasMember("coef1")) {
-                            spot->setCoef1(attribs["coef1"].GetFloat());
-                        }
-                        if (attribs.HasMember("coef2")) {
-                            spot->setCoef2(attribs["coef2"].GetFloat());
-                        }
-                        if (attribs.HasMember("beamDensity")) {
-                            spot->setBeamDensity(attribs["beamDensity"].GetFloat());
-                        }
-                        if (attribs.HasMember("beamFalloff")) {
-                            spot->setBeamFalloff(attribs["beamFalloff"].GetFloat());
-                        }
-                        if (attribs.HasMember("beamHaze")) {
-                            spot->setBeamHaze(attribs["beamHaze"].GetFloat());
-                        }
-                        if (attribs.HasMember("coneAngle")) {
-                            spot->setConeAngle(attribs["coneAngle"].GetFloat());
-                        }
-                    }
-                }
-            }
-
-            RenderingMaster::getInstance()->addLightToScene(newLight);
+            createLight(light, Placement());
         }
     }
+}
+
+/* one light of a level's "Lights", put where its level is in the world, and added to the scene */
+Light *EngineCore::createLight(const rapidjson::Value &light, const Placement &place) {
+    glm::vec3 position(0), rotation(0), scale(1);
+    glm::quat rotation_quat(0,0,0,1);
+    Transform trans;
+
+    if (light.HasMember("Transform")) {
+        position.x = light["Transform"]["position"].GetArray()[0].GetFloat();
+        position.y = light["Transform"]["position"].GetArray()[1].GetFloat();
+        position.z = light["Transform"]["position"].GetArray()[2].GetFloat();
+
+        trans.setPosition(position);
+
+        if (light["Transform"]["rotation"].GetArray().Size() == 3) {
+            rotation.x = light["Transform"]["rotation"].GetArray()[0].GetFloat();
+            rotation.y = light["Transform"]["rotation"].GetArray()[1].GetFloat();
+            rotation.z = light["Transform"]["rotation"].GetArray()[2].GetFloat();
+
+            trans.setRotation(rotation);
+        } else if (light["Transform"]["rotation"].GetArray().Size() == 4) {
+            rotation_quat.x = light["Transform"]["rotation"].GetArray()[0].GetFloat();
+            rotation_quat.y = light["Transform"]["rotation"].GetArray()[1].GetFloat();
+            rotation_quat.z = light["Transform"]["rotation"].GetArray()[2].GetFloat();
+            rotation_quat.w = light["Transform"]["rotation"].GetArray()[3].GetFloat();
+
+            trans.setRotation(rotation_quat);
+        }
+
+        if (light["Transform"]["scale"].GetArray().Size() == 1) {
+            scale.x = light["Transform"]["scale"].GetArray()[0].GetFloat();
+            scale.y = light["Transform"]["scale"].GetArray()[0].GetFloat();
+            scale.z = light["Transform"]["scale"].GetArray()[0].GetFloat();
+        } else {
+            scale.x = light["Transform"]["scale"].GetArray()[0].GetFloat();
+            scale.y = light["Transform"]["scale"].GetArray()[1].GetFloat();
+            scale.z = light["Transform"]["scale"].GetArray()[2].GetFloat();
+        }
+
+        trans.setScale(scale);
+    }
+    /* where its level is put in the world */
+    if (!place.identity()) {
+        trans.setPosition(place.point(trans.getPosition()));
+        trans.setRotation(place.rotation(trans.getRotation()));
+    }
+    Light *newLight = NULL;
+    glm::vec3 color(0,0,0);
+    glm::vec3 lightDir(0,0,0);
+    std::string type = "N/A"; //SPOT, POINT or DIR
+    bool cast_shadow = false, volumetric = false;
+
+    if (light.HasMember("Attributes")) {
+        const auto &attribs = light["Attributes"].GetObject();
+
+        if (attribs.HasMember("type")) {
+            type = std::string(attribs["type"].GetString());
+        }
+        if (attribs.HasMember("color")) {
+            color.x = attribs["color"].GetArray()[0].GetFloat();
+            color.y = attribs["color"].GetArray()[1].GetFloat();
+            color.z = attribs["color"].GetArray()[2].GetFloat();
+        }
+        if (attribs.HasMember("dir")) {
+            lightDir.x = attribs["dir"].GetArray()[0].GetFloat();
+            lightDir.y = attribs["dir"].GetArray()[1].GetFloat();
+            lightDir.z = attribs["dir"].GetArray()[2].GetFloat();
+            lightDir = place.direction(lightDir);
+        }
+        if (attribs.HasMember("cast_shadow")) {
+            cast_shadow = attribs["cast_shadow"].GetBool();
+        }
+        if (attribs.HasMember("volumetric")) {
+            volumetric = attribs["volumetric"].GetBool();
+        }
+    }
+
+    if (type.compare("SPOT") == 0) {
+        int shadowMapSize = 2048;
+        if (light.HasMember("Attributes") && light["Attributes"].HasMember("shadowMapSize")) {
+            shadowMapSize = light["Attributes"]["shadowMapSize"].GetInt();
+        }
+        newLight = new SpotLight(trans, color, cast_shadow, volumetric, shadowMapSize);
+    } else if (type.compare("POINT") == 0) {
+        int shadowMapSize = 512;
+        if (light.HasMember("Attributes") && light["Attributes"].HasMember("shadowMapSize")) {
+            shadowMapSize = light["Attributes"]["shadowMapSize"].GetInt();
+        }
+        PointLight *point = new PointLight(trans, color, cast_shadow, shadowMapSize);
+        /* "emission": {"axis": [0, -1, 0], "full": 70, "none": 100}: how its fitting sends the light out */
+        if (light.HasMember("Attributes") && light["Attributes"].HasMember("emission") &&
+            light["Attributes"]["emission"].IsObject()) {
+            const auto &emission = light["Attributes"]["emission"];
+            glm::vec3 axis(0.0f, -1.0f, 0.0f);
+            if (emission.HasMember("axis") && emission["axis"].IsArray() && emission["axis"].Size() == 3) {
+                axis = glm::vec3(emission["axis"][0].GetFloat(), emission["axis"][1].GetFloat(), emission["axis"][2].GetFloat());
+            }
+            float full = emission.HasMember("full") ? emission["full"].GetFloat() : 70.0f;
+            float none = emission.HasMember("none") ? emission["none"].GetFloat() : 100.0f;
+            point->setEmission(place.direction(axis), full, none);
+        }
+        /* "tube": {"axis": [1, 0, 0], "length": 29}: a tube, not a point */
+        if (light.HasMember("Attributes") && light["Attributes"].HasMember("tube") &&
+            light["Attributes"]["tube"].IsObject()) {
+            const auto &tube = light["Attributes"]["tube"];
+            glm::vec3 axis(1.0f, 0.0f, 0.0f);
+            if (tube.HasMember("axis") && tube["axis"].IsArray() && tube["axis"].Size() == 3) {
+                axis = glm::vec3(tube["axis"][0].GetFloat(), tube["axis"][1].GetFloat(), tube["axis"][2].GetFloat());
+            }
+            point->setTube(place.direction(axis), tube.HasMember("length") ? tube["length"].GetFloat() : 0.0f);
+        }
+        newLight = point;
+    } else if (type.compare("DIR") == 0) {
+        newLight = new DirectionalLight(trans, color, lightDir, cast_shadow);
+    } else {
+        return NULL;
+    }
+
+    if (light.HasMember("Attributes")) {
+        const auto &attribs = light["Attributes"].GetObject();
+
+        if (attribs.HasMember("diffuse_attenuation")) {
+            newLight->setAttDiffuse(attribs["diffuse_attenuation"].GetArray()[0].GetFloat(),
+                                    attribs["diffuse_attenuation"].GetArray()[1].GetFloat(),
+                                    attribs["diffuse_attenuation"].GetArray()[2].GetFloat());
+        }
+
+        if (attribs.HasMember("specular_attenuation")) {
+            newLight->setAttSpecular(attribs["specular_attenuation"].GetArray()[0].GetFloat(),
+                                    attribs["specular_attenuation"].GetArray()[1].GetFloat(),
+                                    attribs["specular_attenuation"].GetArray()[2].GetFloat());
+        }
+
+        Light::Animation animation;
+        if (attribs.HasMember("flicker")) {
+            animation.flicker = attribs["flicker"].GetFloat();
+        }
+        if (attribs.HasMember("flickerSpeed")) {
+            animation.flickerSpeed = attribs["flickerSpeed"].GetFloat();
+        }
+        if (attribs.HasMember("spin")) {
+            animation.spin = attribs["spin"].GetFloat();
+        }
+        if (attribs.HasMember("nightOnly")) {
+            animation.nightOnly = attribs["nightOnly"].GetBool();
+        }
+        if (attribs.HasMember("orbit") && attribs["orbit"].IsObject()) {
+            const auto &orbit = attribs["orbit"];
+            animation.orbit = true;
+            animation.orbitCenter = trans.getPosition();
+            if (orbit.HasMember("center")) {
+                animation.orbitCenter = glm::vec3(orbit["center"][0].GetFloat(),
+                                                  orbit["center"][1].GetFloat(),
+                                                  orbit["center"][2].GetFloat());
+                animation.orbitCenter = place.point(animation.orbitCenter);
+            }
+            animation.orbitRadius = orbit.HasMember("radius") ? orbit["radius"].GetFloat() : 50.0f;
+            animation.orbitSpeed = orbit.HasMember("speed") ? orbit["speed"].GetFloat() : 20.0f;
+            animation.orbitBob = orbit.HasMember("bob") ? orbit["bob"].GetFloat() : 0.0f;
+            animation.orbitPhase = orbit.HasMember("phase") ? orbit["phase"].GetFloat() : 0.0f;
+        }
+        newLight->setAnimation(animation);
+
+        if (type.compare("SPOT") == 0) {
+            SpotLight *spot = dynamic_cast<SpotLight *>(newLight);
+
+            if (spot != NULL) {
+                if (attribs.HasMember("numSamplePoints")) {
+                    spot->setNumSamplePoints(attribs["numSamplePoints"].GetInt());
+                }
+                if (attribs.HasMember("coef1")) {
+                    spot->setCoef1(attribs["coef1"].GetFloat());
+                }
+                if (attribs.HasMember("coef2")) {
+                    spot->setCoef2(attribs["coef2"].GetFloat());
+                }
+                if (attribs.HasMember("beamDensity")) {
+                    spot->setBeamDensity(attribs["beamDensity"].GetFloat());
+                }
+                if (attribs.HasMember("beamFalloff")) {
+                    spot->setBeamFalloff(attribs["beamFalloff"].GetFloat());
+                }
+                if (attribs.HasMember("beamHaze")) {
+                    spot->setBeamHaze(attribs["beamHaze"].GetFloat());
+                }
+                if (attribs.HasMember("coneAngle")) {
+                    spot->setConeAngle(attribs["coneAngle"].GetFloat());
+                }
+            }
+        }
+    }
+
+    RenderingMaster::getInstance()->addLightToScene(newLight);
+    return newLight;
 }
 
 void EngineCore::loadGrass(rapidjson::Document &gameDocument) {
@@ -1733,24 +1784,10 @@ void EngineCore::loadMapFeatures(rapidjson::Document &gameDocument) {
         m_soundScape.load(gameDocument["Audio"]);
     }
 
-    /* the map's footsteps: their sound and the dust they kick up */
-    if (gameDocument.HasMember("Footsteps") && gameDocument["Footsteps"].IsObject()) {
-        const rapidjson::Value &steps = gameDocument["Footsteps"];
-        Player::Footsteps &footsteps = Player::footsteps();
-        if (steps.HasMember("sound") && steps["sound"].IsString()) footsteps.sound = steps["sound"].GetString();
-        if (steps.HasMember("variants") && steps["variants"].IsInt()) footsteps.variants = std::max(1, steps["variants"].GetInt());
-        if (steps.HasMember("volume") && steps["volume"].IsNumber()) footsteps.volume = steps["volume"].GetFloat();
-        if (steps.HasMember("dustPerStep") && steps["dustPerStep"].IsInt()) footsteps.dustPerStep = steps["dustPerStep"].GetInt();
-        if (steps.HasMember("dust") && steps["dust"].IsObject()) {
-            footsteps.dust = new ParticleEmitter(steps["dust"]);
-            rm->addParticleEmitter(footsteps.dust);
-        }
-    }
-    /* the step sounds loaded now, not on the first steps (each variant read and converted the first
-     * time it played: a hitch on the first few steps) */
-    for (int variant = 1; variant <= Player::footsteps().variants; variant++) {
-        AudioMaster::getInstance()->load(Player::footsteps().sound + "_" + std::to_string(variant));
-    }
+    /* the map's footsteps: their sounds and the dust they kick up (none named, none heard: another
+     * map's steps do not carry over) */
+    Player::footsteps() = Player::Footsteps();
+    if (gameDocument.HasMember("Footsteps")) Player::footsteps() = readFootsteps(gameDocument["Footsteps"]);
 
     if (gameDocument.HasMember("BlackHoles") && gameDocument["BlackHoles"].IsArray()) {
         for (auto const &hole : gameDocument["BlackHoles"].GetArray()) {
@@ -1876,59 +1913,69 @@ void EngineCore::loadEntities(rapidjson::Document &gameDocument) {
         for (auto const &entity : gameDocument["Entities"].GetArray()) {
             step++;
             std::cout << "Loading entities...%" << (float) step * 100 / numberOfEntities << std::endl;
-            glm::vec3 position(0), rotation(0), scale(1);
-            glm::quat rotation_quat(0,0,0,1);
-            Transform trans;
-
-            if (entity.HasMember("Transform")) {
-                position.x = entity["Transform"]["position"].GetArray()[0].GetFloat();
-                position.y = entity["Transform"]["position"].GetArray()[1].GetFloat();
-                position.z = entity["Transform"]["position"].GetArray()[2].GetFloat();
-
-                trans.setPosition(position);
-
-                if (entity["Transform"]["rotation"].GetArray().Size() == 3) {
-                    rotation.x = entity["Transform"]["rotation"].GetArray()[0].GetFloat();
-                    rotation.y = entity["Transform"]["rotation"].GetArray()[1].GetFloat();
-                    rotation.z = entity["Transform"]["rotation"].GetArray()[2].GetFloat();
-
-                    trans.setRotation(rotation);
-                } else if (entity["Transform"]["rotation"].GetArray().Size() == 4) {
-                    rotation_quat.x = entity["Transform"]["rotation"].GetArray()[0].GetFloat();
-                    rotation_quat.y = entity["Transform"]["rotation"].GetArray()[1].GetFloat();
-                    rotation_quat.z = entity["Transform"]["rotation"].GetArray()[2].GetFloat();
-                    rotation_quat.w = entity["Transform"]["rotation"].GetArray()[3].GetFloat();
-
-                    trans.setRotation(rotation_quat);
-                }
-
-                if (entity["Transform"]["scale"].GetArray().Size() == 1) {
-                    scale.x = entity["Transform"]["scale"].GetArray()[0].GetFloat();
-                    scale.y = entity["Transform"]["scale"].GetArray()[0].GetFloat();
-                    scale.z = entity["Transform"]["scale"].GetArray()[0].GetFloat();
-                } else {
-                    scale.x = entity["Transform"]["scale"].GetArray()[0].GetFloat();
-                    scale.y = entity["Transform"]["scale"].GetArray()[1].GetFloat();
-                    scale.z = entity["Transform"]["scale"].GetArray()[2].GetFloat();
-                }
-
-                trans.setScale(scale);
-            }
-            Entity *newEntity = new Entity ();
-            newEntity->setTransform (trans);
-            newEntity->setSourceJson (jsonToString(entity));
-            if (entity.HasMember("Components")) {
-                for (rapidjson::Value::ConstMemberIterator itr = entity["Components"].GetObject().MemberBegin();
-                        itr != entity["Components"].GetObject().MemberEnd(); ++itr) {
-                    Component *component = ComponentFactory::createComponent(itr);
-                    newEntity->addComponent(component);
-                }
-            }
-            entities.push_back(newEntity);
+            entities.push_back(createEntity(entity, Placement()));
         }
     }
 
     std::cout << "Number of entities: " << entities.size() << std::endl;
+}
+
+/* one entity of a level's "Entities", put where its level is in the world (not yet in the world's list) */
+Entity *EngineCore::createEntity(const rapidjson::Value &entity, const Placement &place) {
+    glm::vec3 position(0), rotation(0), scale(1);
+    glm::quat rotation_quat(0,0,0,1);
+    Transform trans;
+
+    if (entity.HasMember("Transform")) {
+        position.x = entity["Transform"]["position"].GetArray()[0].GetFloat();
+        position.y = entity["Transform"]["position"].GetArray()[1].GetFloat();
+        position.z = entity["Transform"]["position"].GetArray()[2].GetFloat();
+
+        trans.setPosition(position);
+
+        if (entity["Transform"]["rotation"].GetArray().Size() == 3) {
+            rotation.x = entity["Transform"]["rotation"].GetArray()[0].GetFloat();
+            rotation.y = entity["Transform"]["rotation"].GetArray()[1].GetFloat();
+            rotation.z = entity["Transform"]["rotation"].GetArray()[2].GetFloat();
+
+            trans.setRotation(rotation);
+        } else if (entity["Transform"]["rotation"].GetArray().Size() == 4) {
+            rotation_quat.x = entity["Transform"]["rotation"].GetArray()[0].GetFloat();
+            rotation_quat.y = entity["Transform"]["rotation"].GetArray()[1].GetFloat();
+            rotation_quat.z = entity["Transform"]["rotation"].GetArray()[2].GetFloat();
+            rotation_quat.w = entity["Transform"]["rotation"].GetArray()[3].GetFloat();
+
+            trans.setRotation(rotation_quat);
+        }
+
+        if (entity["Transform"]["scale"].GetArray().Size() == 1) {
+            scale.x = entity["Transform"]["scale"].GetArray()[0].GetFloat();
+            scale.y = entity["Transform"]["scale"].GetArray()[0].GetFloat();
+            scale.z = entity["Transform"]["scale"].GetArray()[0].GetFloat();
+        } else {
+            scale.x = entity["Transform"]["scale"].GetArray()[0].GetFloat();
+            scale.y = entity["Transform"]["scale"].GetArray()[1].GetFloat();
+            scale.z = entity["Transform"]["scale"].GetArray()[2].GetFloat();
+        }
+
+        trans.setScale(scale);
+    }
+    /* where its level is put in the world (before its components: a body is made where it is) */
+    if (!place.identity()) {
+        trans.setPosition(place.point(trans.getPosition()));
+        trans.setRotation(place.rotation(trans.getRotation()));
+    }
+    Entity *newEntity = new Entity ();
+    newEntity->setTransform (trans);
+    newEntity->setSourceJson (jsonToString(entity));
+    if (entity.HasMember("Components")) {
+        for (rapidjson::Value::ConstMemberIterator itr = entity["Components"].GetObject().MemberBegin();
+                itr != entity["Components"].GetObject().MemberEnd(); ++itr) {
+            Component *component = ComponentFactory::createComponent(itr);
+            newEntity->addComponent(component);
+        }
+    }
+    return newEntity;
 }
 
 static void writeTransform(rapidjson::Value &object, const Transform &transform,
@@ -1951,7 +1998,45 @@ static void writeTransform(rapidjson::Value &object, const Transform &transform,
     }
 }
 
+/* a level's "Footsteps" (Core/Player.h): their dust emitter added to the world, their sounds loaded
+ * now, not on the first steps (each variant read and converted the first time it played: a hitch) */
+Player::Footsteps EngineCore::readFootsteps(const rapidjson::Value &steps)
+{
+    Player::Footsteps footsteps;
+    if (!steps.IsObject()) return footsteps;
+    if (steps.HasMember("sound") && steps["sound"].IsString()) footsteps.sound = steps["sound"].GetString();
+    if (steps.HasMember("variants") && steps["variants"].IsInt()) footsteps.variants = std::max(1, steps["variants"].GetInt());
+    if (steps.HasMember("volume") && steps["volume"].IsNumber()) footsteps.volume = steps["volume"].GetFloat();
+    if (steps.HasMember("stride") && steps["stride"].IsNumber()) footsteps.stride = std::max(5.0f, steps["stride"].GetFloat());
+    if (steps.HasMember("wade") && steps["wade"].IsString()) footsteps.wade = steps["wade"].GetString();
+    if (steps.HasMember("wadeVariants") && steps["wadeVariants"].IsInt()) footsteps.wadeVariants = std::max(1, steps["wadeVariants"].GetInt());
+    if (steps.HasMember("wadeVolume") && steps["wadeVolume"].IsNumber()) footsteps.wadeVolume = steps["wadeVolume"].GetFloat();
+    if (steps.HasMember("splash") && steps["splash"].IsString()) footsteps.splash = steps["splash"].GetString();
+    if (steps.HasMember("dustPerStep") && steps["dustPerStep"].IsInt()) footsteps.dustPerStep = steps["dustPerStep"].GetInt();
+    if (steps.HasMember("dust") && steps["dust"].IsObject()) {
+        footsteps.dust = new ParticleEmitter(steps["dust"]);
+        RenderingMaster::getInstance()->addParticleEmitter(footsteps.dust);
+    }
+    AudioMaster *audio = AudioMaster::getInstance();
+    for (int variant = 1; !footsteps.sound.empty() && variant <= footsteps.variants; variant++) {
+        audio->load(footsteps.sound + "_" + std::to_string(variant));
+    }
+    for (int variant = 1; !footsteps.wade.empty() && variant <= footsteps.wadeVariants; variant++) {
+        audio->load(footsteps.wade + "_" + std::to_string(variant));
+    }
+    if (!footsteps.splash.empty()) audio->load(footsteps.splash);
+    return footsteps;
+}
+
 bool EngineCore::saveMap(const std::string &path) {
+    /* the map file is the first level's: once that is taken out (the player streamed on), there is
+     * nothing of it left to save, and a save would overwrite the last good one */
+    bool firstHere = m_levels.empty();
+    for (const auto &level : m_levels) firstHere |= level->first;
+    if (!firstHere) {
+        std::cout << "Not saved: " << m_mapPath << " has been taken out (streamed past)" << std::endl;
+        return false;
+    }
     std::string json = mapJson();
     FILE *file = fopen(path.c_str(), "w");
     if (file == NULL) {
@@ -1985,10 +2070,6 @@ std::string EngineCore::mapJson() {
     start.AddMember("pitch", glm::degrees(cameraRotation.x), allocator);
     doc.AddMember("PlayerStart", start, allocator);
 
-    rapidjson::Value environment;
-    rm->getEnvironmentToSave().save(environment, allocator);
-    doc.AddMember("Environment", environment, allocator);
-
     auto parseInto = [&](const std::string &json, rapidjson::Value &out) -> bool {
         rapidjson::Document part;
         if (json.empty() || part.Parse(json.c_str()).HasParseError()) {
@@ -1997,6 +2078,18 @@ std::string EngineCore::mapJson() {
         out.CopyFrom(part, allocator);
         return true;
     };
+
+    /* the look of this map: as it is now (edited in the GUI) while the player is in it; in a level
+     * streamed in beside it, the one shown is that level's, so this map's own is saved */
+    rapidjson::Value environment;
+    const Level *first = nullptr;
+    for (const auto &level : m_levels) if (level->first) first = level.get();
+    if (m_zone != nullptr && !m_zone->first && first != nullptr && parseInto(first->environment, environment)) {
+        /* (its own, as loaded) */
+    } else {
+        rm->getEnvironmentToSave().save(environment, allocator);
+    }
+    doc.AddMember("Environment", environment, allocator);
     rapidjson::Value water, emitters;
     if (parseInto(m_waterJson, water)) doc.AddMember("Water", water, allocator);
     rapidjson::Value waking;
@@ -2015,8 +2108,18 @@ std::string EngineCore::mapJson() {
     if (parseInto(m_interaction.json(), interaction)) doc.AddMember("Interaction", interaction, allocator);
     if (parseInto(m_emittersJson, emitters)) doc.AddMember("ParticleEmitters", emitters, allocator);
 
+    /* the levels streamed in beside it are their own files: none of theirs goes into this map */
+    std::unordered_set<const Entity *> streamedEntities;
+    std::unordered_set<const Light *> streamedLights;
+    for (const auto &level : m_levels) {
+        if (level->first) continue;
+        streamedEntities.insert(level->entities.begin(), level->entities.end());
+        streamedLights.insert(level->lights.begin(), level->lights.end());
+    }
+
     rapidjson::Value entityArray(rapidjson::kArrayType);
     for (Entity *entity : entities) {
+        if (streamedEntities.count(entity)) continue;
         bool temporary = false;
         for (auto &fireball : m_fireballs) temporary |= fireball.first == entity;
         if (temporary || entity == player) {
@@ -2040,7 +2143,7 @@ std::string EngineCore::mapJson() {
     rapidjson::Value lightArray(rapidjson::kArrayType);
     for (Light *light : rm->getLights()) {
         rapidjson::Value value;
-        if (light->isOwnedByFeature() || !parseInto("{" + light->jsonify() + "}", value)) {
+        if (streamedLights.count(light) || light->isOwnedByFeature() || !parseInto("{" + light->jsonify() + "}", value)) {
             continue;
         }
         glm::vec3 baseColor, baseDirection;
@@ -2207,6 +2310,9 @@ void EngineCore::runBenchmark(int numFrames) {
      *   {"frame": 60, "hold": "w", "frames": 90} a key held for so many frames
      *   {"frame": 70, "shot": "dir/name.png"}   a picture of the frame
      *   {"frame": 80, "print": true}            where the player is, what is aimed at, the fade, what is heard
+ *   {"frame": 90, "walkto": [x, z]}          from then on walking there (turned towards it each frame,
+ *                                           W held) until within 6 units: "WALKED x z frame N" or, stuck
+ *                                           for 60 frames, "STUCK x z" 
      * "map": "02_corridor" on a step: only on a map whose path has that in it (a level change starts
      * the engine again on the next map, its frames from 0) */
     const bool scriptTest = scenario == "script";
@@ -2222,6 +2328,10 @@ void EngineCore::runBenchmark(int numFrames) {
         }
     }
     std::map<int, std::vector<int>> releases;     /* frame -> keys let go then */
+    bool walking = false;
+    glm::vec2 walkTarget(0.0f);
+    glm::vec3 walkLast(0.0f);
+    int walkStill = 0;
     int stuckFrames = 0;
     glm::vec3 lastPathPosition(0.0f);
     const int segment = 100;
@@ -2261,6 +2371,26 @@ void EngineCore::runBenchmark(int numFrames) {
                 if (key < 0) inputManager.injectMouseButton(-key, false);    /* (a mouse button) */
                 else inputManager.injectKey(key, false);
             }
+            if (walking) {
+                glm::vec3 p = player->getTransform().getPosition();
+                glm::vec2 d = walkTarget - glm::vec2(p.x, p.z);
+                if (glm::length(d) < 6.0f) {
+                    printf("WALKED %.1f %.1f frame %d\n", walkTarget.x, walkTarget.y, i);
+                    walking = false;
+                    inputManager.injectKey(SDLK_w, false);
+                } else {
+                    Camera *camera = RenderingMaster::getInstance()->getCamera();
+                    camera->setRotation(0.0f, std::atan2(-d.x, -d.y), 0.0f);
+                    inputManager.injectKey(SDLK_w, true);
+                    walkStill = glm::length(p - walkLast) < 0.05f ? walkStill + 1 : 0;
+                    walkLast = p;
+                    if (walkStill > 60) {
+                        printf("STUCK %.1f %.1f at %.1f %.1f frame %d\n", walkTarget.x, walkTarget.y, p.x, p.z, i);
+                        walking = false;
+                        inputManager.injectKey(SDLK_w, false);
+                    }
+                }
+            }
             for (const auto &step : script.GetArray()) {
                 if (!step.IsObject() || !step.HasMember("frame") || step["frame"].GetInt() != i) continue;
                 if (step.HasMember("map") && m_mapPath.find(step["map"].GetString()) == std::string::npos) continue;
@@ -2275,6 +2405,12 @@ void EngineCore::runBenchmark(int numFrames) {
                     inputManager.injectKey(key, true);
                     releases[i + 1].push_back(key);
                 }
+                if (step.HasMember("walkto") && step["walkto"].IsArray() && step["walkto"].Size() == 2) {
+                    walking = true;
+                    walkTarget = glm::vec2(step["walkto"][0].GetFloat(), step["walkto"][1].GetFloat());
+                    walkStill = 0;
+                    walkLast = player->getTransform().getPosition();
+                }
                 if (step.HasMember("click")) {
                     inputManager.injectMouseButton(SDL_BUTTON_LEFT, true);
                     releases[i + 1].push_back(-SDL_BUTTON_LEFT);
@@ -2288,7 +2424,7 @@ void EngineCore::runBenchmark(int numFrames) {
                 if (step.HasMember("print")) {
                     glm::vec3 p = player->getTransform().getPosition();
                     printf("SCRIPT frame %d player %.1f %.1f %.1f aim %.2f fade %.2f sounds %s\n", i, p.x, p.y, p.z,
-                           m_interaction.aim(), m_interaction.fade(), AudioMaster::getInstance()->playing().c_str());
+                           aimAcrossLevels(), m_interaction.fade(), AudioMaster::getInstance()->playing().c_str());
                 }
             }
         }
@@ -2495,6 +2631,10 @@ void EngineCore::seekScene(float t) {
      * clock, and the sky's Moon destruction (it waits collapseDelay, then falls in) */
     t = std::max(t, 0.0f);
     m_timeline.seek(t);
+    /* a streamed level's own clock started when it came: as far after that */
+    for (auto &level : m_levels) {
+        if (level->ownTimeline) level->timeline->seek(std::max(t - level->streamedAt, 0.0f));
+    }
     for (BlackHole *hole : RenderingMaster::getInstance()->blackHoles) {
         if (!hole->sky || !hole->kugelblitz || hole->driven) continue;      /* (driven: the timeline puts it there) */
         float rate = hole->collapseSpeed > 0.0f ? hole->collapseSpeed / 60.0f : 1.0f / 12.0f;
@@ -2638,6 +2778,14 @@ EngineCore::~EngineCore() {
     for (auto entity : entities) {
         delete entity;
     }
+    /* (what holds GL objects: before the renderer and its context go) */
+    currentMenu = nullptr;
+    startMenu.reset();
+    optionsMenu.reset();
+    fpsGUI.reset();
+    m_levels.clear();
+    RenderingObject::clearCache();
+    Texture::dropPreloaded();
 
     RenderingMaster::destroy();
     PhysicsMaster::destroy();

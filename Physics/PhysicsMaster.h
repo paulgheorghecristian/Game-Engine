@@ -61,7 +61,6 @@ class PhysicsMaster
         btCollisionConfiguration *collisionConfig;
         btConstraintSolver *solver;
 
-        btRigidBody *planeRigidBody;
         float gravityAcc;
 
         // change to unordered_set
@@ -76,6 +75,9 @@ class PhysicsMaster
                                         const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix);
         QuadTree quadTree;
         std::unordered_map<std::size_t, btGhostObject *> quadTreeBodies;
+        /* every grid node ever made (a divided node leaves the map, and an index can be reused: freed from
+         * here at the end, each once) */
+        std::vector<btGhostObject *> m_gridBodies;
 };
 
 #endif // PHYSICSMASTER_H

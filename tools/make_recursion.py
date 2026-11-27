@@ -177,6 +177,7 @@ def moon_destruction(direction, collapse, play=False, speed=5.0, delay=0.0):
     two jets, the Moon pulled into a dark point), held at a stage or playing. It is the engine's Moon-destruction sequence, whose JSON key is
     'kugelblitz'."""
     h = {"sky": True, "physical": True, "direction": direction, "angularRadius": 0.03, "kugelblitz": True,
+         "blastSound": "blast", "boomSounds": ["boom_1", "boom_2", "boom_3"],
          "collapse": collapse, "collapseSpeed": speed, "collapseDelay": delay, "collapseSite": [0.36, 0.77],
          "lensing": 0.8, "influence": 11, "colorShift": 0.7, "diskInner": 3, "diskOuter": 16,
          "diskColor": [1.0, 0.55, 0.26], "diskBrightness": 5.0, "diskOpacity": 0.55, "diskSpeed": 0.8,
@@ -1192,6 +1193,17 @@ g["Water"]["height"] = WATER_DAWN
 g["Entities"] += copy.deepcopy(WRECKAGE)
 storm_damage(g)
 scenes['06_dawn'] = g
+
+# what the player's steps sound like (the engine plays none a map does not name): grass where it
+# grows, hard steps on the floors (tiles, terrazzo, concrete), wading and a splash where there is water
+GRASS_STEPS = {"sound": "step_grass", "variants": 6}
+FLOOR_STEPS = {"sound": "step_sneaker", "variants": 10, "volume": 0.8, "stride": 30}
+WATER_STEPS = {"wade": "wade", "wadeVariants": 3, "splash": "splash"}
+for game in scenes.values():
+    steps = dict(game.get("Footsteps") or (GRASS_STEPS if "Grass" in game else FLOOR_STEPS))
+    if "Water" in game:
+        steps.update(WATER_STEPS)
+    game["Footsteps"] = steps
 
 # --------------------------------------------------------------------------
 os.makedirs(OUT, exist_ok=True)

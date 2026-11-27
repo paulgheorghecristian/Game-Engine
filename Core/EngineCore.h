@@ -3,8 +3,10 @@
 
 #include "FrameRecorder.h"
 #include "SoundScape.h"
+#include "KugelblitzSounds.h"
 #include "Timeline.h"
 #include "Interaction.h"
+#include "Level.h"
 #include "Reticle.h"
 #include "RemoteControl.h"
 #include "Aftermath.h"
@@ -52,6 +54,38 @@ class EngineCore
         void reloadMap(const std::string &path);
         /* another level, in by its entry (Core/Interaction's "loadLevel") */
         void loadLevel(const std::string &path, const std::string &entry);
+        /* one entity / light of a level's JSON, where its level is put in the world */
+        Entity *createEntity(const rapidjson::Value &json, const Placement &place);
+        Light *createLight(const rapidjson::Value &json, const Placement &place);
+
+        /* levels in the world (Core/LevelStreaming.cpp): the first (the map started on) and those
+         * streamed in beside it as the player goes */
+        std::vector<std::unique_ptr<Level>> m_levels;
+        Level *m_zone = nullptr;                   /* the level the player is in (its environment) */
+        std::string m_envFrom, m_envTo;            /* the environment blending between two levels' */
+        float m_envBlendStart = -1.0f;
+        /* the first level: what it brought (after it has loaded) */
+        void adoptFirstLevel(rapidjson::Document &gameDocument, size_t firstLight);
+        void streamFeatures(Level &level);
+        Player::Footsteps readFootsteps(const rapidjson::Value &steps);
+        /* a level asked for ("streamLevel"), by the level that asks */
+        void streamLevel(const std::string &requestJson, Level *from);
+        /* once a frame: a slice of what is streaming in, the requests, the levels' own timelines and
+         * sounds, which level the player is in */
+        void streamStep(float time);
+        void updateLevelsInput();
+        void updateLevels(float time);
+        void updateLevelsFrame(float time);
+        /* the aim's ring and a press's pulse, over every level's pressables */
+        float aimAcrossLevels() const;
+        float pulseAcrossLevels(float time) const;
+        void unloadLevel(Level *level);
+        /* an entity / light deleted by any path: out of its level and what was done with it there */
+        void forgetEntity(Entity *entity);
+        void forgetLight(Light *light);
+        /* the stand-ins of a level, built (the level that held them back is gone) */
+        void buildStandIns(Level &level);
+        void updateZone(float time);
         std::vector<std::pair<Entity *, float>> m_fireballs; /* entity, spawn time */
         void capturePreviousState();
         void beginInterpolation(float alpha);
@@ -107,6 +141,7 @@ class EngineCore
         void takeScreenshot();
         /* the map's sound ("Audio" block) and the Kugelblitz's */
         SoundScape m_soundScape;
+        KugelblitzSounds m_kugelblitzSounds;   /* the sky's Kugelblitz heard (once for the world) */
         Aftermath m_aftermath;     /* the storm after the Kugelblitz (driven by the timeline) */
         Timeline m_timeline;       /* the map's scripted sequences ("Sequences") */
         Interaction m_interaction; /* what the player presses, locks, triggers, entries ("Interaction") */
@@ -125,7 +160,7 @@ class EngineCore
         glm::vec3 m_playerStart = glm::vec3(200, 10, 0);
         float m_playerYaw = 0.0f, m_playerPitch = 0.0f; /* degrees */
 
-        BarGUI *fpsGUI;
+        std::unique_ptr<BarGUI> fpsGUI;
 
         std::string m_configFilePath;
         float m_gravity;
@@ -139,9 +174,8 @@ class EngineCore
 
         void findPathToPlayer();
 
-        Menu *startMenu;
-        Menu *optionsMenu;
-        Menu *currentMenu;
+        std::unique_ptr<Menu> startMenu, optionsMenu;
+        Menu *currentMenu;              /* (one of the above) */
 
         /* GE_BENCH=N benchmark mode: no menu, windowed, no vsync, fixed timestep */
         int m_benchFrames = 0;

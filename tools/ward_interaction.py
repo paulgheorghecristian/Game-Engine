@@ -1,8 +1,10 @@
-"""Level 1's way out, as data: the keypad by the ward door takes the code, the door opens, and walking
-out through it goes on to the corridor (Game/recursion/02_corridor_subject4.json, in by its
-"from_ward" entry). The engine knows none of this; it is what the map's JSON says (Core/Interaction,
-Components/PressableComponent, Components/DrivenComponent, the door's timeline
-Game/sequences/01_ward_door.json).
+"""Level 1's way out, as data: the keypad by the ward door takes the code, the door opens, and the
+corridor beyond it (Game/recursion/02_corridor_subject4.json) streams in where it really is, its west
+cell door at the ward's door; out in it, the door's closer swings it shut behind the player, and the
+ward, out of reach now, is taken out of the world (the corridor's own door standing where the ward's
+did). The engine knows none of this; it is what the map's JSON says (Core/Interaction,
+Core/LevelStreaming.cpp, Components/PressableComponent, Components/DrivenComponent, the door's
+timelines Game/sequences/01_ward_door.json and 01_ward_door_close.json).
 
     python3 tools/ward_interaction.py     puts it into Game/recursion/01_beginning_astra.json as it is
 
@@ -15,7 +17,14 @@ LEVEL = os.path.join(ROOT, 'Game/recursion/01_beginning_astra.json')
 
 CODE = '0314'
 LOCK = 'ward_keypad'
-DOOR_TIMELINE = 'Game/sequences/01_ward_door.json'
+DOOR_TIMELINES = ['Game/sequences/01_ward_door.json', 'Game/sequences/01_ward_door_close.json']
+CORRIDOR = 'Game/recursion/02_corridor_subject4.json'
+# the corridor put where it is: its west cell door (x -31.74, z 198.4, in its own coordinates) on the ward
+# door (z 89.28); turned so the corridor's +x (away from that cell) is the ward's +z (out of the room)
+CORRIDOR_ATTACH = {'here': [0, 0, 89.28], 'there': [-31.74, 0, 198.4], 'turn': -90}
+# the corridor's own door there (leaf, window, handle; not the plate above it, nor the wall over the
+# doorway): built only once the ward is gone, where the ward's door stood
+CORRIDOR_STAND_INS = [[[-33.6, -1, 186], [-29.9, 56, 211]]]
 # the door leaf: 23.56 wide (x -11.78..11.78), its room side at z 88.54, the handle on the +x side, so
 # hung on the -x side; it swings into the room (a turn of +90 round y takes its free edge towards -z)
 HINGE = [-11.78, 0.0, 88.54]
@@ -25,43 +34,6 @@ DOOR_AT = [(0, 26.04, 89.28), (0, 39.68, 89.28)]
 DOOR_MESHES = re.compile(r'Game/recursion/astra/room_door_.*\.obj$')
 KEY_MESH = re.compile(r'Game/recursion/astra/room_keypad_print_keypad_key_(\w+)\.obj$')
 KEYPAD_MIDDLE = [18.6, 32.6, 84.7]
-
-# outside the door: the ward's corridor (as 02_corridor_subject4's: 2.4 m wide, its walls, its lower
-# band, its floor and ceiling), unlit (the night; the room's light falls into it through the door).
-# Beyond the room's door wall (its outer face at z 90.52), running along x
-WALL_OUT, CORRIDOR_W, CORRIDOR_HALF = 90.52, 59.52, 150.0
-
-
-def box(position, scale, diffuse, solid=True, cast_shadow=True, **material):
-    look = {'ambient': [0, 0, 0], 'diffuse': diffuse, 'specular': [0.2, 0.2, 0.2], 'shininess': 20.0, 'roughness': 0.85}
-    look.update(material)
-    render = {'Mesh': 'res/models/cube4.obj', 'Material': look}
-    if not cast_shadow:
-        render['castShadow'] = False
-    components = {'RenderComponent': render}
-    if solid:
-        components['PhysicsComponent'] = {'BoundingBodyType': ['cube'], 'scale': scale, 'mass': 0}
-    return {'Transform': {'position': position, 'rotation': [0, 0, 0], 'scale': scale}, 'Components': components}
-
-
-def corridor_outside():
-    z = WALL_OUT + CORRIDOR_W / 2
-    far = WALL_OUT + CORRIDOR_W + 1.86
-    length = 2 * CORRIDOR_HALF
-    wall, band = [0.42, 0.5, 0.44], [0.22, 0.27, 0.24]
-    return [
-        box([0, -1.86, z], [length, 3.72, CORRIDOR_W], [0.3, 0.3, 0.29], shininess=80, roughness=0.22,
-            specularStrength=0.7),                                                         # floor
-        box([0, 73.78, z], [length, 3.72, CORRIDOR_W], [0.8, 0.8, 0.76], roughness=0.8),    # ceiling
-        box([0, 35.96, far], [length, 71.92, 3.72], wall),                                 # the far wall
-        box([0, 11.16, far - 2.06], [length, 22.32, 0.4], band, solid=False, cast_shadow=False, roughness=0.6),
-        box([-CORRIDOR_HALF - 1.86, 35.96, z], [3.72, 71.92, CORRIDOR_W], wall),           # its ends
-        box([CORRIDOR_HALF + 1.86, 35.96, z], [3.72, 71.92, CORRIDOR_W], wall),
-        # the lower band on the room's side too (its door wall seen from the corridor)
-        box([-43.09, 11.16, WALL_OUT + 0.2], [62.62, 22.32, 0.4], band, solid=False, cast_shadow=False, roughness=0.6),
-        box([43.09, 11.16, WALL_OUT + 0.2], [62.62, 22.32, 0.4], band, solid=False, cast_shadow=False, roughness=0.6),
-    ]
-
 
 def at(entity, position):
     return all(abs(a - b) < 0.05 for a, b in zip(entity['Transform']['position'], position))
@@ -90,18 +62,21 @@ def add(scene):
     scene['Interaction'] = {
         'locks': [{'name': LOCK, 'code': CODE, 'clear': '*', 'enter': '#',
                    'onSolved': [{'sound': 'keypad_accept', 'volume': 0.6, 'at': KEYPAD_MIDDLE, 'radius': 250},
-                                {'event': 'ward_door_unlocked'}],
+                                {'event': 'ward_door_unlocked'},
+                                {'streamLevel': CORRIDOR, 'attach': CORRIDOR_ATTACH,
+                                 'standIns': CORRIDOR_STAND_INS}],
                    'onWrong': [{'sound': 'keypad_deny', 'volume': 0.6, 'at': KEYPAD_MIDDLE, 'radius': 250}]}],
-        # through the open door: out of the room (the eye past the wall's inner face)
-        'triggers': [{'box': [[-11.78, 0, 87.2], [11.78, 60, 120]], 'after': 'ward_door_unlocked', 'once': True,
-                      'on': [{'loadLevel': 'Game/recursion/02_corridor_subject4.json', 'entry': 'from_ward',
-                              'fade': 0.9}]}],
+        # out in the corridor (past the doorway, beyond the corridor wall's face at z 91.3): the door's
+        # closer swings it shut behind
+        'triggers': [{'box': [[-30, 0, 96], [30, 70, 150]], 'after': 'ward_door_unlocked', 'once': True,
+                      'on': [{'event': 'ward_door_closing'}]}],
+        # shut: the ward cannot be reached any more
+        'reactions': [{'event': 'ward_door_shut', 'on': [{'unloadLevel': 'self'}]}],
     }
-    outside = corridor_outside()
-    scene['Entities'] = [e for e in scene['Entities'] if e not in outside] + outside
     sequences = scene.setdefault('Sequences', [])
-    if {'file': DOOR_TIMELINE} not in sequences:
-        sequences.append({'file': DOOR_TIMELINE})
+    for timeline in DOOR_TIMELINES:
+        if {'file': timeline} not in sequences:
+            sequences.append({'file': timeline})
     return scene
 
 

@@ -62,6 +62,8 @@ class Font
         static std::unordered_map<std::string, Font *> fontsCache;
         static Font *getFontFromCache(const std::string &path);
         static void addFontToCache(const std::string &path);
+        /* the cached fonts freed (at shutdown, while GL is up) */
+        static void clearCache();
         virtual ~Font();
     protected:
     private:

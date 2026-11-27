@@ -158,6 +158,9 @@
  "Footsteps": {
   "sound": "step_sand",
   "variants": 6,
+  "wade": "wade",
+  "wadeVariants": 3,
+  "splash": "splash",
   "volume": 0.9,
   "dustPerStep": 4,
   "dust": {

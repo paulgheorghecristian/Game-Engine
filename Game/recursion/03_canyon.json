@@ -230,7 +230,10 @@
    ],
    "brightness": 0.75,
    "fadeIn": 0.1
-  }
+  },
+  "wade": "wade",
+  "wadeVariants": 3,
+  "splash": "splash"
  },
  "Entities": [
   {

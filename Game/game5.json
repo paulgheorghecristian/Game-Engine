@@ -96,5 +96,6 @@
             "coef2":0.021000
          }
       }
-   ]
+   ],
+    "Footsteps" : {"sound" : "step_grass", "variants" : 6}
 }

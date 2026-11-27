@@ -15,15 +15,24 @@ class Player : public Entity
 
         std::string jsonify();
 
-        /* the map's footsteps ("Footsteps" in the map JSON, all optional):
-         *   "sound": the step sounds name_1..name_<variants> (step_grass),
+        /* the map's footsteps ("Footsteps" in the map JSON, all optional; a sound not named is not
+         * heard):
+         *   "sound": the step sounds name_1..name_<variants> (e.g. "step_grass"),
          *   "variants": 6, "volume": 1.0,
+         *   "stride": 40: world units walked between two steps (running: half again as long),
+         *   "wade": the steps in water, name_1..name_<"wadeVariants"> (3), "wadeVolume": 0.5,
+         *   "splash": going into water,
          *   "dust": a "burst" particle emitter kicked up at each step
          *           (and more on landing), "dustPerStep": 6 */
         struct Footsteps {
-            std::string sound = "step_grass";
+            std::string sound;
             int variants = 6;
             float volume = 1.0f;
+            float stride = 40.0f;
+            std::string wade;
+            int wadeVariants = 3;
+            float wadeVolume = 0.5f;
+            std::string splash;
             ParticleEmitter *dust = nullptr;   /* owned by RenderingMaster's emitter list */
             int dustPerStep = 6;
         };

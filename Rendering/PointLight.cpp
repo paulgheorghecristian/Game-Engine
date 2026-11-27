@@ -191,7 +191,19 @@ Shader &PointLight::getShadowShader()
     return shader;
 }
 
-void PointLight::renderShadowCube(const std::vector<Entity *> &entities)
+bool PointLight::inFace(const glm::vec3 &p, float radius, int face)
+{
+    /* the face looks along one axis (sign s); its view is bounded by the 45 degree planes to the other
+     * two: in it when in front, and within both pairs of side planes (r * sqrt 2: the sphere's reach
+     * across a 45 degree plane) */
+    const int axis = face / 2;
+    const float forward = (face % 2 == 0 ? 1.0f : -1.0f) * p[axis];
+    const float slack = radius * 1.41421356f;
+    return forward > -radius && std::abs(p[(axis + 1) % 3]) <= forward + slack &&
+           std::abs(p[(axis + 2) % 3]) <= forward + slack;
+}
+
+void PointLight::renderShadowCube(const std::vector<Entity *> &entities, unsigned faces)
 {
     if (m_shadowCube == 0) {
         glGenTextures(1, &m_shadowCube);
@@ -241,6 +253,7 @@ void PointLight::renderShadowCube(const std::vector<Entity *> &entities)
     glCullFace(GL_FRONT);
 
     for (int face = 0; face < 6; face++) {
+        if (!(faces & (1u << face))) continue;      /* (its casters unchanged: kept) */
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                                GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, m_shadowCube, 0);
         glClear(GL_DEPTH_BUFFER_BIT);
@@ -263,7 +276,7 @@ void PointLight::renderShadowCube(const std::vector<Entity *> &entities)
                 glm::vec3 s = entity->getTransform().getScale();
                 float radius = localRadius * glm::max(glm::abs(s.x), glm::max(glm::abs(s.y), glm::abs(s.z)));
                 glm::vec3 toCenter = center - position;
-                if (glm::length(toCenter) - radius > range || glm::dot(toCenter, directions[face]) < -radius) {
+                if (glm::length(toCenter) - radius > range || !inFace(toCenter, radius, face)) {
                     continue;
                 }
                 shader.updateUniform("instanced", false);

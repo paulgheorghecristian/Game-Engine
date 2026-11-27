@@ -1259,5 +1259,6 @@
              "type":"POINT"
           }
        }
-    ]
- }
+    ],
+    "Footsteps" : {"sound" : "step_grass", "variants" : 6}
+}

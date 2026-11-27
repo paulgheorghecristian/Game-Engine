@@ -55,6 +55,12 @@ BlackHole::BlackHole(const rapidjson::Value &json) :
     moonStream = jsonFloat(json, "moonStream", moonStream);
     cloudClear = jsonFloat(json, "cloudClear", cloudClear);
     kugelblitz = json.HasMember("kugelblitz") && json["kugelblitz"].IsBool() && json["kugelblitz"].GetBool();
+    if (json.HasMember("blastSound") && json["blastSound"].IsString()) blastSound = json["blastSound"].GetString();
+    if (json.HasMember("boomSounds") && json["boomSounds"].IsArray()) {
+        for (const auto &boom : json["boomSounds"].GetArray()) {
+            if (boom.IsString()) boomSounds.push_back(boom.GetString());
+        }
+    }
     collapse = jsonFloat(json, "collapse", collapse);
     collapseSpeed = jsonFloat(json, "collapseSpeed", collapseSpeed);
     collapseDelay = jsonFloat(json, "collapseDelay", collapseDelay);

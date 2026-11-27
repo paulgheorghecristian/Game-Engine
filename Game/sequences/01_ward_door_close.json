@@ -1,0 +1,21 @@
+{
+ "name": "the ward door shuts behind",
+ "trigger": "ward_door_closing",
+ "length": 8,
+ "params": {
+  "ward_door": {
+   "keys": [
+    [0, 1],
+    [0.8, 1],
+    [3.8, 0]
+   ],
+   "curve": "smooth"
+  }
+ },
+ "sounds": [
+  {"at": 3.7, "sound": "door_close", "volume": 0.8, "anchor": "ward_door", "radius": 400}
+ ],
+ "events": [
+  {"at": 4.2, "event": "ward_door_shut"}
+ ]
+}

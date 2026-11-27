@@ -1,6 +1,7 @@
 #ifndef RENDERINGMASTER_H
 #define RENDERINGMASTER_H
 
+#include <memory>
 #include "MoonDestruction.h"
 #include "Waking.h"
 #include "BounceLight.h"
@@ -208,7 +209,7 @@ class RenderingMaster
         FrameBuffer fxaaFrameBuffer;
 
         Entity skyDomeEntity;
-        Shader *skyShader;
+        std::unique_ptr<Shader> skyShader;
 
         Shader volumetricLightShader;
 
@@ -264,9 +265,9 @@ class RenderingMaster
 
         Texture *albedoTexture, *normalTexture, *lightAccumulationTexture;\
         Texture *roughnessTexture;
-        Texture *blueNoiseTexture;
+        std::unique_ptr<Texture> blueNoiseTexture;
         BounceLight m_bounceLight;      /* light bouncing between near surfaces (Environment "bounceLight") */
-        Texture *m_moonTexture = nullptr;   /* sky: lunar map (equirectangular), unit 15 */
+        std::unique_ptr<Texture> m_moonTexture;   /* sky: lunar map (equirectangular), unit 15 */
         Mesh *screenSizeRectangle;
 
         void computeStencilBufferForLight(Light *light);
@@ -279,7 +280,7 @@ class RenderingMaster
         PostProcess *flarePostProcess;
         PostProcess *fxaaPostProcess;
 
-        Texture *lensFlareColorTxt;
+        std::unique_ptr<Texture> lensFlareColorTxt;
         double updateDt;
 
         std::vector<Light *> lights;
@@ -311,6 +312,7 @@ class RenderingMaster
         void renderBlackHolesMirrored(FrameBuffer &target, const glm::mat4 &mirroredView, const glm::vec3 &mirroredEye);
     private:
         bool m_skyCloudCut = false;   /* a sky black hole with clouds: split the cloud layer */
+        std::string m_skyCubeKey;           /* the environment the sky cube was last drawn with */
         MoonDestruction m_moonDestruction;   /* the Moon's destruction (a Kugelblitz in the sky's hole) */
         Waking m_waking;                     /* a map's waking-up scene */
         RoomAlive m_roomAlive;               /* a map's room coming alive */
@@ -367,18 +369,19 @@ class RenderingMaster
         glm::vec2 m_stormDirection = glm::vec2(1.0f, 0.0f);
         float m_stormTurn = 0.0f;
         float m_fadeOut = 0.0f;
-        FrameBuffer *m_prevFrameFB = nullptr;   /* last frame's HDR image (reflections) */
-        FrameBuffer *m_glassCopyFB = nullptr;   /* the image behind the glass */
-        Shader *m_glassShader = nullptr;
+        std::unique_ptr<FrameBuffer> m_prevFrameFB;   /* last frame's HDR image (reflections) */
+        std::unique_ptr<FrameBuffer> m_glassCopyFB;   /* the image behind the glass */
+        std::unique_ptr<Shader> m_glassShader;
         /* exposure adaptation */
         void updateAdaptation();
-        FrameBuffer *m_luminanceFB = nullptr, *m_adaptationA = nullptr, *m_adaptationB = nullptr;
-        Shader *m_luminanceShader = nullptr, *m_adaptationShader = nullptr;
+        /* (owned: made when first needed, released with this) */
+        std::unique_ptr<FrameBuffer> m_luminanceFB, m_adaptationA, m_adaptationB;
+        std::unique_ptr<Shader> m_luminanceShader, m_adaptationShader;
         double m_lastAdaptationTime = 0.0;      /* (real time: the eye adapts while the world is paused too) */
         /* temporal anti-aliasing */
         void renderTemporalAA();
-        FrameBuffer *m_taaHistory[2] = {nullptr, nullptr};
-        Shader *m_taaShader = nullptr;
+        std::unique_ptr<FrameBuffer> m_taaHistory[2];
+        std::unique_ptr<Shader> m_taaShader;
         int m_taaIndex = 0, m_taaFrame = 0;
         bool m_taaHistoryValid = false;
         glm::mat4 m_taaPreviousViewProjection = glm::mat4(1.0f);

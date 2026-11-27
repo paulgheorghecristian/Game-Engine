@@ -19,6 +19,7 @@ levelled; loops crossfaded).
 | storm_loop | `wind woosh loop.ogg` (downloaded with the wind set; verify its page), slowed to 0.8 with a bass lift: the shockwave's roar and the gale |
 | spray_loop | Rain + long thunder: the rain bed (0.5–20.5 s, high-passed at 300 Hz), as wind-driven spray — https://opengameart.org/content/rain-long-thunder |
 | gust_1..3 | Wind (Wind.ogg, Wind2.ogg, Wind3.ogg) slowed to 0.85 with a bass lift — https://opengameart.org/content/wind |
+| step_sneaker_1..10 | xkeril, "Footsteps stone + sneaker" (Freesound 677069, CC0): ten single steps cut from the walk (at 1.20, 2.99, 4.19, 4.79, 7.18, 9.55, 10.74, 11.36, 12.58, 14.91 s; 0.36 s each, from just before the heel) — https://freesound.org/people/xkeril/sounds/677069/ |
 | step_sand_1..6 | Water Splash and sand footsteps: single steps cut from the sand footsteps recording (around its loudest hits) — https://opengameart.org/content/water-splash-and-sand-footsteps |
 | hum_loop | `shieldloop.wav` (downloaded with the electricity set; verify its page), looped, an octave down, low-passed: a failing fluorescent tube's buzz |
 | door_unlock, door_open, door_close | qubodup, "Door open, door close" (a room's door recorded opening and closing, 2009): door-09 (two latch clicks), door-06 (the handle and latch as it opens), door-01 (the heaviest close) — https://opengameart.org/content/door-open-door-close |

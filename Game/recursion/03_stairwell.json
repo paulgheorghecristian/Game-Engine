@@ -12259,5 +12259,11 @@
    }
   }
  ],
- "ParticleEmitters": []
+ "ParticleEmitters": [],
+ "Footsteps": {
+  "sound": "step_sneaker",
+  "variants": 10,
+  "volume": 0.8,
+  "stride": 30
+ }
 }

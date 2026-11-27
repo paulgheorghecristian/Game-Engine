@@ -110,6 +110,9 @@ class BlackHole
          * moon, which the sky shader breaks up; see skyShader.fs). collapse
          * runs 0..1 through the stages, at collapseSpeed per minute */
         bool kugelblitz = false;
+        /* its sounds (Audio/KugelblitzSounds): the blast after the ignition, the booms of the collapse */
+        std::string blastSound;
+        std::vector<std::string> boomSounds;
         float collapse = 0.0f;
         float collapseSpeed = 0.0f;
         float collapseDelay = 0.0f;    /* seconds the moon stays intact after Play, before ignition */

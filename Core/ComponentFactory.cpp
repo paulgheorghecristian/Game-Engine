@@ -36,19 +36,19 @@ Component *ComponentFactory::createComponent(const rapidjson::Value::ConstMember
         if (itr->value.HasMember("Material")) {
             material = new Material();
 
-            material->setAmbient(glm::vec3(itr->value["Material"]["ambient"].GetArray()[0].GetFloat(),
-                                        itr->value["Material"]["ambient"].GetArray()[1].GetFloat(),
-                                        itr->value["Material"]["ambient"].GetArray()[2].GetFloat()));
-
-            material->setDiffuse(glm::vec3(itr->value["Material"]["diffuse"].GetArray()[0].GetFloat(),
-                                        itr->value["Material"]["diffuse"].GetArray()[1].GetFloat(),
-                                        itr->value["Material"]["diffuse"].GetArray()[2].GetFloat()));
-
-            material->setSpecular(glm::vec3(itr->value["Material"]["specular"].GetArray()[0].GetFloat(),
-                                        itr->value["Material"]["specular"].GetArray()[1].GetFloat(),
-                                        itr->value["Material"]["specular"].GetArray()[2].GetFloat()));
-
-            material->setShininess(itr->value["Material"]["shininess"].GetFloat());
+            /* each key optional (a level written by hand names what it needs): the Material's own
+             * values otherwise */
+            const rapidjson::Value &m = itr->value["Material"];
+            auto colour = [&m](const char *key, glm::vec3 &out) {
+                if (!m.HasMember(key) || !m[key].IsArray() || m[key].Size() < 3) return false;
+                out = glm::vec3(m[key][0].GetFloat(), m[key][1].GetFloat(), m[key][2].GetFloat());
+                return true;
+            };
+            glm::vec3 c;
+            if (colour("ambient", c)) material->setAmbient(c);
+            if (colour("diffuse", c)) material->setDiffuse(c);
+            if (colour("specular", c)) material->setSpecular(c);
+            if (m.HasMember("shininess") && m["shininess"].IsNumber()) material->setShininess(m["shininess"].GetFloat());
             if (itr->value["Material"].HasMember("normalMapStrength")) {
                 material->setNormalMapStrength(itr->value["Material"]["normalMapStrength"].GetFloat());
             }

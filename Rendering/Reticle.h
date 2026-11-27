@@ -1,8 +1,10 @@
 #ifndef RETICLE_H
 #define RETICLE_H
 
-class Mesh;
-class Shader;
+#include <memory>
+
+#include "Mesh.h"
+#include "Shader.h"
 
 /*
  * Where the player aims: a small faint dot in the middle of the screen; aimed at something that can
@@ -17,8 +19,8 @@ class Reticle
         void draw(int width, int height, float aim, float pulse, float shown);
 
     private:
-        Shader *m_shader = nullptr;
-        Mesh *m_quad = nullptr;
+        std::unique_ptr<Shader> m_shader;
+        std::unique_ptr<Mesh> m_quad;
 };
 
 #endif // RETICLE_H

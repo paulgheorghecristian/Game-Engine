@@ -70,6 +70,7 @@ class Timeline
         float time() const { return m_time; }
         /* an event that fired this frame */
         bool fired(const std::string &event) const;
+        const std::vector<std::string> &firedList() const { return m_fired; }
         /* something happened (a lock opened, a level entered): the sequences triggered by that name
          * start now, on the scene's clock (once: already started ones carry on) */
         void signal(const std::string &event);

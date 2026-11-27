@@ -152,6 +152,11 @@ void Font::addFontToCache(const std::string &path) {
     fontsCache[path] = new Font(path+".fnt", path+".bmp");
 }
 
+void Font::clearCache() {
+    for (auto &entry : fontsCache) delete entry.second;
+    fontsCache.clear();
+}
+
 Font::~Font() {
     glDeleteTextures(1, &textureId);
 }

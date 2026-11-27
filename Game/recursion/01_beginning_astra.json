@@ -3330,409 +3330,6 @@
           "mass": 0
         }
       }
-    },
-    {
-      "Transform": {
-        "position": [
-          0,
-          -1.86,
-          120.28
-        ],
-        "rotation": [
-          0,
-          0,
-          0
-        ],
-        "scale": [
-          300.0,
-          3.72,
-          59.52
-        ]
-      },
-      "Components": {
-        "RenderComponent": {
-          "Mesh": "res/models/cube4.obj",
-          "Material": {
-            "ambient": [
-              0,
-              0,
-              0
-            ],
-            "diffuse": [
-              0.3,
-              0.3,
-              0.29
-            ],
-            "specular": [
-              0.2,
-              0.2,
-              0.2
-            ],
-            "shininess": 80,
-            "roughness": 0.22,
-            "specularStrength": 0.7
-          }
-        },
-        "PhysicsComponent": {
-          "BoundingBodyType": [
-            "cube"
-          ],
-          "scale": [
-            300.0,
-            3.72,
-            59.52
-          ],
-          "mass": 0
-        }
-      }
-    },
-    {
-      "Transform": {
-        "position": [
-          0,
-          73.78,
-          120.28
-        ],
-        "rotation": [
-          0,
-          0,
-          0
-        ],
-        "scale": [
-          300.0,
-          3.72,
-          59.52
-        ]
-      },
-      "Components": {
-        "RenderComponent": {
-          "Mesh": "res/models/cube4.obj",
-          "Material": {
-            "ambient": [
-              0,
-              0,
-              0
-            ],
-            "diffuse": [
-              0.8,
-              0.8,
-              0.76
-            ],
-            "specular": [
-              0.2,
-              0.2,
-              0.2
-            ],
-            "shininess": 20.0,
-            "roughness": 0.8
-          }
-        },
-        "PhysicsComponent": {
-          "BoundingBodyType": [
-            "cube"
-          ],
-          "scale": [
-            300.0,
-            3.72,
-            59.52
-          ],
-          "mass": 0
-        }
-      }
-    },
-    {
-      "Transform": {
-        "position": [
-          0,
-          35.96,
-          151.9
-        ],
-        "rotation": [
-          0,
-          0,
-          0
-        ],
-        "scale": [
-          300.0,
-          71.92,
-          3.72
-        ]
-      },
-      "Components": {
-        "RenderComponent": {
-          "Mesh": "res/models/cube4.obj",
-          "Material": {
-            "ambient": [
-              0,
-              0,
-              0
-            ],
-            "diffuse": [
-              0.42,
-              0.5,
-              0.44
-            ],
-            "specular": [
-              0.2,
-              0.2,
-              0.2
-            ],
-            "shininess": 20.0,
-            "roughness": 0.85
-          }
-        },
-        "PhysicsComponent": {
-          "BoundingBodyType": [
-            "cube"
-          ],
-          "scale": [
-            300.0,
-            71.92,
-            3.72
-          ],
-          "mass": 0
-        }
-      }
-    },
-    {
-      "Transform": {
-        "position": [
-          0,
-          11.16,
-          149.84
-        ],
-        "rotation": [
-          0,
-          0,
-          0
-        ],
-        "scale": [
-          300.0,
-          22.32,
-          0.4
-        ]
-      },
-      "Components": {
-        "RenderComponent": {
-          "Mesh": "res/models/cube4.obj",
-          "Material": {
-            "ambient": [
-              0,
-              0,
-              0
-            ],
-            "diffuse": [
-              0.22,
-              0.27,
-              0.24
-            ],
-            "specular": [
-              0.2,
-              0.2,
-              0.2
-            ],
-            "shininess": 20.0,
-            "roughness": 0.6
-          },
-          "castShadow": false
-        }
-      }
-    },
-    {
-      "Transform": {
-        "position": [
-          -151.86,
-          35.96,
-          120.28
-        ],
-        "rotation": [
-          0,
-          0,
-          0
-        ],
-        "scale": [
-          3.72,
-          71.92,
-          59.52
-        ]
-      },
-      "Components": {
-        "RenderComponent": {
-          "Mesh": "res/models/cube4.obj",
-          "Material": {
-            "ambient": [
-              0,
-              0,
-              0
-            ],
-            "diffuse": [
-              0.42,
-              0.5,
-              0.44
-            ],
-            "specular": [
-              0.2,
-              0.2,
-              0.2
-            ],
-            "shininess": 20.0,
-            "roughness": 0.85
-          }
-        },
-        "PhysicsComponent": {
-          "BoundingBodyType": [
-            "cube"
-          ],
-          "scale": [
-            3.72,
-            71.92,
-            59.52
-          ],
-          "mass": 0
-        }
-      }
-    },
-    {
-      "Transform": {
-        "position": [
-          151.86,
-          35.96,
-          120.28
-        ],
-        "rotation": [
-          0,
-          0,
-          0
-        ],
-        "scale": [
-          3.72,
-          71.92,
-          59.52
-        ]
-      },
-      "Components": {
-        "RenderComponent": {
-          "Mesh": "res/models/cube4.obj",
-          "Material": {
-            "ambient": [
-              0,
-              0,
-              0
-            ],
-            "diffuse": [
-              0.42,
-              0.5,
-              0.44
-            ],
-            "specular": [
-              0.2,
-              0.2,
-              0.2
-            ],
-            "shininess": 20.0,
-            "roughness": 0.85
-          }
-        },
-        "PhysicsComponent": {
-          "BoundingBodyType": [
-            "cube"
-          ],
-          "scale": [
-            3.72,
-            71.92,
-            59.52
-          ],
-          "mass": 0
-        }
-      }
-    },
-    {
-      "Transform": {
-        "position": [
-          -43.09,
-          11.16,
-          90.72
-        ],
-        "rotation": [
-          0,
-          0,
-          0
-        ],
-        "scale": [
-          62.62,
-          22.32,
-          0.4
-        ]
-      },
-      "Components": {
-        "RenderComponent": {
-          "Mesh": "res/models/cube4.obj",
-          "Material": {
-            "ambient": [
-              0,
-              0,
-              0
-            ],
-            "diffuse": [
-              0.22,
-              0.27,
-              0.24
-            ],
-            "specular": [
-              0.2,
-              0.2,
-              0.2
-            ],
-            "shininess": 20.0,
-            "roughness": 0.6
-          },
-          "castShadow": false
-        }
-      }
-    },
-    {
-      "Transform": {
-        "position": [
-          43.09,
-          11.16,
-          90.72
-        ],
-        "rotation": [
-          0,
-          0,
-          0
-        ],
-        "scale": [
-          62.62,
-          22.32,
-          0.4
-        ]
-      },
-      "Components": {
-        "RenderComponent": {
-          "Mesh": "res/models/cube4.obj",
-          "Material": {
-            "ambient": [
-              0,
-              0,
-              0
-            ],
-            "diffuse": [
-              0.22,
-              0.27,
-              0.24
-            ],
-            "specular": [
-              0.2,
-              0.2,
-              0.2
-            ],
-            "shininess": 20.0,
-            "roughness": 0.6
-          },
-          "castShadow": false
-        }
-      }
     }
   ],
   "Lights": [
@@ -3970,6 +3567,9 @@
     },
     {
       "file": "Game/sequences/01_ward_door.json"
+    },
+    {
+      "file": "Game/sequences/01_ward_door_close.json"
     }
   ],
   "RoomAlive": {
@@ -4012,6 +3612,36 @@
           },
           {
             "event": "ward_door_unlocked"
+          },
+          {
+            "streamLevel": "Game/recursion/02_corridor_subject4.json",
+            "attach": {
+              "here": [
+                0,
+                0,
+                89.28
+              ],
+              "there": [
+                -31.74,
+                0,
+                198.4
+              ],
+              "turn": -90
+            },
+            "standIns": [
+              [
+                [
+                  -33.6,
+                  -1,
+                  186
+                ],
+                [
+                  -29.9,
+                  56,
+                  211
+                ]
+              ]
+            ]
           }
         ],
         "onWrong": [
@@ -4032,26 +3662,40 @@
       {
         "box": [
           [
-            -11.78,
+            -30,
             0,
-            87.2
+            96
           ],
           [
-            11.78,
-            60,
-            120
+            30,
+            70,
+            150
           ]
         ],
         "after": "ward_door_unlocked",
         "once": true,
         "on": [
           {
-            "loadLevel": "Game/recursion/02_corridor_subject4.json",
-            "entry": "from_ward",
-            "fade": 0.9
+            "event": "ward_door_closing"
+          }
+        ]
+      }
+    ],
+    "reactions": [
+      {
+        "event": "ward_door_shut",
+        "on": [
+          {
+            "unloadLevel": "self"
           }
         ]
       }
     ]
+  },
+  "Footsteps": {
+    "sound": "step_sneaker",
+    "variants": 10,
+    "volume": 0.8,
+    "stride": 30
   }
 }

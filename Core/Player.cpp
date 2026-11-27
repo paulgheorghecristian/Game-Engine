@@ -320,11 +320,12 @@ void Player::PlayerControllerComponent::playSounds(bool onGround, float groundY,
     }
     if (inWater && !m_wasInWater) {
         float strength = glm::clamp((m_fallSpeed + perSecond * 0.5f) / 250.0f, 0.25f, 1.0f);
-        audio->play("splash", strength, 0.95f + 0.1f * strength);
+        if (!steps.splash.empty()) audio->play(steps.splash, strength, 0.95f + 0.1f * strength);
     } else if (onGround && !m_wasOnGround && m_fallSpeed > 60.0f) {
         float strength = glm::clamp(m_fallSpeed / 250.0f, 0.5f, 1.0f);
-        if (inWater) audio->playVariant("wade", 3, strength);
-        else {
+        if (inWater) {
+            if (!steps.wade.empty()) audio->playVariant(steps.wade, steps.wadeVariants, strength);
+        } else if (!steps.sound.empty()) {
             /* a heavy landing: both feet at once, lower and louder (the map's
              * own step sound: sand, grass...) */
             audio->playVariant(steps.sound, steps.variants, steps.volume * (0.8f + 0.4f * strength), 0.04f, 0.8f);
@@ -340,12 +341,13 @@ void Player::PlayerControllerComponent::playSounds(bool onGround, float groundY,
         if (perSecond > 20.0f) {
             m_strideLeft -= horizontal;
             if (m_strideLeft <= 0.0f) {
-                /* walking ~85 units/s: a step every ~40; running, longer strides */
-                m_strideLeft += glm::mix(40.0f, 58.0f, glm::clamp((perSecond - 85.0f) / 85.0f, 0.0f, 1.0f));
+                /* a step every "stride" walking; running, longer strides */
+                m_strideLeft += steps.stride * glm::mix(1.0f, 1.45f, glm::clamp((perSecond - 85.0f) / 85.0f, 0.0f, 1.0f));
                 float loudness = glm::clamp(perSecond / 170.0f, 0.35f, 1.0f);
-                if (inWater) audio->playVariant("wade", 3, 0.5f * loudness);
-                else {
-                    audio->playVariant(steps.sound, steps.variants, steps.volume * loudness);
+                if (inWater) {
+                    if (!steps.wade.empty()) audio->playVariant(steps.wade, steps.wadeVariants, steps.wadeVolume * loudness);
+                } else {
+                    if (!steps.sound.empty()) audio->playVariant(steps.sound, steps.variants, steps.volume * loudness);
                     if (steps.dust != nullptr) {
                         /* kicked up where the foot lands, ahead (so it is seen in
                          * first person, settling as you walk through it) */

@@ -1,3 +1,5 @@
+#include <future>
+#include <semaphore>
 #include "RenderingObject.hpp"
 #include "Mesh.h"
 #include "Texture.h"
@@ -111,6 +113,67 @@ static std::unordered_map<std::string, RenderingObject *> &objectCache() {
     return cache;
 }
 
+/* model files being parsed ahead (RenderingObject::preload): each by its own importer, on a worker
+ * thread (an importer used by one thread at a time is safe) */
+static const unsigned int IMPORT_FLAGS = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
+    aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace | aiProcess_GenUVCoords |
+    aiProcess_RemoveRedundantMaterials | aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph;
+static std::unordered_map<std::string, std::shared_future<aiScene *>> &parsing() {
+    static std::unordered_map<std::string, std::shared_future<aiScene *>> pending;
+    return pending;
+}
+
+static bool madeBefore(const std::string &filename) {
+    for (const auto &entry : objectCache()) {
+        if (entry.first.compare(0, filename.size() + 1, filename + "|") == 0) return true;
+    }
+    return false;
+}
+
+void RenderingObject::preload(const std::string &filename) {
+    if (filename.compare(0, 2, "__") == 0 || madeBefore(filename) || parsing().count(filename)) return;
+    parsing()[filename] = std::async(std::launch::async, [filename]() {
+        static std::counting_semaphore<2> slots(2);     /* (a couple at a time) */
+        slots.acquire();
+        struct Release { ~Release() { slots.release(); } } release;
+        Assimp::Importer importer;
+        (void) importer.ReadFile(filename, IMPORT_FLAGS);
+        return importer.GetOrphanedScene();
+    }).share();
+}
+
+void RenderingObject::dropPreloaded(const std::string &filename) {
+    auto pending = parsing().find(filename);
+    if (pending == parsing().end()) return;
+    delete pending->second.get();
+    parsing().erase(pending);
+}
+
+void RenderingObject::forget(const std::string &filename) {
+    for (auto entry = objectCache().begin(); entry != objectCache().end();) {
+        if (entry->first.compare(0, filename.size() + 1, filename + "|") == 0) {
+            delete entry->second;
+            entry = objectCache().erase(entry);
+        } else {
+            ++entry;
+        }
+    }
+    dropPreloaded(filename);
+}
+
+void RenderingObject::clearCache() {
+    for (auto &entry : objectCache()) delete entry.second;
+    objectCache().clear();
+    for (auto &pending : parsing()) delete pending.second.get();
+    parsing().clear();
+}
+
+bool RenderingObject::ready(const std::string &filename) {
+    auto pending = parsing().find(filename);
+    return pending == parsing().end() ||
+           pending->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+}
+
 static RenderingObject *shareObject(RenderingObject &source, const std::string &filename, bool addMaterials) {
     RenderingObject *copy = new RenderingObject(filename, addMaterials);
     for (Mesh *mesh : source.getMeshes()) {
@@ -160,10 +223,14 @@ RenderingObject RenderingObject::loadObject(const std::string &filename, bool pr
 
     Assimp::Importer importer;
     aiScene *scene = NULL;
-    (void) importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
-                            aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace |
-                            aiProcess_GenUVCoords | aiProcess_RemoveRedundantMaterials | aiProcess_OptimizeMeshes |  aiProcess_OptimizeGraph);
-    scene = importer.GetOrphanedScene();
+    auto pending = parsing().find(filename);
+    if (pending != parsing().end()) {
+        scene = pending->second.get();          /* parsed ahead (waits if it is not done yet) */
+        parsing().erase(pending);
+    } else {
+        (void) importer.ReadFile(filename, IMPORT_FLAGS);
+        scene = importer.GetOrphanedScene();
+    }
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) 
     {
@@ -188,6 +255,12 @@ RenderingObject RenderingObject::loadObject(const std::string &filename, bool pr
     }
 
     AnimationLoader::destroy();
+    /* the parsed scene is ours (GetOrphanedScene): a skeleton keeps it (and deletes it); otherwise it
+     * is done with (it was never deleted: every model file's whole scene leaked) */
+    if (renderingObject.getSkeleton() == NULL) {
+        delete scene;
+        scene = NULL;
+    }
 
     if (cacheable && renderingObject.getSkeleton() == NULL) {
         objectCache()[cacheKey] = shareObject(renderingObject, filename, addMaterials);

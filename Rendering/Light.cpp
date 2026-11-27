@@ -297,6 +297,7 @@ std::string Light::jsonifyAttribs() {
 
 Light::~Light()
 {
+    if (m_ghostObj == NULL) return;         /* (a directional light has none: deleting it crashed) */
     PhysicsMaster::getInstance()->getWorld()->removeCollisionObject(m_ghostObj);
 
     UserData *uData = (UserData *) m_ghostObj->getUserPointer();

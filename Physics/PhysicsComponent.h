@@ -1,6 +1,8 @@
 #ifndef PHYSICSCOMPONENT_H
 #define PHYSICSCOMPONENT_H
 
+#include <memory>
+
 #include "Component.h"
 #include "Mesh.h"
 #include "glm/glm.hpp"
@@ -9,6 +11,7 @@
 #include "PhysicsMaster.h"
 
 class PhysicsMaster;
+struct UserData;
 
 class PhysicsComponent : public Component
 {
@@ -29,7 +32,7 @@ class PhysicsComponent : public Component
         void enable();
         void disable();
         const unsigned int getFlag() const;
-        btRigidBody *getRigidBody();
+        btRigidBody *getRigidBody() { return m_rigidBody.get(); }
         const glm::vec3 &getBoundingBodyScale();
 
         std::string jsonify() override;
@@ -48,10 +51,15 @@ class PhysicsComponent : public Component
 
         bool m_shouldUpdate;
 
-        btRigidBody *m_rigidBody;
         std::vector<int> indices;
         std::vector<btScalar> vertices;
-        btTriangleIndexVertexArray *m_boundingMeshData;
+        /* what the body is made of, owned here (declared before the body: it goes first, while what it
+         * points at is still there) */
+        std::unique_ptr<btTriangleIndexVertexArray> m_boundingMeshData;
+        std::unique_ptr<btCollisionShape> m_shape;
+        std::unique_ptr<btMotionState> m_motion;
+        std::unique_ptr<UserData> m_userData;
+        std::unique_ptr<btRigidBody> m_rigidBody;
 };
 
 #endif // PHYSICSCOMPONENT_H

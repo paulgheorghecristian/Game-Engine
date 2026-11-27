@@ -26,17 +26,7 @@ PhysicsMaster::PhysicsMaster(float gravity) : gravityAcc (gravity), quadTree(glm
                                         collisionConfig);
 
     world->setGravity(btVector3(0, gravity, 0));
-
-    t.setIdentity();
-    t.setOrigin(btVector3(0, 0, 0));
-
-    btStaticPlaneShape *plane = new btStaticPlaneShape(btVector3(0, 1, 0), btScalar(0));
-    btMotionState *motion = new btDefaultMotionState(t);
-    btRigidBody::btRigidBodyConstructionInfo info(0.0, motion, plane);
-    info.m_restitution = 0.7;
-    info.m_friction = 0.5;
-    planeRigidBody = new btRigidBody(info);
-    // world->addRigidBody(planeRigidBody);
+    /* (a ground plane was made here and never added to the world nor freed: gone) */
 }
 
 btGhostObject *PhysicsMaster::createBoxRigidBody(glm::vec3 position, glm::vec3 scale) {
@@ -54,6 +44,7 @@ btGhostObject *PhysicsMaster::createBoxRigidBody(glm::vec3 position, glm::vec3 s
     btGhostObject *rigidBody = new btGhostObject();
     rigidBody->setCollisionShape(collisionShape);
     rigidBody->setWorldTransform(t);
+    m_gridBodies.push_back(rigidBody);
     return rigidBody;
 }
 
@@ -497,24 +488,22 @@ std::size_t PhysicsMaster::findIdx(const glm::vec3 &thisPosition, bool &found) {
 }
 
 PhysicsMaster::~PhysicsMaster() {
-    /* TODO i think these are destroyed by world destr */
-    //delete planeRigidBody->getMotionState();
-    //delete planeRigidBody;
-
-    /*delete collisionConfig;
-    delete dispatcher;
-    delete broadsphase;
-    delete solver;*/
-
-    for (auto it: quadTreeBodies) {
-        btGhostObject *body = it.second;
-        UserData *uData = (UserData *) body->getUserPointer();
-
-        delete uData;
-        uData = NULL;
-
-        delete it.second;
-        it.second = NULL;
+    /* the path-finding grid's nodes: each its box, its user data (shared by a divided node and its
+     * first child: freed once) */
+    std::unordered_set<UserData *> userData;
+    for (btGhostObject *body : m_gridBodies) {
+        userData.insert((UserData *) body->getUserPointer());
+        if (body->getBroadphaseHandle() != NULL) world->removeCollisionObject(body);
+        delete body->getCollisionShape();
+        delete body;
     }
+    for (UserData *data : userData) delete data;
+    m_gridBodies.clear();
+    quadTreeBodies.clear();
+    /* the world, then what it was made with (it does not own them) */
     delete world;
+    delete solver;
+    delete broadsphase;
+    delete dispatcher;
+    delete collisionConfig;
 }

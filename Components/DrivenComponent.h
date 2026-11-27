@@ -36,6 +36,7 @@ class DrivenComponent : public Component
 
         std::string param, anchor;
         glm::vec3 pivot = glm::vec3(0.0f), rotate = glm::vec3(0.0f), move = glm::vec3(0.0f);
+        bool placed = false;                /* its level's placement applied (once) */
 
     private:
         std::string m_json;

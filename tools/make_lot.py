@@ -432,6 +432,7 @@ game = {
     "Audio": [{"sound": "wind_loop", "volume": 0.3, "follows": "wind"},
               {"sound": "crickets_loop", "volume": 0.12, "follows": "night"}] + fire_sounds,
     "Footsteps": {"sound": "step_sand", "variants": 6, "volume": 0.9, "dustPerStep": 4,
+                  "wade": "wade", "wadeVariants": 3, "splash": "splash",   # the pond
                   "dust": {"type": "spray", "burst": True, "texture": "res/textures/smoke.png", "atlas": [8, 5],
                            "count": 60, "lifetimeMs": 900, "position": [0, 0, 0], "radius": 4,
                            "direction": [0, 1, 0], "spread": 0.9, "speed": [8, 22], "gravity": -22,

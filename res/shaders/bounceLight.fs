@@ -24,8 +24,8 @@ uniform bool pbrEnabled;
 uniform float emissiveStrength;
 uniform float frame;
 
-const int RAYS = 8;
-const int STEPS = 10;
+const int RAYS = 5;
+const int STEPS = 8;
 
 vec3 viewPosition(vec2 uv) {
     float d = textureLod(depthSampler, uv, 0.0).r;

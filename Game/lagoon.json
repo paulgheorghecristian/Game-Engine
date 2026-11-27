@@ -150,6 +150,13 @@
   "softEdge": 3,
   "reflectivity": 1.0
  },
+ "Footsteps": {
+  "sound": "step_grass",
+  "variants": 6,
+  "wade": "wade",
+  "wadeVariants": 3,
+  "splash": "splash"
+ },
  "BlackHoles": [
   {
    "sky": true,
@@ -161,6 +168,12 @@
    ],
    "angularRadius": 0.03,
    "kugelblitz": true,
+   "blastSound": "blast",
+   "boomSounds": [
+    "boom_1",
+    "boom_2",
+    "boom_3"
+   ],
    "collapse": 0.0,
    "collapseSpeed": 5.0,
    "collapseDelay": 3.0,

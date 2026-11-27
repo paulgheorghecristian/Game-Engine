@@ -6,9 +6,7 @@ PhysicsComponent::PhysicsComponent(BoundingBodyType type, glm::vec3 scale,
                                     float mass, bool shouldUpdate, Mesh *mesh) : type(type),
                                                                     boundingBodyScale(scale),
                                                                     bodyMass(mass),
-                                                                    m_rigidBody(NULL),
-                                                                    m_shouldUpdate(shouldUpdate),
-                                                                    m_boundingMeshData(nullptr) {
+                                                                    m_shouldUpdate(shouldUpdate) {
     /* TODO maybe I want to take scale from entity as default?*/
     if ((type == BoundingBodyType::MESH &&
         mesh == nullptr) ||
@@ -96,6 +94,7 @@ void PhysicsComponent::enable() {
     }
 
     m_rigidBody->setCollisionShape(newCollisionShape);
+    m_shape.reset(newCollisionShape);       /* (the old one went with nothing pointing at it: it leaked) */
 
     t.setOrigin(btVector3(pos.x, pos.y, pos.z));
     t.setRotation (btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
@@ -103,13 +102,13 @@ void PhysicsComponent::enable() {
     m_rigidBody->setCenterOfMassTransform(t);
     m_rigidBody->activate(true);
 
-    PhysicsMaster::getInstance()->getWorld()->addRigidBody(m_rigidBody);
+    PhysicsMaster::getInstance()->getWorld()->addRigidBody(m_rigidBody.get());
 
     Component::enable();
 }
 
 void PhysicsComponent::disable() {
-    PhysicsMaster::getInstance()->getWorld()->removeRigidBody(m_rigidBody);
+    PhysicsMaster::getInstance()->getWorld()->removeRigidBody(m_rigidBody.get());
     m_rigidBody->setCollisionFlags(m_rigidBody->getCollisionFlags() |
                               btCollisionObject::CF_NO_CONTACT_RESPONSE);
 
@@ -123,7 +122,7 @@ void PhysicsComponent::init() {
     btVector3 inertia(0, 0, 0);
     const glm::vec3 &position = _entity->getTransform().getPosition();
     const glm::quat &rotation = _entity->getTransform().getRotation();
-    btCollisionShape *collisionShape;
+    btCollisionShape *collisionShape = nullptr;
 
     t.setIdentity();
     t.setOrigin (btVector3(position.x, position.y, position.z));
@@ -145,14 +144,14 @@ void PhysicsComponent::init() {
             break;
         case BoundingBodyType::MESH:
             if (m_boundingMeshData == nullptr) {
-                m_boundingMeshData = new btTriangleIndexVertexArray(indices.size() / 3,
-                                                                    indices.data(),
-                                                                    3 * sizeof(int),
-                                                                    vertices.size(),
-                                                                    vertices.data(),
-                                                                    3 * sizeof(float));
+                m_boundingMeshData.reset(new btTriangleIndexVertexArray(indices.size() / 3,
+                                                                        indices.data(),
+                                                                        3 * sizeof(int),
+                                                                        vertices.size(),
+                                                                        vertices.data(),
+                                                                        3 * sizeof(float)));
             }
-            collisionShape = new btBvhTriangleMeshShape(m_boundingMeshData, true, true);
+            collisionShape = new btBvhTriangleMeshShape(m_boundingMeshData.get(), true, true);
             break;
         default:
             assert (false);
@@ -161,29 +160,26 @@ void PhysicsComponent::init() {
     if (bodyMass != 0.0) {
         collisionShape->calculateLocalInertia(btScalar(bodyMass), inertia);
     }
-    btMotionState *motion = new btDefaultMotionState(t);
-    btRigidBody::btRigidBodyConstructionInfo info(bodyMass, motion, collisionShape, inertia);
+    m_shape.reset(collisionShape);
+    /* (the motion state was never deleted with the body: one leaked with every body taken out) */
+    m_motion.reset(new btDefaultMotionState(t));
+    btRigidBody::btRigidBodyConstructionInfo info(bodyMass, m_motion.get(), m_shape.get(), inertia);
     info.m_restitution = 0.5f;
     info.m_friction = 0.5f;
 
-    m_rigidBody = new btRigidBody(info);
+    m_rigidBody.reset(new btRigidBody(info));
     m_rigidBody->setDamping(btScalar(0.1), btScalar(0.1));
 
-    UserData *userData = new UserData();
+    m_userData.reset(new UserData());
+    m_userData->type = PointerType::PHYSICS_BODY;
+    m_userData->pointer.entity = _entity;
+    m_rigidBody->setUserPointer((void *) m_userData.get());
 
-    userData->type = PointerType::PHYSICS_BODY;
-    userData->pointer.entity = _entity;
-    m_rigidBody->setUserPointer((void *) userData);
-
-    PhysicsMaster::getInstance()->getWorld()->addRigidBody(m_rigidBody);
+    PhysicsMaster::getInstance()->getWorld()->addRigidBody(m_rigidBody.get());
 }
 
 const unsigned int PhysicsComponent::getFlag() const {
     return Entity::Flags::DYNAMIC;
-}
-
-btRigidBody *PhysicsComponent::getRigidBody() {
-    return m_rigidBody;
 }
 
 const glm::vec3 &PhysicsComponent::getBoundingBodyScale() {
@@ -213,20 +209,6 @@ std::string PhysicsComponent::jsonify() {
 }
 
 PhysicsComponent::~PhysicsComponent() {
-    PhysicsMaster::getInstance()->getWorld()->removeRigidBody(m_rigidBody);
-
-    btCollisionShape *collisionShape = m_rigidBody->getCollisionShape();
-    UserData *uData = (UserData *) m_rigidBody->getUserPointer();
-
-    delete collisionShape;
-    collisionShape = NULL;
- 
-    delete uData;
-    uData = NULL;
-
-    delete m_rigidBody;
-    m_rigidBody = NULL;
-
-    delete m_boundingMeshData;
-    m_boundingMeshData = nullptr;
+    /* out of the world; then its parts are freed by their owners (the body first) */
+    if (m_rigidBody) PhysicsMaster::getInstance()->getWorld()->removeRigidBody(m_rigidBody.get());
 }

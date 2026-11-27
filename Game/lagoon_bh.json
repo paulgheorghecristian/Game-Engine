@@ -4888,5 +4888,12 @@
    "fadeIn": 0.4,
    "nightOnly": true
   }
- ]
+ ],
+ "Footsteps": {
+  "sound": "step_grass",
+  "variants": 6,
+  "wade": "wade",
+  "wadeVariants": 3,
+  "splash": "splash"
+ }
 }

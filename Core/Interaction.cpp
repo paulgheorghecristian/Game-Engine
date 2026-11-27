@@ -1,5 +1,6 @@
 #include "Interaction.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -45,8 +46,13 @@ static void preload(const rapidjson::Value &actions)
     }
 }
 
-void Interaction::load(const rapidjson::Value &map, const std::vector<Entity *> &entities)
+void Interaction::load(const rapidjson::Value &map, const std::vector<Entity *> &entities, const Placement &place)
 {
+    m_place = place;
+    m_reactions.clear();
+    m_requests.clear();
+    m_aimed = nullptr;
+    rapidjson::Document().Swap(m_document);     /* (a fresh one: SetObject kept the old pool's memory) */
     m_document.SetObject();
     auto &allocator = m_document.GetAllocator();
     m_locks.clear();
@@ -55,7 +61,8 @@ void Interaction::load(const rapidjson::Value &map, const std::vector<Entity *> 
     m_driven.clear();
     m_events.clear();
     m_json.clear();
-    s_holding = false;
+    /* (s_holding: the player is held by whichever level is leaving; one level loading must not free
+     * them while another fades out) */
 
     if (map.IsObject() && map.HasMember("Interaction") && map["Interaction"].IsObject()) {
         const rapidjson::Value &block = map["Interaction"];
@@ -93,8 +100,14 @@ void Interaction::load(const rapidjson::Value &map, const std::vector<Entity *> 
                 }
                 Trigger trigger;
                 glm::vec3 a = readVec3(json["box"][0]), b = readVec3(json["box"][1]);
-                trigger.low = glm::min(a, b);
-                trigger.high = glm::max(a, b);
+                /* (where the level is in the world: the box round its turned corners) */
+                trigger.low = glm::vec3(1e9f);
+                trigger.high = glm::vec3(-1e9f);
+                for (int corner = 0; corner < 8; corner++) {
+                    glm::vec3 c((corner & 1) ? a.x : b.x, (corner & 2) ? a.y : b.y, (corner & 4) ? a.z : b.z);
+                    trigger.low = glm::min(trigger.low, place.point(c));
+                    trigger.high = glm::max(trigger.high, place.point(c));
+                }
                 trigger.after = readString(json, "after");
                 trigger.once = !(json.HasMember("once") && json["once"].IsBool() && !json["once"].GetBool());
                 trigger.on.SetArray();
@@ -103,17 +116,63 @@ void Interaction::load(const rapidjson::Value &map, const std::vector<Entity *> 
                 m_triggers.push_back(std::move(trigger));
             }
         }
+        if (block.HasMember("reactions") && block["reactions"].IsArray()) {
+            for (const auto &json : block["reactions"].GetArray()) {
+                std::string event = readString(json, "event");
+                if (event.empty() || !json.HasMember("on")) continue;
+                rapidjson::Value on;
+                on.CopyFrom(json["on"], allocator);
+                preload(on);
+                m_reactions.emplace_back(event, std::move(on));
+            }
+        }
     }
 
-    for (Entity *entity : entities) {
-        if (PressableComponent *pressable = (PressableComponent *) entity->getComponent(Entity::Flags::PRESSABLE)) {
-            m_pressables.push_back(pressable);
-            preload(pressable->actions());
+    for (Entity *entity : entities) adopt(entity);
+}
+
+void Interaction::adopt(Entity *entity)
+{
+    if (PressableComponent *pressable = (PressableComponent *) entity->getComponent(Entity::Flags::PRESSABLE)) {
+        if (!pressable->placed) {
+            pressable->travel = m_place.direction(pressable->travel);   /* (turned with its level) */
+            pressable->placed = true;
         }
-        if (DrivenComponent *driven = (DrivenComponent *) entity->getComponent(Entity::Flags::DRIVEN)) {
-            m_driven.push_back(driven);
-        }
+        m_pressables.push_back(pressable);
+        preload(pressable->actions());
     }
+    if (DrivenComponent *driven = (DrivenComponent *) entity->getComponent(Entity::Flags::DRIVEN)) {
+        if (!driven->placed) {
+            /* its hinge and how it turns and moves, where its level is in the world */
+            driven->pivot = m_place.point(driven->pivot);
+            driven->rotate = m_place.direction(driven->rotate);
+            driven->move = m_place.direction(driven->move);
+            driven->placed = true;
+        }
+        m_driven.push_back(driven);
+    }
+}
+
+void Interaction::forget(Entity *entity)
+{
+    m_pressables.erase(std::remove_if(m_pressables.begin(), m_pressables.end(),
+                                      [entity](PressableComponent *p) { return p->getEntity() == entity; }),
+                       m_pressables.end());
+    m_driven.erase(std::remove_if(m_driven.begin(), m_driven.end(),
+                                  [entity](DrivenComponent *d) { return d->getEntity() == entity; }),
+                   m_driven.end());
+    if (m_aimed != nullptr && m_aimed->getEntity() == entity) m_aimed = nullptr;
+}
+
+float Interaction::aimedDistance() const
+{
+    return m_aimed != nullptr ? m_aimedAt : 1e9f;
+}
+
+void Interaction::yieldAim()
+{
+    m_aimed = nullptr;
+    m_aimTarget = 0.0f;
 }
 
 bool Interaction::entry(const rapidjson::Value &map, const std::string &name, glm::vec3 &position, float &yaw,
@@ -155,6 +214,18 @@ void Interaction::signal(const std::string &event, Timeline &timeline)
 {
     m_events.insert(event);
     timeline.signal(event);
+    if (m_signalDepth > 8) return;
+    m_signalDepth++;
+    for (auto &reaction : m_reactions) {
+        if (reaction.first == event) run(reaction.second, nullptr, timeline, m_lastFrame);
+    }
+    m_signalDepth--;
+}
+
+glm::vec3 Interaction::placed(const rapidjson::Value &at, const glm::vec3 &fallback) const
+{
+    if (!at.IsArray() || at.Size() != 3) return fallback;
+    return m_place.point(readVec3(at));
 }
 
 void Interaction::run(const rapidjson::Value &actions, Entity *source, Timeline &timeline, float time)
@@ -165,8 +236,8 @@ void Interaction::run(const rapidjson::Value &actions, Entity *source, Timeline 
         if (action.HasMember("sound") && action["sound"].IsString()) {
             std::string sound = action["sound"].GetString();
             float volume = readFloat(action, "volume", 1.0f), pitch = readFloat(action, "pitch", 1.0f);
-            bool placed = action.HasMember("at") || source != nullptr;
-            if (placed) {
+            bool spatial = action.HasMember("at") || source != nullptr;
+            if (spatial) {
                 glm::vec3 at = source != nullptr ? source->getTransform().getPosition() : glm::vec3(0.0f);
                 if (source != nullptr) {
                     /* (a pressed thing's middle: its mesh may be placed in the world, at an origin of 0) */
@@ -176,7 +247,7 @@ void Interaction::run(const rapidjson::Value &actions, Entity *source, Timeline 
                         at = glm::vec3(source->getTransform().getModelMatrix() * glm::vec4((low + high) * 0.5f, 1.0f));
                     }
                 }
-                if (action.HasMember("at")) at = readVec3(action["at"], at);
+                if (action.HasMember("at")) at = placed(action["at"], at);
                 AudioMaster::getInstance()->play3D(sound, at, volume, readFloat(action, "radius", 300.0f), pitch);
             } else {
                 AudioMaster::getInstance()->play(sound, volume, pitch);
@@ -187,6 +258,15 @@ void Interaction::run(const rapidjson::Value &actions, Entity *source, Timeline 
         }
         if (action.HasMember("event") && action["event"].IsString()) {
             signal(action["event"].GetString(), timeline);
+        }
+        if (action.HasMember("streamLevel") && action["streamLevel"].IsString()) {
+            rapidjson::StringBuffer buffer;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+            action.Accept(writer);
+            m_requests.push_back({"stream", buffer.GetString()});
+        }
+        if (action.HasMember("unloadLevel") && action["unloadLevel"].IsString()) {
+            m_requests.push_back({"unload", action["unloadLevel"].GetString()});
         }
         if (action.HasMember("loadLevel") && action["loadLevel"].IsString() && m_levelPath.empty()) {
             m_levelPath = action["loadLevel"].GetString();
@@ -254,6 +334,11 @@ void Interaction::frame(Camera *camera, Timeline &timeline, float time, btRigidB
     float dt = m_lastFrame < 0.0f ? 0.0f : std::max(time - m_lastFrame, 0.0f);
     m_lastFrame = time;
 
+    /* what the level's timeline fired this frame: events like any other (reactions) */
+    for (const std::string &event : timeline.firedList()) {
+        if (!m_events.count(event)) signal(event, timeline);
+    }
+
     /* what is aimed at: the nearest pressable the middle of the screen is on */
     const glm::vec3 eye = camera->getPosition(), direction = glm::normalize(camera->getForward());
     PressableComponent *nearest = nullptr;
@@ -293,6 +378,7 @@ void Interaction::frame(Camera *camera, Timeline &timeline, float time, btRigidB
         if (free) {
             if (nearestDistance <= nearest->reach && !s_holding) {
                 m_aimed = nearest;
+                m_aimedAt = nearestDistance;
                 m_aimTarget = 1.0f;
             } else {
                 m_aimTarget = 0.3f;             /* close, not yet within reach */

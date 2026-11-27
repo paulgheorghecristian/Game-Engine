@@ -8,6 +8,8 @@
 #include "glm/glm.hpp"
 #include "rapidjson/document.h"
 
+#include "Placement.h"
+
 class Camera;
 class DrivenComponent;
 class Entity;
@@ -27,8 +29,12 @@ class btRigidBody;
  *     "triggers": [{"box": [[x0, y0, z0], [x1, y1, z1]], "after": "ward_door_unlocked", "once": true,
  *                   "on": [actions]}],
  *     "entries": {"from_ward": {"position": [x, y, z], "yaw": 0, "pitch": 0, "fadeIn": 1.2,
- *                               "event": "arrived_from_ward", "on": [actions]}}
+ *                               "event": "arrived_from_ward", "on": [actions]}},
+ *     "reactions": [{"event": "ward_door_shut", "on": [actions]}]
  *   }
+ *
+ * A reaction runs when its event happens: signalled by an action, or fired by the level's timeline
+ * (a sequence's "events").
  *
  * Actions (a press's "on", a lock's, a trigger's), each one of:
  *   {"sound": "keypad_beep", "volume": 0.5, "pitch": 1, "at": [x, y, z], "radius": 300}
@@ -39,6 +45,12 @@ class btRigidBody;
  *        the triggers waiting for it ("after") are armed
  *   {"loadLevel": "Game/recursion/02_corridor_subject4.json", "entry": "from_ward", "fade": 0.9}
  *        the picture and sound fade out, the player held still, then that level, in by that entry
+ *   {"streamLevel": "Game/recursion/02_corridor_subject4.json", "attach": {...}, "standIns": [[lo, hi]]}
+ *        that level streamed in beside this one, as the player plays on (Core/LevelStreaming.cpp):
+ *        placed by "attach" (Core/Placement.h); its entities inside the "standIns" boxes (its own
+ *        coordinates) only once this level is gone (its own door where this one's stood)
+ *   {"unloadLevel": "self"}                  this level taken out of the world (when the player is
+ *        not in it: it cannot be reached any more)
  *
  * A trigger's box is in the world; the player's eye inside it sets it off. An entry's "on" runs as
  * the player comes in (the door shutting behind); its fade-in is the picture's only (what is heard
@@ -47,8 +59,10 @@ class btRigidBody;
 class Interaction
 {
     public:
-        /* the map's "Interaction" block (if any), and its entities' pressables and driven things */
-        void load(const rapidjson::Value &map, const std::vector<Entity *> &entities);
+        /* the map's "Interaction" block (if any), and its entities' pressables and driven things;
+         * place: where the level is in the world (its trigger boxes and places moved with it) */
+        void load(const rapidjson::Value &map, const std::vector<Entity *> &entities,
+                  const Placement &place = Placement());
         /* the block as loaded (saved with the map) */
         const std::string &json() const { return m_json; }
 
@@ -57,6 +71,15 @@ class Interaction
                           float &yaw, float &pitch);
         /* the player came in by that entry: its fade-in, its event */
         void arrive(const rapidjson::Value &map, const std::string &name, Timeline &timeline);
+
+        /* an entity of the level built later (a stand-in): what can be pressed or moved on it, placed */
+        void adopt(Entity *entity);
+        /* an entity deleted: forgotten here */
+        void forget(Entity *entity);
+        /* how far the pressable aimed at is (a large number: none); another level's nearer: this one
+         * gives it up (one click presses one thing) */
+        float aimedDistance() const;
+        void yieldAim();
 
         /* once a tick: a left click (the mouse held for looking round: playing) presses what is aimed at */
         void input(Input &input, Timeline &timeline, float time);
@@ -75,6 +98,11 @@ class Interaction
         /* the player held still (leaving a level) */
         static bool holdsPlayer() { return s_holding; }
 
+        /* what the engine is asked to do: stream a level in ("streamLevel": the action, as JSON), take
+         * this one out ("unloadLevel") */
+        struct Request { std::string kind; std::string json; };
+        std::vector<Request> takeRequests() { std::vector<Request> out; out.swap(m_requests); return out; }
+
     private:
         struct Lock {
             std::string name, code, clear = "*", enter = "#", typed;
@@ -91,6 +119,7 @@ class Interaction
         void run(const rapidjson::Value &actions, Entity *source, Timeline &timeline, float time);
         void key(const std::string &lockName, const std::string &key, Timeline &timeline, float time);
         void signal(const std::string &event, Timeline &timeline);
+        glm::vec3 placed(const rapidjson::Value &at, const glm::vec3 &fallback) const;
 
         rapidjson::Document m_document;        /* (owns the actions' JSON) */
         std::string m_json;
@@ -99,8 +128,13 @@ class Interaction
         std::vector<PressableComponent *> m_pressables;
         std::vector<DrivenComponent *> m_driven;
         std::set<std::string> m_events;        /* what has happened (for "after") */
+        std::vector<std::pair<std::string, rapidjson::Value>> m_reactions;   /* event -> actions */
+        std::vector<Request> m_requests;
+        Placement m_place;
+        int m_signalDepth = 0;                 /* (reactions signalling events: not for ever) */
 
         PressableComponent *m_aimed = nullptr;  /* within reach, now */
+        float m_aimedAt = 1e9f;                 /* (how far) */
         float m_aimTarget = 0.0f, m_aimShown = 0.0f, m_lastFrame = -1.0f, m_pressedAt = -100.0f;
 
         bool m_fadeEnded = false;

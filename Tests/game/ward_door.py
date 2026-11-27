@@ -1,18 +1,21 @@
 """Plays level 1's way out as a player would, and checks it: standing at the ward door's keypad, a
-wrong code is typed (refused), then 0314 (the door swings open), then the player walks out through
-the door and comes into the corridor (02_corridor_subject4) by its "from_ward" entry.
+wrong code is typed (refused), then 0314: the door swings open and the corridor (02_corridor_subject4)
+streams in beyond it, where it really is. The player walks out through the door and down the corridor;
+the door's closer shuts it behind them, and the ward, out of reach, is taken out of the world (the
+corridor's own door standing where the ward's did). All in one run of the engine: no loading.
 
     python3 Tests/game/ward_door.py [--out DIR]
 
 The engine runs a scripted benchmark (GE_SCENARIO=script, the steps written below): it opens a window
 for about half a minute. Pictures of the way go to DIR (a new temporary folder if not given):
-aim_key.png (the aim on a key), door_opening.png, door_open.png, walking_out.png, corridor.png.
-Exit code 0 when everything checked out.
+aim_key.png (the aim on a key), door_opening.png, door_open.png (the corridor through it),
+in_corridor.png, door_shut.png (looking back once the ward is gone). Exit code 0 when all checked out.
 """
 import argparse, json, os, re, subprocess, sys, tempfile
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 LEVEL = 'Game/recursion/01_beginning_astra.json'
+CORRIDOR = 'Game/recursion/02_corridor_subject4.json'
 
 # the keys' middles (Game/recursion/astra/room_keypad_print_keypad_key_*.obj: the faces at z 84.6)
 KEY = {'0': (18.6, 30.71), '1': (19.53, 33.35), '2': (18.6, 33.35), '3': (17.67, 33.35),
@@ -25,31 +28,32 @@ def script(out):
     for code in ('1111', '0314'):
         for digit in code:
             x, y = KEY[digit]
-            steps.append({'frame': frame, 'look': [x, y, 84.6], 'map': '01_beginning'})
-            steps.append({'frame': frame + 9, 'print': True, 'map': '01_beginning'})
+            steps.append({'frame': frame, 'look': [x, y, 84.6]})
+            steps.append({'frame': frame + 9, 'print': True})
             if frame == 40:
-                steps.append({'frame': frame + 9, 'shot': os.path.join(out, 'aim_key.png'), 'map': '01_beginning'})
-            steps.append({'frame': frame + 10, 'click': True, 'map': '01_beginning'})
-            steps.append({'frame': frame + 13, 'print': True, 'map': '01_beginning'})
+                steps.append({'frame': frame + 9, 'shot': os.path.join(out, 'aim_key.png')})
+            steps.append({'frame': frame + 10, 'click': True})
+            steps.append({'frame': frame + 13, 'print': True})
             frame += 20
         frame += 40
     for k in range(-30, 120, 5):            # the code's answer, the door unlocking and starting to move
-        steps.append({'frame': frame + k, 'print': True, 'map': '01_beginning'})
-    steps.append({'frame': frame + 60, 'shot': os.path.join(out, 'door_opening.png'), 'map': '01_beginning'})
-    # out through the doorway (its middle, beyond the wall)
+        steps.append({'frame': frame + k, 'print': True})
+    steps.append({'frame': frame + 60, 'shot': os.path.join(out, 'door_opening.png')})
+    # out through the doorway (its middle, beyond the wall), into the corridor
     walk = frame + 320
-    steps.append({'frame': walk - 20, 'look': [0, 31, 100], 'map': '01_beginning'})
-    steps.append({'frame': walk - 10, 'shot': os.path.join(out, 'door_open.png'), 'map': '01_beginning'})
-    steps.append({'frame': walk, 'hold': 'w', 'frames': 400, 'map': '01_beginning'})
-    for k in range(0, 400, 20):
-        steps.append({'frame': walk + k, 'print': True, 'map': '01_beginning'})
-    steps.append({'frame': walk + 60, 'shot': os.path.join(out, 'walking_out.png'), 'map': '01_beginning'})
-    # in the corridor: where the player is, after the fade in
-    steps.append({'frame': 3, 'print': True, 'map': '02_corridor'})
-    steps.append({'frame': 20, 'print': True, 'map': '02_corridor'})
-    steps.append({'frame': 150, 'print': True, 'map': '02_corridor'})
-    steps.append({'frame': 150, 'shot': os.path.join(out, 'corridor.png'), 'map': '02_corridor'})
-    return steps, walk + 450
+    steps.append({'frame': walk - 20, 'look': [0, 31, 120]})
+    steps.append({'frame': walk - 10, 'shot': os.path.join(out, 'door_open.png')})
+    steps.append({'frame': walk, 'hold': 'w', 'frames': 150})
+    # then down the corridor (it runs along x here: towards the exit sign at +x)
+    steps.append({'frame': walk + 150, 'look': [300, 31, 120]})
+    steps.append({'frame': walk + 152, 'hold': 'w', 'frames': 160})
+    steps.append({'frame': walk + 250, 'shot': os.path.join(out, 'in_corridor.png')})
+    for k in range(0, 700, 20):
+        steps.append({'frame': walk + k, 'print': True})
+    # back to where the door is (the ward gone by now)
+    steps.append({'frame': walk + 600, 'look': [0, 31, 89]})
+    steps.append({'frame': walk + 640, 'shot': os.path.join(out, 'door_shut.png')})
+    return steps, walk + 700
 
 
 def main():
@@ -65,6 +69,7 @@ def main():
 
     env = dict(os.environ, GE_SKIP_MENU='1', GE_SKIP_ANIM='1', GE_BENCH=str(frames), GE_SCENARIO='script',
                GE_SCRIPT=script_path, GE_START='18.6,31,64,180,0', GE_SIZE='1280x720',
+               GE_BENCH_SPIKES='40',
                # the sounds mixed (to check what is heard) on SDL's silent device, not the speakers
                GE_AUDIO='1', SDL_AUDIODRIVER='dummy')
     env.pop('GE_ENTRY', None)
@@ -83,14 +88,21 @@ def main():
     for sound in ('keypad_beep', 'keypad_deny', 'keypad_accept', 'door_unlock', 'door_open', 'door_close'):
         if sound not in heard:
             failures.append('%s not heard' % sound)
-    if 'To Game/recursion/02_corridor_subject4.json by from_ward' not in log:
-        failures.append('the player did not leave through the door to the corridor')
-    corridor = prints[-2:] if len(prints) >= 2 else []
-    if not corridor or abs(corridor[-1][0] - (-19.84)) > 6 or abs(corridor[-1][2] - 198.4) > 6:
-        failures.append('not in the corridor by its from_ward entry (last: %s)' % (corridor[-1:] or 'nothing'))
-    elif corridor[-1][4] >= 0:
-        failures.append('still fading in at the end (%.2f)' % corridor[-1][4])
-    for name in ('aim_key', 'door_opening', 'door_open', 'walking_out', 'corridor'):
+    for said, what in (('Streamed in ' + CORRIDOR, 'the corridor did not stream in'),
+                       ('In ' + CORRIDOR, 'the player was never in the corridor'),
+                       ('Taking out ' + LEVEL, 'the ward was not taken out once its door shut')):
+        if said not in log:
+            failures.append(what)
+    if 'To Game/' in log:
+        failures.append('a level was loaded the old way (the engine restarted)')
+    if prints:
+        x, y, z = prints[-1][:3]
+        if z < 95 or y < 20:
+            failures.append('not in the corridor at the end (%.1f %.1f %.1f)' % (x, y, z))
+    spikes = re.findall(r'SPIKE frame (\d+) ([\d.]+)ms', log)
+    if spikes:
+        failures.append('frames over 40 ms: %s' % spikes[:5])
+    for name in ('aim_key', 'door_opening', 'door_open', 'in_corridor', 'door_shut'):
         if not os.path.exists(os.path.join(out, name + '.png')):
             failures.append('no picture %s.png' % name)
 

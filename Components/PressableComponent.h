@@ -41,6 +41,7 @@ class PressableComponent : public Component
         /* the press going in and out (Core/Interaction): when it was pressed, where it rests */
         float pressedAt = -1.0f;
         bool hasRest = false;
+        bool placed = false;                /* its level's placement applied to travel (once) */
         glm::vec3 rest = glm::vec3(0.0f);
 
     private:
